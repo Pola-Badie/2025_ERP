@@ -351,13 +351,13 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-2 text-sm">Acetylsalicylic acid 100mg</td>
+                        <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
-                            EXPIRED
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-orange-500 text-white">
+                            NEAR
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-sm">15 July 2024</td>
+                        <td className="px-4 py-2 text-sm">15 Dec 2024</td>
                       </tr>
                       <tr>
                         <td className="px-4 py-2 text-sm">Metformin 850mg</td>
