@@ -96,29 +96,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).from(sales).where(gte(sales.date, firstDayOfMonth));
       
       // Get low stock products
-      const lowStockProducts = await db.select()
-        .from(products)
-        .where(sql`${products.quantity} <= ${products.lowStockThreshold}`)
-        .limit(5);
+      const lowStockProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        quantity: products.quantity,
+        status: products.status
+      })
+      .from(products)
+      .where(
+        sql`${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock'`
+      )
+      .limit(5);
       
       // Get expiring products
       const expiryLimit = new Date();
-      expiryLimit.setDate(expiryLimit.getDate() + 30); // next 30 days
+      expiryLimit.setDate(expiryLimit.getDate() + 90); // next 90 days
       
-      const expiringProducts = await db.select()
-        .from(products)
-        .where(and(
-          sql`${products.expiryDate} IS NOT NULL`,
-          sql`${products.expiryDate} <= ${expiryLimit}`,
-          sql`${products.status} != 'expired'`
-        ))
-        .limit(5);
+      const expiringProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        expiryDate: products.expiryDate,
+        status: products.status
+      })
+      .from(products)
+      .where(
+        sql`${products.expiryDate} IS NOT NULL AND ${products.expiryDate} <= ${expiryLimit}`
+      )
+      .orderBy(products.expiryDate)
+      .limit(5);
+      
+      // Format the response
+      const totalCustomers = Number(customersResult.count) || 0;
+      const newCustomers = Number(newCustomersResult.count) || 0;
+      const todaySales = Number(todaySalesResult.total) || 0;
+      const monthSales = Number(monthSalesResult.total) || 0;
       
       res.json({
-        totalCustomers: customersResult.count,
-        newCustomers: newCustomersResult.count,
-        todaySales: Number(todaySalesResult.total) || 0,
-        monthSales: Number(monthSalesResult.total) || 0,
+        totalCustomers,
+        newCustomers,
+        todaySales,
+        monthSales,
         lowStockProducts,
         expiringProducts
       });
