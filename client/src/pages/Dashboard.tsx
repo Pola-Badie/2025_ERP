@@ -73,8 +73,12 @@ const Dashboard: React.FC = () => {
     queryKey: ['/api/dashboard/summary'],
     queryFn: async () => {
       try {
-        const data = await apiRequest('/api/dashboard/summary') as DashboardSummary;
-        return data;
+        const response = await fetch('/api/dashboard/summary');
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard data');
+        }
+        const data = await response.json();
+        return data as DashboardSummary;
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         // Return default data structure with zeros
@@ -461,7 +465,7 @@ const Dashboard: React.FC = () => {
                       </tr>
                     </>
                   ) : (
-                    dashboardData?.lowStockProducts?.map((product) => (
+                    dashboardData?.lowStockProducts?.map((product: Product) => (
                       <tr key={product.id} className="border-b border-gray-100">
                         <td className="px-4 py-2 text-sm">{product.drugName}</td>
                         <td className="px-4 py-2">
