@@ -336,34 +336,34 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Panadol Advance</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
-                            Expired
+                            EXP
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">20 May 2024</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-2 text-sm">Cataflam 500 mg</td>
+                        <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
-                            Expired
+                            EXP
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-2 text-sm">Colona</td>
+                        <td className="px-4 py-2 text-sm">Acetylsalicylic acid 100mg</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
-                            Expired
+                            EXP
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">15 July 2024</td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-2 text-sm">Spasmodigestin</td>
+                        <td className="px-4 py-2 text-sm">Metformin 850mg</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-orange-500 text-white">
-                            NEAR
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                            EXP
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">20 Sep, 2025</td>
@@ -375,13 +375,11 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">{product.drugName}</td>
                         <td className="px-4 py-2">
                           <span className={`px-2 py-1 rounded text-xs font-semibold 
-                            ${product.status === 'expired' 
+                            ${product.status === 'expired' || product.status === 'near' 
                               ? 'bg-red-500 text-white' 
-                              : product.status === 'near' 
-                                ? 'bg-orange-500 text-white' 
-                                : 'bg-gray-100'
+                              : 'bg-gray-100'
                             }`}>
-                            {product.status === 'expired' ? 'Expired' : 'NEAR'}
+                            EXP
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
