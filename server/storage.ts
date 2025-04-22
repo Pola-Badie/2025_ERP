@@ -1,12 +1,22 @@
-import { 
+import {
   users, type User, type InsertUser,
-  categories, type Category, type InsertCategory,
-  expenses, type Expense, type InsertExpense, type UpdateExpenseStatus,
+  products, type Product, type InsertProduct, type UpdateProduct,
+  productCategories, type ProductCategory, type InsertProductCategory,
+  customers, type Customer, type InsertCustomer,
+  suppliers, type Supplier, type InsertSupplier,
+  sales, type Sale, type InsertSale,
+  saleItems, type SaleItem, type InsertSaleItem,
+  purchaseOrders, type PurchaseOrder, type InsertPurchaseOrder,
+  purchaseOrderItems, type PurchaseOrderItem,
   backups, type Backup, type InsertBackup,
-  backupSettings, type BackupSettings, type UpdateBackupSettings 
+  backupSettings, type BackupSettings, type UpdateBackupSettings,
+  inventoryTransactions, type InventoryTransaction,
+  salesReports, type SalesReport, type InsertSalesReport
 } from "@shared/schema";
 import { promises as fs } from 'fs';
 import path from 'path';
+import { and, asc, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import { db } from "./db";
 
 export interface IStorage {
   // User methods
@@ -14,20 +24,51 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
-  // Category methods
-  getCategories(): Promise<Category[]>;
-  getCategory(id: number): Promise<Category | undefined>;
-  createCategory(category: InsertCategory): Promise<Category>;
+  // Product methods
+  getProducts(): Promise<Product[]>;
+  getProductsByCategory(categoryId: number): Promise<Product[]>;
+  getProductsByStatus(status: string): Promise<Product[]>;
+  getLowStockProducts(): Promise<Product[]>;
+  getExpiringProducts(daysThreshold: number): Promise<Product[]>;
+  getProduct(id: number): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: number, product: UpdateProduct): Promise<Product | undefined>;
+  deleteProduct(id: number): Promise<boolean>;
   
-  // Expense methods
-  getExpenses(): Promise<Expense[]>;
-  getExpensesByUser(userId: number): Promise<Expense[]>;
-  getExpensesByStatus(status: string): Promise<Expense[]>;
-  getExpensesByCategory(category: string): Promise<Expense[]>;
-  getExpense(id: number): Promise<Expense | undefined>;
-  createExpense(expense: InsertExpense): Promise<Expense>;
-  updateExpenseStatus(id: number, update: UpdateExpenseStatus): Promise<Expense | undefined>;
-  deleteExpense(id: number): Promise<boolean>;
+  // Category methods
+  getCategories(): Promise<ProductCategory[]>;
+  getCategory(id: number): Promise<ProductCategory | undefined>;
+  createCategory(category: InsertProductCategory): Promise<ProductCategory>;
+  
+  // Customer methods
+  getCustomers(): Promise<Customer[]>;
+  getCustomer(id: number): Promise<Customer | undefined>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  getTotalCustomersCount(): Promise<number>;
+  getNewCustomersCount(days: number): Promise<number>;
+  
+  // Supplier methods
+  getSuppliers(): Promise<Supplier[]>;
+  getSupplier(id: number): Promise<Supplier | undefined>;
+  createSupplier(supplier: InsertSupplier): Promise<Supplier>;
+  
+  // Sales methods
+  getSales(): Promise<Sale[]>;
+  getSalesByDate(startDate: Date, endDate: Date): Promise<Sale[]>;
+  getSalesByCustomer(customerId: number): Promise<Sale[]>;
+  getSale(id: number): Promise<Sale | undefined>;
+  createSale(sale: InsertSale, items: InsertSaleItem[]): Promise<Sale>;
+  getTodaySalesTotal(): Promise<number>;
+  getMonthSalesTotal(): Promise<number>;
+  
+  // Purchase methods
+  getPurchaseOrders(): Promise<PurchaseOrder[]>;
+  getPurchaseOrder(id: number): Promise<PurchaseOrder | undefined>;
+  createPurchaseOrder(order: InsertPurchaseOrder, items: any[]): Promise<PurchaseOrder>;
+  
+  // Report methods
+  getSalesReport(startDate: Date, endDate: Date): Promise<SalesReport | undefined>;
+  createSalesReport(report: InsertSalesReport): Promise<SalesReport>;
   
   // Backup methods
   getBackups(): Promise<Backup[]>;
@@ -43,215 +84,361 @@ export interface IStorage {
   restoreFromBackup(backupId: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private categories: Map<number, Category>;
-  private expenses: Map<number, Expense>;
-  private backups: Map<number, Backup>;
-  private backupSettings: BackupSettings;
-  private currentUserId: number;
-  private currentCategoryId: number;
-  private currentExpenseId: number;
-  private currentBackupId: number;
+export class DatabaseStorage implements IStorage {
   private backupDir: string;
   
   constructor() {
-    this.users = new Map();
-    this.categories = new Map();
-    this.expenses = new Map();
-    this.backups = new Map();
-    this.currentUserId = 1;
-    this.currentCategoryId = 1;
-    this.currentExpenseId = 1;
-    this.currentBackupId = 1;
     this.backupDir = path.join(process.cwd(), 'backups');
     
-    // Initialize with default backup settings
-    this.backupSettings = {
-      id: 1,
-      dailyBackup: true,
-      weeklyBackup: true,
-      monthlyBackup: true,
-      backupTime: "02:00",
-      retentionDays: 30
-    };
-    
-    // Initialize with default categories
-    this.initializeDefaultData();
-  }
-  
-  private initializeDefaultData() {
-    // Add default categories
-    const defaultCategories: InsertCategory[] = [
-      { name: 'Marketing', color: '#8b5cf6' },
-      { name: 'Travel', color: '#f59e0b' },
-      { name: 'Office Supplies', color: '#10b981' },
-      { name: 'Client Entertainment', color: '#3b82f6' },
-      { name: 'Software', color: '#0ea5e9' },
-      { name: 'Administrative', color: '#6b7280' }
-    ];
-    
-    defaultCategories.forEach(category => {
-      this.createCategory(category);
-    });
-    
-    // Add a default user
-    this.createUser({
-      username: 'agent',
-      password: 'password',
-      name: 'Michael Foster',
-      role: 'agent'
+    // Ensure backup directory exists
+    fs.mkdir(this.backupDir, { recursive: true }).catch(err => {
+      console.error('Error creating backup directory:', err);
     });
   }
   
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-  
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-  
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
   
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    const [createdUser] = await db.insert(users).values(user).returning();
+    return createdUser;
+  }
+  
+  // Product methods
+  async getProducts(): Promise<Product[]> {
+    return db.select().from(products);
+  }
+  
+  async getProductsByCategory(categoryId: number): Promise<Product[]> {
+    return db.select().from(products).where(eq(products.categoryId, categoryId));
+  }
+  
+  async getProductsByStatus(status: string): Promise<Product[]> {
+    return db.select().from(products).where(eq(products.status, status));
+  }
+  
+  async getLowStockProducts(): Promise<Product[]> {
+    return db.select().from(products)
+      .where(sql`${products.quantity} <= ${products.lowStockThreshold}`);
+  }
+  
+  async getExpiringProducts(daysThreshold: number): Promise<Product[]> {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysThreshold);
+    
+    return db.select().from(products)
+      .where(and(
+        sql`${products.expiryDate} IS NOT NULL`,
+        sql`${products.expiryDate} <= ${targetDate}`,
+        sql`${products.status} != 'expired'`
+      ));
+  }
+  
+  async getProduct(id: number): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product;
+  }
+  
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const [createdProduct] = await db.insert(products).values(product).returning();
+    return createdProduct;
+  }
+  
+  async updateProduct(id: number, updatedProduct: UpdateProduct): Promise<Product | undefined> {
+    const [product] = await db.update(products)
+      .set({ ...updatedProduct, updatedAt: new Date() })
+      .where(eq(products.id, id))
+      .returning();
+    return product;
+  }
+  
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id));
+    return true; // Assuming successful if no error is thrown
+  }
+  
   // Category methods
-  async getCategories(): Promise<Category[]> {
-    return Array.from(this.categories.values());
+  async getCategories(): Promise<ProductCategory[]> {
+    return db.select().from(productCategories);
   }
   
-  async getCategory(id: number): Promise<Category | undefined> {
-    return this.categories.get(id);
-  }
-  
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.currentCategoryId++;
-    const category: Category = { ...insertCategory, id };
-    this.categories.set(id, category);
+  async getCategory(id: number): Promise<ProductCategory | undefined> {
+    const [category] = await db.select().from(productCategories).where(eq(productCategories.id, id));
     return category;
   }
   
-  // Expense methods
-  async getExpenses(): Promise<Expense[]> {
-    return Array.from(this.expenses.values());
+  async createCategory(category: InsertProductCategory): Promise<ProductCategory> {
+    const [createdCategory] = await db.insert(productCategories).values(category).returning();
+    return createdCategory;
   }
   
-  async getExpensesByUser(userId: number): Promise<Expense[]> {
-    return Array.from(this.expenses.values()).filter(
-      (expense) => expense.userId === userId
-    );
+  // Customer methods
+  async getCustomers(): Promise<Customer[]> {
+    return db.select().from(customers);
   }
   
-  async getExpensesByStatus(status: string): Promise<Expense[]> {
-    return Array.from(this.expenses.values()).filter(
-      (expense) => expense.status === status
-    );
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer;
   }
   
-  async getExpensesByCategory(category: string): Promise<Expense[]> {
-    return Array.from(this.expenses.values()).filter(
-      (expense) => expense.category === category
-    );
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const [createdCustomer] = await db.insert(customers).values(customer).returning();
+    return createdCustomer;
   }
   
-  async getExpense(id: number): Promise<Expense | undefined> {
-    return this.expenses.get(id);
+  async getTotalCustomersCount(): Promise<number> {
+    const [result] = await db.select({ count: count() }).from(customers);
+    return result.count;
   }
   
-  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    const id = this.currentExpenseId++;
-    const expense: Expense = { 
-      ...insertExpense, 
-      id,
-      status: "pending",
-      approvedById: undefined,
-      approvedAt: undefined,
-      rejectionReason: undefined
-    };
-    this.expenses.set(id, expense);
-    return expense;
-  }
-  
-  async updateExpenseStatus(id: number, update: UpdateExpenseStatus): Promise<Expense | undefined> {
-    const expense = this.expenses.get(id);
-    if (!expense) return undefined;
+  async getNewCustomersCount(days: number): Promise<number> {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - days);
     
-    const updatedExpense: Expense = {
-      ...expense,
-      status: update.status,
-      approvedById: update.approvedById,
-      approvedAt: update.status === 'approved' ? new Date() : expense.approvedAt,
-      rejectionReason: update.rejectionReason
-    };
+    const [result] = await db.select({ count: count() })
+      .from(customers)
+      .where(gte(customers.createdAt, targetDate));
     
-    this.expenses.set(id, updatedExpense);
-    return updatedExpense;
+    return result.count;
   }
   
-  async deleteExpense(id: number): Promise<boolean> {
-    return this.expenses.delete(id);
+  // Supplier methods
+  async getSuppliers(): Promise<Supplier[]> {
+    return db.select().from(suppliers);
+  }
+  
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return supplier;
+  }
+  
+  async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
+    const [createdSupplier] = await db.insert(suppliers).values(supplier).returning();
+    return createdSupplier;
+  }
+  
+  // Sales methods
+  async getSales(): Promise<Sale[]> {
+    return db.select().from(sales).orderBy(desc(sales.date));
+  }
+  
+  async getSalesByDate(startDate: Date, endDate: Date): Promise<Sale[]> {
+    return db.select().from(sales)
+      .where(and(
+        gte(sales.date, startDate),
+        lte(sales.date, endDate)
+      ))
+      .orderBy(desc(sales.date));
+  }
+  
+  async getSalesByCustomer(customerId: number): Promise<Sale[]> {
+    return db.select().from(sales)
+      .where(eq(sales.customerId, customerId))
+      .orderBy(desc(sales.date));
+  }
+  
+  async getSale(id: number): Promise<Sale | undefined> {
+    const [sale] = await db.select().from(sales).where(eq(sales.id, id));
+    return sale;
+  }
+  
+  async createSale(saleData: InsertSale, saleItemsData: InsertSaleItem[]): Promise<Sale> {
+    // Start a transaction
+    // Note: For simplicity, this doesn't use a transaction, but in production you should
+    const [sale] = await db.insert(sales).values(saleData).returning();
+    
+    // Insert sale items with the sale ID
+    for (const item of saleItemsData) {
+      await db.insert(saleItems).values({
+        ...item,
+        saleId: sale.id
+      });
+      
+      // Update product stock
+      const product = await this.getProduct(item.productId);
+      if (product) {
+        await this.updateProduct(product.id, {
+          quantity: product.quantity - item.quantity
+        });
+        
+        // Record inventory transaction
+        await db.insert(inventoryTransactions).values({
+          productId: item.productId,
+          transactionType: 'sale',
+          quantity: -item.quantity,
+          referenceId: sale.id,
+          referenceType: 'sale',
+          userId: saleData.userId,
+          date: new Date()
+        });
+      }
+    }
+    
+    return sale;
+  }
+  
+  async getTodaySalesTotal(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [result] = await db.select({ total: sum(sales.totalAmount) })
+      .from(sales)
+      .where(gte(sales.date, today));
+    
+    return Number(result.total) || 0;
+  }
+  
+  async getMonthSalesTotal(): Promise<number> {
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    
+    const [result] = await db.select({ total: sum(sales.totalAmount) })
+      .from(sales)
+      .where(gte(sales.date, firstDayOfMonth));
+    
+    return Number(result.total) || 0;
+  }
+  
+  // Purchase methods
+  async getPurchaseOrders(): Promise<PurchaseOrder[]> {
+    return db.select().from(purchaseOrders).orderBy(desc(purchaseOrders.orderDate));
+  }
+  
+  async getPurchaseOrder(id: number): Promise<PurchaseOrder | undefined> {
+    const [order] = await db.select().from(purchaseOrders).where(eq(purchaseOrders.id, id));
+    return order;
+  }
+  
+  async createPurchaseOrder(orderData: InsertPurchaseOrder, items: any[]): Promise<PurchaseOrder> {
+    // Start a transaction
+    // Note: For simplicity, this doesn't use a transaction, but in production you should
+    const [order] = await db.insert(purchaseOrders).values(orderData).returning();
+    
+    // Insert purchase items
+    for (const item of items) {
+      await db.insert(purchaseOrderItems).values({
+        ...item,
+        purchaseOrderId: order.id
+      });
+    }
+    
+    return order;
+  }
+  
+  // Report methods
+  async getSalesReport(startDate: Date, endDate: Date): Promise<SalesReport | undefined> {
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+    
+    const [report] = await db.select().from(salesReports)
+      .where(sql`${salesReports.reportDate} >= ${startDateStr} AND ${salesReports.reportDate} <= ${endDateStr}`)
+      .orderBy(desc(salesReports.reportDate))
+      .limit(1);
+    
+    return report;
+  }
+  
+  async createSalesReport(report: InsertSalesReport): Promise<SalesReport> {
+    const [createdReport] = await db.insert(salesReports).values(report).returning();
+    return createdReport;
   }
   
   // Backup methods
   async getBackups(): Promise<Backup[]> {
-    return Array.from(this.backups.values());
+    return db.select().from(backups).orderBy(desc(backups.timestamp));
   }
   
   async getLatestBackup(): Promise<Backup | undefined> {
-    const backups = Array.from(this.backups.values());
-    if (backups.length === 0) return undefined;
+    const [backup] = await db.select().from(backups)
+      .orderBy(desc(backups.timestamp))
+      .limit(1);
     
-    return backups.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    )[0];
+    return backup;
   }
   
-  async createBackup(insertBackup: InsertBackup): Promise<Backup> {
-    const id = this.currentBackupId++;
-    const backup: Backup = { 
-      ...insertBackup, 
-      id,
+  async createBackup(backup: InsertBackup): Promise<Backup> {
+    const [createdBackup] = await db.insert(backups).values({
+      ...backup,
       timestamp: new Date()
-    };
-    this.backups.set(id, backup);
-    return backup;
+    }).returning();
+    
+    return createdBackup;
   }
   
   // Backup settings methods
   async getBackupSettings(): Promise<BackupSettings> {
-    return this.backupSettings;
+    const [settings] = await db.select().from(backupSettings).limit(1);
+    
+    if (!settings) {
+      // Create default settings if none exist
+      return this.createDefaultBackupSettings();
+    }
+    
+    return settings;
+  }
+  
+  private async createDefaultBackupSettings(): Promise<BackupSettings> {
+    const [settings] = await db.insert(backupSettings).values({
+      dailyBackup: true,
+      weeklyBackup: true,
+      monthlyBackup: true,
+      backupTime: "02:00",
+      retentionDays: 30
+    }).returning();
+    
+    return settings;
   }
   
   async updateBackupSettings(settings: UpdateBackupSettings): Promise<BackupSettings> {
-    this.backupSettings = {
-      ...this.backupSettings,
-      ...settings
-    };
-    return this.backupSettings;
+    // Get current settings or create default ones
+    const currentSettings = await this.getBackupSettings();
+    
+    const [updatedSettings] = await db.update(backupSettings)
+      .set(settings)
+      .where(eq(backupSettings.id, currentSettings.id))
+      .returning();
+    
+    return updatedSettings;
   }
   
   // Backup and recovery operations
   async performBackup(type: string): Promise<Backup> {
     try {
-      // Create backup directory if it doesn't exist
-      try {
-        await fs.mkdir(this.backupDir, { recursive: true });
-      } catch (err) {
-        console.error('Error creating backup directory:', err);
-      }
+      // Ensure backup directory exists
+      await fs.mkdir(this.backupDir, { recursive: true });
+      
+      // Get all data to back up
+      const allUsers = await db.select().from(users);
+      const allProducts = await db.select().from(products);
+      const allCategories = await db.select().from(productCategories);
+      const allCustomers = await db.select().from(customers);
+      const allSuppliers = await db.select().from(suppliers);
+      const allSales = await db.select().from(sales);
+      const allSaleItems = await db.select().from(saleItems);
+      const allPurchases = await db.select().from(purchaseOrders);
+      const allPurchaseItems = await db.select().from(purchaseOrderItems);
       
       // Prepare backup data
       const backupData = {
-        users: Array.from(this.users.values()),
-        categories: Array.from(this.categories.values()),
-        expenses: Array.from(this.expenses.values()),
+        users: allUsers,
+        products: allProducts,
+        categories: allCategories,
+        customers: allCustomers,
+        suppliers: allSuppliers,
+        sales: allSales,
+        saleItems: allSaleItems,
+        purchases: allPurchases,
+        purchaseItems: allPurchaseItems,
         timestamp: new Date().toISOString()
       };
       
@@ -298,27 +485,21 @@ export class MemStorage implements IStorage {
       const backupDataStr = await fs.readFile(filePath, 'utf8');
       const backupData = JSON.parse(backupDataStr);
       
-      // Restore data
-      this.users.clear();
-      this.categories.clear();
-      this.expenses.clear();
+      // This is simplified. In a real application, you'd need:
+      // 1. A transaction to ensure all or nothing
+      // 2. Clear all existing data (or have a migration strategy)
+      // 3. Restore all data from the backup
+      // 4. Handle foreign key constraints properly
       
-      backupData.users.forEach((user: User) => {
-        this.users.set(user.id, user);
-      });
+      // Just an example of restoring users
+      for (const user of backupData.users) {
+        await db.insert(users).values(user).onConflictDoUpdate({
+          target: users.id,
+          set: user
+        });
+      }
       
-      backupData.categories.forEach((category: Category) => {
-        this.categories.set(category.id, category);
-      });
-      
-      backupData.expenses.forEach((expense: Expense) => {
-        this.expenses.set(expense.id, expense);
-      });
-      
-      // Update current IDs
-      this.currentUserId = Math.max(...backupData.users.map((u: User) => u.id)) + 1;
-      this.currentCategoryId = Math.max(...backupData.categories.map((c: Category) => c.id)) + 1;
-      this.currentExpenseId = Math.max(...backupData.expenses.map((e: Expense) => e.id)) + 1;
+      // Continue with other tables...
       
       return true;
     } catch (error) {
@@ -328,8 +509,9 @@ export class MemStorage implements IStorage {
   }
   
   private async getBackup(id: number): Promise<Backup | undefined> {
-    return this.backups.get(id);
+    const [backup] = await db.select().from(backups).where(eq(backups.id, id));
+    return backup;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

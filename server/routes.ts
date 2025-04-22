@@ -1,11 +1,18 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { z } from "zod";
 import { 
-  insertExpenseSchema, 
-  updateExpenseStatusSchema,
-  updateBackupSettingsSchema
+  insertProductSchema,
+  updateProductSchema,
+  insertCustomerSchema,
+  insertSaleSchema,
+  insertSaleItemSchema,
+  updateBackupSettingsSchema,
+  insertPurchaseOrderSchema,
+  insertSupplierSchema,
+  insertProductCategorySchema
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -53,6 +60,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule automatic backups
   setupAutomaticBackups();
 
+  // ============= User Endpoints =============
+  
+  // Get all users
+  app.get("/api/users", async (req: Request, res: Response) => {
+    try {
+      // Fetch all users from database
+      const [users] = await db.select().from(users);
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get user by ID
+  app.get("/api/users/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // ============= Product Endpoints =============
+  
+  // Get all products
+  app.get("/api/products", async (req: Request, res: Response) => {
+    try {
+      let products;
+      const { categoryId, status } = req.query;
+      
+      if (categoryId) {
+        products = await storage.getProductsByCategory(Number(categoryId));
+      } else if (status) {
+        products = await storage.getProductsByStatus(status as string);
+      } else {
+        products = await storage.getProducts();
+      }
+      
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  // Get products with low stock
+  app.get("/api/products/low-stock", async (req: Request, res: Response) => {
+    try {
+      const products = await storage.getLowStockProducts();
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch low stock products" });
+    }
+  });
+
+  // Get expiring products
+  app.get("/api/products/expiring", async (req: Request, res: Response) => {
+    try {
+      const days = Number(req.query.days) || 30;
+      const products = await storage.getExpiringProducts(days);
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch expiring products" });
+    }
+  });
+
+  // Get product by ID
+  app.get("/api/products/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const product = await storage.getProduct(id);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  // Create new product
+  app.post("/api/products", upload.single("image"), async (req: Request, res: Response) => {
+    try {
+      // Validate and transform request body
+      const validatedData = insertProductSchema.parse({
+        ...req.body,
+        categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
+        costPrice: Number(req.body.costPrice),
+        sellingPrice: Number(req.body.sellingPrice),
+        quantity: Number(req.body.quantity),
+        lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
+        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
+      });
+      
+      // Add image path if uploaded
+      if (req.file) {
+        validatedData.imagePath = req.file.path;
+      }
+      
+      const product = await storage.createProduct(validatedData);
+      res.status(201).json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  // Update product
+  app.patch("/api/products/:id", upload.single("image"), async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Validate and transform request body
+      const validatedData = updateProductSchema.parse({
+        ...req.body,
+        categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
+        costPrice: req.body.costPrice ? Number(req.body.costPrice) : undefined,
+        sellingPrice: req.body.sellingPrice ? Number(req.body.sellingPrice) : undefined,
+        quantity: req.body.quantity ? Number(req.body.quantity) : undefined,
+        lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
+        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
+      });
+      
+      // Add image path if uploaded
+      if (req.file) {
+        validatedData.imagePath = req.file.path;
+      }
+      
+      const product = await storage.updateProduct(id, validatedData);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  // Delete product
+  app.delete("/api/products/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteProduct(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
+  // ============= Category Endpoints =============
+  
   // Get all categories
   app.get("/api/categories", async (req: Request, res: Response) => {
     try {
@@ -63,107 +241,268 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all expenses
-  app.get("/api/expenses", async (req: Request, res: Response) => {
+  // Create new category
+  app.post("/api/categories", async (req: Request, res: Response) => {
     try {
-      let expenses;
-      const { userId, status, category } = req.query;
-      
-      if (userId) {
-        expenses = await storage.getExpensesByUser(Number(userId));
-      } else if (status) {
-        expenses = await storage.getExpensesByStatus(status as string);
-      } else if (category) {
-        expenses = await storage.getExpensesByCategory(category as string);
-      } else {
-        expenses = await storage.getExpenses();
-      }
-      
-      res.json(expenses);
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const category = await storage.createCategory(validatedData);
+      res.status(201).json(category);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch expenses" });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create category" });
     }
   });
 
-  // Get expense by ID
-  app.get("/api/expenses/:id", async (req: Request, res: Response) => {
+  // ============= Customer Endpoints =============
+  
+  // Get all customers
+  app.get("/api/customers", async (req: Request, res: Response) => {
+    try {
+      const customers = await storage.getCustomers();
+      res.json(customers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  // Get customer by ID
+  app.get("/api/customers/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
-      const expense = await storage.getExpense(id);
+      const customer = await storage.getCustomer(id);
       
-      if (!expense) {
-        return res.status(404).json({ message: "Expense not found" });
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
       }
       
-      res.json(expense);
+      res.json(customer);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch expense" });
+      res.status(500).json({ message: "Failed to fetch customer" });
     }
   });
 
-  // Create new expense with receipt upload
-  app.post("/api/expenses", upload.single("receipt"), async (req: Request, res: Response) => {
+  // Create new customer
+  app.post("/api/customers", async (req: Request, res: Response) => {
     try {
-      // Validate request body
-      const validatedData = insertExpenseSchema.parse({
-        ...req.body,
-        userId: Number(req.body.userId),
-        amount: Number(req.body.amount),
-        date: new Date(req.body.date)
+      const validatedData = insertCustomerSchema.parse(req.body);
+      const customer = await storage.createCustomer(validatedData);
+      res.status(201).json(customer);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  // Get customer stats
+  app.get("/api/customers/stats", async (req: Request, res: Response) => {
+    try {
+      const totalCustomers = await storage.getTotalCustomersCount();
+      const newCustomers = await storage.getNewCustomersCount(30); // Last 30 days
+      
+      res.json({
+        totalCustomers,
+        newCustomers
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer statistics" });
+    }
+  });
+
+  // ============= Supplier Endpoints =============
+  
+  // Get all suppliers
+  app.get("/api/suppliers", async (req: Request, res: Response) => {
+    try {
+      const suppliers = await storage.getSuppliers();
+      res.json(suppliers);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
+
+  // Get supplier by ID
+  app.get("/api/suppliers/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const supplier = await storage.getSupplier(id);
+      
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+      
+      res.json(supplier);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch supplier" });
+    }
+  });
+
+  // Create new supplier
+  app.post("/api/suppliers", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertSupplierSchema.parse(req.body);
+      const supplier = await storage.createSupplier(validatedData);
+      res.status(201).json(supplier);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid supplier data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create supplier" });
+    }
+  });
+
+  // ============= Sales Endpoints =============
+  
+  // Get all sales
+  app.get("/api/sales", async (req: Request, res: Response) => {
+    try {
+      let sales;
+      const { customerId, startDate, endDate } = req.query;
+      
+      if (customerId) {
+        sales = await storage.getSalesByCustomer(Number(customerId));
+      } else if (startDate && endDate) {
+        sales = await storage.getSalesByDate(new Date(startDate as string), new Date(endDate as string));
+      } else {
+        sales = await storage.getSales();
+      }
+      
+      res.json(sales);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales" });
+    }
+  });
+
+  // Get sales statistics
+  app.get("/api/sales/stats", async (req: Request, res: Response) => {
+    try {
+      const todaySalesTotal = await storage.getTodaySalesTotal();
+      const monthSalesTotal = await storage.getMonthSalesTotal();
+      
+      res.json({
+        todaySalesTotal,
+        monthSalesTotal
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales statistics" });
+    }
+  });
+
+  // Create new sale
+  app.post("/api/sales", async (req: Request, res: Response) => {
+    try {
+      const { sale, items } = req.body;
+      
+      // Validate sale data
+      const validatedSale = insertSaleSchema.parse({
+        ...sale,
+        customerId: sale.customerId ? Number(sale.customerId) : null,
+        userId: Number(sale.userId),
+        totalAmount: Number(sale.totalAmount),
+        discount: sale.discount ? Number(sale.discount) : 0,
+        tax: sale.tax ? Number(sale.tax) : 0
       });
       
-      // Add receipt path if uploaded
-      if (req.file) {
-        validatedData.receiptPath = req.file.path;
+      // Validate each item
+      const validatedItems = [];
+      for (const item of items) {
+        const validatedItem = insertSaleItemSchema.parse({
+          ...item,
+          productId: Number(item.productId),
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          discount: item.discount ? Number(item.discount) : 0,
+          total: Number(item.total)
+        });
+        validatedItems.push(validatedItem);
       }
       
-      const expense = await storage.createExpense(validatedData);
-      res.status(201).json(expense);
+      const createdSale = await storage.createSale(validatedSale, validatedItems);
+      res.status(201).json(createdSale);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid expense data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid sale data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create expense" });
+      res.status(500).json({ message: "Failed to create sale" });
     }
   });
 
-  // Update expense status (approve/reject)
-  app.patch("/api/expenses/:id/status", async (req: Request, res: Response) => {
+  // ============= Purchase Endpoints =============
+  
+  // Get all purchase orders
+  app.get("/api/purchases", async (req: Request, res: Response) => {
     try {
-      const id = Number(req.params.id);
-      const validatedData = updateExpenseStatusSchema.parse(req.body);
+      const purchases = await storage.getPurchaseOrders();
+      res.json(purchases);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch purchase orders" });
+    }
+  });
+
+  // Create new purchase order
+  app.post("/api/purchases", async (req: Request, res: Response) => {
+    try {
+      const { order, items } = req.body;
       
-      const updatedExpense = await storage.updateExpenseStatus(id, validatedData);
+      // Validate purchase order data
+      const validatedOrder = insertPurchaseOrderSchema.parse({
+        ...order,
+        supplierId: Number(order.supplierId),
+        userId: Number(order.userId),
+        totalAmount: Number(order.totalAmount),
+        expectedDeliveryDate: order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate) : undefined
+      });
       
-      if (!updatedExpense) {
-        return res.status(404).json({ message: "Expense not found" });
+      // Validate each item
+      const validatedItems = [];
+      for (const item of items) {
+        validatedItems.push({
+          ...item,
+          productId: Number(item.productId),
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          total: Number(item.total),
+          expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined
+        });
       }
       
-      res.json(updatedExpense);
+      const createdOrder = await storage.createPurchaseOrder(validatedOrder, validatedItems);
+      res.status(201).json(createdOrder);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid status data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid purchase order data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update expense status" });
+      res.status(500).json({ message: "Failed to create purchase order" });
     }
   });
 
-  // Delete expense
-  app.delete("/api/expenses/:id", async (req: Request, res: Response) => {
+  // ============= Report Endpoints =============
+  
+  // Generate sales report
+  app.get("/api/reports/sales", async (req: Request, res: Response) => {
     try {
-      const id = Number(req.params.id);
-      const success = await storage.deleteExpense(id);
+      const { startDate, endDate } = req.query;
       
-      if (!success) {
-        return res.status(404).json({ message: "Expense not found" });
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "Start date and end date are required" });
       }
       
-      res.status(204).send();
+      const report = await storage.getSalesReport(
+        new Date(startDate as string),
+        new Date(endDate as string)
+      );
+      
+      res.json(report);
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete expense" });
+      res.status(500).json({ message: "Failed to generate sales report" });
     }
   });
 
+  // ============= Backup Endpoints =============
+  
   // Get all backups
   app.get("/api/backups", async (req: Request, res: Response) => {
     try {
