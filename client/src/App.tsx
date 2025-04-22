@@ -12,16 +12,16 @@ import { useState, useEffect } from "react";
 function App() {
   // Set document title
   useEffect(() => {
-    document.title = "ExpenseEstate - Real Estate Expense Management";
+    document.title = "PharmERP - Pharmacy Management System";
   }, []);
 
   return (
     <MainLayout>
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/expenses" component={Expenses} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/approvals" component={Approvals} />
+        <Route path="/inventory" component={Expenses} />
+        <Route path="/sales" component={Reports} />
+        <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />

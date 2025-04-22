@@ -13,9 +13,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: 'dashboard' },
-    { path: '/expenses', label: 'Expenses', icon: 'dollar-sign' },
-    { path: '/reports', label: 'Reports', icon: 'file-text' },
-    { path: '/approvals', label: 'Approvals', icon: 'check-square' },
+    { path: '/inventory', label: 'Inventory', icon: 'package' },
+    { path: '/sales', label: 'Sales', icon: 'shopping-cart' },
+    { path: '/suppliers', label: 'Suppliers', icon: 'truck' },
     { path: '/backup', label: 'Backup & Recovery', icon: 'database' },
     { path: '/settings', label: 'Settings', icon: 'settings' },
   ];
@@ -31,28 +31,29 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
             <rect width="7" height="5" x="3" y="16" rx="1"></rect>
           </svg>
         );
-      case 'dollar-sign':
+      case 'package':
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign">
-            <line x1="12" y1="2" x2="12" y2="22"></line>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-package">
+            <path d="m16.5 9.4-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.29 7 12 12 20.71 7"></polyline>
+            <line x1="12" x2="12" y1="22" y2="12"></line>
           </svg>
         );
-      case 'file-text':
+      case 'shopping-cart':
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-file-text">
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <line x1="10" y1="9" x2="8" y2="9"></line>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart">
+            <circle cx="8" cy="21" r="1"></circle>
+            <circle cx="19" cy="21" r="1"></circle>
+            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
           </svg>
         );
-      case 'check-square':
+      case 'truck':
         return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-square">
-            <polyline points="9 11 12 14 22 4"></polyline>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-truck">
+            <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"></path>
+            <path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"></path>
+            <circle cx="7" cy="18" r="2"></circle>
+            <circle cx="17" cy="18" r="2"></circle>
           </svg>
         );
       case 'database':
@@ -80,10 +81,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       <div className="flex h-16 items-center px-6 border-b border-slate-200">
         <div className="flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            <path d="M9 3v1m0 0v1m0-1h1m-1 0H8m13 0a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 8v8m-4-4h8"></path>
           </svg>
-          <span className="font-bold text-xl">ExpenseEstate</span>
+          <span className="font-bold text-xl">PharmERP</span>
         </div>
         {isMobile && (
           <button 
@@ -123,10 +125,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       </nav>
       <div className="p-4 border-t border-slate-200">
         <div className="flex items-center">
-          <img className="w-10 h-10 rounded-full" src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" alt="Profile picture" />
+          <img className="w-10 h-10 rounded-full" src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" alt="Profile picture" />
           <div className="ml-3">
-            <p className="text-sm font-medium text-slate-700">Michael Foster</p>
-            <p className="text-xs text-slate-500">Real Estate Agent</p>
+            <p className="text-sm font-medium text-slate-700">Dr. Sarah Johnson</p>
+            <p className="text-xs text-slate-500">Head Pharmacist</p>
           </div>
         </div>
       </div>
