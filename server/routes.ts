@@ -12,7 +12,11 @@ import {
   updateBackupSettingsSchema,
   insertPurchaseOrderSchema,
   insertSupplierSchema,
-  insertProductCategorySchema
+  insertProductCategorySchema,
+  insertSystemPreferenceSchema,
+  updateSystemPreferenceSchema,
+  insertRolePermissionSchema,
+  insertLoginLogSchema
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -66,8 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", async (req: Request, res: Response) => {
     try {
       // Fetch all users from database
-      const [users] = await db.select().from(users);
-      res.json(users);
+      const allUsers = await storage.getUsers();
+      res.json(allUsers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
     }
@@ -596,6 +600,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid settings data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update backup settings" });
+    }
+  });
+
+  // ============= System Preferences Endpoints =============
+  
+  // Middleware to check admin role
+  const isAdmin = (req: Request, res: Response, next: Function) => {
+    // Check if user is authenticated and is an admin
+    // For now, we'll just pass through since auth isn't fully implemented
+    // In production, use JWT token verification
+    
+    // Example:
+    // if (!req.user || req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    // }
+    
+    next();
+  };
+  
+  // Get all system preferences
+  app.get("/api/system-preferences", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const preferences = await storage.getSystemPreferences();
+      res.json(preferences);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch system preferences" });
+    }
+  });
+  
+  // Get system preferences by category
+  app.get("/api/system-preferences/category/:category", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const category = req.params.category;
+      const preferences = await storage.getSystemPreferencesByCategory(category);
+      res.json(preferences);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch system preferences" });
+    }
+  });
+  
+  // Get a specific system preference
+  app.get("/api/system-preferences/:key", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const preference = await storage.getSystemPreference(key);
+      
+      if (!preference) {
+        return res.status(404).json({ message: "System preference not found" });
+      }
+      
+      res.json(preference);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch system preference" });
+    }
+  });
+  
+  // Create a new system preference
+  app.post("/api/system-preferences", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertSystemPreferenceSchema.parse(req.body);
+      const preference = await storage.createSystemPreference(validatedData);
+      res.status(201).json(preference);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid system preference data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create system preference" });
+    }
+  });
+  
+  // Update a system preference
+  app.patch("/api/system-preferences/:key", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const { value } = updateSystemPreferenceSchema.parse(req.body);
+      
+      const preference = await storage.updateSystemPreference(key, value);
+      
+      if (!preference) {
+        return res.status(404).json({ message: "System preference not found" });
+      }
+      
+      res.json(preference);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid system preference data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update system preference" });
+    }
+  });
+  
+  // ============= Role Permissions Endpoints =============
+  
+  // Get permissions for a role
+  app.get("/api/role-permissions/:role", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const role = req.params.role;
+      const permissions = await storage.getRolePermissions(role);
+      res.json(permissions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch role permissions" });
+    }
+  });
+  
+  // Create a new role permission
+  app.post("/api/role-permissions", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertRolePermissionSchema.parse(req.body);
+      const permission = await storage.createRolePermission(validatedData);
+      res.status(201).json(permission);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid role permission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create role permission" });
+    }
+  });
+  
+  // Delete a role permission
+  app.delete("/api/role-permissions/:id", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteRolePermission(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Role permission not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete role permission" });
+    }
+  });
+  
+  // ============= Login Logs Endpoints =============
+  
+  // Get login logs
+  app.get("/api/login-logs", isAdmin, async (req: Request, res: Response) => {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+      const logs = await storage.getLoginLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch login logs" });
+    }
+  });
+  
+  // Create a new login log
+  app.post("/api/login-logs", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertLoginLogSchema.parse(req.body);
+      const log = await storage.createLoginLog(validatedData);
+      res.status(201).json(log);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid login log data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create login log" });
     }
   });
 
