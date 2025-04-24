@@ -471,7 +471,7 @@ const Dashboard: React.FC = () => {
                               ? 'bg-[#F16F6F] text-white' 
                               : 'bg-[#F16F6F] text-white'
                           }`}>
-                            {product.quantity === 0 || product.status === 'out_of_stock' ? '10' : '10'}
+                            {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
