@@ -76,14 +76,14 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         <ul className="space-y-0">
           {navItems.map((item) => (
             <li key={item.path}>
-              <div
+              <Link 
+                href={item.path}
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
                   location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
                 )}
                 onClick={() => {
                   if (isMobile && onClose) onClose();
-                  window.location.href = item.path;
                 }}
               >
                 <span className={cn(
@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                     </svg>
                   </span>
                 )}
-              </div>
+              </Link>
             </li>
           ))}
         </ul>
