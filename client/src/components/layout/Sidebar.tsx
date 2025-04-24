@@ -16,7 +16,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/', label: 'DASHBOARD', icon: 'home' },
     { path: '/inventory', label: 'INVENTORY', icon: 'package' },
     { path: '/expenses', label: 'EXPENSES', icon: 'dollar-sign' },
-    { path: '/sales', label: 'SALES', icon: 'shopping-cart' },
     { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
     { path: '/invoice-history', label: 'INVOICE HISTORY', icon: 'receipt' },
     { path: '/label', label: 'LABEL', icon: 'file-text' },
