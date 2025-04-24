@@ -381,7 +381,7 @@ const Dashboard: React.FC = () => {
                                 ? 'bg-[#FFB454] text-white'
                                 : 'bg-gray-100'
                             }`}>
-                            EXPIRED
+                            {product.status === 'expired' ? 'EXPIRED' : product.status === 'near' ? 'NEAR' : 'Active'}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
@@ -471,10 +471,10 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2">
                           <span className={`px-2 py-1 rounded text-xs font-semibold 
                             ${product.quantity === 0 || product.status === 'out_of_stock'
-                              ? 'bg-red-500 text-white' 
+                              ? 'bg-[#F16F6F] text-white' 
                               : product.quantity < 5 
-                                ? 'bg-orange-500 text-white' 
-                                : 'bg-orange-500 text-white'
+                                ? 'bg-[#FFB454] text-white' 
+                                : 'bg-[#FFB454] text-white'
                             }`}>
                             {product.quantity === 0 || product.status === 'out_of_stock' ? 'Out of Stock' : product.quantity}
                           </span>
