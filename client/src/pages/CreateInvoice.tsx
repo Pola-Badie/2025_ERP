@@ -82,6 +82,7 @@ type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 const CreateInvoice = () => {
   const { toast } = useToast();
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+  const [productSearchTerm, setProductSearchTerm] = useState('');
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
@@ -98,9 +99,9 @@ const CreateInvoice = () => {
 
   // Fetch products
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/products', productSearchTerm],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/products');
+      const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
       return await res.json();
     },
   });
@@ -551,21 +552,60 @@ const CreateInvoice = () => {
                   {fields.map((field, index) => (
                     <TableRow key={field.id}>
                       <TableCell>
-                        <Select
-                          value={field.productId.toString()}
-                          onValueChange={(value) => handleProductSelection(parseInt(value), index)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a product" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id.toString()}>
-                                {product.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                            >
+                              {field.productName || "Select a product..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search products..." 
+                                value={productSearchTerm}
+                                onValueChange={setProductSearchTerm}
+                                className="h-9" 
+                              />
+                              <CommandList>
+                                <CommandEmpty>
+                                  <p className="py-3 text-center text-sm">No products found</p>
+                                </CommandEmpty>
+                                <CommandGroup heading="Products">
+                                  {products.map((product) => (
+                                    <CommandItem
+                                      key={product.id}
+                                      onSelect={() => handleProductSelection(product.id, index)}
+                                      className="flex items-center justify-between"
+                                    >
+                                      <div>
+                                        <span className="font-medium">{product.name}</span>
+                                        <span className="ml-2 text-sm text-muted-foreground">
+                                          {new Intl.NumberFormat('en-US', {
+                                            style: 'currency',
+                                            currency: 'USD'
+                                          }).format(product.sellingPrice)}
+                                        </span>
+                                      </div>
+                                      <Check
+                                        className={cn(
+                                          "ml-auto h-4 w-4",
+                                          field.productId === product.id
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       </TableCell>
                       <TableCell className="text-right">
                         <Input
