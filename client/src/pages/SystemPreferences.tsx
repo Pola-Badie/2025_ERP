@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 // Import tab components
-import UserManagementTab from '@/components/system-preferences/UserManagementTab';
+import UserManagementTab from '@/components/system-preferences/UserManagementTab-new';
 import InventorySettingsTab from '@/components/system-preferences/InventorySettingsTab';
 import FinancialSettingsTab from '@/components/system-preferences/FinancialSettingsTab';
 import AccessControlTab from '@/components/system-preferences/AccessControlTab';
