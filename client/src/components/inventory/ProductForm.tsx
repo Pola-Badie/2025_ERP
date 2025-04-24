@@ -1,0 +1,343 @@
+import React, { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Calendar } from 'lucide-react';
+
+// Define the form schema with the expiry date field
+const productFormSchema = z.object({
+  name: z.string().min(3, { message: 'Name must be at least 3 characters' }),
+  drugName: z.string().min(3, { message: 'Drug name must be at least 3 characters' }),
+  categoryId: z.string().min(1, { message: 'Please select a category' }),
+  sku: z.string().optional(),
+  description: z.string().optional(),
+  quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
+  costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
+  sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
+  expiryDate: z.string().optional(),
+  status: z.string().default('in-stock'),
+});
+
+type ProductFormValues = z.infer<typeof productFormSchema>;
+
+interface ProductFormProps {
+  onSuccess?: () => void;
+  productId?: number; // For editing an existing product
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
+const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch categories for select options
+  const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+  });
+
+  // Define default values
+  const defaultValues: Partial<ProductFormValues> = {
+    name: '',
+    drugName: '',
+    categoryId: '',
+    sku: '',
+    description: '',
+    quantity: 0,
+    costPrice: undefined,
+    sellingPrice: undefined,
+    expiryDate: '',
+    status: 'in-stock',
+  };
+
+  // Initialize the form
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues,
+  });
+
+  // Create product mutation
+  const createProduct = useMutation({
+    mutationFn: async (data: ProductFormValues) => {
+      // Create a new FormData instance for file uploads if needed
+      return apiRequest('POST', '/api/products', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Success',
+        description: 'Product has been added successfully.',
+      });
+      form.reset();
+      if (onSuccess) onSuccess();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to add product: ${error.message}`,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const onSubmit = (data: ProductFormValues) => {
+    createProduct.mutate(data);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Product Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter product name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="drugName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Drug Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter pharmaceutical name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="categoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {isLoadingCategories ? (
+                      <SelectItem value="loading" disabled>Loading categories...</SelectItem>
+                    ) : (
+                      categories?.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="sku"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>SKU</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter SKU (optional)" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="Product description..." 
+                  {...field} 
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantity</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    min="0"
+                    step="1"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="costPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cost Price ($)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    step="0.01" 
+                    min="0"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="sellingPrice"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Selling Price ($)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    step="0.01" 
+                    min="0"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormField
+          control={form.control}
+          name="expiryDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Expiry Date</FormLabel>
+              <div className="relative">
+                <FormControl>
+                  <Input 
+                    type="date" 
+                    {...field}
+                    className="pl-10"
+                  />
+                </FormControl>
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="in-stock">In Stock</SelectItem>
+                  <SelectItem value="low-stock">Low Stock</SelectItem>
+                  <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => {
+              form.reset();
+              if (onSuccess) onSuccess();
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={createProduct.isPending}
+          >
+            {createProduct.isPending ? 'Saving...' : 'Save Product'}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default ProductForm;

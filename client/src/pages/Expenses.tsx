@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Select, 
   SelectContent, 
@@ -12,16 +13,23 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogDescription,
+  DialogFooter 
 } from '@/components/ui/dialog';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
 import { useExpenses } from '@/hooks/use-expenses';
 import ExpenseForm from '@/components/expenses/ExpenseForm';
 import { Expense, Category } from '@shared/schema';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, Download, Filter, Search, MoreHorizontal, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Plus, Download, Filter, Search, MoreHorizontal, 
+  AlertCircle, Trash, Calendar 
+} from 'lucide-react';
 
 const Expenses: React.FC = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
