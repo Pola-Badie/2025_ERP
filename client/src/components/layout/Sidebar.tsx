@@ -121,18 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-[#2A3F55] mt-auto">
-        <div className="flex items-center justify-center">
-          <button className="text-[#3BCEAC] hover:text-white">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 8.00001H17V6.00001C17 3.24001 14.76 1.00001 12 1.00001C9.24 1.00001 7 3.24001 7 6.00001V8.00001H6C4.9 8.00001 4 8.90001 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.90001 19.1 8.00001 18 8.00001ZM9 6.00001C9 4.34001 10.34 3.00001 12 3.00001C13.66 3.00001 15 4.34001 15 6.00001V8.00001H9V6.00001ZM18 20H6V10H18V20ZM12 17C13.1 17 14 16.1 14 15C14 13.9 13.1 13 12 13C10.9 13 10 13.9 10 15C10 16.1 10.9 17 12 17Z" fill="currentColor"/>
-            </svg>
-          </button>
-          <div className="text-center ml-3">
-            <span className="text-white text-sm">About</span>
-          </div>
-        </div>
-      </div>
+      {/* Footer area intentionally left empty */}
     </div>
   );
 };
