@@ -374,14 +374,12 @@ const Dashboard: React.FC = () => {
                       <tr key={product.id} className="border-b border-gray-100">
                         <td className="px-4 py-2 text-sm">{product.drugName}</td>
                         <td className="px-4 py-2">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold 
-                            ${product.status === 'expired'
-                              ? 'bg-[#F16F6F] text-white' 
-                              : product.status === 'near'
-                                ? 'bg-[#FFB454] text-white'
-                                : 'bg-gray-100'
-                            }`}>
-                            {product.status === 'expired' ? 'EXPIRED' : product.status === 'near' ? 'NEAR' : 'Active'}
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            product.status === 'expired' ? 'bg-[#F16F6F] text-white' : 
+                            product.status === 'near' ? 'bg-[#FFB454] text-white' : 
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {product.status === 'expired' ? 'EXPIRED' : product.status === 'near' ? 'NEAR EXPIRY' : 'ACTIVE'}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
@@ -431,7 +429,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Asprine</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            Out of Stock
+                            OUT OF STOCK
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -440,7 +438,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            Out of Stock
+                            OUT OF STOCK
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -449,7 +447,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Zyrtic</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            Out of Stock
+                            OUT OF STOCK
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -469,14 +467,14 @@ const Dashboard: React.FC = () => {
                       <tr key={product.id} className="border-b border-gray-100">
                         <td className="px-4 py-2 text-sm">{product.drugName}</td>
                         <td className="px-4 py-2">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold 
-                            ${product.quantity === 0 || product.status === 'out_of_stock'
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            product.quantity === 0 || product.status === 'out_of_stock'
                               ? 'bg-[#F16F6F] text-white' 
                               : product.quantity < 5 
                                 ? 'bg-[#FFB454] text-white' 
-                                : 'bg-[#FFB454] text-white'
-                            }`}>
-                            {product.quantity === 0 || product.status === 'out_of_stock' ? 'Out of Stock' : product.quantity}
+                                : 'bg-green-100 text-green-800'
+                          }`}>
+                            {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : product.quantity}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
