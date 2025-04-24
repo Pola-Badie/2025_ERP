@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/invoices', label: 'INVOICES / RECEIPTS', icon: 'file-text' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
     { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
-    { path: '/preference', label: 'PREFERENCE', icon: 'settings' },
+    { path: '/preferences', label: 'PREFERENCES', icon: 'settings' },
   ];
 
   const renderIcon = (iconName: string) => {

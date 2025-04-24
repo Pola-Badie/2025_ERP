@@ -38,7 +38,7 @@ const Preferences = () => {
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
 
   // Fetch categories
-  const { data: categories, isLoading, isError } = useQuery({
+  const { data: categories = [], isLoading, isError } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
     refetchOnWindowFocus: false,
   });
@@ -46,13 +46,7 @@ const Preferences = () => {
   // Add category mutation
   const addCategoryMutation = useMutation({
     mutationFn: async (newCategory: { name: string; description: string }) => {
-      return apiRequest('/api/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCategory),
-      });
+      return apiRequest('POST', '/api/categories', newCategory);
     },
     onSuccess: () => {
       toast({
@@ -75,9 +69,7 @@ const Preferences = () => {
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/categories/${id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/categories/${id}`);
     },
     onSuccess: () => {
       toast({

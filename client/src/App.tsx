@@ -5,6 +5,7 @@ import Reports from "@/pages/Reports";
 import Approvals from "@/pages/Approvals";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
+import Preferences from "@/pages/Preferences";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
@@ -24,6 +25,7 @@ function App() {
         <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />
         <Route path="/settings" component={Settings} />
+        <Route path="/preferences" component={Preferences} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
