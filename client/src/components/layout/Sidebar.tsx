@@ -43,6 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Briefcase size={20} />;
       case 'settings':
         return <Settings size={20} />;
+      case 'sliders':
+        return <Sliders size={20} />;
       default:
         return null;
     }
