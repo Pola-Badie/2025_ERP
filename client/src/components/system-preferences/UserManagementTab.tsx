@@ -46,7 +46,7 @@ const userFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['admin', 'sales_rep', 'inventory_manager']),
+  role: z.enum(['admin', 'staff', 'manager']),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -63,7 +63,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // Fetch users
-  const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery({
+  const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery<any[]>({
     queryKey: ['/api/users'],
     refetchOnWindowFocus: false,
   });
@@ -76,7 +76,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
       name: '',
       email: '',
       password: '',
-      role: 'inventory_manager',
+      role: 'staff',
     },
   });
 
@@ -92,7 +92,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
       username: '',
       name: '',
       email: '',
-      role: 'inventory_manager',
+      role: 'staff',
     },
   });
 
@@ -371,8 +371,8 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="sales_rep">Sales Representative</SelectItem>
-                        <SelectItem value="inventory_manager">Inventory Manager</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -469,8 +469,8 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="sales_rep">Sales Representative</SelectItem>
-                        <SelectItem value="inventory_manager">Inventory Manager</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
+                        <SelectItem value="manager">Manager</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -500,7 +500,70 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
         </DialogContent>
       </Dialog>
 
-      {/* Role permissions section would go here */}
+      {/* Role Permissions Section */}
+      <div className="mt-10 space-y-4">
+        <h3 className="text-lg font-medium">Role Permissions</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure what actions each role is allowed to perform in the system.
+        </p>
+
+        <div className="border rounded-md p-4 space-y-6">
+          {/* Admin Role Permissions */}
+          <div className="space-y-2">
+            <h4 className="font-semibold text-blue-600">Admin Role</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Administrators have full access to all system features.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {['products', 'categories', 'sales', 'purchases', 'reports', 'users', 'system_preferences', 'backups'].map((resource) => (
+                <div key={`admin-${resource}`} className="flex items-center space-x-2">
+                  <div className="rounded-md px-2 py-1 bg-blue-50 text-blue-700 text-sm">
+                    {resource.replace('_', ' ')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Staff Role Permissions */}
+          <div className="space-y-2">
+            <h4 className="font-semibold text-green-600">Staff Role</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Staff members can manage sales and view products.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {['View Products', 'Manage Sales', 'View Customers', 'Create Customers', 'View Reports'].map((permission) => (
+                <div key={`staff-${permission}`} className="flex items-center space-x-2">
+                  <div className="rounded-md px-2 py-1 bg-green-50 text-green-700 text-sm">
+                    {permission}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Manager Role Permissions */}
+          <div className="space-y-2">
+            <h4 className="font-semibold text-amber-600">Manager Role</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Managers can manage products, categories, and purchases.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {['Manage Products', 'Manage Categories', 'Manage Purchases', 'View Reports', 'View Suppliers', 'Create Suppliers'].map((permission) => (
+                <div key={`manager-${permission}`} className="flex items-center space-x-2">
+                  <div className="rounded-md px-2 py-1 bg-amber-50 text-amber-700 text-sm">
+                    {permission}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-sm text-muted-foreground mt-2">
+          Note: More granular role and permission management will be available in a future update.
+        </div>
+      </div>
     </div>
   );
 };
