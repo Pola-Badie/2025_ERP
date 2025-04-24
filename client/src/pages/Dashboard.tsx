@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Panadol Advance</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             EXPIRED
                           </span>
                         </td>
@@ -344,7 +344,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             EXPIRED
                           </span>
                         </td>
@@ -353,7 +353,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-orange-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
                             NEAR
                           </span>
                         </td>
@@ -362,7 +362,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Metformin 850mg</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             EXPIRED
                           </span>
                         </td>
@@ -375,9 +375,11 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">{product.drugName}</td>
                         <td className="px-4 py-2">
                           <span className={`px-2 py-1 rounded text-xs font-semibold 
-                            ${product.status === 'expired' || product.status === 'near' 
-                              ? 'bg-red-500 text-white' 
-                              : 'bg-gray-100'
+                            ${product.status === 'expired'
+                              ? 'bg-[#F16F6F] text-white' 
+                              : product.status === 'near'
+                                ? 'bg-[#FFB454] text-white'
+                                : 'bg-gray-100'
                             }`}>
                             EXPIRED
                           </span>
@@ -428,7 +430,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Asprine</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             Out of Stock
                           </span>
                         </td>
@@ -437,7 +439,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             Out of Stock
                           </span>
                         </td>
@@ -446,7 +448,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Zyrtic</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                             Out of Stock
                           </span>
                         </td>
@@ -455,7 +457,7 @@ const Dashboard: React.FC = () => {
                       <tr>
                         <td className="px-4 py-2 text-sm">Daflon 500</td>
                         <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-orange-500 text-white">
+                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
                             10
                           </span>
                         </td>
