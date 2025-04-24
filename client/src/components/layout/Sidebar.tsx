@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/inventory', label: 'INVENTORY', icon: 'package' },
     { path: '/expenses', label: 'EXPENSES', icon: 'dollar-sign' },
     { path: '/sales', label: 'SALES', icon: 'shopping-cart' },
+    { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
     { path: '/label', label: 'LABEL', icon: 'file-text' },
     { path: '/invoices', label: 'INVOICES / RECEIPTS', icon: 'file-text' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
@@ -45,6 +46,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Settings size={20} />;
       case 'sliders':
         return <Sliders size={20} />;
+      case 'file-plus':
+        return <FilePlus size={20} />;
       default:
         return null;
     }

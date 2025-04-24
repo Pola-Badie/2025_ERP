@@ -8,6 +8,7 @@ import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
 import Preferences from "@/pages/Preferences";
 import SystemPreferences from "@/pages/SystemPreferences";
+import CreateInvoice from "@/pages/CreateInvoice";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
@@ -26,6 +27,7 @@ function App() {
         <Route path="/expenses" component={Expenses} />
         <Route path="/sales" component={Reports} />
         <Route path="/reports" component={Reports} />
+        <Route path="/create-invoice" component={CreateInvoice} />
         <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />
         <Route path="/settings" component={Settings} />
