@@ -10,6 +10,7 @@ import Preferences from "@/pages/Preferences";
 import SystemPreferences from "@/pages/SystemPreferences";
 import CreateInvoice from "@/pages/CreateInvoice";
 import InvoiceHistory from "@/pages/InvoiceHistory";
+import LabelGenerator from "@/pages/LabelGenerator";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
@@ -30,6 +31,7 @@ function App() {
         <Route path="/reports" component={Reports} />
         <Route path="/create-invoice" component={CreateInvoice} />
         <Route path="/invoice-history" component={InvoiceHistory} />
+        <Route path="/label" component={LabelGenerator} />
         <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />
         <Route path="/settings" component={Settings} />
