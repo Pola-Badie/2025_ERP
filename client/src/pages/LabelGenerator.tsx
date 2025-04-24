@@ -75,7 +75,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useReactToPrint } from 'react-to-print';
+// We'll use html2canvas for printing instead of react-to-print due to TypeScript compatibility issues
 import JsBarcode from 'jsbarcode';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -214,35 +214,72 @@ const LabelGenerator: React.FC = () => {
     setBarcodeURL(canvas.toDataURL('image/png'));
   };
 
-  // Setup printing functionality
+  // Custom printing functionality
   const handlePrint = () => {
-    if (!labelRef.current) return;
+    if (!labelRef.current || !selectedProduct) return;
     
     setIsGenerating(true);
     
-    // Implementation using react-to-print directly
-    const printContent = () => labelRef.current;
-    const onBeforePrint = () => {
-      return new Promise<void>((resolve) => {
-        setTimeout(resolve, 1000);
-      });
-    };
-    const onAfterPrint = () => {
+    // Use html2canvas to create a canvas from the label
+    html2canvas(labelRef.current).then(canvas => {
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({
+          title: 'Error',
+          description: 'Could not open print window. Please check your popup blocker settings.',
+          variant: 'destructive',
+        });
+        setIsGenerating(false);
+        return;
+      }
+      
+      // Add the image to the new window and trigger print
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Label: ${selectedProduct.name}</title>
+            <style>
+              body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+              img { max-width: 100%; }
+              @media print {
+                body { margin: 0; padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <img src="${canvas.toDataURL('image/png')}" />
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                  window.close();
+                }, 200);
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      
+      // Show success message after a delay
+      setTimeout(() => {
+        setIsGenerating(false);
+        toast({
+          title: 'Print prepared',
+          description: `Label for ${selectedProduct.name} has been sent to printer`,
+        });
+      }, 1000);
+    }).catch(error => {
+      console.error('Printing error:', error);
       setIsGenerating(false);
       toast({
-        title: 'Printed successfully',
-        description: `${quantity} label(s) sent to printer`,
+        title: 'Error',
+        description: 'Failed to prepare label for printing',
+        variant: 'destructive',
       });
-    };
-    
-    const printFunction = useReactToPrint({
-      content: printContent,
-      documentTitle: `Label-${selectedProduct?.name}`,
-      onBeforePrint,
-      onAfterPrint,
     });
-    
-    printFunction();
   };
 
   // Handle PDF export
