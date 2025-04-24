@@ -39,6 +39,7 @@ import {
   Calendar 
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ProductForm from '@/components/inventory/ProductForm';
 
 interface Category {
   id: number;

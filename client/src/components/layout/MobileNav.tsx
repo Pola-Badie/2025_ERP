@@ -51,17 +51,18 @@ const MobileNav: React.FC = () => {
             </div>
           </Link>
           
-          <div className="flex flex-col items-center justify-center">
-            <button 
-              onClick={handleNewExpense}
-              className="bg-primary text-white p-3 rounded-full shadow-lg"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
+          <Link href="/expenses">
+            <div className={cn(
+              "flex flex-col items-center justify-center cursor-pointer",
+              location === "/expenses" ? "text-primary" : "text-slate-500"
+            )}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign">
+                <line x1="12" y1="2" x2="12" y2="22"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
               </svg>
-            </button>
-          </div>
+              <span className="text-xs mt-1">Expenses</span>
+            </div>
+          </Link>
           
           <Link href="/sales">
             <div className={cn(
