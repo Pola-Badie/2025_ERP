@@ -30,6 +30,7 @@ function App() {
         <Route path="/expenses" component={Expenses} />
         <Route path="/sales" component={Reports} />
         <Route path="/reports" component={Reports} />
+        <Route path="/accounting" component={Accounting} />
         <Route path="/create-invoice" component={CreateInvoice} />
         <Route path="/invoice-history" component={InvoiceHistory} />
         <Route path="/label" component={LabelGenerator} />

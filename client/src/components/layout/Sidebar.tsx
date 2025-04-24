@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
@@ -16,12 +16,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/', label: 'DASHBOARD', icon: 'home' },
     { path: '/inventory', label: 'INVENTORY', icon: 'package' },
     { path: '/expenses', label: 'EXPENSES', icon: 'dollar-sign' },
+    { path: '/accounting', label: 'ACCOUNTING', icon: 'book-open' },
     { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
     { path: '/invoice-history', label: 'INVOICE HISTORY', icon: 'receipt' },
     { path: '/label', label: 'LABEL', icon: 'file-text' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
     { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
-    { path: '/preferences', label: 'ACCOUNTING', icon: 'settings' },
+    { path: '/preferences', label: 'PREFERENCES', icon: 'settings' },
     { path: '/system-preferences', label: 'SYSTEM PREFERENCES', icon: 'sliders' },
   ];
 
@@ -49,6 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <FilePlus size={20} />;
       case 'receipt':
         return <Receipt size={20} />;
+      case 'book-open':
+        return <BookOpen size={20} />;
       default:
         return null;
     }
