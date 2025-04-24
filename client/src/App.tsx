@@ -25,6 +25,7 @@ function App() {
         <Route path="/inventory" component={Inventory} />
         <Route path="/expenses" component={Expenses} />
         <Route path="/sales" component={Reports} />
+        <Route path="/reports" component={Reports} />
         <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />
         <Route path="/settings" component={Settings} />

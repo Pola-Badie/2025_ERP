@@ -1,143 +1,1171 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from '@/components/ui/select';
-import ExpenseReport from '@/components/reports/ExpenseReport';
-import { CalendarIcon, ArrowDownIcon, BarChart3 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import {
+  Calendar,
+  Clock,
+  Download,
+  File,
+  FileText,
+  Filter,
+  Printer,
+  RefreshCw,
+  ShoppingCart,
+  TrendingUp
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 
-const Reports: React.FC = () => {
-  const [reportType, setReportType] = useState('expense');
-  const [period, setPeriod] = useState('month');
+// Dummy data for initial design - will be replaced with API data
+const salesData = [
+  { name: 'Jan', sales: 4000, revenue: 2400 },
+  { name: 'Feb', sales: 3000, revenue: 1398 },
+  { name: 'Mar', sales: 2000, revenue: 9800 },
+  { name: 'Apr', sales: 2780, revenue: 3908 },
+  { name: 'May', sales: 1890, revenue: 4800 },
+  { name: 'Jun', sales: 2390, revenue: 3800 },
+];
 
-  // Helper function to get current period label
-  const getCurrentPeriodLabel = () => {
-    const now = new Date();
-    switch (period) {
-      case 'month':
-        return now.toLocaleDateString('default', { month: 'long', year: 'numeric' });
-      case 'quarter':
-        const quarter = Math.floor(now.getMonth() / 3) + 1;
-        return `Q${quarter} ${now.getFullYear()}`;
-      case 'year':
-        return now.getFullYear().toString();
-      default:
-        return 'All Time';
+const categoryData = [
+  { name: 'Antibiotics', value: 400 },
+  { name: 'Painkillers', value: 300 },
+  { name: 'Supplements', value: 200 },
+  { name: 'Antacids', value: 150 },
+  { name: 'Antivirals', value: 100 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
+const ReportsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('sales');
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>({
+    from: new Date(new Date().setDate(new Date().getDate() - 30)),
+    to: new Date(),
+  });
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  
+  // Data fetching with react-query - will be implemented with actual endpoints
+  const { data: salesReportData, isLoading: salesLoading } = useQuery<any>({
+    queryKey: ['/api/reports/sales', dateRange, selectedFilter],
+    enabled: activeTab === 'sales',
+  });
+
+  const { data: financialReportData, isLoading: financialLoading } = useQuery<any>({
+    queryKey: ['/api/reports/financial', dateRange, selectedFilter],
+    enabled: activeTab === 'financial',
+  });
+
+  const { data: inventoryReportData, isLoading: inventoryLoading } = useQuery<any>({
+    queryKey: ['/api/reports/inventory', dateRange, selectedFilter],
+    enabled: activeTab === 'inventory',
+  });
+
+  const { data: customerReportData, isLoading: customerLoading } = useQuery<any>({
+    queryKey: ['/api/reports/customers', dateRange, selectedFilter],
+    enabled: activeTab === 'customers',
+  });
+
+  // Export functions
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    let title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Report`;
+    let dateText = '';
+    
+    if (dateRange) {
+      dateText = `${format(dateRange.from, 'PP')} to ${format(dateRange.to, 'PP')}`;
     }
+    
+    // Add title and date
+    doc.setFontSize(18);
+    doc.text(title, 105, 15, { align: 'center' });
+    doc.setFontSize(12);
+    doc.text(`Date Range: ${dateText}`, 105, 25, { align: 'center' });
+    doc.text(`Generated on: ${format(new Date(), 'PPpp')}`, 105, 32, { align: 'center' });
+    
+    // Add table based on active tab
+    autoTable(doc, { 
+      startY: 40,
+      head: [['Item', 'Value', 'Category', 'Status']],
+      body: [
+        ['Product A', '$1200', 'Antibiotics', 'Active'],
+        ['Product B', '$850', 'Painkillers', 'Low Stock'],
+        ['Product C', '$2300', 'Supplements', 'Active'],
+      ],
+    });
+    
+    doc.save(`${activeTab}_report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
+
+  const exportToCSV = () => {
+    let data: any[] = [];
+    let fileName = '';
+    
+    // Different data structure based on tab
+    switch (activeTab) {
+      case 'sales':
+        data = salesData;
+        fileName = 'sales_report';
+        break;
+      case 'financial':
+        data = salesData;
+        fileName = 'financial_report';
+        break;
+      case 'inventory':
+        data = salesData;
+        fileName = 'inventory_report';
+        break;
+      case 'customers':
+        data = salesData;
+        fileName = 'customer_report';
+        break;
+    }
+    
+    // Convert to CSV
+    let csv = 'data:text/csv;charset=utf-8,';
+    
+    if (data.length > 0) {
+      // Add headers
+      const headers = Object.keys(data[0]);
+      csv += headers.join(',') + '\\r\\n';
+      
+      // Add rows
+      data.forEach(row => {
+        let rowData = headers.map(header => row[header]);
+        csv += rowData.join(',') + '\\r\\n';
+      });
+    }
+    
+    // Create download link
+    const encodedUri = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${fileName}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Reports</h1>
-          <p className="text-sm text-slate-500">Analyze your real estate expense data</p>
+          <h1 className="text-3xl font-bold text-primary">Reports & Analytics</h1>
+          <p className="text-muted-foreground">Comprehensive insights into your business performance</p>
         </div>
-        <div className="flex items-center mt-4 sm:mt-0">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[180px]">
-              <div className="flex items-center">
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Select period" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex items-center space-x-2">
+          <Button onClick={exportToPDF} variant="outline" className="flex items-center space-x-2">
+            <FileText className="h-4 w-4" />
+            <span>Export PDF</span>
+          </Button>
+          <Button onClick={exportToCSV} variant="outline" className="flex items-center space-x-2">
+            <File className="h-4 w-4" />
+            <span>Export CSV</span>
+          </Button>
+          <Button variant="outline" className="flex items-center space-x-2">
+            <Printer className="h-4 w-4" />
+            <span>Print</span>
+          </Button>
         </div>
       </div>
-
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center mb-4">
-            <BarChart3 className="h-5 w-5 mr-2 text-primary" />
-            <h2 className="text-lg font-semibold text-slate-900">
-              Report for {getCurrentPeriodLabel()}
-            </h2>
-          </div>
-          
-          <Tabs defaultValue="expense" onValueChange={setReportType}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="expense">Expense Breakdown</TabsTrigger>
-              <TabsTrigger value="category">Category Analysis</TabsTrigger>
-              <TabsTrigger value="trend">Expense Trends</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="expense">
-              <ExpenseReport period={period} />
-            </TabsContent>
-            
-            <TabsContent value="category">
-              <div className="text-center py-12">
-                <div className="bg-slate-100 inline-flex items-center justify-center rounded-full p-3 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-                    <path d="M10.2 11.3C9.5 10.8 8.4 10.8 7.7 11.3L3.5 14.3C2.8 14.8 2.8 15.8 3.5 16.3L7.7 19.3C8.4 19.8 9.5 19.8 10.2 19.3L14.4 16.3C15.1 15.8 15.1 14.8 14.4 14.3L10.2 11.3Z"></path>
-                    <path d="M13.8 8.7C13.1 8.2 12 8.2 11.3 8.7L7.1 11.7C6.4 12.2 6.4 13.2 7.1 13.7L11.3 16.7C12 17.2 13.1 17.2 13.8 16.7L18 13.7C18.7 13.2 18.7 12.2 18 11.7L13.8 8.7Z"></path>
-                    <path d="M17.4 6.1C16.7 5.6 15.6 5.6 14.9 6.1L10.7 9.1C10 9.6 10 10.6 10.7 11.1L14.9 14.1C15.6 14.6 16.7 14.6 17.4 14.1L21.6 11.1C22.3 10.6 22.3 9.6 21.6 9.1L17.4 6.1Z"></path>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">Category Analysis</h3>
-                <p className="text-slate-500 max-w-lg mx-auto">
-                  This report is currently being developed. Check back soon for detailed category insights.
-                </p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="trend">
-              <div className="text-center py-12">
-                <div className="bg-slate-100 inline-flex items-center justify-center rounded-full p-3 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-                    <path d="M3 3v18h18"></path>
-                    <path d="m19 9-5 5-4-4-3 3"></path>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-slate-800 mb-2">Expense Trends</h3>
-                <p className="text-slate-500 max-w-lg mx-auto">
-                  This report is currently being developed. Check back soon for detailed trend analysis.
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
+      
+      {/* Filter Controls */}
       <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Saved Reports</h3>
-          
-          <div className="text-center py-6">
-            <div className="bg-slate-100 inline-flex items-center justify-center rounded-full p-3 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <path d="M8 13h8"></path>
-                <path d="M8 17h8"></path>
-                <path d="M8 9h1"></path>
-              </svg>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="space-y-2 flex-1">
+              <Label>Date Range</Label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Label className="text-xs">From</Label>
+                  <Input 
+                    type="date" 
+                    value={dateRange?.from ? dateRange.from.toISOString().split('T')[0] : ''} 
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const newFrom = new Date(e.target.value);
+                        setDateRange({
+                          from: newFrom,
+                          to: dateRange?.to || new Date()
+                        });
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-xs">To</Label>
+                  <Input 
+                    type="date" 
+                    value={dateRange?.to ? dateRange.to.toISOString().split('T')[0] : ''} 
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const newTo = new Date(e.target.value);
+                        setDateRange({
+                          from: dateRange?.from || new Date(new Date().setDate(new Date().getDate() - 30)),
+                          to: newTo
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
-            <h3 className="text-md font-medium text-slate-800 mb-2">No saved reports yet</h3>
-            <p className="text-slate-500">
-              Generate and save reports to access them quickly in the future.
-            </p>
+            <div className="space-y-2 w-full md:w-[200px]">
+              <Label>Category</Label>
+              <Select
+                value={selectedFilter}
+                onValueChange={setSelectedFilter}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="antibiotics">Antibiotics</SelectItem>
+                  <SelectItem value="painkillers">Painkillers</SelectItem>
+                  <SelectItem value="supplements">Supplements</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 w-full md:w-[200px]">
+              <Label>Payment Status</Label>
+              <Select defaultValue="all">
+                <SelectTrigger>
+                  <SelectValue placeholder="Payment status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
+                  <SelectItem value="partial">Partial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 w-full md:w-[200px]">
+              <Label>Sales Rep</Label>
+              <Select defaultValue="all">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select sales rep" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Reps</SelectItem>
+                  <SelectItem value="1">John Doe</SelectItem>
+                  <SelectItem value="2">Jane Smith</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button className="flex items-center space-x-2">
+              <Filter className="h-4 w-4" />
+              <span>Apply Filters</span>
+            </Button>
+            <Button variant="outline" className="flex items-center space-x-2">
+              <RefreshCw className="h-4 w-4" />
+              <span>Reset</span>
+            </Button>
           </div>
         </CardContent>
       </Card>
+      
+      {/* Report Tabs */}
+      <Tabs 
+        defaultValue="sales" 
+        className="space-y-4"
+        onValueChange={(value) => setActiveTab(value)}
+      >
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="sales" className="flex items-center space-x-2">
+            <ShoppingCart className="h-4 w-4" />
+            <span>Sales Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex items-center space-x-2">
+            <TrendingUp className="h-4 w-4" />
+            <span>Financial Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="inventory" className="flex items-center space-x-2">
+            <Clock className="h-4 w-4" />
+            <span>Inventory Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="customers" className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4" />
+            <span>Customer Reports</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Sales Reports Tab */}
+        <TabsContent value="sales" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Sales</CardTitle>
+                <CardDescription>Current Period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$24,780</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 12%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Transactions</CardTitle>
+                <CardDescription>Total Orders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">278</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 8%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Average Order</CardTitle>
+                <CardDescription>Value per Transaction</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$89.14</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 4%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sales Trend</CardTitle>
+                <CardDescription>
+                  Sales trend over the selected period
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#8884d8" 
+                      activeDot={{ r: 8 }} 
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="#82ca9d" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Sales by Category</CardTitle>
+                <CardDescription>
+                  Distribution of sales across product categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Selling Products</CardTitle>
+              <CardDescription>
+                Products with the highest sales volume and revenue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Quantity Sold
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Revenue
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        % of Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Panadol Advance
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Painkillers
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        342
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $3,420
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        14.8%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Amoxicillin 500mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Antibiotics
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        287
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $2,870
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        12.4%
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Vitamin C 1000mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Supplements
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        256
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $2,560
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        11.1%
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Financial Reports Tab */}
+        <TabsContent value="financial" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Revenue</CardTitle>
+                <CardDescription>Current Period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$32,580</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 8%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Outstanding Receivables</CardTitle>
+                <CardDescription>Unpaid Invoices</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$8,790</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 3%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Tax Collected</CardTitle>
+                <CardDescription>VAT/Sales Tax</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$4,890</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 6%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue vs. Receivables</CardTitle>
+                <CardDescription>
+                  Comparison between collected revenue and outstanding receivables
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="revenue" fill="#82ca9d" name="Revenue" />
+                    <Bar dataKey="sales" fill="#8884d8" name="Receivables" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Tax Summary</CardTitle>
+                <CardDescription>
+                  Monthly breakdown of collected VAT/sales tax
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#FF8042" 
+                      name="Tax Collected"
+                      activeDot={{ r: 8 }} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Invoices</CardTitle>
+              <CardDescription>
+                Invoices that are pending payment or partially paid
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Invoice #
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Issue Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Due Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Amount
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        INV-2023-001
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Lagos General Hospital
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/01/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/15/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,250
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Partial
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        INV-2023-008
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Abuja Medical Center
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/05/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/19/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $3,780
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Unpaid
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        INV-2023-012
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Kano Pharmacy Ltd
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/08/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/22/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $2,150
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Partial
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Inventory Reports Tab */}
+        <TabsContent value="inventory" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Inventory Value</CardTitle>
+                <CardDescription>Current Stock</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$158,970</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 5%</span> vs previous month
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Low Stock Items</CardTitle>
+                <CardDescription>Below Threshold</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">14</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 4</span> vs previous month
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Expiring Soon</CardTitle>
+                <CardDescription>Within 90 Days</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">23</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 8</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Inventory Value Over Time</CardTitle>
+                <CardDescription>
+                  Track changes in total inventory value
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#8884d8" 
+                      name="Inventory Value"
+                      activeDot={{ r: 8 }} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock Status</CardTitle>
+                <CardDescription>
+                  Breakdown of inventory by stock status
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Normal Stock', value: 450 },
+                        { name: 'Low Stock', value: 14 },
+                        { name: 'Out of Stock', value: 8 },
+                        { name: 'Expiring Soon', value: 23 },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Low Stock & Expiring Products</CardTitle>
+              <CardDescription>
+                Products that require attention due to low stock or expiration date
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current Stock
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Min Stock
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expiry Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Ibuprofen 400mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Painkillers
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        12
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        50
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        11/15/2024
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Low Stock
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Vitamin B Complex
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Supplements
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        85
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        30
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        12/30/2023
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Expiring Soon
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Ciprofloxacin 500mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Antibiotics
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        8
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        40
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        03/15/2024
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Low Stock
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Customer Reports Tab */}
+        <TabsContent value="customers" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Customers</CardTitle>
+                <CardDescription>Active Accounts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">142</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 12</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">New Customers</CardTitle>
+                <CardDescription>This Period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">16</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 4</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Average Customer Value</CardTitle>
+                <CardDescription>Lifetime Value</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$4,250</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ $320</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Acquisition</CardTitle>
+                <CardDescription>
+                  New customers over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#8884d8" 
+                      name="New Customers"
+                      activeDot={{ r: 8 }} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Payment Behavior</CardTitle>
+                <CardDescription>
+                  Payment timeliness analysis
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'On Time', value: 68 },
+                        { name: '1-7 Days Late', value: 18 },
+                        { name: '8-30 Days Late', value: 10 },
+                        { name: '30+ Days Late', value: 4 },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Most Valuable Customers</CardTitle>
+              <CardDescription>
+                Customers ranked by total purchase value
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Purchases
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Spent
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avg. Order Value
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Purchase
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Lagos General Hospital
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Hospital
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        48
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $78,540
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,636
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/12/2023
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Abuja Medical Center
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Medical Center
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        36
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $64,320
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,787
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/05/2023
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        Kano Pharmacy Ltd
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Pharmacy
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        52
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $42,890
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $825
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        10/10/2023
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
+}
 
-export default Reports;
+export default ReportsPage;
