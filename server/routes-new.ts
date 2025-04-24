@@ -63,6 +63,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
 
+  // ============= User Management Endpoints =============
+
+  // Get all users
+  app.get("/api/users", async (_req: Request, res: Response) => {
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        avatar: users.avatar,
+        createdAt: users.createdAt
+      }).from(users);
+      
+      // Don't return passwords
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Users error:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get user by ID
+  app.get("/api/users/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const [user] = await db.select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        avatar: users.avatar,
+        createdAt: users.createdAt
+      }).from(users).where(eq(users.id, id));
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Create user
+  app.post("/api/users", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await db.select()
+        .from(users)
+        .where(eq(users.username, validatedData.username))
+        .limit(1);
+      
+      if (existingUser.length > 0) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      
+      // Insert user
+      const [newUser] = await db.insert(users).values(validatedData).returning({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        avatar: users.avatar,
+        createdAt: users.createdAt
+      });
+      
+      res.status(201).json(newUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      console.error("Create user error:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Update user
+  app.patch("/api/users/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // First check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, id));
+      
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Create update schema that makes all fields optional
+      const updateUserSchema = z.object({
+        name: z.string().optional(),
+        email: z.string().email().optional(),
+        role: z.string().optional(),
+        avatar: z.string().optional(),
+        password: z.string().optional(),
+      });
+      
+      const validatedData = updateUserSchema.parse(req.body);
+      
+      // Update user
+      const [updatedUser] = await db.update(users)
+        .set(validatedData)
+        .where(eq(users.id, id))
+        .returning({
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          avatar: users.avatar,
+          createdAt: users.createdAt
+        });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      console.error("Update user error:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Delete user
+  app.delete("/api/users/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, id));
+      
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Delete user
+      await db.delete(users).where(eq(users.id, id));
+      
+      res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
   // ============= Dashboard Endpoints =============
   
   // API endpoint for dashboard summary data
