@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -212,6 +212,101 @@ export const salesReports = pgTable("sales_reports", {
   topSellingProduct: integer("top_selling_product").references(() => products.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Accounting Module
+
+// Chart of Accounts
+export const accounts = pgTable("accounts", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(), // E.g., "1000", "2000", etc.
+  name: text("name").notNull().unique(),
+  type: text("type").notNull(), // Asset, Liability, Equity, Income, Expense
+  subtype: text("subtype"), // E.g., "Current Asset", "Fixed Asset", etc.
+  description: text("description"),
+  parentId: integer("parent_id").references(() => accounts.id), // For hierarchy
+  isActive: boolean("is_active").default(true).notNull(),
+  balance: numeric("balance").default("0").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Journal Entries
+export const journalEntries = pgTable("journal_entries", {
+  id: serial("id").primaryKey(),
+  entryNumber: text("entry_number").notNull().unique(),
+  date: date("date").notNull(),
+  reference: text("reference"), // For linking to external documents
+  memo: text("memo"),
+  status: text("status").default("posted").notNull(), // draft, posted, etc.
+  totalDebit: numeric("total_debit").notNull(),
+  totalCredit: numeric("total_credit").notNull(),
+  sourceType: text("source_type"), // manual, sale, purchase, etc.
+  sourceId: integer("source_id"), // ID of the source document
+  userId: integer("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Journal Entry Lines
+export const journalLines = pgTable("journal_lines", {
+  id: serial("id").primaryKey(),
+  journalId: integer("journal_id").references(() => journalEntries.id).notNull(),
+  accountId: integer("account_id").references(() => accounts.id).notNull(),
+  description: text("description"),
+  debit: numeric("debit").default("0"),
+  credit: numeric("credit").default("0"),
+  position: integer("position").notNull(), // For ordering
+});
+
+// Financial Periods
+export const financialPeriods = pgTable("financial_periods", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  status: text("status").default("open").notNull(), // open, closed, etc.
+  isFiscalYear: boolean("is_fiscal_year").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Financial Reports
+export const financialReports = pgTable("financial_reports", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // pnl, balance_sheet, cash_flow
+  name: text("name").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  data: jsonb("data").notNull(), // Stored report data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+});
+
+// Accounts Receivable (for tracking customer balances)
+export const accountsReceivable = pgTable("accounts_receivable", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  invoiceId: integer("invoice_id").references(() => invoices.id),
+  amount: numeric("amount").notNull(),
+  dueDate: date("due_date").notNull(),
+  status: text("status").default("outstanding").notNull(), // outstanding, partial, paid
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Accounts Payable (for tracking vendor bills)
+export const accountsPayable = pgTable("accounts_payable", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id).notNull(),
+  purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id),
+  amount: numeric("amount").notNull(),
+  dueDate: date("due_date").notNull(),
+  status: text("status").default("outstanding").notNull(), // outstanding, partial, paid
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// The parent-child relationship for accounts is already handled by the column reference
+// We don't need to explicitly define the foreign key with Drizzle this way
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -427,3 +522,91 @@ export type RolePermission = typeof rolePermissions.$inferSelect;
 
 export type InsertLoginLog = z.infer<typeof insertLoginLogSchema>;
 export type LoginLog = typeof loginLogs.$inferSelect;
+
+// Accounting module schemas and types
+export const insertAccountSchema = createInsertSchema(accounts).pick({
+  code: true,
+  name: true,
+  type: true,
+  subtype: true,
+  description: true,
+  parentId: true,
+  isActive: true,
+});
+
+export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick({
+  entryNumber: true,
+  date: true,
+  reference: true,
+  memo: true,
+  status: true,
+  totalDebit: true,
+  totalCredit: true,
+  sourceType: true,
+  sourceId: true,
+  userId: true,
+});
+
+export const insertJournalLineSchema = createInsertSchema(journalLines).pick({
+  journalId: true,
+  accountId: true,
+  description: true,
+  debit: true,
+  credit: true,
+  position: true,
+});
+
+export const insertFinancialPeriodSchema = createInsertSchema(financialPeriods).pick({
+  name: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+  isFiscalYear: true,
+});
+
+export const insertFinancialReportSchema = createInsertSchema(financialReports).pick({
+  type: true,
+  name: true,
+  startDate: true,
+  endDate: true,
+  data: true,
+  userId: true,
+});
+
+export const insertAccountsReceivableSchema = createInsertSchema(accountsReceivable).pick({
+  customerId: true,
+  invoiceId: true,
+  amount: true,
+  dueDate: true,
+  status: true,
+});
+
+export const insertAccountsPayableSchema = createInsertSchema(accountsPayable).pick({
+  supplierId: true,
+  purchaseOrderId: true,
+  amount: true,
+  dueDate: true,
+  status: true,
+});
+
+// Accounting module types
+export type InsertAccount = z.infer<typeof insertAccountSchema>;
+export type Account = typeof accounts.$inferSelect;
+
+export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
+export type JournalEntry = typeof journalEntries.$inferSelect;
+
+export type InsertJournalLine = z.infer<typeof insertJournalLineSchema>;
+export type JournalLine = typeof journalLines.$inferSelect;
+
+export type InsertFinancialPeriod = z.infer<typeof insertFinancialPeriodSchema>;
+export type FinancialPeriod = typeof financialPeriods.$inferSelect;
+
+export type InsertFinancialReport = z.infer<typeof insertFinancialReportSchema>;
+export type FinancialReport = typeof financialReports.$inferSelect;
+
+export type InsertAccountsReceivable = z.infer<typeof insertAccountsReceivableSchema>;
+export type AccountsReceivable = typeof accountsReceivable.$inferSelect;
+
+export type InsertAccountsPayable = z.infer<typeof insertAccountsPayableSchema>;
+export type AccountsPayable = typeof accountsPayable.$inferSelect;

@@ -18,6 +18,7 @@ import {
   insertRolePermissionSchema,
   insertLoginLogSchema
 } from "@shared/schema";
+import { registerAccountingRoutes } from "./routes-accounting";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
@@ -60,6 +61,9 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
+
+  // Register accounting routes
+  registerAccountingRoutes(app);
 
   // Schedule automatic backups
   setupAutomaticBackups();
