@@ -124,7 +124,7 @@ const Dashboard: React.FC = () => {
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-red-400 text-white rounded-md border-none overflow-hidden relative">
+        <Card className="bg-[#F16F6F] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
             <CardTitle className="text-sm font-medium">TOTAL CUSTOMERS</CardTitle>
@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-cyan-400 text-white rounded-md border-none overflow-hidden relative">
+        <Card className="bg-[#57CBEB] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
             <CardTitle className="text-sm font-medium">NEW CUSTOMERS</CardTitle>
@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-purple-500 text-white rounded-md border-none overflow-hidden relative">
+        <Card className="bg-[#7E75C0] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
             <CardTitle className="text-sm font-medium">TODAY'S SALES</CardTitle>
@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-emerald-400 text-white rounded-md border-none overflow-hidden relative">
+        <Card className="bg-[#3BCEAC] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
             <CardTitle className="text-sm font-medium">MONTH SALES</CardTitle>

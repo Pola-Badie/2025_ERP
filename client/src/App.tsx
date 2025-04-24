@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 function App() {
   // Set document title
   useEffect(() => {
-    document.title = "PharmERP - Pharmacy Management System";
+    document.title = "PharmaOverseas - Pharmaceutical ERP System";
   }, []);
 
   return (

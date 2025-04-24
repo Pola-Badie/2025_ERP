@@ -76,35 +76,36 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         <ul className="space-y-0">
           {navItems.map((item) => (
             <li key={item.path}>
-              <Link href={item.path}>
-                <a 
-                  className={cn(
-                    "flex items-center space-x-3 px-4 py-3 border-l-4 border-transparent hover:bg-[#26405A]",
-                    location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
-                  )}
-                  onClick={isMobile ? onClose : undefined}
-                >
-                  <span className={cn(
-                    "text-gray-300",
-                    location === item.path && "text-[#3BCEAC]"
-                  )}>
-                    {renderIcon(item.icon)}
+              <div
+                className={cn(
+                  "flex items-center space-x-3 px-4 py-3 border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
+                  location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
+                )}
+                onClick={() => {
+                  if (isMobile && onClose) onClose();
+                  window.location.href = item.path;
+                }}
+              >
+                <span className={cn(
+                  "text-gray-300",
+                  location === item.path && "text-[#3BCEAC]"
+                )}>
+                  {renderIcon(item.icon)}
+                </span>
+                <span className={cn(
+                  "text-sm font-medium",
+                  location === item.path && "text-[#3BCEAC]"
+                )}>
+                  {item.label}
+                </span>
+                {location === item.path && (
+                  <span className="ml-auto">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 18L15 12L9 6" stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    location === item.path && "text-[#3BCEAC]"
-                  )}>
-                    {item.label}
-                  </span>
-                  {location === item.path && (
-                    <span className="ml-auto">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 18L15 12L9 6" stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  )}
-                </a>
-              </Link>
+                )}
+              </div>
             </li>
           ))}
         </ul>
