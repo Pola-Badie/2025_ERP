@@ -150,6 +150,39 @@ export const invoices = pgTable("invoices", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// System preferences
+export const systemPreferences = pgTable("system_preferences", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: jsonb("value").notNull(),
+  category: text("category").notNull(), // 'user_management', 'inventory', 'financial', 'notifications', 'company'
+  label: text("label").notNull(),
+  description: text("description"),
+  dataType: text("data_type").notNull(), // 'string', 'number', 'boolean', 'json', 'select'
+  options: jsonb("options"), // For select types, array of options
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// System role permissions
+export const rolePermissions = pgTable("role_permissions", {
+  id: serial("id").primaryKey(),
+  role: text("role").notNull(), // 'admin', 'sales_rep', 'inventory_manager'
+  resource: text("resource").notNull(), // 'users', 'products', 'sales', etc.
+  action: text("action").notNull(), // 'create', 'read', 'update', 'delete'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Login activity logs
+export const loginLogs = pgTable("login_logs", {
+  id: serial("id").primaryKey(), 
+  userId: integer("user_id").references(() => users.id).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  success: boolean("success").notNull(),
+});
+
 // System backups
 export const backups = pgTable("backups", {
   id: serial("id").primaryKey(),
@@ -297,6 +330,34 @@ export const insertSalesReportSchema = createInsertSchema(salesReports).pick({
   topSellingProduct: true,
 });
 
+export const insertSystemPreferenceSchema = createInsertSchema(systemPreferences).pick({
+  key: true,
+  value: true,
+  category: true,
+  label: true,
+  description: true,
+  dataType: true,
+  options: true,
+});
+
+export const updateSystemPreferenceSchema = z.object({
+  value: z.any(),
+  updatedAt: z.date().optional(),
+});
+
+export const insertRolePermissionSchema = createInsertSchema(rolePermissions).pick({
+  role: true,
+  resource: true,
+  action: true,
+});
+
+export const insertLoginLogSchema = createInsertSchema(loginLogs).pick({
+  userId: true,
+  ipAddress: true,
+  userAgent: true,
+  success: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -356,3 +417,13 @@ export const updateProductSchema = z.object({
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 export type PurchaseOrderItem = typeof purchaseOrderItems.$inferSelect;
 export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
+
+export type InsertSystemPreference = z.infer<typeof insertSystemPreferenceSchema>;
+export type SystemPreference = typeof systemPreferences.$inferSelect;
+export type UpdateSystemPreference = z.infer<typeof updateSystemPreferenceSchema>;
+
+export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
+export type RolePermission = typeof rolePermissions.$inferSelect;
+
+export type InsertLoginLog = z.infer<typeof insertLoginLogSchema>;
+export type LoginLog = typeof loginLogs.$inferSelect;

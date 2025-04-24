@@ -11,7 +11,10 @@ import {
   backups, type Backup, type InsertBackup,
   backupSettings, type BackupSettings, type UpdateBackupSettings,
   inventoryTransactions, type InventoryTransaction,
-  salesReports, type SalesReport, type InsertSalesReport
+  salesReports, type SalesReport, type InsertSalesReport,
+  systemPreferences, type SystemPreference, type InsertSystemPreference, type UpdateSystemPreference,
+  rolePermissions, type RolePermission, type InsertRolePermission,
+  loginLogs, type LoginLog, type InsertLoginLog
 } from "@shared/schema";
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -83,6 +86,22 @@ export interface IStorage {
   // Backup and recovery operations
   performBackup(type: string): Promise<Backup>;
   restoreFromBackup(backupId: number): Promise<boolean>;
+  
+  // System preferences methods
+  getSystemPreferences(): Promise<SystemPreference[]>;
+  getSystemPreferencesByCategory(category: string): Promise<SystemPreference[]>;
+  getSystemPreference(key: string): Promise<SystemPreference | undefined>;
+  createSystemPreference(preference: InsertSystemPreference): Promise<SystemPreference>;
+  updateSystemPreference(key: string, value: any): Promise<SystemPreference | undefined>;
+  
+  // Role permissions methods
+  getRolePermissions(role: string): Promise<RolePermission[]>;
+  createRolePermission(permission: InsertRolePermission): Promise<RolePermission>;
+  deleteRolePermission(id: number): Promise<boolean>;
+  
+  // Login logs methods
+  getLoginLogs(limit?: number): Promise<LoginLog[]>;
+  createLoginLog(log: InsertLoginLog): Promise<LoginLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -517,6 +536,67 @@ export class DatabaseStorage implements IStorage {
   private async getBackup(id: number): Promise<Backup | undefined> {
     const [backup] = await db.select().from(backups).where(eq(backups.id, id));
     return backup;
+  }
+  
+  // System Preferences methods
+  async getSystemPreferences(): Promise<SystemPreference[]> {
+    return db.select().from(systemPreferences).orderBy(asc(systemPreferences.category), asc(systemPreferences.key));
+  }
+  
+  async getSystemPreferencesByCategory(category: string): Promise<SystemPreference[]> {
+    return db.select().from(systemPreferences)
+      .where(eq(systemPreferences.category, category))
+      .orderBy(asc(systemPreferences.key));
+  }
+  
+  async getSystemPreference(key: string): Promise<SystemPreference | undefined> {
+    const [preference] = await db.select().from(systemPreferences).where(eq(systemPreferences.key, key));
+    return preference;
+  }
+  
+  async createSystemPreference(preference: InsertSystemPreference): Promise<SystemPreference> {
+    const [createdPreference] = await db.insert(systemPreferences).values(preference).returning();
+    return createdPreference;
+  }
+  
+  async updateSystemPreference(key: string, value: any): Promise<SystemPreference | undefined> {
+    const [updatedPreference] = await db.update(systemPreferences)
+      .set({ 
+        value, 
+        updatedAt: new Date() 
+      })
+      .where(eq(systemPreferences.key, key))
+      .returning();
+    
+    return updatedPreference;
+  }
+  
+  // Role Permissions methods
+  async getRolePermissions(role: string): Promise<RolePermission[]> {
+    return db.select().from(rolePermissions)
+      .where(eq(rolePermissions.role, role));
+  }
+  
+  async createRolePermission(permission: InsertRolePermission): Promise<RolePermission> {
+    const [createdPermission] = await db.insert(rolePermissions).values(permission).returning();
+    return createdPermission;
+  }
+  
+  async deleteRolePermission(id: number): Promise<boolean> {
+    await db.delete(rolePermissions).where(eq(rolePermissions.id, id));
+    return true;
+  }
+  
+  // Login Logs methods
+  async getLoginLogs(limit: number = 100): Promise<LoginLog[]> {
+    return db.select().from(loginLogs)
+      .orderBy(desc(loginLogs.timestamp))
+      .limit(limit);
+  }
+  
+  async createLoginLog(log: InsertLoginLog): Promise<LoginLog> {
+    const [createdLog] = await db.insert(loginLogs).values(log).returning();
+    return createdLog;
   }
 }
 
