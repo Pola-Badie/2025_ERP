@@ -23,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
     { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
     { path: '/preferences', label: 'ACCOUNTING', icon: 'settings' },
-    // Removed system preferences link
+    { path: '/system-preferences', label: 'SYSTEM PREFERENCES', icon: 'sliders' },
   ];
 
   const renderIcon = (iconName: string) => {
