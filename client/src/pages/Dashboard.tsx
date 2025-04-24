@@ -428,7 +428,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Asprine</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            OUT OF STOCK
+                            10
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -437,7 +437,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            OUT OF STOCK
+                            10
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -446,7 +446,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Zyrtic</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            OUT OF STOCK
+                            10
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
@@ -455,7 +455,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-4 py-2 text-sm">Daflon 500</td>
                         <td className="px-4 py-2">
                           <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            EXPIRED
+                            10
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2023</td>
@@ -471,7 +471,7 @@ const Dashboard: React.FC = () => {
                               ? 'bg-[#F16F6F] text-white' 
                               : 'bg-[#F16F6F] text-white'
                           }`}>
-                            {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : 'EXPIRED'}
+                            {product.quantity === 0 || product.status === 'out_of_stock' ? '10' : '10'}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-sm">19 June 2024</td>
