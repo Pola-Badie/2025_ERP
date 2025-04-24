@@ -11,6 +11,7 @@ import SystemPreferences from "@/pages/SystemPreferences";
 import CreateInvoice from "@/pages/CreateInvoice";
 import InvoiceHistory from "@/pages/InvoiceHistory";
 import LabelGenerator from "@/pages/LabelGenerator";
+import Accounting from "@/pages/Accounting";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
