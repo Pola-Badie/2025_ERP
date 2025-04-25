@@ -1,5 +1,6 @@
 import {
   users, type User, type InsertUser,
+  userPermissions, type UserPermission, type InsertUserPermission,
   products, type Product, type InsertProduct, type UpdateProduct,
   productCategories, type ProductCategory, type InsertProductCategory,
   customers, type Customer, type InsertCustomer,

@@ -9,9 +9,25 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name"),
   email: text("email"),
-  role: text("role").default("staff").notNull(), // admin, staff, manager
+  role: text("role").default("staff").notNull(), // admin, sales_rep, inventory_manager, accountant, manager
+  status: text("status").default("active").notNull(), // active, inactive, suspended
   avatar: text("avatar"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User module permissions
+export const userPermissions = pgTable("user_permissions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  moduleName: text("module_name").notNull(), // dashboard, inventory, expenses, accounting, etc.
+  accessGranted: boolean("access_granted").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    userModuleIndex: primaryKey({ columns: [table.userId, table.moduleName] }),
+  };
 });
 
 // Product management
@@ -315,7 +331,14 @@ export const insertUserSchema = createInsertSchema(users).pick({
   name: true,
   email: true,
   role: true,
+  status: true,
   avatar: true,
+});
+
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).pick({
+  userId: true,
+  moduleName: true,
+  accessGranted: true,
 });
 
 export const insertProductCategorySchema = createInsertSchema(productCategories).pick({
@@ -610,3 +633,6 @@ export type AccountsReceivable = typeof accountsReceivable.$inferSelect;
 
 export type InsertAccountsPayable = z.infer<typeof insertAccountsPayableSchema>;
 export type AccountsPayable = typeof accountsPayable.$inferSelect;
+
+export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
+export type UserPermission = typeof userPermissions.$inferSelect;
