@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
@@ -22,6 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/label', label: 'LABEL', icon: 'file-text' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
     { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
+    { path: '/users', label: 'USER MANAGEMENT', icon: 'users' },
     { path: '/preferences', label: 'PREFERENCES', icon: 'settings' },
     { path: '/system-preferences', label: 'SYSTEM PREFERENCES', icon: 'sliders' },
   ];
@@ -52,6 +53,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Receipt size={20} />;
       case 'book-open':
         return <BookOpen size={20} />;
+      case 'users':
+        return <Users size={20} />;
       default:
         return null;
     }

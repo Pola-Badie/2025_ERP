@@ -12,6 +12,7 @@ import CreateInvoice from "@/pages/CreateInvoice";
 import InvoiceHistory from "@/pages/InvoiceHistory";
 import LabelGenerator from "@/pages/LabelGenerator";
 import Accounting from "@/pages/Accounting";
+import UserManagement from "@/pages/UserManagement";
 import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
@@ -39,6 +40,7 @@ function App() {
         <Route path="/settings" component={Settings} />
         <Route path="/preferences" component={Preferences} />
         <Route path="/system-preferences" component={SystemPreferences} />
+        <Route path="/users" component={UserManagement} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
