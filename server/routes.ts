@@ -19,6 +19,7 @@ import {
   insertLoginLogSchema
 } from "@shared/schema";
 import { registerAccountingRoutes } from "./routes-accounting";
+import userRoutes from "./routes-user";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
@@ -65,37 +66,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register accounting routes
   registerAccountingRoutes(app);
 
+  // Register user management routes
+  app.use('/api', userRoutes);
+
   // Schedule automatic backups
   setupAutomaticBackups();
-
-  // ============= User Endpoints =============
-  
-  // Get all users
-  app.get("/api/users", async (req: Request, res: Response) => {
-    try {
-      // Fetch all users from database
-      const allUsers = await storage.getUsers();
-      res.json(allUsers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch users" });
-    }
-  });
-
-  // Get user by ID
-  app.get("/api/users/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      const user = await storage.getUser(id);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
 
   // ============= Product Endpoints =============
   

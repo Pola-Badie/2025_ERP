@@ -28,6 +28,15 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
+  deactivateUser(id: number): Promise<boolean>;
+  
+  // User permission methods
+  getUserPermissions(userId: number): Promise<UserPermission[]>;
+  getUserPermissionsByModule(userId: number, moduleName: string): Promise<UserPermission | undefined>;
+  createUserPermission(permission: InsertUserPermission): Promise<UserPermission>;
+  updateUserPermission(userId: number, moduleName: string, accessGranted: boolean): Promise<UserPermission | undefined>;
+  deleteUserPermission(userId: number, moduleName: string): Promise<boolean>;
   
   // Product methods
   getProducts(): Promise<Product[]>;
@@ -136,6 +145,71 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [createdUser] = await db.insert(users).values(user).returning();
     return createdUser;
+  }
+  
+  async updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined> {
+    const [user] = await db.update(users)
+      .set({ ...userData, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+  
+  async deactivateUser(id: number): Promise<boolean> {
+    const [user] = await db.update(users)
+      .set({ status: 'inactive', updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return !!user;
+  }
+  
+  // User permissions methods
+  async getUserPermissions(userId: number): Promise<UserPermission[]> {
+    return db.select().from(userPermissions).where(eq(userPermissions.userId, userId));
+  }
+  
+  async getUserPermissionsByModule(userId: number, moduleName: string): Promise<UserPermission | undefined> {
+    const [permission] = await db.select().from(userPermissions)
+      .where(and(
+        eq(userPermissions.userId, userId),
+        eq(userPermissions.moduleName, moduleName)
+      ));
+    return permission;
+  }
+  
+  async createUserPermission(permission: InsertUserPermission): Promise<UserPermission> {
+    const [createdPermission] = await db.insert(userPermissions).values(permission).returning();
+    return createdPermission;
+  }
+  
+  async updateUserPermission(userId: number, moduleName: string, accessGranted: boolean): Promise<UserPermission | undefined> {
+    const [permission] = await db.update(userPermissions)
+      .set({ accessGranted, updatedAt: new Date() })
+      .where(and(
+        eq(userPermissions.userId, userId),
+        eq(userPermissions.moduleName, moduleName)
+      ))
+      .returning();
+    
+    // If no record exists, create one
+    if (!permission) {
+      return this.createUserPermission({
+        userId,
+        moduleName,
+        accessGranted
+      });
+    }
+    
+    return permission;
+  }
+  
+  async deleteUserPermission(userId: number, moduleName: string): Promise<boolean> {
+    await db.delete(userPermissions)
+      .where(and(
+        eq(userPermissions.userId, userId),
+        eq(userPermissions.moduleName, moduleName)
+      ));
+    return true;
   }
   
   // Product methods
