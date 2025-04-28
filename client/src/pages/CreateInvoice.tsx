@@ -453,7 +453,14 @@ const CreateInvoice = () => {
                 {form.watch('customer.name') && !isCreatingCustomer && (
                   <div className="border rounded-lg p-4 space-y-2">
                     <div className="flex justify-between">
-                      <h3 className="font-medium">{form.watch('customer.name')}</h3>
+                      {form.watch('customer.company') ? (
+                        <div>
+                          <h3 className="font-medium">{form.watch('customer.company')}</h3>
+                          <p className="text-sm">{form.watch('customer.name')}</p>
+                        </div>
+                      ) : (
+                        <h3 className="font-medium">{form.watch('customer.name')}</h3>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -470,9 +477,6 @@ const CreateInvoice = () => {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                    {form.watch('customer.company') && (
-                      <p className="text-sm text-muted-foreground">Company: {form.watch('customer.company')}</p>
-                    )}
                     {form.watch('customer.position') && (
                       <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
                     )}
@@ -503,6 +507,14 @@ const CreateInvoice = () => {
                     </Button>
                   </div>
                   <div>
+                    <Label htmlFor="customerCompany">Company Name</Label>
+                    <Input
+                      id="customerCompany"
+                      placeholder="Company name"
+                      {...form.register('customer.company')}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="customerName">Name</Label>
                     <Input
                       id="customerName"
@@ -514,14 +526,6 @@ const CreateInvoice = () => {
                         {form.formState.errors.customer.name.message}
                       </p>
                     )}
-                  </div>
-                  <div>
-                    <Label htmlFor="customerCompany">Company Name</Label>
-                    <Input
-                      id="customerCompany"
-                      placeholder="Company name"
-                      {...form.register('customer.company')}
-                    />
                   </div>
                   <div>
                     <Label htmlFor="customerPosition">Position</Label>
@@ -921,8 +925,8 @@ const CreateInvoice = () => {
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div>
                 <h3 className="font-semibold mb-2">Bill To:</h3>
-                <p className="font-medium">{form.watch('customer.name')}</p>
-                {form.watch('customer.company') && <p>Company: {form.watch('customer.company')}</p>}
+                {form.watch('customer.company') && <p className="font-medium">{form.watch('customer.company')}</p>}
+                <p>{form.watch('customer.name')}</p>
                 {form.watch('customer.position') && <p>Position: {form.watch('customer.position')}</p>}
                 {form.watch('customer.address') && <p>{form.watch('customer.address')}</p>}
                 {form.watch('customer.phone') && <p>Phone: {form.watch('customer.phone')}</p>}
