@@ -117,7 +117,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
 
   const onSubmit = (data: ProductFormValues) => {
     console.log("Submitting product data:", data);
-    createProduct.mutate(data);
+    
+    // Ensure all numeric fields are properly converted to strings for API submission
+    const formattedData = {
+      ...data,
+      costPrice: data.costPrice.toString(),
+      sellingPrice: data.sellingPrice.toString(),
+      quantity: data.quantity.toString(),
+      categoryId: data.categoryId.toString()
+    };
+    
+    console.log("Formatted data for submission:", formattedData);
+    createProduct.mutate(formattedData as any);
   };
 
   return (

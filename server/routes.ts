@@ -137,16 +137,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate and transform request body
       console.log("Product data received:", req.body);
       
-      // Convert numeric fields to strings for the schema validation
-      const validatedData = insertProductSchema.parse({
+      // Prepare data for validation, handling potential undefined fields
+      const productData = {
         ...req.body,
+        // These are all expected as strings in the database schema
         categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
-        costPrice: req.body.costPrice.toString(),
-        sellingPrice: req.body.sellingPrice.toString(),
-        quantity: Number(req.body.quantity),
+        quantity: req.body.quantity !== undefined ? Number(req.body.quantity) : 0,
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
-      });
+      };
+      
+      console.log("Prepared product data for validation:", productData);
+      
+      const validatedData = insertProductSchema.parse(productData);
       
       // Add image path if uploaded
       if (req.file) {
@@ -156,10 +159,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const product = await storage.createProduct(validatedData);
       res.status(201).json(product);
     } catch (error) {
+      console.error("Error creating product:", error);
+      
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid product data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create product" });
+      
+      res.status(500).json({ message: "Failed to create product", error: String(error) });
     }
   });
 
