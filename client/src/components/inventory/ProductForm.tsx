@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,7 +24,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Calendar } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 // Define the form schema with the expiry date field
 const productFormSchema = z.object({
@@ -307,18 +315,36 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
           control={form.control}
           name="expiryDate"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex flex-col">
               <FormLabel>Expiry Date</FormLabel>
-              <div className="relative">
-                <FormControl>
-                  <Input 
-                    type="date" 
-                    {...field}
-                    className="pl-10"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(new Date(field.value), "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value ? new Date(field.value) : undefined}
+                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : '')}
+                    initialFocus
                   />
-                </FormControl>
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-              </div>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
