@@ -194,7 +194,7 @@ const Inventory: React.FC = () => {
       'low-stock': 'Low Stock',
       'out_of_stock': 'Out of Stock',
       'expired': 'Expired',
-      'near': 'Near Expiry',
+      'near': 'NEAR', 
       'near-expiry': 'Near Expiry',
     };
     
@@ -268,7 +268,7 @@ const Inventory: React.FC = () => {
                     <SelectItem value="active">In Stock</SelectItem>
                     <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                     <SelectItem value="expired">Expired</SelectItem>
-                    <SelectItem value="near">Near Expiry</SelectItem>
+                    <SelectItem value="near">NEAR</SelectItem>
                   </SelectContent>
                 </Select>
                 
