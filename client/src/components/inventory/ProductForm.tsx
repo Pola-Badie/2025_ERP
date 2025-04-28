@@ -82,7 +82,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     costPrice: 0,
     sellingPrice: 0,
     expiryDate: '',
-    status: 'in-stock',
+    status: 'active',
   };
 
   // Initialize the form
