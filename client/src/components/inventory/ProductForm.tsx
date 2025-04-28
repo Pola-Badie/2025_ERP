@@ -116,8 +116,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
   });
 
   const onSubmit = (data: ProductFormValues) => {
-    console.log("Submitting product data:", data);
-    
     // Create a clean object with only the fields needed for API submission
     const formattedData = {
       name: data.name,
@@ -134,7 +132,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
       ...(data.expiryDate ? { expiryDate: data.expiryDate } : {})
     };
     
-    console.log("Formatted data for submission:", formattedData);
     createProduct.mutate(formattedData as any);
   };
 

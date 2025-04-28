@@ -135,8 +135,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/products", upload.single("image"), async (req: Request, res: Response) => {
     try {
       // Validate and transform request body
-      console.log("Product data received:", req.body);
-      
       // Prepare data for validation, handling potential undefined fields
       const productData = {
         ...req.body,
@@ -146,8 +144,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       };
-      
-      console.log("Prepared product data for validation:", productData);
       
       const validatedData = insertProductSchema.parse(productData);
       
