@@ -116,6 +116,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
   });
 
   const onSubmit = (data: ProductFormValues) => {
+    console.log("Submitting product data:", data);
     createProduct.mutate(data);
   };
 

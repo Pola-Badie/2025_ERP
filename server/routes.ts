@@ -135,11 +135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/products", upload.single("image"), async (req: Request, res: Response) => {
     try {
       // Validate and transform request body
+      console.log("Product data received:", req.body);
+      
+      // Convert numeric fields to strings for the schema validation
       const validatedData = insertProductSchema.parse({
         ...req.body,
         categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
-        costPrice: Number(req.body.costPrice),
-        sellingPrice: Number(req.body.sellingPrice),
+        costPrice: req.body.costPrice.toString(),
+        sellingPrice: req.body.sellingPrice.toString(),
         quantity: Number(req.body.quantity),
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
