@@ -57,6 +57,8 @@ const invoiceFormSchema = z.object({
   customer: z.object({
     id: z.number().optional(),
     name: z.string().min(1, 'Customer name is required'),
+    company: z.string().optional().or(z.literal('')),
+    position: z.string().optional().or(z.literal('')),
     email: z.string().email('Invalid email').optional().or(z.literal('')),
     phone: z.string().optional().or(z.literal('')),
     address: z.string().optional().or(z.literal('')),
@@ -114,6 +116,8 @@ const CreateInvoice = () => {
       customer: {
         id: undefined,
         name: '',
+        company: '',
+        position: '',
         email: '',
         phone: '',
         address: '',
@@ -270,6 +274,8 @@ const CreateInvoice = () => {
     form.setValue('customer', {
       id: customer.id,
       name: customer.name,
+      company: customer.company || '',
+      position: customer.position || '',
       email: customer.email || '',
       phone: customer.phone || '',
       address: customer.address || '',
@@ -280,6 +286,8 @@ const CreateInvoice = () => {
   const handleCustomerCreation = (data: any) => {
     createCustomerMutation.mutate({
       name: data.customer.name,
+      company: data.customer.company,
+      position: data.customer.position,
       email: data.customer.email,
       phone: data.customer.phone,
       address: data.customer.address,
@@ -295,6 +303,8 @@ const CreateInvoice = () => {
         ? { id: data.customer.id } 
         : { 
             name: data.customer.name,
+            company: data.customer.company,
+            position: data.customer.position,
             email: data.customer.email,
             phone: data.customer.phone,
             address: data.customer.address,
@@ -450,6 +460,8 @@ const CreateInvoice = () => {
                         onClick={() => form.setValue('customer', {
                           id: undefined,
                           name: '',
+                          company: '',
+                          position: '',
                           email: '',
                           phone: '',
                           address: '',
@@ -458,6 +470,12 @@ const CreateInvoice = () => {
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
+                    {form.watch('customer.company') && (
+                      <p className="text-sm text-muted-foreground">Company: {form.watch('customer.company')}</p>
+                    )}
+                    {form.watch('customer.position') && (
+                      <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
+                    )}
                     {form.watch('customer.phone') && (
                       <p className="text-sm text-muted-foreground">Phone: {form.watch('customer.phone')}</p>
                     )}
@@ -496,6 +514,22 @@ const CreateInvoice = () => {
                         {form.formState.errors.customer.name.message}
                       </p>
                     )}
+                  </div>
+                  <div>
+                    <Label htmlFor="customerCompany">Company Name</Label>
+                    <Input
+                      id="customerCompany"
+                      placeholder="Company name"
+                      {...form.register('customer.company')}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customerPosition">Position</Label>
+                    <Input
+                      id="customerPosition"
+                      placeholder="Job title/Position"
+                      {...form.register('customer.position')}
+                    />
                   </div>
                   <div>
                     <Label htmlFor="customerEmail">Email</Label>
@@ -888,6 +922,8 @@ const CreateInvoice = () => {
               <div>
                 <h3 className="font-semibold mb-2">Bill To:</h3>
                 <p className="font-medium">{form.watch('customer.name')}</p>
+                {form.watch('customer.company') && <p>Company: {form.watch('customer.company')}</p>}
+                {form.watch('customer.position') && <p>Position: {form.watch('customer.position')}</p>}
                 {form.watch('customer.address') && <p>{form.watch('customer.address')}</p>}
                 {form.watch('customer.phone') && <p>Phone: {form.watch('customer.phone')}</p>}
                 {form.watch('customer.email') && <p>Email: {form.watch('customer.email')}</p>}
