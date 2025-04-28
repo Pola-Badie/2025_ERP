@@ -328,7 +328,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
                       )}
                     >
                       {field.value ? (
-                        format(new Date(field.value), "PPP")
+                        format(new Date(field.value), "dd/MM/yy")
                       ) : (
                         <span>Pick a date</span>
                       )}
