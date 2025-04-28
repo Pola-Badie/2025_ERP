@@ -37,8 +37,8 @@ import {
 const productFormSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters' }),
   drugName: z.string().min(3, { message: 'Drug name must be at least 3 characters' }),
-  categoryId: z.string().min(1, { message: 'Please select a category' }),
-  sku: z.string().optional(),
+  categoryId: z.coerce.number().positive({ message: 'Please select a category' }),
+  sku: z.string().min(1, { message: 'SKU is required' }),
   description: z.string().optional(),
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
   unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
@@ -74,13 +74,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
   const defaultValues: Partial<ProductFormValues> = {
     name: '',
     drugName: '',
-    categoryId: '',
+    categoryId: 0,
     sku: '',
     description: '',
     quantity: 0,
     unitOfMeasure: 'PCS',
-    costPrice: undefined,
-    sellingPrice: undefined,
+    costPrice: 0,
+    sellingPrice: 0,
     expiryDate: '',
     status: 'in-stock',
   };
@@ -160,8 +160,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
               <FormItem>
                 <FormLabel>Category</FormLabel>
                 <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  onValueChange={(value) => field.onChange(Number(value))} 
+                  value={field.value ? field.value.toString() : "0"}
                 >
                   <FormControl>
                     <SelectTrigger>
