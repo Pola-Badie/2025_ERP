@@ -116,20 +116,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
   });
 
   const onSubmit = (data: ProductFormValues) => {
-    // Create a clean object with only the fields needed for API submission
+    // Create a clean object with only the fields needed for API submission using the specified format
     const formattedData = {
       name: data.name,
       drugName: data.drugName,
-      categoryId: data.categoryId.toString(), // Convert to string for API
+      categoryId: data.categoryId.toString(),
       sku: data.sku,
-      description: data.description || '', // Ensure we have a string even if empty
-      costPrice: data.costPrice.toString(),
-      sellingPrice: data.sellingPrice.toString(),
-      quantity: data.quantity.toString(),
+      description: data.description || '',
+      quantity: parseFloat(data.quantity.toString()),
+      costPrice: parseFloat(data.costPrice.toString()),
+      sellingPrice: parseFloat(data.sellingPrice.toString()),
       unitOfMeasure: data.unitOfMeasure,
       status: data.status || 'active',
-      // Only include expiryDate if it exists
-      ...(data.expiryDate ? { expiryDate: data.expiryDate } : {})
+      // Format date as YYYY-MM-DD if it exists
+      ...(data.expiryDate ? { 
+        expiryDate: new Date(data.expiryDate).toISOString().split('T')[0]
+      } : {})
     };
     
     createProduct.mutate(formattedData as any);

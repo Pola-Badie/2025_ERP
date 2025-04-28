@@ -347,23 +347,29 @@ export const insertProductCategorySchema = createInsertSchema(productCategories)
   description: true,
 });
 
-export const insertProductSchema = createInsertSchema(products).pick({
-  name: true,
-  drugName: true,
-  categoryId: true,
-  description: true,
-  sku: true,
-  barcode: true,
-  costPrice: true,
-  sellingPrice: true,
-  quantity: true,
-  unitOfMeasure: true,
-  lowStockThreshold: true,
-  expiryDate: true,
-  status: true,
-  manufacturer: true,
-  imagePath: true,
-});
+export const insertProductSchema = createInsertSchema(products)
+  .pick({
+    name: true,
+    drugName: true,
+    categoryId: true,
+    description: true,
+    sku: true,
+    barcode: true,
+    costPrice: true,
+    sellingPrice: true,
+    quantity: true,
+    unitOfMeasure: true,
+    lowStockThreshold: true,
+    expiryDate: true,
+    status: true,
+    manufacturer: true,
+    imagePath: true,
+  })
+  .extend({
+    // Override the numeric fields to accept either string or number
+    costPrice: z.union([z.string(), z.number()]),
+    sellingPrice: z.union([z.string(), z.number()]),
+  });
 
 export const insertCustomerSchema = createInsertSchema(customers).pick({
   name: true,

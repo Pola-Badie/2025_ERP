@@ -138,9 +138,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Prepare data for validation, handling potential undefined fields
       const productData = {
         ...req.body,
-        // These are all expected as strings in the database schema
-        categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
-        quantity: req.body.quantity !== undefined ? Number(req.body.quantity) : 0,
+        // Convert fields to the expected types if they're not already
+        categoryId: typeof req.body.categoryId === 'string' ? Number(req.body.categoryId) : req.body.categoryId,
+        quantity: typeof req.body.quantity === 'string' ? Number(req.body.quantity) : req.body.quantity,
+        costPrice: typeof req.body.costPrice === 'string' ? Number(req.body.costPrice) : req.body.costPrice,
+        sellingPrice: typeof req.body.sellingPrice === 'string' ? Number(req.body.sellingPrice) : req.body.sellingPrice,
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       };
@@ -174,10 +176,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate and transform request body
       const validatedData = updateProductSchema.parse({
         ...req.body,
-        categoryId: req.body.categoryId ? Number(req.body.categoryId) : undefined,
-        costPrice: req.body.costPrice ? Number(req.body.costPrice) : undefined,
-        sellingPrice: req.body.sellingPrice ? Number(req.body.sellingPrice) : undefined,
-        quantity: req.body.quantity ? Number(req.body.quantity) : undefined,
+        categoryId: typeof req.body.categoryId === 'string' ? Number(req.body.categoryId) : req.body.categoryId,
+        costPrice: typeof req.body.costPrice === 'string' ? Number(req.body.costPrice) : req.body.costPrice,
+        sellingPrice: typeof req.body.sellingPrice === 'string' ? Number(req.body.sellingPrice) : req.body.sellingPrice,
+        quantity: typeof req.body.quantity === 'string' ? Number(req.body.quantity) : req.body.quantity,
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       });
