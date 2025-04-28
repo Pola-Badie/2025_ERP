@@ -61,6 +61,7 @@ const invoiceFormSchema = z.object({
     position: z.string().optional().or(z.literal('')),
     email: z.string().email('Invalid email').optional().or(z.literal('')),
     phone: z.string().optional().or(z.literal('')),
+    sector: z.string().optional().or(z.literal('')),
     address: z.string().optional().or(z.literal('')),
   }),
   items: z.array(z.object({
@@ -120,6 +121,7 @@ const CreateInvoice = () => {
         position: '',
         email: '',
         phone: '',
+        sector: '',
         address: '',
       },
       items: [
@@ -278,6 +280,7 @@ const CreateInvoice = () => {
       position: customer.position || '',
       email: customer.email || '',
       phone: customer.phone || '',
+      sector: customer.sector || '',
       address: customer.address || '',
     });
   };
@@ -290,6 +293,7 @@ const CreateInvoice = () => {
       position: data.customer.position,
       email: data.customer.email,
       phone: data.customer.phone,
+      sector: data.customer.sector,
       address: data.customer.address,
     });
   };
@@ -307,6 +311,7 @@ const CreateInvoice = () => {
             position: data.customer.position,
             email: data.customer.email,
             phone: data.customer.phone,
+            sector: data.customer.sector,
             address: data.customer.address,
           },
       items: data.items.map(item => ({
@@ -471,6 +476,7 @@ const CreateInvoice = () => {
                           position: '',
                           email: '',
                           phone: '',
+                          sector: '',
                           address: '',
                         })}
                       >
@@ -482,6 +488,9 @@ const CreateInvoice = () => {
                     )}
                     {form.watch('customer.phone') && (
                       <p className="text-sm text-muted-foreground">Phone: {form.watch('customer.phone')}</p>
+                    )}
+                    {form.watch('customer.sector') && (
+                      <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
                     )}
                     {form.watch('customer.email') && (
                       <p className="text-sm text-muted-foreground">Email: {form.watch('customer.email')}</p>
@@ -541,6 +550,14 @@ const CreateInvoice = () => {
                       id="customerPhone"
                       placeholder="Phone number"
                       {...form.register('customer.phone')}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customerSector">Sector</Label>
+                    <Input
+                      id="customerSector"
+                      placeholder="Business sector"
+                      {...form.register('customer.sector')}
                     />
                   </div>
                   <div>
@@ -928,6 +945,7 @@ const CreateInvoice = () => {
                 {form.watch('customer.company') && <p className="font-medium">{form.watch('customer.company')}</p>}
                 <p>{form.watch('customer.name')}</p>
                 {form.watch('customer.position') && <p>Position: {form.watch('customer.position')}</p>}
+                {form.watch('customer.sector') && <p>Sector: {form.watch('customer.sector')}</p>}
                 {form.watch('customer.address') && <p>{form.watch('customer.address')}</p>}
                 {form.watch('customer.phone') && <p>Phone: {form.watch('customer.phone')}</p>}
                 {form.watch('customer.email') && <p>Email: {form.watch('customer.email')}</p>}
