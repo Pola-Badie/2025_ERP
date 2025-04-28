@@ -49,6 +49,7 @@ export const products = pgTable("products", {
   costPrice: numeric("cost_price").notNull(),
   sellingPrice: numeric("selling_price").notNull(),
   quantity: integer("quantity").default(0).notNull(),
+  unitOfMeasure: text("unit_of_measure").default("PCS").notNull(),
   lowStockThreshold: integer("low_stock_threshold").default(10),
   expiryDate: date("expiry_date"),
   status: text("status").default("active").notNull(), // 'active', 'expired', 'out_of_stock', 'near'
@@ -356,6 +357,7 @@ export const insertProductSchema = createInsertSchema(products).pick({
   costPrice: true,
   sellingPrice: true,
   quantity: true,
+  unitOfMeasure: true,
   lowStockThreshold: true,
   expiryDate: true,
   status: true,
@@ -524,6 +526,7 @@ export const updateProductSchema = z.object({
   costPrice: z.number().optional(),
   sellingPrice: z.number().optional(),
   quantity: z.number().optional(),
+  unitOfMeasure: z.string().optional(),
   lowStockThreshold: z.number().optional(),
   expiryDate: z.date().optional(),
   manufacturer: z.string().optional(),
