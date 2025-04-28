@@ -45,7 +45,7 @@ const productFormSchema = z.object({
   costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
   sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
   expiryDate: z.string().optional(),
-  status: z.string().default('in-stock'),
+  status: z.string().default('active'),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -366,9 +366,9 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="in-stock">In Stock</SelectItem>
-                  <SelectItem value="low-stock">Low Stock</SelectItem>
-                  <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                  <SelectItem value="active">In Stock</SelectItem>
+                  <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                  <SelectItem value="near">Near Expiry</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

@@ -179,16 +179,28 @@ const Inventory: React.FC = () => {
   // Helper functions for product display
   const getStatusBadge = (status: string) => {
     const statusVariants: Record<string, string> = {
+      'active': 'success',
       'in-stock': 'success',
       'low-stock': 'warning',
-      'out-of-stock': 'danger',
+      'out_of_stock': 'danger',
       'expired': 'danger',
+      'near': 'warning',
       'near-expiry': 'warning',
+    };
+    
+    const statusDisplay: Record<string, string> = {
+      'active': 'In Stock',
+      'in-stock': 'In Stock',
+      'low-stock': 'Low Stock',
+      'out_of_stock': 'Out of Stock',
+      'expired': 'Expired',
+      'near': 'Near Expiry',
+      'near-expiry': 'Near Expiry',
     };
     
     return (
       <Badge variant={statusVariants[status] as any || 'default'}>
-        {status.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+        {statusDisplay[status] || status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
       </Badge>
     );
   };
@@ -253,11 +265,10 @@ const Inventory: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="in-stock">In Stock</SelectItem>
-                    <SelectItem value="low-stock">Low Stock</SelectItem>
-                    <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                    <SelectItem value="active">In Stock</SelectItem>
+                    <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                     <SelectItem value="expired">Expired</SelectItem>
-                    <SelectItem value="near-expiry">Near Expiry</SelectItem>
+                    <SelectItem value="near">Near Expiry</SelectItem>
                   </SelectContent>
                 </Select>
                 
