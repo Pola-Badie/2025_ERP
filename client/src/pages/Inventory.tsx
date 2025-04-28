@@ -178,14 +178,21 @@ const Inventory: React.FC = () => {
 
   // Helper functions for product display
   const getStatusBadge = (status: string) => {
+    // Return fixed styling for NEAR status
+    if (status === 'near' || status === 'near-expiry') {
+      return (
+        <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-orange-200 text-orange-800">
+          NEAR
+        </div>
+      );
+    }
+    
     const statusVariants: Record<string, string> = {
       'active': 'success',
       'in-stock': 'success',
       'low-stock': 'warning',
       'out_of_stock': 'danger',
       'expired': 'danger',
-      'near': 'darkorange',
-      'near-expiry': 'darkorange',
     };
     
     const statusDisplay: Record<string, string> = {
@@ -194,8 +201,6 @@ const Inventory: React.FC = () => {
       'low-stock': 'Low Stock',
       'out_of_stock': 'Out of Stock',
       'expired': 'Expired',
-      'near': 'NEAR', 
-      'near-expiry': 'NEAR',
     };
     
     return (
