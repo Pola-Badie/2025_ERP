@@ -536,6 +536,14 @@ const CreateInvoice = () => {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="customerPhone">Phone</Label>
+                    <Input
+                      id="customerPhone"
+                      placeholder="Phone number"
+                      {...form.register('customer.phone')}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="customerEmail">Email</Label>
                     <Input
                       id="customerEmail"
@@ -548,14 +556,6 @@ const CreateInvoice = () => {
                         {form.formState.errors.customer.email.message}
                       </p>
                     )}
-                  </div>
-                  <div>
-                    <Label htmlFor="customerPhone">Phone</Label>
-                    <Input
-                      id="customerPhone"
-                      placeholder="Phone number"
-                      {...form.register('customer.phone')}
-                    />
                   </div>
                   <div>
                     <Label htmlFor="customerAddress">Address</Label>
