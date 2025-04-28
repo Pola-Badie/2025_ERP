@@ -57,6 +57,7 @@ interface Product {
   sku: string;
   description: string;
   quantity: number;
+  unitOfMeasure: string;
   costPrice: number;
   sellingPrice: number;
   expiryDate: string;

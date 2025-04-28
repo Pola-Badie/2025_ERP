@@ -33,6 +33,7 @@ const productFormSchema = z.object({
   sku: z.string().optional(),
   description: z.string().optional(),
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
+  unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
   costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
   sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
   expiryDate: z.string().optional(),
@@ -69,6 +70,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     sku: '',
     description: '',
     quantity: 0,
+    unitOfMeasure: 'PCS',
     costPrice: undefined,
     sellingPrice: undefined,
     expiryDate: '',
@@ -208,7 +210,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
           )}
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="quantity"
@@ -229,6 +231,37 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
             )}
           />
           
+          <FormField
+            control={form.control}
+            name="unitOfMeasure"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit of Measure</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="L">Liters (L)</SelectItem>
+                    <SelectItem value="PCS">Pieces (PCS)</SelectItem>
+                    <SelectItem value="T">Tons (T)</SelectItem>
+                    <SelectItem value="KG">Kilograms (KG)</SelectItem>
+                    <SelectItem value="g">Grams (g)</SelectItem>
+                    <SelectItem value="mg">Milligrams (mg)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+          
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="costPrice"
