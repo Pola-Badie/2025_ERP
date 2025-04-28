@@ -42,6 +42,7 @@ const productFormSchema = z.object({
   description: z.string().optional(),
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
   unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
+  lowStockThreshold: z.coerce.number().int().nonnegative({ message: 'Low stock threshold must be a non-negative integer' }),
   costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
   sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
   expiryDate: z.string().optional(),
@@ -79,6 +80,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     description: '',
     quantity: 0,
     unitOfMeasure: 'PCS',
+    lowStockThreshold: 10,
     costPrice: 0,
     sellingPrice: 0,
     expiryDate: '',
@@ -124,6 +126,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
       sku: data.sku,
       description: data.description || '',
       quantity: parseFloat(data.quantity.toString()),
+      lowStockThreshold: parseInt(data.lowStockThreshold.toString()),
       costPrice: parseFloat(data.costPrice.toString()),
       sellingPrice: parseFloat(data.sellingPrice.toString()),
       unitOfMeasure: data.unitOfMeasure,
@@ -236,7 +239,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
           )}
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="quantity"
@@ -281,6 +284,26 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
                     <SelectItem value="mg">Milligrams (mg)</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="lowStockThreshold"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Low Stock Threshold</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="10" 
+                    min="0"
+                    step="1"
+                    {...field} 
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
