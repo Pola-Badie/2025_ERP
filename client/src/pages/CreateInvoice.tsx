@@ -73,6 +73,7 @@ const invoiceFormSchema = z.object({
   taxAmount: z.number(),
   grandTotal: z.number(),
   paymentStatus: z.enum(['paid', 'unpaid', 'partial']),
+  paymentTerms: z.string().default('0'),
   amountPaid: z.number().min(0),
   notes: z.string().optional(),
 });
@@ -131,6 +132,7 @@ const CreateInvoice = () => {
       taxAmount: 0,
       grandTotal: 0,
       paymentStatus: 'unpaid',
+      paymentTerms: '0',
       amountPaid: 0,
       notes: '',
     },
@@ -307,6 +309,7 @@ const CreateInvoice = () => {
       taxAmount: data.taxAmount,
       grandTotal: data.grandTotal,
       paymentStatus: data.paymentStatus,
+      paymentTerms: data.paymentTerms,
       amountPaid: data.amountPaid,
       notes: data.notes,
     };
@@ -725,6 +728,27 @@ const CreateInvoice = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div>
+                  <Label htmlFor="paymentTerms">Payment Terms</Label>
+                  <Select
+                    value={form.watch('paymentTerms') || '0'}
+                    onValueChange={(value) => form.setValue('paymentTerms', value)}
+                  >
+                    <SelectTrigger id="paymentTerms">
+                      <SelectValue placeholder="Select payment terms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Immediate Payment</SelectItem>
+                      <SelectItem value="7">7 Days</SelectItem>
+                      <SelectItem value="14">14 Days</SelectItem>
+                      <SelectItem value="30">30 Days</SelectItem>
+                      <SelectItem value="45">45 Days</SelectItem>
+                      <SelectItem value="60">60 Days</SelectItem>
+                      <SelectItem value="90">90 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {form.watch('paymentStatus') === 'partial' && (
                   <div>
@@ -841,6 +865,12 @@ const CreateInvoice = () => {
               <div className="text-right">
                 <p className="font-bold">Invoice #: INV-{new Date().getFullYear()}-{Math.floor(Math.random() * 10000)}</p>
                 <p>Date: {format(new Date(), 'PP')}</p>
+                <p>
+                  Payment Terms: {form.watch('paymentTerms') === '0' 
+                    ? 'Immediate Payment' 
+                    : `${form.watch('paymentTerms')} Days`
+                  }
+                </p>
                 <p className="mt-2">
                   <span className={cn(
                     "px-2 py-1 rounded-full text-xs font-semibold",
