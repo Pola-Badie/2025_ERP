@@ -195,7 +195,7 @@ const Inventory: React.FC = () => {
       'out_of_stock': 'Out of Stock',
       'expired': 'Expired',
       'near': 'NEAR', 
-      'near-expiry': 'Near Expiry',
+      'near-expiry': 'NEAR',
     };
     
     return (
