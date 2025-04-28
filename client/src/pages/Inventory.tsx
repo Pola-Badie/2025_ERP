@@ -118,7 +118,8 @@ const Inventory: React.FC = () => {
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/categories/${id}`);
+      const response = await apiRequest('DELETE', `/api/categories/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -132,7 +133,9 @@ const Inventory: React.FC = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to delete category. It may be in use by products.",
+        description: error instanceof Error 
+          ? error.message 
+          : "Failed to delete category. It may be in use by products.",
         variant: "destructive",
       });
       setDeleteDialogOpen(false);
