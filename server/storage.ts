@@ -281,8 +281,27 @@ export class DatabaseStorage implements IStorage {
   }
   
   async deleteCategory(id: number): Promise<boolean> {
-    const result = await db.delete(productCategories).where(eq(productCategories.id, id));
-    return true; // Assuming successful if no error is thrown
+    try {
+      // First check if any products are using this category
+      const productsUsingCategory = await db
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.categoryId, id));
+      
+      if (productsUsingCategory.length > 0) {
+        // Category is in use, cannot delete
+        console.log(`Category ${id} cannot be deleted, it's used by ${productsUsingCategory.length} product(s)`);
+        return false;
+      }
+      
+      // If no products using it, proceed with deletion
+      const result = await db.delete(productCategories).where(eq(productCategories.id, id));
+      console.log(`Category ${id} deleted successfully`);
+      return true;
+    } catch (error) {
+      console.error(`Error deleting category ${id}:`, error);
+      return false;
+    }
   }
   
   // Customer methods
