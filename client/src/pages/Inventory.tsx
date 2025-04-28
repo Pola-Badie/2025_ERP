@@ -184,8 +184,8 @@ const Inventory: React.FC = () => {
       'low-stock': 'warning',
       'out_of_stock': 'danger',
       'expired': 'danger',
-      'near': 'warning',
-      'near-expiry': 'warning',
+      'near': 'darkorange',
+      'near-expiry': 'darkorange',
     };
     
     const statusDisplay: Record<string, string> = {
@@ -356,11 +356,12 @@ const Inventory: React.FC = () => {
                               {product.expiryDate ? (
                                 <div className="flex items-center">
                                   <span className={expiryStatus?.status === 'expired' ? 'text-red-500' : 
-                                                 expiryStatus?.status === 'near-expiry' ? 'text-amber-500' : ''}>
+                                                 expiryStatus?.status === 'near-expiry' ? 'text-orange-700' : ''}>
                                     {formatDate(product.expiryDate)}
                                   </span>
                                   {expiryStatus && (
-                                    <span className="ml-2 text-xs">
+                                    <span className={`ml-2 text-xs ${expiryStatus.status === 'expired' ? 'text-red-500' : 
+                                                 expiryStatus.status === 'near-expiry' ? 'text-orange-700' : ''}`}>
                                       {expiryStatus.status === 'expired' ? 
                                         `(Expired ${expiryStatus.days} days ago)` : 
                                         `(Expires in ${expiryStatus.days} days)`}

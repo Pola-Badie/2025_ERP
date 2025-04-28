@@ -29,6 +29,8 @@ const badgeVariants = cva(
           "bg-teal-100 text-teal-700 hover:bg-teal-200",
         orange:
           "bg-orange-100 text-orange-700 hover:bg-orange-200",
+        darkorange:
+          "bg-orange-200 text-orange-800 hover:bg-orange-300", 
         gray:
           "bg-slate-100 text-slate-700 hover:bg-slate-200",
       },
