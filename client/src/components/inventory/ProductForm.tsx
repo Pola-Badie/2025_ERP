@@ -118,13 +118,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
   const onSubmit = (data: ProductFormValues) => {
     console.log("Submitting product data:", data);
     
-    // Ensure all numeric fields are properly converted to strings for API submission
+    // Create a clean object with only the fields needed for API submission
     const formattedData = {
-      ...data,
+      name: data.name,
+      drugName: data.drugName,
+      categoryId: data.categoryId.toString(), // Convert to string for API
+      sku: data.sku,
+      description: data.description || '', // Ensure we have a string even if empty
       costPrice: data.costPrice.toString(),
       sellingPrice: data.sellingPrice.toString(),
       quantity: data.quantity.toString(),
-      categoryId: data.categoryId.toString()
+      unitOfMeasure: data.unitOfMeasure,
+      status: data.status || 'active',
+      // Only include expiryDate if it exists
+      ...(data.expiryDate ? { expiryDate: data.expiryDate } : {})
     };
     
     console.log("Formatted data for submission:", formattedData);
