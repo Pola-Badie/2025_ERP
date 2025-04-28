@@ -191,6 +191,7 @@ const FinancialSettingsTab: React.FC<FinancialSettingsTabProps> = ({ preferences
               <SelectItem value="JPY">Japanese Yen (JPY)</SelectItem>
               <SelectItem value="CNY">Chinese Yuan (CNY)</SelectItem>
               <SelectItem value="INR">Indian Rupee (INR)</SelectItem>
+              <SelectItem value="EGP">Egyptian Pound (EGP)</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-sm text-muted-foreground">
