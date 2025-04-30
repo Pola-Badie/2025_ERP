@@ -17,6 +17,13 @@ import {
   DialogDescription,
   DialogFooter 
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Card, 
   CardContent, 
@@ -32,11 +39,14 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, 
   Trash, 
+  Trash2,
   Search, 
   Filter, 
   MoreHorizontal, 
   AlertCircle, 
-  Calendar 
+  Calendar,
+  Pencil,
+  Tag 
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
@@ -225,6 +235,34 @@ const Inventory: React.FC = () => {
     }
     return null;
   };
+  
+  // Product action handlers
+  const handleCreateLabel = (product: Product) => {
+    toast({
+      title: "Generate Label",
+      description: `Creating label for ${product.name}`,
+    });
+    // In a real implementation, this would open a label generator dialog or redirect to a label page
+  };
+  
+  const handleEditProduct = (product: Product) => {
+    // This would open the edit dialog with the product data
+    setIsProductFormOpen(true);
+    // In a real implementation, you would set the current product to edit
+    toast({
+      title: "Edit Product",
+      description: `Editing ${product.name}`,
+    });
+  };
+  
+  const handleDeleteProduct = (product: Product) => {
+    // In a real implementation, this would open a confirmation dialog
+    toast({
+      title: "Delete Product",
+      description: `Are you sure you want to delete ${product.name}?`,
+      variant: "destructive",
+    });
+  };
 
   return (
     <div>
@@ -386,9 +424,31 @@ const Inventory: React.FC = () => {
                                 getStatusBadge(product.status)}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleCreateLabel(product)}>
+                                    <Tag className="h-4 w-4 mr-2" />
+                                    Create Label
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditProduct(product)}>
+                                    <Pencil className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="text-red-600"
+                                    onClick={() => handleDeleteProduct(product)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </td>
                           </tr>
                         );
