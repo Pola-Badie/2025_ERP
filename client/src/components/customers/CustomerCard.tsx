@@ -82,18 +82,18 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
                 <span className="font-bold text-xl">...</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={10} className="min-w-[150px]">
+            <DropdownMenuContent align="end" sideOffset={20} alignOffset={-5} className="min-w-[180px] z-50">
               <DropdownMenuItem 
                 onClick={() => onViewProfile && onViewProfile(customer)}
                 className="cursor-pointer"
               >
-                <span>👤 View Profile</span>
+                <span>📝 View Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onViewOrders && onViewOrders(customer)}
                 className="cursor-pointer"
               >
-                <span>📋 View Orders</span>
+                <span>📄 View Orders</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onEdit && onEdit(customer)}
