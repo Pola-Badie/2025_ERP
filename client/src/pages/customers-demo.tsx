@@ -82,14 +82,14 @@ const CustomersDemo: React.FC = () => {
           </CardHeader>
           <CardContent>
             {/* Table header */}
-            <div className="grid grid-cols-12 gap-2 items-center text-sm font-medium mb-2 text-slate-500 border-b pb-2">
+            <div className="grid grid-cols-10 gap-4 items-center text-sm font-medium mb-2 text-slate-500 border-b pb-2">
               <div className="col-span-2">Name</div>
-              <div className="col-span-2 hidden md:block">Company</div>
+              <div className="col-span-1 hidden md:block">Company</div>
               <div className="col-span-1 hidden md:block">Sector</div>
-              <div className="col-span-3 md:col-span-2">Phone</div>
-              <div className="col-span-5 md:col-span-2">Email</div>
-              <div className="col-span-3 hidden md:block">Address</div>
-              <div className="col-span-2 md:col-span-1 text-right">Actions</div>
+              <div className="col-span-2">Phone</div>
+              <div className="col-span-3">Email</div>
+              <div className="col-span-2 hidden md:block">Address</div>
+              <div className="col-span-3 md:col-span-1 text-center">Actions</div>
             </div>
             
             {/* Customer data */}
