@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
     { path: '/invoice-history', label: 'INVOICE HISTORY', icon: 'receipt' },
     { path: '/label', label: 'LABEL', icon: 'file-text' },
+    { path: '/customers-demo', label: 'CUSTOMERS DATA', icon: 'user-plus' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
     { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
     { path: '/users', label: 'USER MANAGEMENT', icon: 'users' },
