@@ -257,22 +257,28 @@ const NewInventory = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="inventory">
-        <TabsList className="w-full bg-gray-50 border-b">
-          <TabsTrigger value="inventory" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-500">Inventory</TabsTrigger>
-          <TabsTrigger value="categories" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-500">Categories</TabsTrigger>
-        </TabsList>
-        
-        {/* Inventory Tab */}
-        <TabsContent value="inventory">
-          <Card>
-            <CardHeader>
-              <CardTitle>Products</CardTitle>
-              <CardDescription>
-                Manage your inventory products, track stock levels and expiry dates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+      <div className="bg-white border rounded">
+        <Tabs defaultValue="inventory" className="w-full">
+          <div className="flex border-b bg-white">
+            <TabsList className="flex border-0 p-0 h-auto bg-transparent gap-0 w-full">
+              <TabsTrigger 
+                value="inventory" 
+                className="flex-1 border-0 rounded-none py-4 px-8 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
+              >
+                Inventory
+              </TabsTrigger>
+              <TabsTrigger 
+                value="categories" 
+                className="flex-1 border-0 rounded-none py-4 px-8 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
+              >
+                Categories
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Inventory Tab */}
+          <TabsContent value="inventory" className="p-0">
+            <div className="p-4">
               {/* Search and Filters */}
               <div className="flex flex-col md:flex-row gap-3 mb-4">
                 <div className="flex-1 relative">
@@ -412,20 +418,12 @@ const NewInventory = () => {
                   </table>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Categories Tab */}
-        <TabsContent value="categories">
-          <Card>
-            <CardHeader>
-              <CardTitle>Categories</CardTitle>
-              <CardDescription>
-                Manage product categories used in inventory and sales
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </TabsContent>
+          
+          {/* Categories Tab */}
+          <TabsContent value="categories" className="p-0">
+            <div className="p-4">
               <div className="grid gap-6">
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
@@ -471,7 +469,7 @@ const NewInventory = () => {
                   </table>
                 </div>
 
-                <form onSubmit={handleAddCategory}>
+                <form onSubmit={handleAddCategory} className="mt-4">
                   <div className="grid gap-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="md:col-span-1">
@@ -495,6 +493,7 @@ const NewInventory = () => {
                       <Button 
                         type="submit" 
                         disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
+                        className="bg-blue-500 hover:bg-blue-600"
                       >
                         {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
                       </Button>
@@ -502,10 +501,10 @@ const NewInventory = () => {
                   </div>
                 </form>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Delete Category Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
