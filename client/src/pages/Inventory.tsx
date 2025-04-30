@@ -395,6 +395,12 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3">
                               {product.quantity} {product.unitOfMeasure}
                             </td>
+                            <td className="px-4 py-3 text-slate-600 text-xs">
+                              {product.location || '-'}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 text-xs">
+                              {product.shelf || '-'}
+                            </td>
                             <td className="px-4 py-3 font-medium">
                               {formatCurrency(product.sellingPrice)}
                             </td>

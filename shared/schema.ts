@@ -24,10 +24,6 @@ export const userPermissions = pgTable("user_permissions", {
   accessGranted: boolean("access_granted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    userModuleIndex: primaryKey({ columns: [table.userId, table.moduleName] }),
-  };
 });
 
 // Product management
