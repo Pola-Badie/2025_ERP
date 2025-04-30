@@ -275,13 +275,6 @@ const Inventory: React.FC = () => {
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => setActiveTab('categories')}
-          >
-            <Tag className="h-4 w-4 mr-2" />
-            Manage Categories
-          </Button>
         </div>
       </div>
 
