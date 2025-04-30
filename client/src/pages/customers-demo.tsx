@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
 import AddCustomerDialog from '@/components/customers/AddCustomerDialog';
 import CustomerProfileDialog from '@/components/customers/CustomerProfileDialog';
+import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +14,12 @@ const CustomersDemo: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
   const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
+  const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
+  const [customerData, setCustomerData] = useState<CustomerData[]>([]);
   
   // Sample customer data
-  const allCustomerData: CustomerData[] = [
+  const initialCustomerData: CustomerData[] = [
     {
       id: 1,
       name: "Ahmed Salah",
@@ -48,6 +51,11 @@ const CustomersDemo: React.FC = () => {
       address: "8 Mansoura Road, Tanta, Egypt"
     }
   ];
+  
+  // Initialize customer data
+  useEffect(() => {
+    setCustomerData(initialCustomerData);
+  }, []);
 
   // Action handlers (just for demo purposes)
   const handleViewProfile = (customer: CustomerData) => {
@@ -63,16 +71,37 @@ const CustomersDemo: React.FC = () => {
   };
 
   const handleEdit = (customer: CustomerData) => {
+    setSelectedCustomer(customer);
+    setShowEditDialog(true);
+  };
+  
+  const handleUpdateCustomer = (id: number, updatedCustomer: Partial<CustomerData>) => {
+    // In a real app, this would be an API call to update the customer
+    setCustomerData(prevData => 
+      prevData.map(customer => 
+        customer.id === id 
+          ? { ...customer, ...updatedCustomer } 
+          : customer
+      )
+    );
+    
     toast({
-      title: "Edit Customer",
-      description: `Editing details for ${customer.name}`
+      title: "Customer Updated",
+      description: `${updatedCustomer.name} has been updated successfully`,
     });
+    
+    setShowEditDialog(false);
   };
 
   const handleDelete = (customer: CustomerData) => {
+    // In a real app, this would be an API call to delete the customer
+    setCustomerData(prevData => 
+      prevData.filter(c => c.id !== customer.id)
+    );
+    
     toast({
-      title: "Delete Customer",
-      description: `Request to delete ${customer.name}`,
+      title: "Customer Deleted",
+      description: `${customer.name} has been removed`,
       variant: "destructive"
     });
   };
@@ -83,7 +112,20 @@ const CustomersDemo: React.FC = () => {
   
   const handleSaveCustomer = (customer: Partial<CustomerData>) => {
     // In a real app, this would be an API call
-    // For demo, just show a success message
+    // For demo, we'll add the new customer to our local state
+    const newCustomer: CustomerData = {
+      id: customerData.length + 1,
+      name: customer.name || '',
+      position: customer.position || '',
+      company: customer.company || '',
+      sector: customer.sector || '',
+      phone: customer.phone || '',
+      email: customer.email || '',
+      address: customer.address || ''
+    };
+    
+    setCustomerData(prevData => [...prevData, newCustomer]);
+    
     toast({
       title: "Customer Added",
       description: `${customer.name} has been added successfully`,
@@ -93,7 +135,7 @@ const CustomersDemo: React.FC = () => {
   };
   
   // Filter customers based on search query
-  const filteredCustomers = allCustomerData.filter(customer => {
+  const filteredCustomers = customerData.filter(customer => {
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase().trim();
@@ -186,6 +228,14 @@ const CustomersDemo: React.FC = () => {
         open={showProfileDialog}
         onOpenChange={setShowProfileDialog}
         customer={selectedCustomer}
+      />
+      
+      {/* Edit Customer Dialog */}
+      <EditCustomerDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        customer={selectedCustomer}
+        onSave={handleUpdateCustomer}
       />
     </div>
   );
