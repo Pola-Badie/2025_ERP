@@ -56,6 +56,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <BookOpen size={20} />;
       case 'users':
         return <Users size={20} />;
+      case 'user-plus':
+        return <UserPlus size={20} />;
       default:
         return null;
     }
