@@ -45,13 +45,13 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
 }) => {
   return (
     <div className="flex flex-col mb-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-      <div className="grid grid-cols-7 md:grid-cols-8 gap-2 items-center text-sm">
-        <div className="flex flex-col col-span-2 md:col-span-1">
+      <div className="grid grid-cols-12 gap-2 items-center text-sm">
+        <div className="flex flex-col col-span-2">
           <span className="font-medium text-slate-900">{customer.name}</span>
           <span className="text-slate-500 text-xs">{customer.position}</span>
         </div>
         
-        <div className="md:col-span-1 hidden md:block">
+        <div className="col-span-2 hidden md:block">
           <span className="font-medium text-slate-900">{customer.company}</span>
         </div>
         
@@ -61,19 +61,19 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
           </span>
         </div>
         
-        <div className="col-span-2 md:col-span-1">
+        <div className="col-span-3 md:col-span-2">
           <span className="text-slate-700">{customer.phone}</span>
         </div>
         
-        <div className="col-span-2 md:col-span-2">
+        <div className="col-span-5 md:col-span-2">
           <span className="text-slate-700">{customer.email}</span>
         </div>
         
-        <div className="col-span-2 hidden md:block">
-          <span className="text-slate-700 truncate">{customer.address}</span>
+        <div className="col-span-3 hidden md:block">
+          <span className="text-slate-700 truncate max-w-xs">{customer.address}</span>
         </div>
         
-        <div className="text-right">
+        <div className="col-span-2 md:col-span-1 text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
