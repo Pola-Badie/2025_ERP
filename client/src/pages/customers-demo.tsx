@@ -1,7 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, UserPlus } from 'lucide-react';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
 import { toast } from '@/hooks/use-toast';
 
@@ -79,16 +77,8 @@ const CustomersDemo: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>Customer Records</CardTitle>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" className="text-sm">
-                <FileText className="h-4 w-4 mr-1" /> Export
-              </Button>
-              <Button variant="default" size="sm" className="text-sm bg-[#3BCEAC] hover:bg-[#34b89a]">
-                <UserPlus className="h-4 w-4 mr-1" /> Add Customer
-              </Button>
-            </div>
           </CardHeader>
           <CardContent>
             {/* Table header */}
