@@ -401,9 +401,7 @@ const Inventory: React.FC = () => {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800">
-                                {product.category}
-                              </span>
+                              {product.category}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
                             <td className="px-4 py-3">
