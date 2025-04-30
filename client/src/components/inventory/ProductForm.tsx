@@ -45,6 +45,8 @@ const productFormSchema = z.object({
   lowStockThreshold: z.coerce.number().int().nonnegative({ message: 'Low stock threshold must be a non-negative integer' }),
   costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
   sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
+  location: z.string().optional(),
+  shelf: z.string().optional(),
   expiryDate: z.string().optional(),
   status: z.string().default('active'),
 });
@@ -83,6 +85,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     lowStockThreshold: 10,
     costPrice: 0,
     sellingPrice: 0,
+    location: '',
+    shelf: '',
     expiryDate: '',
     status: 'active',
   };
@@ -130,6 +134,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
       costPrice: parseFloat(data.costPrice.toString()),
       sellingPrice: parseFloat(data.sellingPrice.toString()),
       unitOfMeasure: data.unitOfMeasure,
+      location: data.location || '',
+      shelf: data.shelf || '',
       status: data.status || 'active',
       // Format date as YYYY-MM-DD if it exists
       ...(data.expiryDate ? { 
@@ -352,6 +358,44 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
           />
         </div>
         
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Storage Location</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Warehouse A, Zone B, etc." 
+                    {...field} 
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="shelf"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Shelf Number/ID</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="S-101, Rack-3, etc." 
+                    {...field} 
+                    value={field.value || ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormField
           control={form.control}
           name="expiryDate"

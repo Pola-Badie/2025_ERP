@@ -70,6 +70,8 @@ interface Product {
   unitOfMeasure: string;
   costPrice: number;
   sellingPrice: number;
+  location?: string;
+  shelf?: string;
   expiryDate: string;
   status: string;
   createdAt: string;
@@ -368,6 +370,8 @@ const Inventory: React.FC = () => {
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">SKU</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Shelf</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Expiry Date</th>
                         <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
