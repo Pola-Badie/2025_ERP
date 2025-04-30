@@ -370,7 +370,6 @@ const Inventory: React.FC = () => {
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Expiry Date</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
                         <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
                       </tr>
                     </thead>
@@ -414,14 +413,6 @@ const Inventory: React.FC = () => {
                               ) : (
                                 <span className="text-slate-400">N/A</span>
                               )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {/* For demo purposes, force one product to show as NEAR instead of its actual status */}
-                              {product.id === 1 ? 
-                                <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-orange-200 text-orange-800">
-                                  NEAR
-                                </div> : 
-                                getStatusBadge(product.status)}
                             </td>
                             <td className="px-4 py-3 text-right">
                               <DropdownMenu>
