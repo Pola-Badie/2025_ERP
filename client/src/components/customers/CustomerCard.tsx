@@ -1,12 +1,21 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { 
   FileText, 
   Pencil, 
   Trash2, 
-  User 
+  User,
+  MoreHorizontal,
+  Eye
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
 
 export interface CustomerData {
   id: number;
@@ -35,83 +44,84 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
   onViewOrders
 }) => {
   return (
-    <Card className="mb-4 overflow-hidden">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 gap-y-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <h3 className="text-xl font-semibold text-slate-900">{customer.company}</h3>
-              <p className="text-slate-700">{customer.name}</p>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-slate-600 hover:text-blue-600 hover:border-blue-200 flex items-center"
-                onClick={() => onViewProfile && onViewProfile(customer)}
-              >
-                <User className="h-4 w-4 mr-1" />
-                View Profile
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-slate-600 hover:text-blue-600 hover:border-blue-200 flex items-center"
-                onClick={() => onViewOrders && onViewOrders(customer)}
-              >
-                <FileText className="h-4 w-4 mr-1" />
-                View Orders
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-slate-600 hover:text-amber-600 hover:border-amber-200 flex items-center"
-                onClick={() => onEdit && onEdit(customer)}
-              >
-                <Pencil className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-slate-600 hover:text-red-600 hover:border-red-200 flex items-center"
-                onClick={() => onDelete && onDelete(customer)}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-4 border-t border-slate-100">
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Position</p>
-                <p className="text-slate-800">{customer.position}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Sector</p>
-                <p className="text-slate-800">{customer.sector}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Phone</p>
-                <p className="text-slate-800">{customer.phone}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Email</p>
-                <p className="text-slate-800">{customer.email}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">Address</p>
-                <p className="text-slate-800">{customer.address}</p>
-              </div>
-            </div>
-          </div>
+    <div className="flex flex-col mb-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+      <div className="grid grid-cols-7 md:grid-cols-8 gap-2 items-center text-sm">
+        <div className="flex flex-col col-span-2 md:col-span-1">
+          <span className="font-medium text-slate-900">{customer.name}</span>
+          <span className="text-slate-500 text-xs">{customer.position}</span>
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="md:col-span-1 hidden md:block">
+          <span className="font-medium text-slate-900">{customer.company}</span>
+        </div>
+        
+        <div className="col-span-1 hidden md:block">
+          <span className="text-slate-700">{customer.sector}</span>
+        </div>
+        
+        <div className="col-span-2 md:col-span-1">
+          <span className="text-slate-700">{customer.phone}</span>
+        </div>
+        
+        <div className="col-span-2 md:col-span-2">
+          <span className="text-slate-700">{customer.email}</span>
+        </div>
+        
+        <div className="col-span-2 hidden md:block">
+          <span className="text-slate-700 truncate">{customer.address}</span>
+        </div>
+        
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onViewProfile && onViewProfile(customer)}
+                className="cursor-pointer"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                <span>View Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onViewOrders && onViewOrders(customer)}
+                className="cursor-pointer"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                <span>View Orders</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onEdit && onEdit(customer)}
+                className="cursor-pointer"
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onDelete && onDelete(customer)}
+                className="cursor-pointer text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      
+      {/* Mobile view extra information */}
+      <div className="md:hidden mt-2 text-xs text-slate-500">
+        <div><span className="font-medium">Company:</span> {customer.company}</div>
+        <div><span className="font-medium">Sector:</span> {customer.sector}</div>
+        <div><span className="font-medium">Address:</span> {customer.address}</div>
+      </div>
+    </div>
   );
 };
 

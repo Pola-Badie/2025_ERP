@@ -81,6 +81,18 @@ const CustomersDemo: React.FC = () => {
             <CardTitle>Customer Records</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Table header */}
+            <div className="grid grid-cols-7 md:grid-cols-8 gap-2 items-center text-sm font-medium mb-2 text-slate-500 border-b pb-2">
+              <div className="col-span-2 md:col-span-1">Name</div>
+              <div className="md:col-span-1 hidden md:block">Company</div>
+              <div className="col-span-1 hidden md:block">Sector</div>
+              <div className="col-span-2 md:col-span-1">Phone</div>
+              <div className="col-span-2 md:col-span-2">Email</div>
+              <div className="col-span-2 hidden md:block">Address</div>
+              <div className="text-right">Actions</div>
+            </div>
+            
+            {/* Customer data */}
             {customerData.map(customer => (
               <CustomerCard 
                 key={customer.id}
