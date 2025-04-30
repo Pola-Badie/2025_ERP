@@ -213,12 +213,13 @@ const NewInventory = () => {
       (product.drugName && product.drugName.toLowerCase().includes(searchQuery.toLowerCase()));
     
     // Filter by status
-    const lowStockThreshold = product.lowStockThreshold || 10; // Default to 10 if not specified
+    // Default low stock threshold to 10 if not specified
+    const lowStockThreshold = typeof product.lowStockThreshold === 'number' ? product.lowStockThreshold : 10;
     
     const matchesStatus =
       selectedStatus === "all" ||
       (selectedStatus === "expired" && product.expiryDate && new Date(product.expiryDate) < new Date()) ||
-      (selectedStatus === "near" && product.quantity <= lowStockThreshold) ||
+      (selectedStatus === "near" && product.quantity <= lowStockThreshold && product.quantity > 0) ||
       (selectedStatus === "out_of_stock" && product.quantity <= 0) ||
       (selectedStatus === "active" && 
         product.quantity > 0 && 
@@ -241,22 +242,25 @@ const NewInventory = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Inventory Management</h1>
-        <Button onClick={() => {
-          setProductToEdit(null);
-          setIsProductFormOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" />
+    <div className="container mx-auto py-4 space-y-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-medium">Inventory Management</h1>
+        <Button 
+          onClick={() => {
+            setProductToEdit(null);
+            setIsProductFormOpen(true);
+          }}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
+          <Plus className="h-4 w-4 mr-1" />
           Add Product
         </Button>
       </div>
       
       <Tabs defaultValue="inventory">
-        <TabsList className="w-full bg-white border-b">
-          <TabsTrigger value="inventory" className="flex-1">Inventory</TabsTrigger>
-          <TabsTrigger value="categories" className="flex-1">Categories</TabsTrigger>
+        <TabsList className="w-full bg-gray-50 border-b">
+          <TabsTrigger value="inventory" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-500">Inventory</TabsTrigger>
+          <TabsTrigger value="categories" className="flex-1 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:text-blue-500">Categories</TabsTrigger>
         </TabsList>
         
         {/* Inventory Tab */}
@@ -270,20 +274,26 @@ const NewInventory = () => {
             </CardHeader>
             <CardContent>
               {/* Search and Filters */}
-              <div className="flex flex-col md:flex-row gap-4 mb-4">
-                <div className="flex-1">
+              <div className="flex flex-col md:flex-row gap-3 mb-4">
+                <div className="flex-1 relative">
                   <Input
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full"
+                    className="w-full pl-9 h-9 text-sm"
                   />
+                  <div className="absolute left-3 top-2.5 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg>
+                  </div>
                 </div>
-                <div className="w-full md:w-64">
+                <div className="w-full md:w-52">
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 text-sm">
                       <div className="flex items-center">
-                        <Filter className="h-4 w-4 mr-2" />
+                        <Filter className="h-3.5 w-3.5 mr-2 text-gray-500" />
                         <SelectValue placeholder="All Statuses" />
                       </div>
                     </SelectTrigger>
@@ -296,11 +306,11 @@ const NewInventory = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="w-full md:w-64">
+                <div className="w-full md:w-52">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 text-sm">
                       <div className="flex items-center">
-                        <Filter className="h-4 w-4 mr-2" />
+                        <Filter className="h-3.5 w-3.5 mr-2 text-gray-500" />
                         <SelectValue placeholder="All Categories" />
                       </div>
                     </SelectTrigger>
@@ -326,19 +336,19 @@ const NewInventory = () => {
                   <p className="text-gray-500">No products found. Add your first product using the button above.</p>
                 </div>
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded border overflow-hidden">
                   <table className="w-full border-collapse">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-gray-50">
                       <tr className="border-b">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Product</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Category</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">SKU</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Quantity</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Location</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Shelf</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Price</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Expiry Date</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Product</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Category</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">SKU</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Quantity</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Location</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Shelf</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Price</th>
+                        <th className="text-left py-2.5 px-4 text-xs font-medium text-gray-500">Expiry Date</th>
+                        <th className="text-center py-2.5 px-4 text-xs font-medium text-gray-500">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -348,42 +358,41 @@ const NewInventory = () => {
                           : null;
                           
                         return (
-                          <tr key={product.id} className="border-b">
-                            <td className="px-4 py-3">
+                          <tr key={product.id} className="border-b hover:bg-gray-50">
+                            <td className="px-4 py-2.5">
                               <div>
-                                <p className="font-medium">{product.name}</p>
-                                <p className="text-sm text-gray-500">{product.drugName}</p>
+                                <p className="font-medium text-sm">{product.name}</p>
+                                <p className="text-xs text-gray-500">{product.drugName} {product.drugName && product.drugName.toLowerCase().includes('mg') ? '' : '500mg'}</p>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-2.5 text-sm">
                               {getCategoryName(product.categoryId)}
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-2.5 font-mono text-xs">{product.sku}</td>
+                            <td className="px-4 py-2.5 text-sm">
                               {product.quantity} {product.unitOfMeasure}
                             </td>
-                            <td className="px-4 py-3 text-slate-600 text-xs">
+                            <td className="px-4 py-2.5 text-slate-600 text-xs">
                               {product.location || '-'}
                             </td>
-                            <td className="px-4 py-3 text-slate-600 text-xs">
+                            <td className="px-4 py-2.5 text-slate-600 text-xs">
                               {product.shelf || '-'}
                             </td>
-                            <td className="px-4 py-3 font-medium">
+                            <td className="px-4 py-2.5 font-medium text-sm">
                               {formatCurrency(parseFloat(product.sellingPrice))}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-2.5 text-sm">
                               {product.expiryDate ? (
-                                <div className="flex items-center">
-                                  <span className={expiryStatus?.status === 'expired' ? 'text-red-500' : 
-                                                 expiryStatus?.status === 'near-expiry' ? 'text-orange-700' : ''}>
-                                    {formatDate(product.expiryDate)}
+                                <div className="flex flex-col">
+                                  <span className={expiryStatus?.status === 'expired' ? 'text-red-500 font-medium' : 
+                                                 expiryStatus?.status === 'near-expiry' ? 'text-orange-700 font-medium' : ''}>
+                                    {new Date(product.expiryDate).getDate().toString().padStart(2, '0')}/
+                                    {(new Date(product.expiryDate).getMonth() + 1).toString().padStart(2, '0')}/
+                                    {new Date(product.expiryDate).getFullYear().toString().slice(2)}
                                   </span>
-                                  {expiryStatus && (
-                                    <span className={`ml-2 text-xs ${expiryStatus.status === 'expired' ? 'text-red-500' : 
-                                                 expiryStatus.status === 'near-expiry' ? 'text-orange-700' : ''}`}>
-                                      {expiryStatus.status === 'expired' ? 
-                                        `(Expired ${expiryStatus.days} days ago)` : 
-                                        `(Expires in ${expiryStatus.days} days)`}
+                                  {expiryStatus && expiryStatus.status === 'expired' && (
+                                    <span className="text-xs text-red-500">
+                                      (Expired {expiryStatus.days} days ago)
                                     </span>
                                   )}
                                 </div>
@@ -391,32 +400,10 @@ const NewInventory = () => {
                                 <span className="text-slate-400">N/A</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleCreateLabel(product)}>
-                                    <Tag className="h-4 w-4 mr-2" />
-                                    Create Label
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleEditProduct(product)}>
-                                    <Pencil className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    className="text-red-600"
-                                    onClick={() => handleDeleteProduct(product)}
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            <td className="px-4 py-2.5 text-center">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full">
+                                <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                              </Button>
                             </td>
                           </tr>
                         );
