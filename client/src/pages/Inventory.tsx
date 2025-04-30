@@ -275,14 +275,33 @@ const Inventory: React.FC = () => {
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setActiveTab('categories')}
+          >
+            <Tag className="h-4 w-4 mr-2" />
+            Manage Categories
+          </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-        </TabsList>
+        <div className="border-b mb-4">
+          <TabsList className="flex border-0 p-0 h-auto bg-transparent gap-0">
+            <TabsTrigger 
+              value="inventory" 
+              className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
+            >
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger 
+              value="categories" 
+              className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
+            >
+              Categories
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* Inventory Tab */}
         <TabsContent value="inventory">
@@ -541,7 +560,9 @@ const Inventory: React.FC = () => {
                       <Button 
                         type="submit" 
                         disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
+                        className="bg-blue-500 hover:bg-blue-600"
                       >
+                        <Plus className="h-4 w-4 mr-2" />
                         {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
                       </Button>
                     </div>
