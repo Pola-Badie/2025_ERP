@@ -76,39 +76,39 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
         
         <div className="text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="text-slate-600 hover:text-slate-900">
-                <span className="font-bold text-xl">...</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={20} alignOffset={-5} className="min-w-[180px] z-50">
-              <DropdownMenuItem 
-                onClick={() => onViewProfile && onViewProfile(customer)}
-                className="cursor-pointer"
-              >
-                <span>📝 View Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onViewOrders && onViewOrders(customer)}
-                className="cursor-pointer"
-              >
-                <span>📄 View Orders</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onEdit && onEdit(customer)}
-                className="cursor-pointer"
-              >
-                <span>✏️ Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onDelete && onDelete(customer)}
-                className="cursor-pointer"
-              >
-                <span>🗑️ Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-center space-x-1 text-slate-700">
+            <button
+              onClick={() => onViewProfile && onViewProfile(customer)}
+              className="hover:text-blue-600"
+              title="View Profile"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onViewOrders && onViewOrders(customer)}
+              className="hover:text-blue-600"
+              title="View Orders"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onEdit && onEdit(customer)}
+              className="hover:text-amber-600"
+              title="Edit"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onDelete && onDelete(customer)}
+              className="hover:text-red-600"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
       
