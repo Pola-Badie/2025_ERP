@@ -82,30 +82,34 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
                 <span className="font-bold text-xl">...</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="right" className="min-w-[150px]">
+            <DropdownMenuContent align="start" side="bottom" className="min-w-[180px]">
               <DropdownMenuItem 
                 onClick={() => onViewProfile && onViewProfile(customer)}
                 className="cursor-pointer"
               >
-                View Profile
+                <Eye className="h-4 w-4 mr-2" />
+                <span>View Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onViewOrders && onViewOrders(customer)}
                 className="cursor-pointer"
               >
-                View Orders
+                <FileText className="h-4 w-4 mr-2" />
+                <span>View Orders</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onEdit && onEdit(customer)}
                 className="cursor-pointer"
               >
-                Edit
+                <Pencil className="h-4 w-4 mr-2" />
+                <span>Edit</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onDelete && onDelete(customer)}
                 className="cursor-pointer text-red-600 hover:text-red-700 focus:text-red-700"
               >
-                Delete
+                <Trash2 className="h-4 w-4 mr-2" />
+                <span>Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
