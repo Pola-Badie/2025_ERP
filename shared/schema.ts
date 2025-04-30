@@ -54,6 +54,8 @@ export const products = pgTable("products", {
   expiryDate: date("expiry_date"),
   status: text("status").default("active").notNull(), // 'active', 'expired', 'out_of_stock', 'near'
   manufacturer: text("manufacturer"),
+  location: text("location"),
+  shelf: text("shelf"),
   imagePath: text("image_path"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -363,6 +365,8 @@ export const insertProductSchema = createInsertSchema(products)
     expiryDate: true,
     status: true,
     manufacturer: true,
+    location: true,
+    shelf: true,
     imagePath: true,
   })
   .extend({
@@ -536,6 +540,8 @@ export const updateProductSchema = z.object({
   lowStockThreshold: z.number().optional(),
   expiryDate: z.date().optional(),
   manufacturer: z.string().optional(),
+  location: z.string().optional(),
+  shelf: z.string().optional(),
   status: z.string().optional(),
   imagePath: z.string().optional(),
   updatedAt: z.date().optional()
