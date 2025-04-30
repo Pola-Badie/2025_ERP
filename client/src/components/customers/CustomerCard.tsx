@@ -66,13 +66,13 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
         
         <div>
-          <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
+          <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline truncate max-w-[150px] block">
             {customer.email}
           </a>
         </div>
         
         <div className="hidden md:block">
-          <span className="text-slate-800">{customer.address}</span>
+          <span className="text-slate-800 truncate max-w-[150px] block">{customer.address}</span>
         </div>
         
         <div className="text-center">
@@ -82,18 +82,18 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
                 <span className="font-bold text-xl">...</span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" sideOffset={10} className="min-w-[150px]">
               <DropdownMenuItem 
                 onClick={() => onViewProfile && onViewProfile(customer)}
                 className="cursor-pointer"
               >
-                <span>📝 View Profile</span>
+                <span>👤 View Profile</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onViewOrders && onViewOrders(customer)}
                 className="cursor-pointer"
               >
-                <span>📄 View Orders</span>
+                <span>📋 View Orders</span>
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onEdit && onEdit(customer)}
