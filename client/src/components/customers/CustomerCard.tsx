@@ -44,87 +44,71 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
   onViewOrders
 }) => {
   return (
-    <div className="flex flex-col mb-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-      <div className="grid grid-cols-10 gap-4 items-center text-sm">
-        <div className="flex flex-col col-span-2">
-          <span className="font-medium text-slate-900">{customer.name}</span>
-          <span className="text-slate-500 text-xs">{customer.position}</span>
+    <div className="border-b border-slate-200 py-3">
+      <div className="grid grid-cols-6 gap-4 items-center text-sm">
+        <div className="hidden md:block">
+          <span className="text-slate-800">{customer.company}</span>
         </div>
         
-        <div className="col-span-1 hidden md:block">
-          <span className="font-medium text-slate-900">{customer.company}</span>
+        <div className="hidden md:block">
+          <span className="text-slate-800">{customer.sector}</span>
         </div>
         
-        <div className="col-span-1 hidden md:block">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {customer.sector}
-          </span>
+        <div>
+          <span className="text-slate-800">{customer.phone}</span>
         </div>
         
-        <div className="col-span-2">
-          <span className="text-slate-700">{customer.phone}</span>
+        <div>
+          <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
+            {customer.email}
+          </a>
         </div>
         
-        <div className="col-span-3">
-          <span className="text-slate-700">{customer.email}</span>
+        <div className="hidden md:block">
+          <span className="text-slate-800">{customer.address}</span>
         </div>
         
-        <div className="col-span-2 hidden md:block">
-          <span className="text-slate-700 truncate max-w-[180px] block">{customer.address}</span>
-        </div>
-        
-        <div className="col-span-3 md:col-span-1 text-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={() => onViewProfile && onViewProfile(customer)}
-                className="cursor-pointer"
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                <span>View Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onViewOrders && onViewOrders(customer)}
-                className="cursor-pointer"
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                <span>View Orders</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onEdit && onEdit(customer)}
-                className="cursor-pointer"
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onDelete && onDelete(customer)}
-                className="cursor-pointer text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-1 text-slate-700">
+            <button
+              onClick={() => onViewProfile && onViewProfile(customer)}
+              className="hover:text-blue-600"
+              title="View Profile"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onViewOrders && onViewOrders(customer)}
+              className="hover:text-blue-600"
+              title="View Orders"
+            >
+              <FileText className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onEdit && onEdit(customer)}
+              className="hover:text-amber-600"
+              title="Edit"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+            <span>•</span>
+            <button
+              onClick={() => onDelete && onDelete(customer)}
+              className="hover:text-red-600"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
       
       {/* Mobile view extra information */}
       <div className="md:hidden mt-2 text-xs text-slate-500 space-y-1">
         <div><span className="font-medium">Company:</span> {customer.company}</div>
-        <div>
-          <span className="font-medium">Sector:</span> 
-          <span className="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {customer.sector}
-          </span>
-        </div>
+        <div><span className="font-medium">Sector:</span> {customer.sector}</div>
         <div><span className="font-medium">Address:</span> {customer.address}</div>
       </div>
     </div>
