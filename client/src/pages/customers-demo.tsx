@@ -1,28 +1,16 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
+import AddCustomerDialog from '@/components/customers/AddCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 
 const CustomersDemo: React.FC = () => {
   // States
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [newCustomer, setNewCustomer] = useState<Partial<CustomerData>>({
-    name: '',
-    company: '',
-    position: '',
-    sector: '',
-    phone: '',
-    email: '',
-    address: ''
-  });
   
   // Sample customer data
   const allCustomerData: CustomerData[] = [
@@ -89,41 +77,15 @@ const CustomersDemo: React.FC = () => {
   };
   
   const handleAddCustomer = () => {
-    setNewCustomer({
-      name: '',
-      company: '',
-      position: '',
-      sector: '',
-      phone: '',
-      email: '',
-      address: ''
-    });
-    setNameError(null);
     setShowAddDialog(true);
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewCustomer(prev => ({ ...prev, [name]: value }));
-    
-    // Clear name error if name is being typed
-    if (name === 'name' && value.trim() && nameError) {
-      setNameError(null);
-    }
-  };
-  
-  const handleSaveCustomer = () => {
-    // Basic validation
-    if (!newCustomer.name?.trim()) {
-      setNameError('Customer name is required');
-      return;
-    }
-    
+  const handleSaveCustomer = (customer: Partial<CustomerData>) => {
     // In a real app, this would be an API call
     // For demo, just show a success message
     toast({
       title: "Customer Added",
-      description: `${newCustomer.name} has been added successfully`,
+      description: `${customer.name} has been added successfully`,
     });
     
     setShowAddDialog(false);
@@ -212,109 +174,11 @@ const CustomersDemo: React.FC = () => {
       </div>
       
       {/* Add Customer Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">New Customer</DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="company">Company Name</Label>
-              <Input
-                id="company"
-                name="company"
-                placeholder="Company name"
-                value={newCustomer.company || ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="Customer name"
-                value={newCustomer.name || ''}
-                onChange={handleInputChange}
-                className={nameError ? "border-red-500" : ""}
-              />
-              {nameError && (
-                <p className="text-sm text-red-500">{nameError}</p>
-              )}
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="position">Position</Label>
-              <Input
-                id="position"
-                name="position"
-                placeholder="Job title/Position"
-                value={newCustomer.position || ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                placeholder="Phone number"
-                value={newCustomer.phone || ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="sector">Sector</Label>
-              <Input
-                id="sector"
-                name="sector"
-                placeholder="Business sector"
-                value={newCustomer.sector || ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="customer@example.com"
-                value={newCustomer.email || ''}
-                onChange={handleInputChange}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                name="address"
-                placeholder="Customer address"
-                value={newCustomer.address || ''}
-                onChange={handleInputChange}
-                className="min-h-[80px]"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter className="flex items-center justify-between">
-            <DialogClose asChild>
-              <Button variant="outline" type="button">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button type="button" onClick={handleSaveCustomer}>
-              Save Customer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddCustomerDialog 
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSave={handleSaveCustomer}
+      />
     </div>
   );
 };
