@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
 import AddCustomerDialog from '@/components/customers/AddCustomerDialog';
+import CustomerProfileDialog from '@/components/customers/CustomerProfileDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,8 @@ const CustomersDemo: React.FC = () => {
   // States
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
+  const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   
   // Sample customer data
   const allCustomerData: CustomerData[] = [
@@ -48,10 +51,8 @@ const CustomersDemo: React.FC = () => {
 
   // Action handlers (just for demo purposes)
   const handleViewProfile = (customer: CustomerData) => {
-    toast({
-      title: "View Profile",
-      description: `Viewing profile for ${customer.name}`
-    });
+    setSelectedCustomer(customer);
+    setShowProfileDialog(true);
   };
 
   const handleViewOrders = (customer: CustomerData) => {
@@ -178,6 +179,13 @@ const CustomersDemo: React.FC = () => {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onSave={handleSaveCustomer}
+      />
+      
+      {/* Customer Profile Dialog */}
+      <CustomerProfileDialog
+        open={showProfileDialog}
+        onOpenChange={setShowProfileDialog}
+        customer={selectedCustomer}
       />
     </div>
   );
