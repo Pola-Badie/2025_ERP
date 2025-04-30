@@ -2,7 +2,7 @@ import { Switch, Route } from "wouter";
 import Dashboard from "@/pages/Dashboard";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
-import InventoryNew from "@/pages/InventoryNew";
+import NewInventory from "@/pages/NewInventory";
 import Reports from "@/pages/Reports";
 import Approvals from "@/pages/Approvals";
 import BackupRestore from "@/pages/BackupRestore";
@@ -30,7 +30,7 @@ function App() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/inventory" component={Inventory} />
-        <Route path="/inventory-new" component={InventoryNew} />
+        <Route path="/inventory-new" component={NewInventory} />
         <Route path="/expenses" component={Expenses} />
         <Route path="/sales" component={Reports} />
         <Route path="/reports" component={Reports} />
