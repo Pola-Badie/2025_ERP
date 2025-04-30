@@ -76,6 +76,8 @@ const invoiceFormSchema = z.object({
   taxAmount: z.number(),
   grandTotal: z.number(),
   paymentStatus: z.enum(['paid', 'unpaid', 'partial']),
+  paymentMethod: z.enum(['cash', 'visa', 'cheque', 'bank_transfer']).optional(),
+  paymentProofFile: z.any().optional(),
   paymentTerms: z.string().default('0'),
   amountPaid: z.number().min(0),
   notes: z.string().optional(),
@@ -138,6 +140,8 @@ const CreateInvoice = () => {
       taxAmount: 0,
       grandTotal: 0,
       paymentStatus: 'unpaid',
+      paymentMethod: undefined,
+      paymentProofFile: undefined,
       paymentTerms: '0',
       amountPaid: 0,
       notes: '',
@@ -324,6 +328,7 @@ const CreateInvoice = () => {
       taxAmount: data.taxAmount,
       grandTotal: data.grandTotal,
       paymentStatus: data.paymentStatus,
+      paymentMethod: data.paymentMethod,
       paymentTerms: data.paymentTerms,
       amountPaid: data.amountPaid,
       notes: data.notes,
@@ -785,6 +790,46 @@ const CreateInvoice = () => {
                 </div>
                 
                 <div>
+                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Select
+                    value={form.watch('paymentMethod') || ''}
+                    onValueChange={(value) => form.setValue('paymentMethod', value)}
+                  >
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="visa">Visa</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {(form.watch('paymentMethod') === 'cheque' || form.watch('paymentMethod') === 'bank_transfer') && (
+                  <div>
+                    <Label htmlFor="paymentProof">Upload {form.watch('paymentMethod') === 'cheque' ? 'Cheque' : 'Transfer'} Document</Label>
+                    <Input
+                      id="paymentProof"
+                      type="file"
+                      className="mt-1"
+                      accept="image/*,.pdf"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          form.setValue('paymentProofFile', e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {form.watch('paymentMethod') === 'cheque' 
+                        ? 'Upload a scanned copy or photo of the cheque' 
+                        : 'Upload the bank transfer receipt or confirmation'}
+                    </p>
+                  </div>
+                )}
+                
+                <div>
                   <Label htmlFor="paymentTerms">Payment Terms</Label>
                   <Select
                     value={form.watch('paymentTerms') || '0'}
@@ -926,6 +971,11 @@ const CreateInvoice = () => {
                     : `${form.watch('paymentTerms')} Days`
                   }
                 </p>
+                {form.watch('paymentMethod') && (
+                  <p>
+                    Payment Method: {form.watch('paymentMethod')?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </p>
+                )}
                 <p className="mt-2">
                   <span className={cn(
                     "px-2 py-1 rounded-full text-xs font-semibold",
