@@ -15,7 +15,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const navItems = [
     { path: '/', label: 'DASHBOARD', icon: 'home' },
     { path: '/inventory', label: 'INVENTORY', icon: 'package' },
-    { path: '/inventory-new', label: 'INVENTORY (NEW)', icon: 'package' },
     { path: '/expenses', label: 'EXPENSES', icon: 'dollar-sign' },
     { path: '/accounting', label: 'ACCOUNTING', icon: 'book-open' },
     { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
