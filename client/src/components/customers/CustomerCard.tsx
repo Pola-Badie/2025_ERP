@@ -56,7 +56,9 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
         
         <div className="col-span-1 hidden md:block">
-          <span className="text-slate-700">{customer.sector}</span>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {customer.sector}
+          </span>
         </div>
         
         <div className="col-span-2 md:col-span-1">
@@ -80,8 +82,6 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onViewProfile && onViewProfile(customer)}
                 className="cursor-pointer"
@@ -96,6 +96,7 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
                 <FileText className="mr-2 h-4 w-4" />
                 <span>View Orders</span>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onEdit && onEdit(customer)}
                 className="cursor-pointer"
@@ -116,9 +117,14 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
       </div>
       
       {/* Mobile view extra information */}
-      <div className="md:hidden mt-2 text-xs text-slate-500">
+      <div className="md:hidden mt-2 text-xs text-slate-500 space-y-1">
         <div><span className="font-medium">Company:</span> {customer.company}</div>
-        <div><span className="font-medium">Sector:</span> {customer.sector}</div>
+        <div>
+          <span className="font-medium">Sector:</span> 
+          <span className="inline-flex items-center ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            {customer.sector}
+          </span>
+        </div>
         <div><span className="font-medium">Address:</span> {customer.address}</div>
       </div>
     </div>
