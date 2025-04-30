@@ -71,38 +71,14 @@ const CustomersDemo: React.FC = () => {
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Data Format</h1>
-        <p className="text-slate-600">Sample customer data display with the requested format</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Data</h1>
+        <p className="text-slate-600">Information about our customers and their business details</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Text Format (Plain)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="font-mono text-sm whitespace-pre-wrap bg-slate-50 p-4 rounded-md">
-              {customerData.map((customer, index) => (
-                <div key={customer.id} className="mb-6">
-                  <div className="mb-1 font-bold text-slate-700">Customer #{index + 1}</div>
-                  {`Name        : ${customer.name}
-Position    : ${customer.position}
-Company     : ${customer.company}
-Sector      : ${customer.sector}
-Phone       : ${customer.phone}
-Email       : ${customer.email}
-Address     : ${customer.address}
-Action      : [📝 View Profile] [📄 View Orders] [✏️ Edit] [🗑 Delete]
-`}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Component Format (Interactive)</CardTitle>
+            <CardTitle>Customer Records</CardTitle>
           </CardHeader>
           <CardContent>
             {customerData.map(customer => (
