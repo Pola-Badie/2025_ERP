@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Plus } from 'lucide-react';
 
 const CustomersDemo: React.FC = () => {
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  
   // Sample customer data
-  const customerData: CustomerData[] = [
+  const allCustomerData: CustomerData[] = [
     {
       id: 1,
       name: "Ahmed Salah",
@@ -67,6 +73,29 @@ const CustomersDemo: React.FC = () => {
       variant: "destructive"
     });
   };
+  
+  const handleAddCustomer = () => {
+    toast({
+      title: "Add Customer",
+      description: "Opening customer creation form"
+    });
+  };
+  
+  // Filter customers based on search query
+  const filteredCustomers = allCustomerData.filter(customer => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase().trim();
+    return (
+      customer.name.toLowerCase().includes(query) ||
+      customer.position.toLowerCase().includes(query) ||
+      customer.company.toLowerCase().includes(query) ||
+      customer.sector.toLowerCase().includes(query) ||
+      customer.phone.toLowerCase().includes(query) ||
+      customer.email.toLowerCase().includes(query) ||
+      customer.address.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -77,8 +106,22 @@ const CustomersDemo: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <CardTitle>Customer Records</CardTitle>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search customers..."
+                  className="w-[150px] sm:w-[200px] pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button size="sm" onClick={handleAddCustomer}>
+                <Plus className="h-4 w-4 mr-1" /> Add Customer
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {/* Table header */}
@@ -93,16 +136,29 @@ const CustomersDemo: React.FC = () => {
             </div>
             
             {/* Customer data */}
-            {customerData.map(customer => (
-              <CustomerCard 
-                key={customer.id}
-                customer={customer}
-                onViewProfile={handleViewProfile}
-                onViewOrders={handleViewOrders}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
+            {filteredCustomers.length > 0 ? (
+              filteredCustomers.map((customer: CustomerData) => (
+                <CustomerCard 
+                  key={customer.id}
+                  customer={customer}
+                  onViewProfile={handleViewProfile}
+                  onViewOrders={handleViewOrders}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            ) : (
+              <div className="py-8 text-center text-slate-500">
+                {searchQuery ? (
+                  <>
+                    <p className="mb-2 text-lg font-medium">No matching customers found</p>
+                    <p>Try adjusting your search query or add a new customer</p>
+                  </>
+                ) : (
+                  <p className="text-lg font-medium">No customers available</p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
