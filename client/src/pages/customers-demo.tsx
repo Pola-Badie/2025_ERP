@@ -82,7 +82,8 @@ const CustomersDemo: React.FC = () => {
           </CardHeader>
           <CardContent>
             {/* Table header */}
-            <div className="grid grid-cols-6 gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
+            <div className="grid grid-cols-7 gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
+              <div className="">Name</div>
               <div className="hidden md:block">Company</div>
               <div className="hidden md:block">Sector</div>
               <div className="">Phone</div>

@@ -45,7 +45,14 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
 }) => {
   return (
     <div className="border-b border-slate-200 py-3">
-      <div className="grid grid-cols-6 gap-4 items-center text-sm">
+      <div className="grid grid-cols-7 gap-4 items-center text-sm">
+        <div>
+          <div className="flex flex-col">
+            <span className="font-medium text-slate-800">{customer.name}</span>
+            <span className="text-slate-500 text-xs">{customer.position}</span>
+          </div>
+        </div>
+      
         <div className="hidden md:block">
           <span className="text-slate-800">{customer.company}</span>
         </div>
