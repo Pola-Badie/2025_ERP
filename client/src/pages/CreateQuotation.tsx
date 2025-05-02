@@ -372,137 +372,130 @@ const CreateQuotation: React.FC = () => {
 
             {/* Quotation Items */}
             <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <Label>Quotation Items</Label>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedItemIndex(null)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Item
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Product</DialogTitle>
-                      <DialogDescription>
-                        Select a product to add to the quotation
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="productSelect">Search and Select Product</Label>
-                        <Popover open={openProductSelect} onOpenChange={setOpenProductSelect}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openProductSelect}
-                              className="w-full justify-between"
-                            >
-                              Select product...
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
-                            <Command>
-                              <CommandInput 
-                                placeholder="Search products..." 
-                                onValueChange={(value) => {
-                                  const searchTerm = value.toLowerCase();
-                                  setFilteredProducts(
-                                    products.filter(p => 
-                                      p.name.toLowerCase().includes(searchTerm) || 
-                                      (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
-                                    )
-                                  );
-                                }}
-                              />
-                              <CommandEmpty>No product found.</CommandEmpty>
-                              <CommandList>
-                                <CommandGroup>
-                                  {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
-                                    <CommandItem
-                                      key={product.id}
-                                      value={product.name}
-                                      onSelect={() => handleAddItem(product.id)}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="font-medium">{product.name}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                          Price: ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
-                                        </span>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">Quotation Items</h3>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden">
+                {/* Header Row */}
+                <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b">
+                  <div className="col-span-5 font-medium text-gray-700">Product</div>
+                  <div className="col-span-2 font-medium text-gray-700">Quantity</div>
+                  <div className="col-span-2 font-medium text-gray-700">Unit Price</div>
+                  <div className="col-span-2 font-medium text-gray-700">Total</div>
+                  <div className="col-span-1 font-medium text-gray-700"></div>
+                </div>
+                
+                {/* Item Rows */}
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-12 gap-4 p-4 border-b items-center">
+                    <div className="col-span-5">
+                      {form.watch(`items.${index}.productName`)}
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          min={1}
+                          value={form.watch(`items.${index}.quantity`)}
+                          onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
+                          className="w-20"
+                        />
                       </div>
                     </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setOpenProductSelect(false)}>
-                        Cancel
+                    <div className="col-span-2">
+                      ${form.watch(`items.${index}.unitPrice`).toFixed(2)}
+                    </div>
+                    <div className="col-span-2">
+                      ${form.watch(`items.${index}.total`).toFixed(2)}
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash className="h-4 w-4 text-red-500" />
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead className="w-[100px]">Quantity</TableHead>
-                      <TableHead className="w-[120px]">Unit Price</TableHead>
-                      <TableHead className="w-[120px]">Total</TableHead>
-                      <TableHead className="w-[80px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fields.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                          No items added yet
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      fields.map((field, index) => (
-                        <TableRow key={field.id}>
-                          <TableCell>
-                            {form.watch(`items.${index}.productName`)}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={form.watch(`items.${index}.quantity`)}
-                              onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
-                              className="w-20"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.unitPrice`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.total`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => remove(index)}
-                            >
-                              <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Add New Item Row */}
+                <div className="grid grid-cols-12 gap-4 p-4 items-center">
+                  <div className="col-span-5">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                        >
+                          Select a product...
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search products..." 
+                            onValueChange={(value) => {
+                              const searchTerm = value.toLowerCase();
+                              setFilteredProducts(
+                                products.filter(p => 
+                                  p.name.toLowerCase().includes(searchTerm) || 
+                                  (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
+                                )
+                              );
+                            }}
+                          />
+                          <CommandEmpty>No product found.</CommandEmpty>
+                          <CommandList>
+                            <CommandGroup heading="Products">
+                              {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
+                                <CommandItem
+                                  key={product.id}
+                                  value={product.name}
+                                  onSelect={() => handleAddItem(product.id)}
+                                >
+                                  <div className="flex justify-between w-full items-center">
+                                    <span>{product.name}</span>
+                                    <span className="text-sm text-muted-foreground">
+                                      ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      defaultValue={1}
+                      className="w-20"
+                      disabled
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      defaultValue={0}
+                      className="w-full"
+                      disabled
+                    />
+                  </div>
+                  <div className="col-span-2 font-medium">
+                    $0.00
+                  </div>
+                  <div className="col-span-1">
+                  </div>
+                </div>
               </div>
             </div>
 
