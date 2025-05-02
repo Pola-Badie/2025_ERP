@@ -371,138 +371,115 @@ const CreateQuotation: React.FC = () => {
             </div>
 
             {/* Quotation Items */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <Label>Quotation Items</Label>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedItemIndex(null)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Item
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Product</DialogTitle>
-                      <DialogDescription>
-                        Select a product to add to the quotation
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="productSelect">Search and Select Product</Label>
-                        <Popover open={openProductSelect} onOpenChange={setOpenProductSelect}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openProductSelect}
-                              className="w-full justify-between"
-                            >
-                              Select product...
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
-                            <Command>
-                              <CommandInput 
-                                placeholder="Search products..." 
-                                onValueChange={(value) => {
-                                  const searchTerm = value.toLowerCase();
-                                  setFilteredProducts(
-                                    products.filter(p => 
-                                      p.name.toLowerCase().includes(searchTerm) || 
-                                      (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
-                                    )
-                                  );
-                                }}
-                              />
-                              <CommandEmpty>No product found.</CommandEmpty>
-                              <CommandList>
-                                <CommandGroup>
-                                  {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
-                                    <CommandItem
-                                      key={product.id}
-                                      value={product.name}
-                                      onSelect={() => handleAddItem(product.id)}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="font-medium">{product.name}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                          Price: ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
-                                        </span>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setOpenProductSelect(false)}>
-                        Cancel
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+            <div className="mb-8">
+              <div className="grid grid-cols-4 gap-6 mb-4 border-b pb-3">
+                <div className="col-span-1 text-sm font-medium text-gray-600">Product</div>
+                <div className="col-span-1 text-sm font-medium text-gray-600">Quantity</div>
+                <div className="col-span-1 text-sm font-medium text-gray-600">Unit Price</div>
+                <div className="col-span-1 text-sm font-medium text-gray-600">Total</div>
               </div>
 
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead className="w-[100px]">Quantity</TableHead>
-                      <TableHead className="w-[120px]">Unit Price</TableHead>
-                      <TableHead className="w-[120px]">Total</TableHead>
-                      <TableHead className="w-[80px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fields.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                          No items added yet
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      fields.map((field, index) => (
-                        <TableRow key={field.id}>
-                          <TableCell>
-                            {form.watch(`items.${index}.productName`)}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={form.watch(`items.${index}.quantity`)}
-                              onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
-                              className="w-20"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.unitPrice`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.total`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => remove(index)}
-                            >
-                              <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+              {/* Existing Items */}
+              {fields.map((field, index) => (
+                <div key={field.id} className="grid grid-cols-4 gap-6 mb-4 items-center">
+                  <div className="col-span-1">
+                    {form.watch(`items.${index}.productName`)}
+                  </div>
+                  <div className="col-span-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={form.watch(`items.${index}.quantity`)}
+                      onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
+                      className="w-20 py-1"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    ${form.watch(`items.${index}.unitPrice`).toFixed(2)}
+                  </div>
+                  <div className="col-span-1 flex justify-between">
+                    <span>${form.watch(`items.${index}.total`).toFixed(2)}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      className="h-8 w-8"
+                    >
+                      <Trash className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+
+              {/* New Item Row */}
+              <div className="grid grid-cols-4 gap-6 mb-4 items-center">
+                <div className="col-span-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        Select a product...
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
+                      <Command>
+                        <CommandInput 
+                          placeholder="Search products..." 
+                          onValueChange={(value) => {
+                            const searchTerm = value.toLowerCase();
+                            setFilteredProducts(
+                              products.filter(p => 
+                                p.name.toLowerCase().includes(searchTerm) || 
+                                (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
+                              )
+                            );
+                          }}
+                        />
+                        <CommandEmpty>No product found.</CommandEmpty>
+                        <CommandList>
+                          <CommandGroup>
+                            {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
+                              <CommandItem
+                                key={product.id}
+                                value={product.name}
+                                onSelect={() => handleAddItem(product.id)}
+                                className="flex justify-between"
+                              >
+                                <span>{product.name}</span>
+                                <span className="text-sm text-muted-foreground">
+                                  ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
+                                </span>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="col-span-1">
+                  <Input
+                    type="number"
+                    defaultValue="1"
+                    readOnly
+                    className="w-20 py-1"
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Input
+                    type="number"
+                    defaultValue="0"
+                    readOnly
+                    className="w-24 py-1"
+                  />
+                </div>
+                <div className="col-span-1">
+                  $0.00
+                </div>
               </div>
             </div>
 
