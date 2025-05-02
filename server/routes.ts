@@ -16,7 +16,9 @@ import {
   insertSystemPreferenceSchema,
   updateSystemPreferenceSchema,
   insertRolePermissionSchema,
-  insertLoginLogSchema
+  insertLoginLogSchema,
+  insertQuotationSchema,
+  insertQuotationItemSchema
 } from "@shared/schema";
 import { registerAccountingRoutes } from "./routes-accounting";
 import userRoutes from "./routes-user";

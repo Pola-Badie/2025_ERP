@@ -165,6 +165,33 @@ export const invoices = pgTable("invoices", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Quotations
+export const quotations = pgTable("quotations", {
+  id: serial("id").primaryKey(),
+  quotationNumber: text("quotation_number").notNull().unique(),
+  customerId: integer("customer_id").references(() => customers.id),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  issueDate: timestamp("issue_date").defaultNow().notNull(),
+  validUntil: date("valid_until").notNull(),
+  subtotal: numeric("subtotal").notNull(),
+  taxRate: numeric("tax_rate").default("0"),
+  taxAmount: numeric("tax_amount").default("0"),
+  grandTotal: numeric("grand_total").notNull(),
+  status: text("status").default("pending").notNull(), // 'pending', 'approved', 'rejected', 'expired', 'converted'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const quotationItems = pgTable("quotation_items", {
+  id: serial("id").primaryKey(),
+  quotationId: integer("quotation_id").references(() => quotations.id).notNull(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: numeric("unit_price").notNull(),
+  total: numeric("total").notNull(),
+});
+
 // System preferences
 export const systemPreferences = pgTable("system_preferences", {
   id: serial("id").primaryKey(),
@@ -433,6 +460,27 @@ export const insertInvoiceSchema = createInsertSchema(invoices).pick({
   status: true,
 });
 
+export const insertQuotationSchema = createInsertSchema(quotations).pick({
+  quotationNumber: true,
+  customerId: true,
+  userId: true,
+  validUntil: true,
+  subtotal: true,
+  taxRate: true,
+  taxAmount: true,
+  grandTotal: true,
+  status: true,
+  notes: true,
+});
+
+export const insertQuotationItemSchema = createInsertSchema(quotationItems).pick({
+  quotationId: true,
+  productId: true,
+  quantity: true,
+  unitPrice: true,
+  total: true,
+});
+
 export const insertBackupSchema = createInsertSchema(backups).pick({
   filename: true,
   size: true,
@@ -511,6 +559,12 @@ export type PurchaseOrder = typeof purchaseOrders.$inferSelect;
 
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Invoice = typeof invoices.$inferSelect;
+
+export type InsertQuotation = z.infer<typeof insertQuotationSchema>;
+export type Quotation = typeof quotations.$inferSelect;
+
+export type InsertQuotationItem = z.infer<typeof insertQuotationItemSchema>;
+export type QuotationItem = typeof quotationItems.$inferSelect;
 
 export type InsertBackup = z.infer<typeof insertBackupSchema>;
 export type Backup = typeof backups.$inferSelect;
