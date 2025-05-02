@@ -15,7 +15,9 @@ import {
   salesReports, type SalesReport, type InsertSalesReport,
   systemPreferences, type SystemPreference, type InsertSystemPreference, type UpdateSystemPreference,
   rolePermissions, type RolePermission, type InsertRolePermission,
-  loginLogs, type LoginLog, type InsertLoginLog
+  loginLogs, type LoginLog, type InsertLoginLog,
+  quotations, type Quotation, type InsertQuotation,
+  quotationItems, type QuotationItem, type InsertQuotationItem
 } from "@shared/schema";
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -113,6 +115,16 @@ export interface IStorage {
   // Login logs methods
   getLoginLogs(limit?: number): Promise<LoginLog[]>;
   createLoginLog(log: InsertLoginLog): Promise<LoginLog>;
+  
+  // Quotation methods
+  getQuotations(query: string, status: string, date: string): Promise<Quotation[]>;
+  getQuotation(id: number): Promise<Quotation | undefined>;
+  getQuotationItems(quotationId: number): Promise<QuotationItem[]>;
+  createQuotation(quotation: InsertQuotation): Promise<Quotation>;
+  createQuotationItem(item: InsertQuotationItem): Promise<QuotationItem>;
+  updateQuotation(id: number, data: Partial<Quotation>): Promise<Quotation | undefined>;
+  deleteQuotation(id: number): Promise<boolean>;
+  deleteQuotationItems(quotationId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -696,6 +708,127 @@ export class DatabaseStorage implements IStorage {
   async createLoginLog(log: InsertLoginLog): Promise<LoginLog> {
     const [createdLog] = await db.insert(loginLogs).values(log).returning();
     return createdLog;
+  }
+  
+  // Quotation methods
+  async getQuotations(query: string, status: string, date: string): Promise<Quotation[]> {
+    // Base query
+    let quotationsQuery = db.select({
+      quotation: quotations,
+      customer: customers
+    })
+    .from(quotations)
+    .leftJoin(customers, eq(quotations.customerId, customers.id))
+    .orderBy(desc(quotations.createdAt));
+    
+    // Apply filters if provided
+    if (query && query.trim() !== '') {
+      // Search by quotation number or customer name
+      quotationsQuery = quotationsQuery.where(
+        sql`LOWER(${quotations.quotationNumber}) LIKE LOWER(${'%' + query + '%'}) OR 
+            LOWER(${customers.name}) LIKE LOWER(${'%' + query + '%'})`
+      );
+    }
+    
+    if (status && status !== 'all') {
+      quotationsQuery = quotationsQuery.where(eq(quotations.status, status));
+    }
+    
+    if (date && date !== 'all') {
+      let dateFilter: Date;
+      
+      switch (date) {
+        case 'today':
+          dateFilter = new Date();
+          dateFilter.setHours(0, 0, 0, 0);
+          quotationsQuery = quotationsQuery.where(gte(quotations.issueDate, dateFilter));
+          break;
+        case 'week':
+          dateFilter = new Date();
+          dateFilter.setDate(dateFilter.getDate() - 7);
+          quotationsQuery = quotationsQuery.where(gte(quotations.issueDate, dateFilter));
+          break;
+        case 'month':
+          dateFilter = new Date();
+          dateFilter.setMonth(dateFilter.getMonth() - 1);
+          quotationsQuery = quotationsQuery.where(gte(quotations.issueDate, dateFilter));
+          break;
+        case 'year':
+          dateFilter = new Date();
+          dateFilter.setFullYear(dateFilter.getFullYear() - 1);
+          quotationsQuery = quotationsQuery.where(gte(quotations.issueDate, dateFilter));
+          break;
+      }
+    }
+    
+    const result = await quotationsQuery;
+    
+    // Transform the result to include customer data
+    return result.map(row => ({
+      ...row.quotation,
+      customer: row.customer
+    })) as Quotation[];
+  }
+  
+  async getQuotation(id: number): Promise<Quotation | undefined> {
+    const [result] = await db.select({
+      quotation: quotations,
+      customer: customers
+    })
+    .from(quotations)
+    .leftJoin(customers, eq(quotations.customerId, customers.id))
+    .where(eq(quotations.id, id));
+    
+    if (!result) return undefined;
+    
+    return {
+      ...result.quotation,
+      customer: result.customer
+    } as unknown as Quotation;
+  }
+  
+  async getQuotationItems(quotationId: number): Promise<QuotationItem[]> {
+    const items = await db.select({
+      item: quotationItems,
+      product: products
+    })
+    .from(quotationItems)
+    .innerJoin(products, eq(quotationItems.productId, products.id))
+    .where(eq(quotationItems.quotationId, quotationId));
+    
+    return items.map(row => ({
+      ...row.item,
+      product: row.product
+    })) as unknown as QuotationItem[];
+  }
+  
+  async createQuotation(quotation: InsertQuotation): Promise<Quotation> {
+    const [createdQuotation] = await db.insert(quotations).values(quotation).returning();
+    return createdQuotation;
+  }
+  
+  async createQuotationItem(item: InsertQuotationItem): Promise<QuotationItem> {
+    const [createdItem] = await db.insert(quotationItems).values(item).returning();
+    return createdItem;
+  }
+  
+  async updateQuotation(id: number, data: Partial<Quotation>): Promise<Quotation | undefined> {
+    const [updatedQuotation] = await db.update(quotations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(quotations.id, id))
+      .returning();
+    
+    return updatedQuotation;
+  }
+  
+  async deleteQuotation(id: number): Promise<boolean> {
+    await db.delete(quotations).where(eq(quotations.id, id));
+    return true;
+  }
+  
+  async deleteQuotationItems(quotationId: number): Promise<boolean> {
+    await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+    return true;
   }
 }
 

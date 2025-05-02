@@ -133,6 +133,163 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Quotation Endpoints =============
+
+  // Get all quotations
+  app.get("/api/quotations", async (req: Request, res: Response) => {
+    try {
+      const query = req.query.query as string || '';
+      const status = req.query.status as string || 'all';
+      const date = req.query.date as string || 'all';
+      
+      const quotations = await storage.getQuotations(query, status, date);
+      res.json(quotations);
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+
+  // Get quotation by ID
+  app.get("/api/quotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const quotation = await storage.getQuotation(id);
+      
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      
+      // Get quotation items
+      const items = await storage.getQuotationItems(id);
+      
+      res.json({
+        ...quotation,
+        items
+      });
+    } catch (error) {
+      console.error("Error fetching quotation:", error);
+      res.status(500).json({ message: "Failed to fetch quotation" });
+    }
+  });
+
+  // Create new quotation
+  app.post("/api/quotations", async (req: Request, res: Response) => {
+    try {
+      // Format quotation data
+      const quotationData = {
+        quotationNumber: `QT-${Date.now().toString().slice(-6)}`,
+        customerId: req.body.customer.id || null,
+        userId: 1, // Temp hardcoded user ID 
+        validUntil: req.body.validUntil,
+        subtotal: req.body.subtotal,
+        taxRate: req.body.taxRate,
+        taxAmount: req.body.taxAmount,
+        grandTotal: req.body.grandTotal,
+        status: 'pending',
+        notes: req.body.notes || ''
+      };
+      
+      // Validate quotation data
+      const validatedQuotation = insertQuotationSchema.parse(quotationData);
+      
+      // Create quotation
+      const quotation = await storage.createQuotation(validatedQuotation);
+      
+      // If no existing customer, create a new one
+      let customerId = req.body.customer.id;
+      if (!customerId && req.body.customer.name) {
+        const customerData = {
+          name: req.body.customer.name,
+          email: req.body.customer.email || '',
+          phone: req.body.customer.phone || '',
+          address: req.body.customer.address || '',
+          city: req.body.customer.city || '',
+          state: req.body.customer.state || '',
+          zipCode: req.body.customer.zipCode || '',
+        };
+        const validatedCustomer = insertCustomerSchema.parse(customerData);
+        const customer = await storage.createCustomer(validatedCustomer);
+        customerId = customer.id;
+        
+        // Update quotation with new customer ID
+        await storage.updateQuotation(quotation.id, { customerId });
+      }
+      
+      // Process quotation items
+      if (req.body.items && req.body.items.length > 0) {
+        for (const item of req.body.items) {
+          const itemData = {
+            quotationId: quotation.id,
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total: item.quantity * item.unitPrice
+          };
+          
+          const validatedItem = insertQuotationItemSchema.parse(itemData);
+          await storage.createQuotationItem(validatedItem);
+        }
+      }
+      
+      res.status(201).json({
+        ...quotation,
+        items: req.body.items
+      });
+    } catch (error) {
+      console.error("Error creating quotation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quotation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create quotation" });
+    }
+  });
+
+  // Update quotation status
+  app.patch("/api/quotations/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!['pending', 'approved', 'rejected', 'expired', 'converted'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+      
+      const quotation = await storage.updateQuotation(id, { status });
+      
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      
+      res.json(quotation);
+    } catch (error) {
+      console.error("Error updating quotation status:", error);
+      res.status(500).json({ message: "Failed to update quotation status" });
+    }
+  });
+
+  // Delete quotation
+  app.delete("/api/quotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Delete quotation items first
+      await storage.deleteQuotationItems(id);
+      
+      // Delete quotation
+      const success = await storage.deleteQuotation(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting quotation:", error);
+      res.status(500).json({ message: "Failed to delete quotation" });
+    }
+  });
+  
   // Create new product
   app.post("/api/products", upload.single("image"), async (req: Request, res: Response) => {
     try {
