@@ -90,15 +90,37 @@ const CreateQuotation: React.FC = () => {
   const [openProductSelect, setOpenProductSelect] = useState(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
+  // Type definition for Product and Customer
+  interface Product {
+    id: number;
+    name: string;
+    drugName?: string;
+    sellingPrice: number | string;
+    [key: string]: any;
+  }
+
+  interface Customer {
+    id: number;
+    name: string;
+    companyName?: string;
+    position?: string;
+    email: string;
+    phone: string;
+    sector?: string;
+    address: string;
+    [key: string]: any;
+  }
 
   // Fetch customers
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
     retry: 1,
   });
 
   // Fetch products
-  const { data: products = [] } = useQuery({
+  const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['/api/products'],
     retry: 1,
   });
@@ -366,38 +388,59 @@ const CreateQuotation: React.FC = () => {
                         Select a product to add to the quotation
                       </DialogDescription>
                     </DialogHeader>
-                    <Popover open={openProductSelect} onOpenChange={setOpenProductSelect}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={openProductSelect}
-                          className="w-full justify-between"
-                        >
-                          Select product...
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[400px] p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Search products..." />
-                          <CommandEmpty>No product found.</CommandEmpty>
-                          <CommandList>
-                            <CommandGroup>
-                              {products.map((product) => (
-                                <CommandItem
-                                  key={product.id}
-                                  value={product.name}
-                                  onSelect={() => handleAddItem(product.id)}
-                                >
-                                  {product.name} - {product.sellingPrice}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="productSelect">Search and Select Product</Label>
+                        <Popover open={openProductSelect} onOpenChange={setOpenProductSelect}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openProductSelect}
+                              className="w-full justify-between"
+                            >
+                              Select product...
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search products..." 
+                                onValueChange={(value) => {
+                                  const searchTerm = value.toLowerCase();
+                                  setFilteredProducts(
+                                    products.filter(p => 
+                                      p.name.toLowerCase().includes(searchTerm) || 
+                                      (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
+                                    )
+                                  );
+                                }}
+                              />
+                              <CommandEmpty>No product found.</CommandEmpty>
+                              <CommandList>
+                                <CommandGroup>
+                                  {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
+                                    <CommandItem
+                                      key={product.id}
+                                      value={product.name}
+                                      onSelect={() => handleAddItem(product.id)}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{product.name}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                          Price: ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setOpenProductSelect(false)}>
                         Cancel
