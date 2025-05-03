@@ -514,14 +514,16 @@ const CreateQuotation: React.FC = () => {
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
-                                type="text"
-                                value={form.watch(`items.${index}.quantity`).toString()}
+                                type="number"
+                                min={1}
+                                value={form.watch(`items.${index}.quantity`)}
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/[^0-9]/g, '');
-                                  if (value === '') {
+                                  // This approach prevents the "0" issue while keeping arrows
+                                  const value = parseInt(e.target.value);
+                                  if (isNaN(value) || value < 1) {
                                     updateItemQuantity(index, 1);
                                   } else {
-                                    updateItemQuantity(index, parseInt(value));
+                                    updateItemQuantity(index, value);
                                   }
                                 }}
                                 className="w-16 text-right ml-auto"
