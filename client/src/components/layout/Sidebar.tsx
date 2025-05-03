@@ -15,21 +15,21 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const { language, setLanguage, t } = useLanguage();
 
   const navItems = [
-    { path: '/', label: 'DASHBOARD', icon: 'home' },
-    { path: '/inventory', label: 'INVENTORY', icon: 'package' },
-    { path: '/expenses', label: 'EXPENSES', icon: 'dollar-sign' },
-    { path: '/accounting', label: 'FINANCIAL ACCOUNTING', icon: 'landmark' },
-    { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
-    { path: '/create-quotation', label: 'CREATE QUOTATION', icon: 'file-plus' },
-    { path: '/invoice-history', label: 'INVOICE HISTORY', icon: 'receipt' },
-    { path: '/quotation-history', label: 'QUOTATION HISTORY', icon: 'clipboard-list' },
-    { path: '/label', label: 'LABEL', icon: 'file-text' },
-    { path: '/customers-demo', label: 'CUSTOMERS DATA', icon: 'user-plus' },
-    { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
-    { path: '/management', label: 'MANAGEMENT', icon: 'briefcase' },
-    { path: '/users', label: 'USER MANAGEMENT', icon: 'users' },
-    { path: '/preferences', label: 'PREFERENCES', icon: 'settings' },
-    { path: '/system-preferences', label: 'SYSTEM PREFERENCES', icon: 'sliders' },
+    { path: '/', key: 'dashboard', icon: 'home' },
+    { path: '/inventory', key: 'products', icon: 'package' },
+    { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
+    { path: '/accounting', key: 'accounting', icon: 'landmark' },
+    { path: '/create-invoice', key: 'createInvoice', icon: 'file-plus' },
+    { path: '/create-quotation', key: 'createQuotation', icon: 'file-plus' },
+    { path: '/invoice-history', key: 'invoiceHistory', icon: 'receipt' },
+    { path: '/quotation-history', key: 'quotationHistory', icon: 'clipboard-list' },
+    { path: '/label', key: 'label', icon: 'file-text' },
+    { path: '/customers-demo', key: 'customers', icon: 'user-plus' },
+    { path: '/reports', key: 'reports', icon: 'pie-chart' },
+    { path: '/management', key: 'management', icon: 'briefcase' },
+    { path: '/users', key: 'userManagement', icon: 'users' },
+    { path: '/preferences', key: 'preferences', icon: 'settings' },
+    { path: '/system-preferences', key: 'systemPreferences', icon: 'sliders' },
   ];
 
   const renderIcon = (iconName: string) => {
@@ -125,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                   "text-sm font-medium",
                   location === item.path && "text-[#3BCEAC]"
                 )}>
-                  {item.label}
+                  {t(item.key).toUpperCase()}
                 </span>
                 {location === item.path && (
                   <span className="ml-auto">
@@ -141,9 +141,28 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       </nav>
       <div className="p-4 border-t border-[#2A3F55] mt-auto space-y-3">
         {/* Language Selector */}
-        <div className="flex items-center justify-center mb-2">
-          <button className="text-[#3BCEAC] hover:text-white text-sm px-3 py-1 border border-[#3BCEAC] rounded-md transition-colors">
-            <span className="mr-1">عربي</span> / <span className="ml-1">English</span>
+        <div className="flex items-center justify-center mb-2 space-x-2">
+          <button 
+            className={cn(
+              "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
+              language === 'en' 
+                ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
+                : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
+            )}
+            onClick={() => setLanguage('en')}
+          >
+            English
+          </button>
+          <button 
+            className={cn(
+              "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
+              language === 'ar' 
+                ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
+                : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
+            )}
+            onClick={() => setLanguage('ar')}
+          >
+            عربي
           </button>
         </div>
         
@@ -153,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Logout
+            {t('logout')}
           </button>
         </div>
       </div>

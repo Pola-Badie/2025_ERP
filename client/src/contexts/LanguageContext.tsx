@@ -21,12 +21,21 @@ const translations: Record<Language, Record<string, string>> = {
     // Common
     dashboard: 'Dashboard',
     products: 'Products',
+    expenses: 'Expenses',
     sales: 'Sales',
     accounting: 'Financial Accounting',
     customers: 'Customers',
     suppliers: 'Suppliers',
     quotations: 'Quotations',
     logout: 'Logout',
+    
+    // Navigation Items
+    management: 'Management',
+    userManagement: 'User Management',
+    preferences: 'Preferences',
+    systemPreferences: 'System Preferences',
+    label: 'Label',
+    reports: 'Reports',
     
     // Dashboard
     totalCustomers: 'Total Customers',
@@ -70,12 +79,21 @@ const translations: Record<Language, Record<string, string>> = {
     // Common
     dashboard: 'لوحة التحكم',
     products: 'المنتجات',
+    expenses: 'المصروفات',
     sales: 'المبيعات',
     accounting: 'المحاسبة المالية',
     customers: 'العملاء',
     suppliers: 'الموردين',
     quotations: 'عروض الأسعار',
     logout: 'تسجيل الخروج',
+    
+    // Navigation Items
+    management: 'الإدارة',
+    userManagement: 'إدارة المستخدمين',
+    preferences: 'التفضيلات',
+    systemPreferences: 'تفضيلات النظام',
+    label: 'الملصقات',
+    reports: 'التقارير',
     
     // Dashboard
     totalCustomers: 'إجمالي العملاء',
