@@ -71,6 +71,7 @@ const quotationFormSchema = z.object({
     quantity: z.number().min(1, 'Quantity must be at least 1'),
     unitPrice: z.number().min(0, 'Unit price must be positive'),
     total: z.number().min(0),
+    uom: z.string().optional(),
   })).min(1, 'At least one item is required'),
   subtotal: z.number(),
   taxRate: z.number().min(0).max(100),
@@ -408,6 +409,7 @@ const CreateQuotation: React.FC = () => {
                           quantity: 1,
                           unitPrice: 0,
                           total: 0,
+                          uom: 'unit',
                         });
                       }}
                     >
@@ -420,17 +422,18 @@ const CreateQuotation: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[300px]">Product</TableHead>
-                        <TableHead className="w-[100px] text-right">Quantity</TableHead>
-                        <TableHead className="w-[150px] text-right">Unit Price</TableHead>
-                        <TableHead className="w-[150px] text-right">Total</TableHead>
+                        <TableHead className="w-[250px]">Product</TableHead>
+                        <TableHead className="w-[100px] text-center">UoM</TableHead>
+                        <TableHead className="w-[80px] text-right">Quantity</TableHead>
+                        <TableHead className="w-[120px] text-right">Unit Price</TableHead>
+                        <TableHead className="w-[120px] text-right">Total</TableHead>
                         <TableHead className="w-[70px]"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {fields.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
                             No items added yet
                           </TableCell>
                         </TableRow>
@@ -482,6 +485,7 @@ const CreateQuotation: React.FC = () => {
                                                 quantity: 1,
                                                 unitPrice: parseFloat(product.sellingPrice.toString()),
                                                 total: parseFloat(product.sellingPrice.toString()),
+                                                uom: product.uom || 'unit',
                                               };
                                               form.setValue('items', items);
                                             }}
@@ -511,6 +515,11 @@ const CreateQuotation: React.FC = () => {
                                   </Command>
                                 </PopoverContent>
                               </Popover>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span className="text-sm">
+                                {form.watch(`items.${index}.uom`) || 'unit'}
+                              </span>
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
