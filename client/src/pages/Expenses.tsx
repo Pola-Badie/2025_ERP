@@ -28,11 +28,12 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar 
+  AlertCircle, Trash, Calendar, Settings
 } from 'lucide-react';
 
 const Expenses: React.FC = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
+  const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -177,23 +178,36 @@ const Expenses: React.FC = () => {
               </SelectContent>
             </Select>
             
-            <Select
-              value={categoryFilter}
-              onValueChange={setCategoryFilter}
-            >
-              <SelectTrigger>
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.name}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
+                  <SelectTrigger>
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories?.map((category) => (
+                      <SelectItem key={category.id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10 shrink-0" 
+                onClick={() => setIsCategorySettingsOpen(true)}
+                title="Category Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -269,6 +283,51 @@ const Expenses: React.FC = () => {
             <DialogTitle>New Expense Entry</DialogTitle>
           </DialogHeader>
           <ExpenseForm onSuccess={() => setIsExpenseFormOpen(false)} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Settings Dialog */}
+      <Dialog open={isCategorySettingsOpen} onOpenChange={setIsCategorySettingsOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Category Settings</DialogTitle>
+            <DialogDescription>Manage expense categories for better organization</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center space-x-2">
+              <Input placeholder="New category name" />
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </div>
+            
+            <div className="border rounded-md divide-y">
+              {categories?.map((category) => (
+                <div key={category.id} className="p-3 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Badge variant="outline" className="mr-2">
+                      {getCategoryBadge(category.name)}
+                    </Badge>
+                    <span>{category.name}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="ghost" size="sm">Edit</Button>
+                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCategorySettingsOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
