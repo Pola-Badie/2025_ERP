@@ -89,7 +89,7 @@ const Accounting: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <Landmark className="h-8 w-8 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">ACCOUNTING</h1>
+          <h1 className="text-2xl font-bold tracking-tight">FINANCIAL ACCOUNTING</h1>
         </div>
         <div className="space-x-2">
           <Button 
