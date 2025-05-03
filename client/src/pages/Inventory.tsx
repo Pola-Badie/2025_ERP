@@ -93,6 +93,8 @@ const Inventory: React.FC = () => {
   const [categoryDescription, setCategoryDescription] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
 
   // Fetch products and categories
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
