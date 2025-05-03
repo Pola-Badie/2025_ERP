@@ -11,6 +11,7 @@ import SystemPreferences from "@/pages/SystemPreferences";
 import CreateInvoice from "@/pages/CreateInvoice";
 import CreateQuotation from "@/pages/CreateQuotation";
 import InvoiceHistory from "@/pages/InvoiceHistory";
+import QuotationHistory from "@/pages/QuotationHistory";
 import LabelGenerator from "@/pages/LabelGenerator";
 import Accounting from "@/pages/Accounting";
 import UserManagement from "@/pages/UserManagement";
@@ -37,6 +38,7 @@ function App() {
         <Route path="/create-invoice" component={CreateInvoice} />
         <Route path="/create-quotation" component={CreateQuotation} />
         <Route path="/invoice-history" component={InvoiceHistory} />
+        <Route path="/quotation-history" component={QuotationHistory} />
         <Route path="/label" component={LabelGenerator} />
         <Route path="/suppliers" component={Approvals} />
         <Route path="/backup" component={BackupRestore} />

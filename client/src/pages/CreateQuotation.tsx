@@ -303,11 +303,22 @@ const CreateQuotation: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Create Quotation</h1>
+          <p className="text-muted-foreground">Create a new quotation for a customer</p>
+        </div>
+        <Button onClick={() => window.location.href = '/quotation-history'}>
+          <Receipt className="mr-2 h-4 w-4" />
+          View Quotation History
+        </Button>
+      </div>
+      
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-2xl">Create Quotation</CardTitle>
+          <CardTitle className="text-2xl">Quotation Details</CardTitle>
           <CardDescription>
-            Create a new quotation for a customer
+            Enter the details for this quotation
           </CardDescription>
         </CardHeader>
         <CardContent>
