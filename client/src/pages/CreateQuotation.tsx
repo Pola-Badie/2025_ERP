@@ -514,20 +514,31 @@ const CreateQuotation: React.FC = () => {
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
-                                type="number"
-                                min={1}
-                                value={form.watch(`items.${index}.quantity`)}
-                                onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
+                                type="text"
+                                value={form.watch(`items.${index}.quantity`).toString()}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/[^0-9]/g, '');
+                                  if (value === '') {
+                                    updateItemQuantity(index, 1);
+                                  } else {
+                                    updateItemQuantity(index, parseInt(value));
+                                  }
+                                }}
                                 className="w-16 text-right ml-auto"
                               />
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
-                                type="number"
-                                min={0}
-                                step={0.01}
-                                value={form.watch(`items.${index}.unitPrice`)}
-                                onChange={(e) => updateItemUnitPrice(index, parseFloat(e.target.value) || 0)}
+                                type="text"
+                                value={form.watch(`items.${index}.unitPrice`).toString()}
+                                onChange={(e) => {
+                                  const value = e.target.value.replace(/[^0-9.]/g, '');
+                                  if (value === '' || value === '.') {
+                                    updateItemUnitPrice(index, 0);
+                                  } else {
+                                    updateItemUnitPrice(index, parseFloat(value));
+                                  }
+                                }}
                                 className="w-24 text-right ml-auto"
                               />
                             </TableCell>
