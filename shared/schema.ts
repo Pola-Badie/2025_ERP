@@ -311,6 +311,41 @@ export const financialPeriods = pgTable("financial_periods", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Accounting Periods
+export const accountingPeriods = pgTable("accounting_periods", {
+  id: serial("id").primaryKey(),
+  periodName: text("period_name").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  status: text("status").default("open").notNull(), // open, closed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Customer Payments
+export const customerPayments = pgTable("customer_payments", {
+  id: serial("id").primaryKey(),
+  paymentNumber: text("payment_number").notNull().unique(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  amount: numeric("amount").notNull(),
+  paymentDate: date("payment_date").notNull(),
+  paymentMethod: text("payment_method").notNull(), // cash, cheque, bankTransfer, creditCard, other
+  reference: text("reference"),
+  notes: text("notes"),
+  status: text("status").default("completed").notNull(), // completed, pending, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Payment Allocations (to track which invoices were paid)
+export const paymentAllocations = pgTable("payment_allocations", {
+  id: serial("id").primaryKey(),
+  paymentId: integer("payment_id").references(() => customerPayments.id).notNull(),
+  invoiceId: integer("invoice_id").references(() => sales.id).notNull(),
+  amount: numeric("amount").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Financial Reports
 export const financialReports = pgTable("financial_reports", {
   id: serial("id").primaryKey(),
@@ -622,6 +657,30 @@ export const insertAccountSchema = createInsertSchema(accounts).pick({
   isActive: true,
 });
 
+export const insertAccountingPeriodSchema = createInsertSchema(accountingPeriods).pick({
+  periodName: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+});
+
+export const insertCustomerPaymentSchema = createInsertSchema(customerPayments).pick({
+  paymentNumber: true,
+  customerId: true,
+  amount: true,
+  paymentDate: true,
+  paymentMethod: true,
+  reference: true,
+  notes: true,
+  status: true,
+});
+
+export const insertPaymentAllocationSchema = createInsertSchema(paymentAllocations).pick({
+  paymentId: true,
+  invoiceId: true,
+  amount: true,
+});
+
 export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick({
   entryNumber: true,
   date: true,
@@ -698,6 +757,15 @@ export type AccountsReceivable = typeof accountsReceivable.$inferSelect;
 
 export type InsertAccountsPayable = z.infer<typeof insertAccountsPayableSchema>;
 export type AccountsPayable = typeof accountsPayable.$inferSelect;
+
+export type InsertAccountingPeriod = z.infer<typeof insertAccountingPeriodSchema>;
+export type AccountingPeriod = typeof accountingPeriods.$inferSelect;
+
+export type InsertCustomerPayment = z.infer<typeof insertCustomerPaymentSchema>;
+export type CustomerPayment = typeof customerPayments.$inferSelect;
+
+export type InsertPaymentAllocation = z.infer<typeof insertPaymentAllocationSchema>;
+export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
 
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
 export type UserPermission = typeof userPermissions.$inferSelect;

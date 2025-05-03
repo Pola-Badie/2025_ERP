@@ -5,9 +5,17 @@ import {
   journalEntries,
   journalLines,
   financialReports,
+  accountingPeriods,
+  customerPayments,
+  paymentAllocations,
+  sales,
+  customers,
   insertAccountSchema,
   insertJournalEntrySchema,
   insertJournalLineSchema,
+  insertAccountingPeriodSchema,
+  insertCustomerPaymentSchema,
+  insertPaymentAllocationSchema,
 } from "@shared/schema";
 import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
 
@@ -288,6 +296,288 @@ export function registerAccountingRoutes(app: Express) {
     } catch (error) {
       console.error("Error generating balance sheet:", error);
       res.status(500).json({ error: "Failed to generate balance sheet" });
+    }
+  });
+
+  // Accounting Periods API
+  app.get("/api/accounting-periods", async (_req: Request, res: Response) => {
+    try {
+      const periods = await db
+        .select()
+        .from(accountingPeriods)
+        .orderBy(desc(accountingPeriods.startDate));
+      
+      res.json(periods);
+    } catch (error) {
+      console.error("Error fetching accounting periods:", error);
+      res.status(500).json({ error: "Failed to fetch accounting periods" });
+    }
+  });
+
+  app.post("/api/accounting-periods", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertAccountingPeriodSchema.parse(req.body);
+      
+      // Check for overlapping periods
+      const overlappingPeriods = await db
+        .select()
+        .from(accountingPeriods)
+        .where(
+          and(
+            lte(accountingPeriods.startDate, new Date(validatedData.endDate)),
+            gte(accountingPeriods.endDate, new Date(validatedData.startDate))
+          )
+        );
+      
+      if (overlappingPeriods.length > 0) {
+        return res.status(400).json({ 
+          error: "The specified period overlaps with existing periods",
+          overlappingPeriods 
+        });
+      }
+      
+      const [period] = await db
+        .insert(accountingPeriods)
+        .values({
+          ...validatedData,
+          startDate: new Date(validatedData.startDate),
+          endDate: new Date(validatedData.endDate)
+        })
+        .returning();
+      
+      res.status(201).json(period);
+    } catch (error) {
+      console.error("Error creating accounting period:", error);
+      res.status(500).json({ error: "Failed to create accounting period" });
+    }
+  });
+
+  app.patch("/api/accounting-periods/:id/status", async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      if (!status || !['open', 'closed'].includes(status)) {
+        return res.status(400).json({ error: "Invalid status. Must be 'open' or 'closed'" });
+      }
+      
+      const [updatedPeriod] = await db
+        .update(accountingPeriods)
+        .set({
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(accountingPeriods.id, parseInt(id)))
+        .returning();
+      
+      if (!updatedPeriod) {
+        return res.status(404).json({ error: "Accounting period not found" });
+      }
+      
+      res.json(updatedPeriod);
+    } catch (error) {
+      console.error("Error updating accounting period status:", error);
+      res.status(500).json({ error: "Failed to update accounting period status" });
+    }
+  });
+
+  // Customer Payments API
+  app.get("/api/customer-payments", async (req: Request, res: Response) => {
+    try {
+      const { customerId } = req.query;
+      
+      let query = db
+        .select()
+        .from(customerPayments)
+        .orderBy(desc(customerPayments.paymentDate));
+      
+      if (customerId) {
+        query = query.where(eq(customerPayments.customerId, parseInt(customerId as string)));
+      }
+      
+      const payments = await query;
+      
+      // For each payment, get the customer name and payment allocations
+      const paymentsWithDetails = await Promise.all(
+        payments.map(async (payment) => {
+          const [customer] = await db
+            .select({ name: customers.name })
+            .from(customers)
+            .where(eq(customers.id, payment.customerId));
+          
+          const allocations = await db
+            .select({
+              id: paymentAllocations.id,
+              amount: paymentAllocations.amount,
+              invoiceId: paymentAllocations.invoiceId,
+              invoiceNumber: sales.invoiceNumber
+            })
+            .from(paymentAllocations)
+            .innerJoin(sales, eq(paymentAllocations.invoiceId, sales.id))
+            .where(eq(paymentAllocations.paymentId, payment.id));
+          
+          return {
+            ...payment,
+            customerName: customer?.name || 'Unknown Customer',
+            allocations
+          };
+        })
+      );
+      
+      res.json(paymentsWithDetails);
+    } catch (error) {
+      console.error("Error fetching customer payments:", error);
+      res.status(500).json({ error: "Failed to fetch customer payments" });
+    }
+  });
+
+  app.get("/api/customer-invoices", async (req: Request, res: Response) => {
+    try {
+      const { customerId } = req.query;
+      
+      if (!customerId) {
+        return res.status(400).json({ error: "Customer ID is required" });
+      }
+      
+      // Get open invoices for this customer
+      const invoices = await db
+        .select({
+          id: sales.id,
+          invoiceNumber: sales.invoiceNumber,
+          customerId: sales.customerId,
+          date: sales.date,
+          dueDate: sales.date, // Temporary, you should add a proper dueDate
+          totalAmount: sales.grandTotal,
+          amountPaid: sql<string>`'0'`, // We'll calculate this below
+          status: sales.paymentStatus
+        })
+        .from(sales)
+        .where(
+          and(
+            eq(sales.customerId, parseInt(customerId as string)),
+            eq(sales.paymentStatus, 'pending')
+          )
+        )
+        .orderBy(sales.date);
+      
+      // For each invoice, calculate amount paid from payment allocations
+      const invoicesWithPayments = await Promise.all(
+        invoices.map(async (invoice) => {
+          const allocations = await db
+            .select({ amount: paymentAllocations.amount })
+            .from(paymentAllocations)
+            .where(eq(paymentAllocations.invoiceId, invoice.id));
+          
+          const amountPaid = allocations.reduce(
+            (total, allocation) => total + parseFloat(allocation.amount.toString()), 
+            0
+          );
+          
+          const amountDue = parseFloat(invoice.totalAmount.toString()) - amountPaid;
+          
+          // Determine invoice status
+          let status = 'unpaid';
+          if (amountPaid > 0 && amountDue > 0) {
+            status = 'partial';
+          } else if (amountDue <= 0) {
+            status = 'paid';
+          } else if (new Date(invoice.dueDate) < new Date()) {
+            status = 'overdue';
+          }
+          
+          // Get customer name
+          const [customer] = await db
+            .select({ name: customers.name })
+            .from(customers)
+            .where(eq(customers.id, invoice.customerId));
+          
+          return {
+            ...invoice,
+            customerName: customer?.name || 'Unknown Customer',
+            amountPaid,
+            amountDue,
+            status
+          };
+        })
+      );
+      
+      res.json(invoicesWithPayments);
+    } catch (error) {
+      console.error("Error fetching customer invoices:", error);
+      res.status(500).json({ error: "Failed to fetch customer invoices" });
+    }
+  });
+
+  app.post("/api/customer-payments", async (req: Request, res: Response) => {
+    try {
+      const { customerId, amount, paymentDate, paymentMethod, reference, notes, allocations } = req.body;
+      
+      // Generate payment number
+      const paymentCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(customerPayments);
+      
+      const paymentNumber = `PAY-${(paymentCount[0]?.count || 0) + 1}`.padStart(8, '0');
+      
+      // Create the payment
+      const [payment] = await db
+        .insert(customerPayments)
+        .values({
+          paymentNumber,
+          customerId,
+          amount,
+          paymentDate: new Date(paymentDate),
+          paymentMethod,
+          reference,
+          notes,
+          status: 'completed'
+        })
+        .returning();
+      
+      // Create payment allocations
+      if (allocations && allocations.length > 0) {
+        const allocationData = allocations
+          .filter((allocation: any) => parseFloat(allocation.amount) > 0)
+          .map((allocation: any) => ({
+            paymentId: payment.id,
+            invoiceId: allocation.invoiceId,
+            amount: allocation.amount
+          }));
+        
+        if (allocationData.length > 0) {
+          await db
+            .insert(paymentAllocations)
+            .values(allocationData);
+        }
+      }
+      
+      // Return the payment with customer name and allocations
+      const [customer] = await db
+        .select({ name: customers.name })
+        .from(customers)
+        .where(eq(customers.id, payment.customerId));
+      
+      const paymentAllocationsData = await db
+        .select({
+          id: paymentAllocations.id,
+          amount: paymentAllocations.amount,
+          invoiceId: paymentAllocations.invoiceId,
+          invoiceNumber: sales.invoiceNumber
+        })
+        .from(paymentAllocations)
+        .innerJoin(sales, eq(paymentAllocations.invoiceId, sales.id))
+        .where(eq(paymentAllocations.paymentId, payment.id));
+      
+      const result = {
+        ...payment,
+        customerName: customer?.name || 'Unknown Customer',
+        allocations: paymentAllocationsData
+      };
+      
+      res.status(201).json(result);
+    } catch (error) {
+      console.error("Error creating customer payment:", error);
+      res.status(500).json({ error: "Failed to create customer payment" });
     }
   });
 }
