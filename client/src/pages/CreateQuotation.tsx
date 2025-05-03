@@ -531,14 +531,16 @@ const CreateQuotation: React.FC = () => {
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
-                                type="text"
-                                value={form.watch(`items.${index}.unitPrice`).toString()}
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={form.watch(`items.${index}.unitPrice`)}
                                 onChange={(e) => {
-                                  const value = e.target.value.replace(/[^0-9.]/g, '');
-                                  if (value === '' || value === '.') {
+                                  const value = parseFloat(e.target.value);
+                                  if (isNaN(value) || value < 0) {
                                     updateItemUnitPrice(index, 0);
                                   } else {
-                                    updateItemUnitPrice(index, parseFloat(value));
+                                    updateItemUnitPrice(index, value);
                                   }
                                 }}
                                 className="w-24 text-right ml-auto"
