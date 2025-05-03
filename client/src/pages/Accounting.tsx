@@ -115,10 +115,12 @@ const Accounting: React.FC = () => {
       </div>
 
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+        <TabsList className="grid grid-cols-7 w-full max-w-[900px]">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="chart-of-accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journal-entries">Journal Entries</TabsTrigger>
+          <TabsTrigger value="customer-payments">Customer Payments</TabsTrigger>
+          <TabsTrigger value="accounting-periods">Periods</TabsTrigger>
           <TabsTrigger value="profit-loss">Profit & Loss</TabsTrigger>
           <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
         </TabsList>
@@ -181,6 +183,22 @@ const Accounting: React.FC = () => {
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"
+                  onClick={() => setActiveTab("customer-payments")}
+                >
+                  <Receipt className="mr-2 h-4 w-4" />
+                  Manage Customer Payments
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setActiveTab("accounting-periods")}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  Accounting Periods
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
                   onClick={() => setActiveTab("profit-loss")}
                 >
                   <DollarSign className="mr-2 h-4 w-4" />
@@ -229,6 +247,14 @@ const Accounting: React.FC = () => {
 
         <TabsContent value="balance-sheet">
           <BalanceSheet />
+        </TabsContent>
+        
+        <TabsContent value="customer-payments">
+          <CustomerPayments />
+        </TabsContent>
+        
+        <TabsContent value="accounting-periods">
+          <AccountingPeriods />
         </TabsContent>
       </Tabs>
     </div>

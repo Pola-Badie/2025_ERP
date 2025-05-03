@@ -389,7 +389,7 @@ const CustomerPayments: React.FC = () => {
 
   // Helper to get customer name
   const getCustomerName = (customerId: number) => {
-    const customer = customers.find(c => c.id === customerId);
+    const customer = customers.find((c: Customer) => c.id === customerId);
     return customer ? customer.name : 'Unknown Customer';
   };
 
@@ -439,7 +439,7 @@ const CustomerPayments: React.FC = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {customers.map((customer) => (
+                            {customers.map((customer: Customer) => (
                               <SelectItem key={customer.id} value={customer.id.toString()}>
                                 {customer.name} - {customer.company}
                               </SelectItem>
@@ -693,7 +693,7 @@ const CustomerPayments: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Customers</SelectItem>
-              {customers.map((customer) => (
+              {customers.map((customer: Customer) => (
                 <SelectItem key={customer.id} value={customer.id.toString()}>
                   {customer.name}
                 </SelectItem>
