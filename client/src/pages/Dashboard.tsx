@@ -242,10 +242,7 @@ const Dashboard: React.FC = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={() => setIsProductFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              <span>Add Product</span>
-            </Button>
+
           </div>
         </div>
       </div>
