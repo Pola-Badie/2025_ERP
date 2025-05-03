@@ -92,6 +92,7 @@ const CreateQuotation: React.FC = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   // Type definition for Product and Customer
   interface Product {
@@ -379,140 +380,168 @@ const CreateQuotation: React.FC = () => {
             </div>
 
             {/* Quotation Items */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <Label>Quotation Items</Label>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedItemIndex(null)}>
-                      <Plus className="h-4 w-4 mr-2" />
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Quotation Items</CardTitle>
+                <CardDescription>
+                  Add products to this quotation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between mb-4">
+                  <div className="space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        append({
+                          productId: 0,
+                          productName: '',
+                          quantity: 1,
+                          unitPrice: 0,
+                          total: 0,
+                        });
+                      }}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
                       Add Item
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Product</DialogTitle>
-                      <DialogDescription>
-                        Select a product to add to the quotation
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="productSelect">Search and Select Product</Label>
-                        <Popover open={openProductSelect} onOpenChange={setOpenProductSelect}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openProductSelect}
-                              className="w-full justify-between"
-                            >
-                              Select product...
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[400px] p-0" align="start" side="bottom">
-                            <Command>
-                              <CommandInput 
-                                placeholder="Search products..." 
-                                onValueChange={(value) => {
-                                  const searchTerm = value.toLowerCase();
-                                  setFilteredProducts(
-                                    products.filter(p => 
-                                      p.name.toLowerCase().includes(searchTerm) || 
-                                      (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
-                                    )
-                                  );
-                                }}
-                              />
-                              <CommandEmpty>No product found.</CommandEmpty>
-                              <CommandList>
-                                <CommandGroup>
-                                  {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
-                                    <CommandItem
-                                      key={product.id}
-                                      value={product.name}
-                                      onSelect={() => handleAddItem(product.id)}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="font-medium">{product.name}</span>
-                                        <span className="text-sm text-muted-foreground">
-                                          Price: ${parseFloat(product.sellingPrice.toString()).toFixed(2)}
-                                        </span>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setOpenProductSelect(false)}>
-                        Cancel
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead className="w-[100px]">Quantity</TableHead>
-                      <TableHead className="w-[120px]">Unit Price</TableHead>
-                      <TableHead className="w-[120px]">Total</TableHead>
-                      <TableHead className="w-[80px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fields.length === 0 ? (
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                          No items added yet
-                        </TableCell>
+                        <TableHead className="w-[300px]">Product</TableHead>
+                        <TableHead className="w-[100px] text-right">Quantity</TableHead>
+                        <TableHead className="w-[150px] text-right">Unit Price</TableHead>
+                        <TableHead className="w-[150px] text-right">Total</TableHead>
+                        <TableHead className="w-[70px]"></TableHead>
                       </TableRow>
-                    ) : (
-                      fields.map((field, index) => (
-                        <TableRow key={field.id}>
-                          <TableCell>
-                            {form.watch(`items.${index}.productName`)}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={form.watch(`items.${index}.quantity`)}
-                              onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
-                              className="w-20"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.unitPrice`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            ${form.watch(`items.${index}.total`).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => remove(index)}
-                            >
-                              <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
+                    </TableHeader>
+                    <TableBody>
+                      {fields.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                            No items added yet
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+                      ) : (
+                        fields.map((field, index) => (
+                          <TableRow key={field.id}>
+                            <TableCell>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between"
+                                  >
+                                    {form.watch(`items.${index}.productName`) || "Select a product..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[300px] p-0">
+                                  <Command>
+                                    <CommandInput 
+                                      placeholder="Search products..." 
+                                      value={productSearchTerm}
+                                      onValueChange={(value) => {
+                                        setProductSearchTerm(value);
+                                        const searchTerm = value.toLowerCase();
+                                        setFilteredProducts(
+                                          products.filter(p => 
+                                            p.name.toLowerCase().includes(searchTerm) || 
+                                            (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
+                                          )
+                                        );
+                                      }}
+                                      className="h-9" 
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        <p className="py-3 text-center text-sm">No products found</p>
+                                      </CommandEmpty>
+                                      <CommandGroup heading="Products">
+                                        {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
+                                          <CommandItem
+                                            key={product.id}
+                                            onSelect={() => {
+                                              const items = form.getValues('items');
+                                              items[index] = {
+                                                productId: product.id,
+                                                productName: product.name,
+                                                quantity: 1,
+                                                unitPrice: parseFloat(product.sellingPrice.toString()),
+                                                total: parseFloat(product.sellingPrice.toString()),
+                                              };
+                                              form.setValue('items', items);
+                                            }}
+                                            className="flex items-center justify-between"
+                                          >
+                                            <div>
+                                              <span className="font-medium">{product.name}</span>
+                                              <span className="ml-2 text-sm text-muted-foreground">
+                                                {new Intl.NumberFormat('en-US', {
+                                                  style: 'currency',
+                                                  currency: 'USD'
+                                                }).format(parseFloat(product.sellingPrice.toString()))}
+                                              </span>
+                                            </div>
+                                            <Check
+                                              className={cn(
+                                                "ml-auto h-4 w-4",
+                                                form.watch(`items.${index}.productId`) === product.id
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              )}
+                                            />
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Input
+                                type="number"
+                                min={1}
+                                value={form.watch(`items.${index}.quantity`)}
+                                onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 1)}
+                                className="w-16 text-right ml-auto"
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(form.watch(`items.${index}.unitPrice`))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(form.watch(`items.${index}.total`))}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => remove(index)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Notes */}
             <div className="mb-6">
