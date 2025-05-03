@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList } from 'lucide-react';
 
 interface SidebarProps {
   className?: string;
@@ -20,7 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/create-invoice', label: 'CREATE INVOICE', icon: 'file-plus' },
     { path: '/create-quotation', label: 'CREATE QUOTATION', icon: 'file-plus' },
     { path: '/invoice-history', label: 'INVOICE HISTORY', icon: 'receipt' },
-    { path: '/quotation-history', label: 'QUOTATION HISTORY', icon: 'file-text' },
+    { path: '/quotation-history', label: 'QUOTATION HISTORY', icon: 'clipboard-list' },
     { path: '/label', label: 'LABEL', icon: 'file-text' },
     { path: '/customers-demo', label: 'CUSTOMERS DATA', icon: 'user-plus' },
     { path: '/reports', label: 'REPORTS', icon: 'pie-chart' },
@@ -60,6 +60,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Users size={20} />;
       case 'user-plus':
         return <UserPlus size={20} />;
+      case 'clipboard-list':
+        return <ClipboardList size={20} />;
       default:
         return null;
     }

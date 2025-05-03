@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -108,9 +108,12 @@ const QuotationHistory = () => {
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Quotation History</h1>
-          <p className="text-muted-foreground">View and manage all your quotations</p>
+        <div className="flex items-center gap-3">
+          <ClipboardList className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-2xl font-bold">Quotation History</h1>
+            <p className="text-muted-foreground">View and manage all your quotations</p>
+          </div>
         </div>
         <Button onClick={() => window.location.href = '/create-quotation'}>
           <FilePlus className="mr-2 h-4 w-4" />
