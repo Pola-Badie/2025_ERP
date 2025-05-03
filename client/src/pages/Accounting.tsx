@@ -15,7 +15,8 @@ import {
   DollarSign, 
   FileText, 
   BarChart4, 
-  TrendingUp 
+  TrendingUp,
+  Landmark
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -86,7 +87,10 @@ const Accounting: React.FC = () => {
   return (
     <div className="container py-4 mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Accounting</h1>
+        <div className="flex items-center gap-3">
+          <Landmark className="h-8 w-8 text-blue-600" />
+          <h1 className="text-2xl font-bold tracking-tight">ACCOUNTING</h1>
+        </div>
         <div className="space-x-2">
           <Button 
             variant="outline" 
