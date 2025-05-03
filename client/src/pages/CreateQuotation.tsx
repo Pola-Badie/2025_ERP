@@ -48,7 +48,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, addDays } from 'date-fns';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, FileText, X } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, FileText, X, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Calendar } from '@/components/ui/calendar';
