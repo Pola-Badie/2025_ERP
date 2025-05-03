@@ -9,7 +9,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
-  Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye
+  Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
+  User, Settings, LogOut, ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -207,10 +208,45 @@ const Dashboard: React.FC = () => {
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={() => setIsProductFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="h-4 w-4 mr-2" />
-            <span>Add Product</span>
-          </Button>
+          <div className="flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative p-0 h-10 rounded-full">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-blue-100 rounded-full h-10 w-10 flex items-center justify-center overflow-hidden border-2 border-blue-200">
+                      <User className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="text-left hidden md:block">
+                      <p className="text-sm font-medium">Dr. Sarah Johnson</p>
+                      <p className="text-xs text-slate-500">Administrator</p>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-slate-500 hidden md:block" />
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="h-4 w-4 mr-2" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="h-4 w-4 mr-2" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={() => setIsProductFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              <span>Add Product</span>
+            </Button>
+          </div>
         </div>
       </div>
 
