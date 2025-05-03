@@ -399,8 +399,8 @@ const ChartOfAccounts: React.FC = () => {
                     <FormItem>
                       <FormLabel>Parent Account (Optional)</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
-                        defaultValue={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(value !== "none" ? parseInt(value) : undefined)}
+                        defaultValue={field.value?.toString() || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -408,7 +408,7 @@ const ChartOfAccounts: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No parent (top level)</SelectItem>
+                          <SelectItem value="none">No parent (top level)</SelectItem>
                           {accounts.map((account) => (
                             <SelectItem key={account.id} value={account.id.toString()}>
                               {account.code} - {account.name}
@@ -564,8 +564,8 @@ const ChartOfAccounts: React.FC = () => {
                     <FormItem>
                       <FormLabel>Parent Account (Optional)</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}
-                        defaultValue={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(value !== "none" ? parseInt(value) : undefined)}
+                        defaultValue={field.value?.toString() || "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -573,7 +573,7 @@ const ChartOfAccounts: React.FC = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">No parent (top level)</SelectItem>
+                          <SelectItem value="none">No parent (top level)</SelectItem>
                           {accounts
                             .filter(account => account.id !== selectedAccount?.id)
                             .map((account) => (
