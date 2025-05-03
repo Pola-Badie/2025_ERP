@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
   className?: string;
@@ -11,6 +12,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [location] = useLocation();
+  const { language, setLanguage, t } = useLanguage();
 
   const navItems = [
     { path: '/', label: 'DASHBOARD', icon: 'home' },
