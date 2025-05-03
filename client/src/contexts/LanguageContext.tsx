@@ -150,13 +150,23 @@ const translations: Record<Language, Record<string, string>> = {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
   
+  // Update language and log changes for debugging
+  const handleSetLanguage = (newLanguage: Language) => {
+    console.log('Changing language to:', newLanguage);
+    setLanguage(newLanguage);
+  };
+  
   // Translation function
   const t = (key: string): string => {
+    console.log('Translating key:', key, 'in language:', language);
+    if (!translations[language][key]) {
+      console.log('Missing translation for key:', key);
+    }
     return translations[language][key] || key;
   };
   
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
