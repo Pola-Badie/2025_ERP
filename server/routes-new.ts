@@ -420,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update category
       const [updatedCategory] = await db.update(productCategories)
-        .set({ name, updatedAt: new Date() })
+        .set({ name })
         .where(eq(productCategories.id, id))
         .returning();
       
@@ -542,8 +542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update product stock
         await db.update(products)
           .set({ 
-            quantity: sql`${products.quantity} - ${validatedItem.quantity}`,
-            updatedAt: new Date()
+            quantity: sql`${products.quantity} - ${validatedItem.quantity}`
           })
           .where(eq(products.id, validatedItem.productId));
       }
@@ -638,10 +637,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { value } = updateSystemPreferenceSchema.parse(req.body);
       
       const [preference] = await db.update(systemPreferences)
-        .set({ 
-          value, 
-          updatedAt: new Date() 
-        })
+        .set({ value })
         .where(eq(systemPreferences.key, key))
         .returning();
       

@@ -421,7 +421,7 @@ const Expenses: React.FC = () => {
                 placeholder="New category name" 
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
               />
               <Button 
                 size="sm" 
@@ -451,7 +451,7 @@ const Expenses: React.FC = () => {
                         })}
                         className="w-full"
                         autoFocus
-                        onKeyPress={(e) => e.key === 'Enter' && handleUpdateCategory()}
+                        onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategory()}
                       />
                     ) : (
                       <span>{category.name}</span>
