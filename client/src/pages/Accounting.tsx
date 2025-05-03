@@ -16,7 +16,10 @@ import {
   FileText, 
   BarChart4, 
   TrendingUp,
-  Landmark
+  Landmark,
+  Calendar,
+  Receipt,
+  Clock
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,6 +27,8 @@ import ChartOfAccounts from '@/components/accounting/ChartOfAccounts';
 import JournalEntries from '@/components/accounting/JournalEntries';
 import ProfitAndLoss from '@/components/accounting/ProfitAndLoss';
 import BalanceSheet from '@/components/accounting/BalanceSheet';
+import CustomerPayments from '@/components/accounting/CustomerPayments';
+import AccountingPeriods from '@/components/accounting/AccountingPeriods';
 
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
