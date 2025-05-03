@@ -22,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
 import { useExpenses } from '@/hooks/use-expenses';
 import ExpenseForm from '@/components/expenses/ExpenseForm';
-import { Expense, Category } from '@shared/schema';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -31,12 +30,33 @@ import {
   AlertCircle, Trash, Calendar, Settings
 } from 'lucide-react';
 
+// Define types for Expense and Category if they're not in schema.ts
+interface Expense {
+  id: number;
+  date: string;
+  description: string;
+  category: string;
+  amount: number;
+  status: string;
+  notes?: string;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 const Expenses: React.FC = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<{ id: number, name: string } | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Get expenses and categories
   const { getAllExpenses } = useExpenses();
@@ -92,6 +112,106 @@ const Expenses: React.FC = () => {
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
+  };
+
+  // Category mutations
+  const createCategoryMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiRequest('POST', '/api/categories', { name });
+      return await response.json();
+    },
+    onSuccess: () => {
+      setNewCategoryName('');
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: 'Category created',
+        description: 'The category has been created successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create category',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, name }: { id: number, name: string }) => {
+      const response = await apiRequest('PATCH', `/api/categories/${id}`, { name });
+      return await response.json();
+    },
+    onSuccess: () => {
+      setEditingCategory(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: 'Category updated',
+        description: 'The category has been updated successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update category',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/categories/${id}`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: 'Category deleted',
+        description: 'The category has been deleted successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete category',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handler functions for category operations
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Category name cannot be empty',
+        variant: 'destructive',
+      });
+      return;
+    }
+    createCategoryMutation.mutate(newCategoryName);
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategory || !editingCategory.name.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Category name cannot be empty',
+        variant: 'destructive',
+      });
+      return;
+    }
+    updateCategoryMutation.mutate({
+      id: editingCategory.id,
+      name: editingCategory.name
+    });
+  };
+
+  const handleDeleteCategory = (id: number) => {
+    if (confirm('Are you sure you want to delete this category?')) {
+      deleteCategoryMutation.mutate(id);
+    }
   };
 
   // Export expenses to CSV
@@ -295,28 +415,103 @@ const Expenses: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Add new category */}
             <div className="flex items-center space-x-2">
-              <Input placeholder="New category name" />
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" />
+              <Input 
+                placeholder="New category name" 
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+              />
+              <Button 
+                size="sm" 
+                onClick={handleAddCategory} 
+                disabled={createCategoryMutation.isPending}
+              >
+                {createCategoryMutation.isPending ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-1" />
+                )}
                 Add
               </Button>
             </div>
             
+            {/* Category list */}
             <div className="border rounded-md divide-y">
               {categories?.map((category) => (
                 <div key={category.id} className="p-3 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span>{category.name}</span>
+                  <div className="flex items-center flex-1">
+                    {editingCategory?.id === category.id ? (
+                      <Input 
+                        value={editingCategory.name}
+                        onChange={(e) => setEditingCategory({ 
+                          id: editingCategory.id, 
+                          name: e.target.value 
+                        })}
+                        className="w-full"
+                        autoFocus
+                        onKeyPress={(e) => e.key === 'Enter' && handleUpdateCategory()}
+                      />
+                    ) : (
+                      <span>{category.name}</span>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm">Edit</Button>
-                    <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
-                      <Trash className="h-4 w-4" />
-                    </Button>
+                    {editingCategory?.id === category.id ? (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleUpdateCategory}
+                          disabled={updateCategoryMutation.isPending}
+                        >
+                          {updateCategoryMutation.isPending ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-1" />
+                          ) : (
+                            'Save'
+                          )}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setEditingCategory(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setEditingCategory({ id: category.id, name: category.name })}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={deleteCategoryMutation.isPending}
+                        >
+                          {deleteCategoryMutation.isPending && deleteCategoryMutation.variables === category.id ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                          ) : (
+                            <Trash className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
+              {categories?.length === 0 && (
+                <div className="p-8 text-center text-sm text-muted-foreground">
+                  No categories found. Add a new category to get started.
+                </div>
+              )}
             </div>
           </div>
           
