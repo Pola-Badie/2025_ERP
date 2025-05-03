@@ -517,69 +517,73 @@ const Inventory: React.FC = () => {
         
         {/* Categories Tab */}
         <TabsContent value="categories">
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex flex-row justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium">Categories</h3>
+                  <p className="text-sm text-slate-500">Manage product categories used in inventory and sales</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Categories Table */}
           <Card>
-            <CardHeader>
-              <CardTitle>Categories</CardTitle>
-              <CardDescription>
-                Manage product categories used in inventory and sales
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
+            <CardContent className="p-0">
+              {isLoadingCategories ? (
+                <div className="p-8 flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : categories?.length === 0 ? (
+                <div className="p-8 text-center">
+                  <AlertCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
+                  <h3 className="text-lg font-medium text-slate-700 mb-1">No categories found</h3>
+                  <p className="text-slate-500 mb-4">Add your first category below</p>
+                </div>
+              ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                  <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-2 text-sm font-medium text-gray-500">Name</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-gray-500">Description</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-gray-500">Actions</th>
+                      <tr className="border-b border-slate-200 bg-slate-50">
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Name</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Description</th>
+                        <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {isLoadingCategories ? (
-                        <tr>
-                          <td colSpan={3} className="py-4 text-center">
-                            Loading categories...
+                      {categories?.map((category: Category) => (
+                        <tr key={category.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="px-4 py-3 font-medium">{category.name}</td>
+                          <td className="px-4 py-3">{category.description || '-'}</td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => openEditDialog(category)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => openDeleteDialog(category)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </td>
                         </tr>
-                      ) : categories?.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="py-4 text-center text-gray-500">
-                            No categories found. Add your first category below.
-                          </td>
-                        </tr>
-                      ) : (
-                        categories?.map((category: Category) => (
-                          <tr key={category.id} className="border-b">
-                            <td className="py-3 px-2">{category.name}</td>
-                            <td className="py-3 px-2">{category.description || '-'}</td>
-                            <td className="py-3 px-2 text-right">
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
-                                  onClick={() => openEditDialog(category)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => openDeleteDialog(category)}
-                                >
-                                  <Trash className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
+                      ))}
                     </tbody>
                   </table>
                 </div>
-
+              )}
+              
+              <div className="p-4 border-t border-slate-200">
                 <form onSubmit={handleAddCategory}>
                   <div className="grid gap-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -604,7 +608,6 @@ const Inventory: React.FC = () => {
                       <Button 
                         type="submit" 
                         disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
-                        className="bg-blue-500 hover:bg-blue-600"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
