@@ -137,7 +137,15 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           ))}
         </ul>
       </nav>
-      <div className="p-4 border-t border-[#2A3F55] mt-auto">
+      <div className="p-4 border-t border-[#2A3F55] mt-auto space-y-3">
+        {/* Language Selector */}
+        <div className="flex items-center justify-center mb-2">
+          <button className="text-[#3BCEAC] hover:text-white text-sm px-3 py-1 border border-[#3BCEAC] rounded-md transition-colors">
+            <span className="mr-1">عربي</span> / <span className="ml-1">English</span>
+          </button>
+        </div>
+        
+        {/* About Button */}
         <div className="flex items-center justify-center">
           <button className="text-[#3BCEAC] hover:text-white">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -147,6 +155,16 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           <div className="text-center ml-3">
             <span className="text-white text-sm">About</span>
           </div>
+        </div>
+        
+        {/* Logout Button */}
+        <div className="flex items-center justify-center">
+          <button className="text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 w-full flex items-center justify-center transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
         </div>
       </div>
     </div>
