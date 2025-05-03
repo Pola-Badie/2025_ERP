@@ -7,12 +7,23 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2 } from 'lucide-react';
+import { 
+  Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
+  Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Define types for dashboard data
 interface DashboardSummary {
@@ -115,6 +126,87 @@ const Dashboard: React.FC = () => {
           <p className="text-sm text-slate-500">Pharmacy Management Overview</p>
         </div>
         <div className="flex mt-4 md:mt-0 space-x-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="relative" size="icon">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">5</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Recent Activity</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="max-h-[300px] overflow-y-auto">
+                <div className="p-2 hover:bg-slate-100 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-blue-100 rounded-full p-2">
+                      <UserPlus className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">User Login</p>
+                      <p className="text-xs text-slate-500">Dr. Sarah Johnson logged in from Cairo location</p>
+                      <p className="text-xs text-slate-400 mt-1">10 minutes ago</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2 hover:bg-slate-100 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-green-100 rounded-full p-2">
+                      <Receipt className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">New Invoice Created</p>
+                      <p className="text-xs text-slate-500">Invoice #INV-2025-0042 for Ahmed Hassan</p>
+                      <p className="text-xs text-slate-400 mt-1">25 minutes ago</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2 hover:bg-slate-100 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-yellow-100 rounded-full p-2">
+                      <PackagePlus className="h-4 w-4 text-yellow-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Product Updated</p>
+                      <p className="text-xs text-slate-500">Panadol Advance inventory updated to 250 units</p>
+                      <p className="text-xs text-slate-400 mt-1">1 hour ago</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2 hover:bg-slate-100 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-purple-100 rounded-full p-2">
+                      <UserCog className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">System Setting Changed</p>
+                      <p className="text-xs text-slate-500">Default currency changed to EGP</p>
+                      <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-2 hover:bg-slate-100 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <div className="bg-red-100 rounded-full p-2">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Low Stock Alert</p>
+                      <p className="text-xs text-slate-500">Aspirin has reached the minimum stock level</p>
+                      <p className="text-xs text-slate-400 mt-1">3 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <DropdownMenuSeparator />
+              <div className="p-2">
+                <Button variant="outline" size="sm" className="w-full">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View All Activity
+                </Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={() => setIsProductFormOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             <span>Add Product</span>
@@ -297,192 +389,309 @@ const Dashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Product Tables */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Expiring Products */}
+      {/* Activity Log and Product Tables */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Recent Activity Log */}
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">EXPIRING PRODUCTS</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">RECENT ACTIVITY LOG</CardTitle>
             <div className="flex space-x-1">
               <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <Maximize2 className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <Thermometer className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <Minimize2 className="h-3 w-3" />
+                <Eye className="h-3.5 w-3.5" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
-                    </tr>
-                  ) : dashboardData?.expiringProducts?.length === 0 ? (
-                    <>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Panadol Advance</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            EXPIRED
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">20 May 2024</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            EXPIRED
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2024</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                            NEAR
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">15 Dec 2024</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Metformin 850mg</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            EXPIRED
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">20 Sep, 2025</td>
-                      </tr>
-                    </>
-                  ) : (
-                    dashboardData?.expiringProducts?.map((product: Product) => (
-                      <tr key={product.id} className="border-b border-gray-100">
-                        <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                        <td className="px-4 py-2">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
-                            'bg-[#FFB454] text-white'
-                          }`}>
-                            {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div className="overflow-auto max-h-[400px]">
+              <div className="divide-y divide-gray-100">
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
+                      <UserPlus className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">User Login</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Admin user Dr. Sarah Johnson logged in from Cairo location</p>
+                      <p className="text-xs text-slate-400 mt-1">10 minutes ago</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-green-100 rounded-full p-2 flex-shrink-0">
+                      <Receipt className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">New Invoice Created</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Invoice #INV-2025-0042 for Ahmed Hassan was created by Sales Rep</p>
+                      <p className="text-xs text-slate-400 mt-1">25 minutes ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-yellow-100 rounded-full p-2 flex-shrink-0">
+                      <PackagePlus className="h-5 w-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Product Updated</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Panadol Advance inventory was updated to 250 units by Inventory Manager</p>
+                      <p className="text-xs text-slate-400 mt-1">1 hour ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-purple-100 rounded-full p-2 flex-shrink-0">
+                      <UserCog className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">System Setting Changed</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Default currency was changed to EGP by System Administrator</p>
+                      <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-red-100 rounded-full p-2 flex-shrink-0">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Low Stock Alert</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Aspirin has reached the minimum stock level. Requires attention</p>
+                      <p className="text-xs text-slate-400 mt-1">3 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
+                      <UserPlus className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">New User Created</p>
+                      <p className="text-xs text-slate-500 mt-0.5">New Sales Representative account was created for Mahmoud Ali</p>
+                      <p className="text-xs text-slate-400 mt-1">Yesterday, 15:30</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-3">
+                    <div className="bg-green-100 rounded-full p-2 flex-shrink-0">
+                      <Receipt className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">Payment Received</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Payment of EGP 5,250 received for invoice #INV-2025-0039</p>
+                      <p className="text-xs text-slate-400 mt-1">Yesterday, 13:45</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 border-t border-gray-100">
+              <Button variant="outline" size="sm" className="w-full">
+                <Eye className="h-4 w-4 mr-2" />
+                View All Activity
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Low Stock Products */}
-        <Card className="bg-white border rounded-md shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">PRODUCTS WITH LOW STOCK</CardTitle>
-            <div className="flex space-x-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <Maximize2 className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <AlertCircle className="h-3 w-3" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <Minimize2 className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Stock Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
+        {/* Product Tables */}
+        <div className="lg:col-span-2 grid grid-cols-1 gap-4">
+          {/* Expiring Products */}
+          <Card className="bg-white border rounded-md shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+              <CardTitle className="text-sm font-medium text-gray-700">EXPIRING PRODUCTS</CardTitle>
+              <div className="flex space-x-1">
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <Maximize2 className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <Thermometer className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <Minimize2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry Date</th>
                     </tr>
-                  ) : dashboardData?.lowStockProducts?.length === 0 ? (
-                    <>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
                       <tr>
-                        <td className="px-4 py-2 text-sm">Asprine</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            10
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
                       </tr>
+                    ) : dashboardData?.expiringProducts?.length === 0 ? (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Panadol Advance</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              EXPIRED
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">20 May 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              EXPIRED
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">15 Dec 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Metformin 850mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              EXPIRED
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">20 Sep, 2025</td>
+                        </tr>
+                      </>
+                    ) : (
+                      dashboardData?.expiringProducts?.map((product: Product) => (
+                        <tr key={product.id} className="border-b border-gray-100">
+                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
+                          <td className="px-4 py-2">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
+                              'bg-[#FFB454] text-white'
+                            }`}>
+                              {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Low Stock Products */}
+          <Card className="bg-white border rounded-md shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+              <CardTitle className="text-sm font-medium text-gray-700">PRODUCTS WITH LOW STOCK</CardTitle>
+              <div className="flex space-x-1">
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <Maximize2 className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <AlertCircle className="h-3 w-3" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                  <Minimize2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Stock Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
                       <tr>
-                        <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            10
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
                       </tr>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Zyrtic</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            10
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2024</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2 text-sm">Daflon 500</td>
-                        <td className="px-4 py-2">
-                          <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                            10
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2023</td>
-                      </tr>
-                    </>
-                  ) : (
-                    dashboardData?.lowStockProducts?.map((product: Product) => (
-                      <tr key={product.id} className="border-b border-gray-100">
-                        <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                        <td className="px-4 py-2">
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            product.quantity === 0 || product.status === 'out_of_stock'
-                              ? 'bg-[#F16F6F] text-white' 
-                              : 'bg-[#F16F6F] text-white'
-                          }`}>
-                            {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2 text-sm">19 June 2024</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                    ) : dashboardData?.lowStockProducts?.length === 0 ? (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Asprine</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Zyrtic</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Daflon 500</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2023</td>
+                        </tr>
+                      </>
+                    ) : (
+                      dashboardData?.lowStockProducts?.map((product: Product) => (
+                        <tr key={product.id} className="border-b border-gray-100">
+                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
+                          <td className="px-4 py-2">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                              product.quantity === 0 || product.status === 'out_of_stock'
+                                ? 'bg-[#F16F6F] text-white' 
+                                : 'bg-[#F16F6F] text-white'
+                            }`}>
+                              {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Add Product Dialog */}
