@@ -65,6 +65,12 @@ const translations: Record<Language, Record<string, string>> = {
     accountingPeriods: 'Accounting Periods',
     customerPayments: 'Customer Payments',
     
+    // Chart of Accounts
+    addAccount: 'Add Account',
+    accountType: 'Type',
+    subtype: 'Subtype',
+    balance: 'Balance',
+    
     // Customers
     addCustomer: 'Add Customer',
     
@@ -122,6 +128,12 @@ const translations: Record<Language, Record<string, string>> = {
     balanceSheet: 'الميزانية العمومية',
     accountingPeriods: 'الفترات المحاسبية',
     customerPayments: 'مدفوعات العملاء',
+    
+    // Chart of Accounts
+    addAccount: 'إضافة حساب',
+    accountType: 'النوع',
+    subtype: 'النوع الفرعي',
+    balance: 'الرصيد',
     
     // Customers
     addCustomer: 'إضافة عميل',

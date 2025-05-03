@@ -43,6 +43,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import { Account } from "@shared/schema";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Define account categories and types
 const accountTypes = [
@@ -92,6 +93,7 @@ type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 const ChartOfAccounts: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -286,12 +288,12 @@ const ChartOfAccounts: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Chart of Accounts</h3>
+        <h3 className="text-lg font-medium">{t('chartOfAccounts')}</h3>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="h-4 w-4 mr-2" />
-              Add Account
+              {t('addAccount')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
@@ -659,12 +661,12 @@ const ChartOfAccounts: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Subtype</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead className="w-[60px]"></TableHead>
+                <TableHead className="w-[100px]">{t('code')}</TableHead>
+                <TableHead>{t('name')}</TableHead>
+                <TableHead>{t('accountType')}</TableHead>
+                <TableHead>{t('subtype')}</TableHead>
+                <TableHead className="text-right">{t('balance')}</TableHead>
+                <TableHead className="w-[60px]">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
