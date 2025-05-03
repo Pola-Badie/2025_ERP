@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { language } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -36,10 +38,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsMobileMenuOpen(false);
   };
 
+  useEffect(() => {
+    // Apply RTL direction for Arabic language
+    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = language;
+    
+    // Add language-specific class to body for additional styling if needed
+    if (language === 'ar') {
+      document.body.classList.add('arabic');
+    } else {
+      document.body.classList.remove('arabic');
+    }
+  }, [language]);
+
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className={`flex h-screen overflow-hidden ${language === 'ar' ? 'rtl' : 'ltr'}`}>
       {/* Desktop Sidebar */}
-      <Sidebar className="hidden md:flex md:w-64 flex-col fixed inset-y-0 z-50" />
+      <Sidebar className={`hidden md:flex md:w-64 flex-col fixed inset-y-0 z-50 ${language === 'ar' ? 'right-0' : 'left-0'}`} />
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -55,7 +70,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:pl-64 overflow-auto">
+      <div className={`flex-1 flex flex-col overflow-auto ${language === 'ar' ? 'md:pr-64' : 'md:pl-64'}`}>
         {/* Top Nav (Mobile) */}
         <div className="md:hidden border-b border-slate-200 bg-white p-4 sticky top-0 z-30">
           <div className="flex items-center justify-between">

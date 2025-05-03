@@ -128,9 +128,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                   {t(item.key).toUpperCase()}
                 </span>
                 {location === item.path && (
-                  <span className="ml-auto">
+                  <span className={language === 'ar' ? 'mr-auto' : 'ml-auto'}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 18L15 12L9 6" stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d={language === 'ar' ? "M15 18L9 12L15 6" : "M9 18L15 12L9 6"} stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </span>
                 )}
@@ -141,7 +141,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       </nav>
       <div className="p-4 border-t border-[#2A3F55] mt-auto space-y-3">
         {/* Language Selector */}
-        <div className="flex items-center justify-center mb-2 space-x-2">
+        <div className={`flex items-center justify-center mb-2 ${language === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
           <button 
             className={cn(
               "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
@@ -169,8 +169,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         {/* Logout Button */}
         <div className="flex items-center justify-center">
           <button className="text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 w-full flex items-center justify-center transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={language === 'ar' ? "M7 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3h-4a3 3 0 00-3 3v1" : "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"} />
             </svg>
             {t('logout')}
           </button>
