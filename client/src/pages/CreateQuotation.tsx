@@ -273,6 +273,14 @@ const CreateQuotation: React.FC = () => {
     items[index].total = quantity * items[index].unitPrice;
     form.setValue('items', items);
   };
+  
+  // Update item unit price and recalculate total
+  const updateItemUnitPrice = (index: number, unitPrice: number) => {
+    const items = form.getValues('items');
+    items[index].unitPrice = unitPrice;
+    items[index].total = items[index].quantity * unitPrice;
+    form.setValue('items', items);
+  };
 
   // Select customer
   const handleSelectCustomer = (customerId: number) => {
@@ -514,10 +522,14 @@ const CreateQuotation: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(form.watch(`items.${index}.unitPrice`))}
+                              <Input
+                                type="number"
+                                min={0}
+                                step={0.01}
+                                value={form.watch(`items.${index}.unitPrice`)}
+                                onChange={(e) => updateItemUnitPrice(index, parseFloat(e.target.value) || 0)}
+                                className="w-24 text-right ml-auto"
+                              />
                             </TableCell>
                             <TableCell className="text-right">
                               {new Intl.NumberFormat('en-US', {
