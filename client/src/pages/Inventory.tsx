@@ -129,6 +129,33 @@ const Inventory: React.FC = () => {
     },
   });
 
+  // Update category mutation
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (category: { id: number; name: string; description: string | null }) => {
+      const response = await apiRequest('PATCH', `/api/categories/${category.id}`, {
+        name: category.name,
+        description: category.description
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Category Updated",
+        description: "Category has been updated successfully.",
+      });
+      setEditDialogOpen(false);
+      setCategoryToEdit(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update category.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -176,6 +203,18 @@ const Inventory: React.FC = () => {
       name: categoryName,
       description: categoryDescription,
     });
+  };
+
+  // Category edit handlers
+  const openEditDialog = (category: Category) => {
+    setCategoryToEdit(category);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateCategory = () => {
+    if (categoryToEdit) {
+      updateCategoryMutation.mutate(categoryToEdit);
+    }
   };
 
   // Delete category dialog
@@ -515,14 +554,24 @@ const Inventory: React.FC = () => {
                             <td className="py-3 px-2">{category.name}</td>
                             <td className="py-3 px-2">{category.description || '-'}</td>
                             <td className="py-3 px-2 text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => openDeleteDialog(category)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                                  onClick={() => openEditDialog(category)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => openDeleteDialog(category)}
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -593,6 +642,63 @@ const Inventory: React.FC = () => {
               disabled={deleteCategoryMutation.isPending}
             >
               {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>
+              Make changes to the category details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid gap-4">
+              <div>
+                <label htmlFor="edit-category-name" className="text-sm font-medium">
+                  Category Name
+                </label>
+                <Input
+                  id="edit-category-name"
+                  value={categoryToEdit?.name || ''}
+                  onChange={(e) => setCategoryToEdit(prev => 
+                    prev ? { ...prev, name: e.target.value } : null
+                  )}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-category-description" className="text-sm font-medium">
+                  Description (optional)
+                </label>
+                <Textarea
+                  id="edit-category-description"
+                  value={categoryToEdit?.description || ''}
+                  onChange={(e) => setCategoryToEdit(prev => 
+                    prev ? { ...prev, description: e.target.value } : null
+                  )}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={updateCategoryMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateCategory}
+              disabled={updateCategoryMutation.isPending || !categoryToEdit?.name}
+            >
+              {updateCategoryMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </DialogFooter>
         </DialogContent>

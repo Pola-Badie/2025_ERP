@@ -404,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/categories/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
-      const { name } = req.body;
+      const { name, description } = req.body;
       
       // Validate the data
       if (!name) {
@@ -420,7 +420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update category
       const [updatedCategory] = await db.update(productCategories)
-        .set({ name })
+        .set({ name, description })
         .where(eq(productCategories.id, id))
         .returning();
       
