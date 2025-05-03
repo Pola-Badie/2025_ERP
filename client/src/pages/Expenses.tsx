@@ -307,9 +307,6 @@ const Expenses: React.FC = () => {
               {categories?.map((category) => (
                 <div key={category.id} className="p-3 flex items-center justify-between">
                   <div className="flex items-center">
-                    <Badge variant="outline" className="mr-2">
-                      {getCategoryBadge(category.name)}
-                    </Badge>
                     <span>{category.name}</span>
                   </div>
                   <div className="flex items-center space-x-2">
