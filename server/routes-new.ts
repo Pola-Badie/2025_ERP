@@ -399,6 +399,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create category" });
     }
   });
+  
+  // Update category
+  app.patch("/api/categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { name } = req.body;
+      
+      // Validate the data
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+      
+      // Check if category exists
+      const [existingCategory] = await db.select().from(productCategories).where(eq(productCategories.id, id));
+      
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      // Update category
+      const [updatedCategory] = await db.update(productCategories)
+        .set({ name, updatedAt: new Date() })
+        .where(eq(productCategories.id, id))
+        .returning();
+      
+      res.json(updatedCategory);
+    } catch (error) {
+      console.error("Update category error:", error);
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+  
+  // Delete category
+  app.delete("/api/categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Check if category exists
+      const [existingCategory] = await db.select().from(productCategories).where(eq(productCategories.id, id));
+      
+      if (!existingCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      // Delete category
+      await db.delete(productCategories).where(eq(productCategories.id, id));
+      
+      res.status(200).json({ message: "Category deleted successfully" });
+    } catch (error) {
+      console.error("Delete category error:", error);
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
 
   // ============= Customer Endpoints =============
   
