@@ -309,7 +309,7 @@ const CreateQuotation: React.FC = () => {
           <p className="text-muted-foreground">Create a new quotation for a customer</p>
         </div>
         <Button onClick={() => window.location.href = '/quotation-history'}>
-          <Receipt className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           View Quotation History
         </Button>
       </div>

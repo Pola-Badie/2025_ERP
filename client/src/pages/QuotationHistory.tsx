@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -113,7 +113,7 @@ const QuotationHistory = () => {
           <p className="text-muted-foreground">View and manage all your quotations</p>
         </div>
         <Button onClick={() => window.location.href = '/create-quotation'}>
-          <FileText className="mr-2 h-4 w-4" />
+          <FilePlus className="mr-2 h-4 w-4" />
           Create New Quotation
         </Button>
       </div>
@@ -203,7 +203,7 @@ const QuotationHistory = () => {
                   className="mt-4"
                   onClick={() => window.location.href = '/create-quotation'}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FilePlus className="mr-2 h-4 w-4" />
                   Create Your First Quotation
                 </Button>
               )}
