@@ -92,6 +92,7 @@ const CreateInvoice = () => {
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
 
   // Fetch customers
   const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<any[]>({
@@ -272,6 +273,15 @@ const CreateInvoice = () => {
       form.setValue(`items.${index}.productName`, product.name);
       form.setValue(`items.${index}.unitPrice`, parseFloat(product.sellingPrice));
       // The total will be calculated in the useEffect
+      
+      // Close this product's popover
+      setOpenProductPopovers(prev => ({
+        ...prev,
+        [index]: false
+      }));
+      
+      // Reset the search term after selection
+      setProductSearchTerm('');
     }
   };
 
@@ -649,7 +659,19 @@ const CreateInvoice = () => {
                   {fields.map((field, index) => (
                     <TableRow key={field.id}>
                       <TableCell>
-                        <Popover>
+                        <Popover 
+                          open={openProductPopovers[index]} 
+                          onOpenChange={(isOpen) => {
+                            setOpenProductPopovers(prev => ({
+                              ...prev,
+                              [index]: isOpen
+                            }));
+                            // Clear search term when opening popover
+                            if (isOpen) {
+                              setProductSearchTerm('');
+                            }
+                          }}
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -792,8 +814,8 @@ const CreateInvoice = () => {
                 <div>
                   <Label htmlFor="paymentMethod">Payment Method</Label>
                   <Select
-                    value={form.watch('paymentMethod') || ''}
-                    onValueChange={(value) => form.setValue('paymentMethod', value)}
+                    value={(form.watch('paymentMethod') || '') as 'cash' | 'visa' | 'cheque' | 'bank_transfer'}
+                    onValueChange={(value) => form.setValue('paymentMethod', value as 'cash' | 'visa' | 'cheque' | 'bank_transfer' | undefined)}
                   >
                     <SelectTrigger id="paymentMethod">
                       <SelectValue placeholder="Select payment method" />
