@@ -90,7 +90,8 @@ const CreateQuotation: React.FC = () => {
   const [openProductSelect, setOpenProductSelect] = useState(false);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
 
   // Type definition for Product and Customer
   interface Product {
@@ -114,15 +115,22 @@ const CreateQuotation: React.FC = () => {
   }
 
   // Fetch customers
-  const { data: customers = [] } = useQuery<Customer[]>({
-    queryKey: ['/api/customers'],
-    retry: 1,
+  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<Customer[]>({
+    queryKey: ['/api/customers', customerSearchTerm],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
+      return await res.json();
+    },
+    enabled: customerSearchTerm.length > 0,
   });
 
   // Fetch products
-  const { data: products = [] } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
-    retry: 1,
+  const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
+    queryKey: ['/api/products', productSearchTerm],
+    queryFn: async () => {
+      const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
+      return await res.json();
+    },
   });
 
   // Form setup with react-hook-form and zod validation
