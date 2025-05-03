@@ -517,9 +517,27 @@ const CreateQuotation: React.FC = () => {
                               </Popover>
                             </TableCell>
                             <TableCell className="text-center">
-                              <span className="text-sm">
-                                {form.watch(`items.${index}.uom`) || 'unit'}
-                              </span>
+                              <Select
+                                value={form.watch(`items.${index}.uom`) || 'unit'}
+                                onValueChange={(value) => {
+                                  const items = form.getValues('items');
+                                  items[index].uom = value;
+                                  form.setValue('items', items);
+                                }}
+                              >
+                                <SelectTrigger className="w-[150px]">
+                                  <SelectValue placeholder="Select UoM" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unit">Unit</SelectItem>
+                                  <SelectItem value="pieces">Pieces (PCS)</SelectItem>
+                                  <SelectItem value="liters">Liters (L)</SelectItem>
+                                  <SelectItem value="tons">Tons (T)</SelectItem>
+                                  <SelectItem value="kilograms">Kilograms (KG)</SelectItem>
+                                  <SelectItem value="grams">Grams (g)</SelectItem>
+                                  <SelectItem value="milligrams">Milligrams (mg)</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </TableCell>
                             <TableCell className="text-right">
                               <Input
