@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -104,13 +104,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         <ul className="space-y-0">
           {navItems.map((item) => (
             <li key={item.path}>
-              <div 
+              <Link
+                href={item.path}
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
                   location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
                 )}
                 onClick={() => {
-                  window.location.href = item.path;
                   if (isMobile && onClose) onClose();
                 }}
               >
@@ -133,7 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                     </svg>
                   </span>
                 )}
-              </div>
+              </Link>
             </li>
           ))}
         </ul>
