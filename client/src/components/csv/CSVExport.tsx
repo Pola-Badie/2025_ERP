@@ -72,7 +72,8 @@ export const CSVExport = <T extends Record<string, any>>({
   
   return (
     <Button 
-      variant={variant} 
+      variant={variant}
+      size={size}
       onClick={handleExport} 
       className={className}
       disabled={disabled || !data || data.length === 0}

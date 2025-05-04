@@ -9,6 +9,7 @@ interface CSVImportProps {
   buttonText?: string;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   accept?: string;
   hasHeader?: boolean;
   requiredColumns?: string[];
@@ -20,6 +21,7 @@ export const CSVImport: React.FC<CSVImportProps> = ({
   buttonText = 'Import CSV',
   className = '',
   variant = 'outline',
+  size = 'default',
   accept = '.csv',
   hasHeader = true,
   requiredColumns = [],
@@ -133,7 +135,8 @@ export const CSVImport: React.FC<CSVImportProps> = ({
         className="hidden"
       />
       <Button 
-        variant={variant} 
+        variant={variant}
+        size={size}
         onClick={handleClick} 
         className={className}
         disabled={isLoading}

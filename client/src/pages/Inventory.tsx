@@ -404,7 +404,12 @@ const Inventory: React.FC = () => {
             <>
               {/* Import/Export Buttons */}
               <div className="flex gap-2 mr-2">
-                <CSVImport />
+                <CSVImport 
+                  onImport={handleImportProducts}
+                  buttonText="Import CSV"
+                  variant="outline"
+                  size="sm"
+                />
                 <CSVExport 
                   data={filteredProducts} 
                   filename="inventory-products.csv"
