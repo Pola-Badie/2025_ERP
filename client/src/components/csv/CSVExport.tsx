@@ -11,6 +11,7 @@ interface CSVExportProps<T extends Record<string, any>> {
   buttonText?: string;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  disabled?: boolean;
 }
 
 export const CSVExport = <T extends Record<string, any>>({
@@ -20,7 +21,8 @@ export const CSVExport = <T extends Record<string, any>>({
   customHeaders,
   buttonText = 'Export CSV',
   className = '',
-  variant = 'outline'
+  variant = 'outline',
+  disabled
 }: CSVExportProps<T>) => {
   
   const handleExport = () => {
@@ -71,7 +73,7 @@ export const CSVExport = <T extends Record<string, any>>({
       variant={variant} 
       onClick={handleExport} 
       className={className}
-      disabled={!data || data.length === 0}
+      disabled={disabled || !data || data.length === 0}
     >
       <Download className="w-4 h-4 mr-2" />
       {buttonText}

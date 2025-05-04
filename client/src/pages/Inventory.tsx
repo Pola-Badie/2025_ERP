@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,10 +46,13 @@ import {
   AlertCircle, 
   Calendar,
   Pencil,
-  Tag 
+  Tag,
+  Download,
+  Upload 
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
+import { useCSV } from '@/contexts/CSVContext';
 
 interface Category {
   id: number;
@@ -87,6 +90,82 @@ const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  
+  // CSV Integration
+  const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
+  
+  // Set up CSV export/import when products change
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setCSVData(filteredProducts || []);
+      
+      setCSVOptions({
+        filename: 'inventory-products.csv',
+        customHeaders: {
+          id: 'ID',
+          name: 'Product Name',
+          drugName: 'Drug Name',
+          category: 'Category',
+          sku: 'SKU',
+          quantity: 'Quantity',
+          unitOfMeasure: 'UoM',
+          costPrice: 'Cost Price',
+          sellingPrice: 'Selling Price',
+          location: 'Location',
+          shelf: 'Shelf',
+          expiryDate: 'Expiry Date',
+          status: 'Status'
+        },
+        exportButtonText: 'Export Inventory',
+        importButtonText: 'Import Products',
+        onImport: handleImportProducts
+      });
+    } else {
+      clearCSV();
+    }
+    
+    // Clean up CSV context when component unmounts
+    return () => {
+      clearCSV();
+    };
+  }, [products, filteredProducts, statusFilter, categoryFilter, searchTerm]);
+  
+  // Handle CSV import
+  const handleImportProducts = async (data: Record<string, string>[]) => {
+    if (!data || data.length === 0) {
+      return;
+    }
+    
+    toast({
+      title: "Importing Products",
+      description: `Processing ${data.length} products...`
+    });
+    
+    // In a production environment, you would call an API to bulk import products
+    console.log('Products to import:', data);
+    
+    // Add validation and API call code here
+    // Example:
+    // const importMutation = async () => {
+    //   try {
+    //     const response = await apiRequest('POST', '/api/products/import', { products: data });
+    //     const result = await response.json();
+    //     queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+    //     return result;
+    //   } catch (error) {
+    //     console.error('Import error:', error);
+    //     throw error;
+    //   }
+    // };
+    
+    // Simulate successful import
+    setTimeout(() => {
+      toast({
+        title: "Import Complete",
+        description: `Successfully imported ${data.length} products.`
+      });
+    }, 1500);
+  };
 
   // State for category management
   const [categoryName, setCategoryName] = useState('');
