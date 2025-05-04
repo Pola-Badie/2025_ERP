@@ -69,7 +69,7 @@ const salesDistributionData = [
   { name: 'Supplements', value: 16.7, color: '#48CAE4' },
 ];
 
-const productPerformanceData = [
+const categoryPerformanceData = [
   { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
   { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
   { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
@@ -380,10 +380,10 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Product Performance Chart */}
+        {/* Category Performance Chart */}
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">PRODUCT PERFORMANCE</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">CATEGORY PERFORMANCE</CardTitle>
             <div className="flex space-x-1">
               <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
                 <Maximize2 className="h-3 w-3" />
@@ -400,7 +400,7 @@ const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={productPerformanceData}
+                  data={categoryPerformanceData}
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
@@ -411,7 +411,7 @@ const Dashboard: React.FC = () => {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
                   labelLine={false}
                 >
-                  {productPerformanceData.map((entry, index) => (
+                  {categoryPerformanceData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
