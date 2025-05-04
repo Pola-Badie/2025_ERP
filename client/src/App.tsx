@@ -1,4 +1,11 @@
 import { Switch, Route } from "wouter";
+import React, { useState, useEffect, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+import MainLayout from "@/components/layout/MainLayout";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { CSVProvider } from "./contexts/CSVContext";
+
+// Import components directly to avoid issues with wouter
 import Dashboard from "@/pages/Dashboard";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
@@ -17,10 +24,6 @@ import Accounting from "@/pages/Accounting";
 import UserManagement from "@/pages/UserManagement";
 import CustomersDemo from "@/pages/customers-demo";
 import NotFound from "@/pages/not-found";
-import MainLayout from "@/components/layout/MainLayout";
-import { useState, useEffect } from "react";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import { CSVProvider } from "./contexts/CSVContext";
 
 function App() {
   // Set document title

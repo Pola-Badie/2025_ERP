@@ -104,13 +104,15 @@ const CreateInvoice = () => {
     enabled: customerSearchTerm.length > 0,
   });
 
-  // Fetch products
+  // Fetch products - only when search term is present to improve performance
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
     queryKey: ['/api/products', productSearchTerm],
     queryFn: async () => {
       const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
       return await res.json();
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
+    enabled: true, // We'll manage search fetching in the handleProductSearch function
   });
 
   // Set up the form
