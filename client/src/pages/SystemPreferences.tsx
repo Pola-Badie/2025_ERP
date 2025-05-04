@@ -87,36 +87,48 @@ const SystemPreferences: React.FC = () => {
             className="w-full"
           >
             <TabsList className="grid grid-cols-3 md:grid-cols-6 border-b rounded-none h-auto">
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer border-b-2 border-primary rounded-none"
-                  onClick={() => setActiveTab("users")}>
+              <TabsTrigger 
+                value="users" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('users')}
                 <span className="hidden md:inline">Users</span>
-              </div>
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer hover:bg-slate-100 rounded-none"
-                  onClick={() => setActiveTab("inventory")}>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="inventory" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('inventory')}
                 <span className="hidden md:inline">Inventory</span>
-              </div>
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer hover:bg-slate-100 rounded-none"
-                  onClick={() => setActiveTab("financial")}>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financial" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('financial')}
                 <span className="hidden md:inline">Financial</span>
-              </div>
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer hover:bg-slate-100 rounded-none"
-                  onClick={() => setActiveTab("access")}>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="access" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('access')}
                 <span className="hidden md:inline">Access</span>
-              </div>
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer hover:bg-slate-100 rounded-none"
-                  onClick={() => setActiveTab("notifications")}>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="notifications" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('notifications')}
                 <span className="hidden md:inline">Notifications</span>
-              </div>
-              <div className="flex items-center justify-center py-3 px-2 text-sm cursor-pointer hover:bg-slate-100 rounded-none"
-                  onClick={() => setActiveTab("company")}>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="company" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
                 {renderTabIcon('company')}
                 <span className="hidden md:inline">Company</span>
-              </div>
+              </TabsTrigger>
             </TabsList>
             
             <div className="p-6">
