@@ -53,6 +53,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
 import { useCSV } from '@/contexts/CSVContext';
+import { CSVExport } from '@/components/csv/CSVExport';
+import { CSVImport } from '@/components/csv/CSVImport';
 
 interface Category {
   id: number;
@@ -93,42 +95,6 @@ const Inventory: React.FC = () => {
   
   // CSV Integration
   const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
-  
-  // Set up CSV export/import when products change
-  useEffect(() => {
-    if (products && products.length > 0) {
-      setCSVData(filteredProducts || []);
-      
-      setCSVOptions({
-        filename: 'inventory-products.csv',
-        customHeaders: {
-          id: 'ID',
-          name: 'Product Name',
-          drugName: 'Drug Name',
-          category: 'Category',
-          sku: 'SKU',
-          quantity: 'Quantity',
-          unitOfMeasure: 'UoM',
-          costPrice: 'Cost Price',
-          sellingPrice: 'Selling Price',
-          location: 'Location',
-          shelf: 'Shelf',
-          expiryDate: 'Expiry Date',
-          status: 'Status'
-        },
-        exportButtonText: 'Export Inventory',
-        importButtonText: 'Import Products',
-        onImport: handleImportProducts
-      });
-    } else {
-      clearCSV();
-    }
-    
-    // Clean up CSV context when component unmounts
-    return () => {
-      clearCSV();
-    };
-  }, [products, filteredProducts, statusFilter, categoryFilter, searchTerm]);
   
   // Handle CSV import
   const handleImportProducts = async (data: Record<string, string>[]) => {
@@ -184,6 +150,38 @@ const Inventory: React.FC = () => {
     queryKey: ['/api/categories'],
     refetchOnWindowFocus: false,
   });
+  
+  // Set up CSV options when component loads
+  useEffect(() => {
+    if (products && products.length > 0) {
+      setCSVOptions({
+        filename: 'inventory-products.csv',
+        customHeaders: {
+          id: 'ID',
+          name: 'Product Name',
+          drugName: 'Drug Name',
+          category: 'Category',
+          sku: 'SKU',
+          quantity: 'Quantity',
+          unitOfMeasure: 'UoM',
+          costPrice: 'Cost Price',
+          sellingPrice: 'Selling Price',
+          location: 'Location',
+          shelf: 'Shelf',
+          expiryDate: 'Expiry Date',
+          status: 'Status'
+        },
+        exportButtonText: 'Export Inventory',
+        importButtonText: 'Import Products',
+        onImport: handleImportProducts
+      });
+    }
+    
+    // Clean up CSV context when component unmounts
+    return () => {
+      clearCSV();
+    };
+  }, []);
 
   // Add category mutation
   const addCategoryMutation = useMutation({
@@ -272,6 +270,17 @@ const Inventory: React.FC = () => {
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
+  
+  // Update CSV data when filtered products change
+  useEffect(() => {
+    if (filteredProducts && filteredProducts.length > 0) {
+      setCSVData(filteredProducts);
+    } else if (products && products.length > 0) {
+      setCSVData(products);
+    } else {
+      clearCSV();
+    }
+  }, [filteredProducts, products, searchTerm, statusFilter, categoryFilter]);
 
   // Handle category form submission
   const handleAddCategory = (e: React.FormEvent) => {
@@ -391,6 +400,21 @@ const Inventory: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Inventory Management</h1>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+          {activeTab === 'inventory' && (
+            <>
+              {/* Import/Export Buttons */}
+              <div className="flex gap-2 mr-2">
+                <CSVImport />
+                <CSVExport 
+                  data={filteredProducts} 
+                  filename="inventory-products.csv"
+                  buttonText="Export CSV"
+                  variant="outline"
+                  size="sm"
+                />
+              </div>
+            </>
+          )}
           <Button onClick={() => setIsProductFormOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product

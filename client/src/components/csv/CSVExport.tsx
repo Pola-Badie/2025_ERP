@@ -11,6 +11,7 @@ interface CSVExportProps<T extends Record<string, any>> {
   buttonText?: string;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   disabled?: boolean;
 }
 
@@ -22,6 +23,7 @@ export const CSVExport = <T extends Record<string, any>>({
   buttonText = 'Export CSV',
   className = '',
   variant = 'outline',
+  size = 'default',
   disabled
 }: CSVExportProps<T>) => {
   
