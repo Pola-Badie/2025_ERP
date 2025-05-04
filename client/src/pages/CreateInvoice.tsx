@@ -94,25 +94,40 @@ const CreateInvoice = () => {
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
 
-  // Fetch customers
+  // Fetch customers with optimized performance
   const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<any[]>({
     queryKey: ['/api/customers', customerSearchTerm],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-      return await res.json();
+      if (customerSearchTerm && customerSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
     enabled: customerSearchTerm.length > 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
-  // Fetch products - only when search term is present to improve performance
+  // Fetch products with optimized performance
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
     queryKey: ['/api/products', productSearchTerm],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
-      return await res.json();
+      // Only make API call when actively searching
+      if (productSearchTerm && productSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes of cache
-    enabled: true, // We'll manage search fetching in the handleProductSearch function
+    enabled: true,
+    // Add these optimizations:
+    refetchOnWindowFocus: false, // Don't refetch when tab gets focus
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnReconnect: false, // Don't refetch when reconnecting
   });
 
   // Set up the form
@@ -217,32 +232,40 @@ const CreateInvoice = () => {
   });
 
   // Calculate subtotal, tax, and total whenever items or tax rate changes
-  useEffect(() => {
+  // Using React.useCallback to memoize the calculation function
+  const calculateTotals = React.useCallback(() => {
     if (watchItems) {
-      // Calculate item totals
-      const updatedItems = watchItems.map(item => ({
-        ...item,
-        total: item.quantity * item.unitPrice,
-      }));
-
-      // Update items with calculated totals
-      updatedItems.forEach((item, index) => {
-        form.setValue(`items.${index}.total`, item.total);
+      // Calculate item totals and update in a batch to reduce renders
+      const updatedTotals = watchItems.map((item, index) => {
+        const total = item.quantity * item.unitPrice;
+        return { index, total };
+      });
+      
+      // Set all totals at once
+      updatedTotals.forEach(({ index, total }) => {
+        form.setValue(`items.${index}.total`, total);
       });
 
-      // Calculate subtotal
-      const subtotal = updatedItems.reduce((sum, item) => sum + item.total, 0);
-      form.setValue('subtotal', subtotal);
-
-      // Calculate tax amount
+      // Calculate derived values
+      const subtotal = updatedTotals.reduce((sum, { total }) => sum + total, 0);
       const taxAmount = (subtotal * watchTaxRate) / 100;
-      form.setValue('taxAmount', taxAmount);
-
-      // Calculate grand total
       const grandTotal = subtotal + taxAmount;
+      
+      // Update form values all at once
+      form.setValue('subtotal', subtotal);
+      form.setValue('taxAmount', taxAmount);
       form.setValue('grandTotal', grandTotal);
     }
   }, [watchItems, watchTaxRate, form]);
+
+  // Run the calculation with a small delay to avoid too frequent updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      calculateTotals();
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [calculateTotals]);
 
   // Update amount paid based on payment status
   useEffect(() => {
