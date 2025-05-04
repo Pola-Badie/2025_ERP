@@ -20,6 +20,7 @@ import NotFound from "@/pages/not-found";
 import MainLayout from "@/components/layout/MainLayout";
 import { useState, useEffect } from "react";
 import { LanguageProvider } from "./contexts/LanguageContext";
+import { CSVProvider } from "./contexts/CSVContext";
 
 function App() {
   // Set document title
@@ -29,29 +30,31 @@ function App() {
 
   return (
     <LanguageProvider>
-      <MainLayout>
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/inventory" component={Inventory} />
-          <Route path="/expenses" component={Expenses} />
-          <Route path="/sales" component={Reports} />
-          <Route path="/reports" component={Reports} />
-          <Route path="/accounting" component={Accounting} />
-          <Route path="/create-invoice" component={CreateInvoice} />
-          <Route path="/create-quotation" component={CreateQuotation} />
-          <Route path="/invoice-history" component={InvoiceHistory} />
-          <Route path="/quotation-history" component={QuotationHistory} />
-          <Route path="/label" component={LabelGenerator} />
-          <Route path="/suppliers" component={Approvals} />
-          <Route path="/backup" component={BackupRestore} />
-          <Route path="/settings" component={Settings} />
-          <Route path="/preferences" component={Preferences} />
-          <Route path="/system-preferences" component={SystemPreferences} />
-          <Route path="/users" component={UserManagement} />
-          <Route path="/customers-demo" component={CustomersDemo} />
-          <Route component={NotFound} />
-        </Switch>
-      </MainLayout>
+      <CSVProvider>
+        <MainLayout>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/expenses" component={Expenses} />
+            <Route path="/sales" component={Reports} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/accounting" component={Accounting} />
+            <Route path="/create-invoice" component={CreateInvoice} />
+            <Route path="/create-quotation" component={CreateQuotation} />
+            <Route path="/invoice-history" component={InvoiceHistory} />
+            <Route path="/quotation-history" component={QuotationHistory} />
+            <Route path="/label" component={LabelGenerator} />
+            <Route path="/suppliers" component={Approvals} />
+            <Route path="/backup" component={BackupRestore} />
+            <Route path="/settings" component={Settings} />
+            <Route path="/preferences" component={Preferences} />
+            <Route path="/system-preferences" component={SystemPreferences} />
+            <Route path="/users" component={UserManagement} />
+            <Route path="/customers-demo" component={CustomersDemo} />
+            <Route component={NotFound} />
+          </Switch>
+        </MainLayout>
+      </CSVProvider>
     </LanguageProvider>
   );
 }
