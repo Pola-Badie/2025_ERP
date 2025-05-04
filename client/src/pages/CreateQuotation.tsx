@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,6 +86,7 @@ type QuotationFormValues = z.infer<typeof quotationFormSchema>;
 
 const CreateQuotation: React.FC = () => {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(addDays(new Date(), 30));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openCustomerSelect, setOpenCustomerSelect] = useState(false);
@@ -116,23 +118,38 @@ const CreateQuotation: React.FC = () => {
     [key: string]: any;
   }
 
-  // Fetch customers
+  // Fetch customers with optimized performance
   const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<Customer[]>({
     queryKey: ['/api/customers', customerSearchTerm],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-      return await res.json();
+      if (customerSearchTerm && customerSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
     enabled: customerSearchTerm.length > 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
-  // Fetch products
+  // Fetch products with optimized performance
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ['/api/products', productSearchTerm],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
-      return await res.json();
+      // Only make API call when actively searching
+      if (productSearchTerm && productSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   // Form setup with react-hook-form and zod validation
@@ -164,18 +181,28 @@ const CreateQuotation: React.FC = () => {
     name: 'items',
   });
 
-  // Calculate totals whenever items change
-  React.useEffect(() => {
+  // Calculate totals whenever items change - optimized with memoization
+  const calculateTotals = React.useCallback(() => {
     const items = form.getValues('items');
     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
     const taxRate = form.getValues('taxRate') || 0;
     const taxAmount = (subtotal * taxRate) / 100;
     const grandTotal = subtotal + taxAmount;
 
+    // Set all values at once to reduce renders
     form.setValue('subtotal', subtotal);
     form.setValue('taxAmount', taxAmount);
     form.setValue('grandTotal', grandTotal);
-  }, [form.watch('items'), form.watch('taxRate')]);
+  }, [form]);
+
+  // Run the calculation with a small delay to avoid too frequent updates
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      calculateTotals();
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [form.watch('items'), form.watch('taxRate'), calculateTotals]);
 
   // Set the validUntil date when selectedDate changes
   useEffect(() => {
@@ -308,7 +335,7 @@ const CreateQuotation: React.FC = () => {
           <h1 className="text-2xl font-bold">Create Quotation</h1>
           <p className="text-muted-foreground">Create a new quotation for a customer</p>
         </div>
-        <Button onClick={() => window.location.href = '/quotation-history'}>
+        <Button onClick={() => setLocation('/quotation-history')}>
           <FileText className="mr-2 h-4 w-4" />
           View Quotation History
         </Button>
