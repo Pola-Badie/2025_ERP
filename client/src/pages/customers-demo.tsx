@@ -48,11 +48,26 @@ const CustomersDemo: React.FC = () => {
   // Convert API customers to our UI format when data is loaded
   useEffect(() => {
     if (apiCustomers) {
+      // Management positions to randomly assign
+      const managementPositions = [
+        "Procurement Manager",
+        "Supply Chain Director",
+        "Chief Medical Officer",
+        "Inventory Manager",
+        "Hospital Administrator",
+        "Pharmacy Manager",
+        "Logistics Coordinator",
+        "Operations Director",
+        "Clinical Manager",
+        "Regional Manager"
+      ];
+      
       const formattedCustomers: CustomerData[] = apiCustomers.map(customer => ({
         id: customer.id,
         name: customer.name,
-        position: "Customer", // Default position
-        company: customer.city, // Using city as company for demo
+        // Assign a management position based on customer ID (for consistency)
+        position: managementPositions[customer.id % managementPositions.length],
+        company: customer.city + " Pharmaceuticals", // Using city as part of company name
         sector: customer.state, // Using state as sector for demo
         phone: customer.phone,
         email: customer.email,
