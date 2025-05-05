@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="mb-6">
+    <div>
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
         <div>
