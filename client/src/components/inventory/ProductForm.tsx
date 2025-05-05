@@ -123,6 +123,28 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
       });
     },
   });
+  
+  // Update product mutation
+  const updateProduct = useMutation({
+    mutationFn: async (data: ProductFormValues & { id: number }) => {
+      return apiRequest('PATCH', `/api/products/${data.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Success',
+        description: 'Product has been updated successfully.',
+      });
+      if (onSuccess) onSuccess();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to update product: ${error.message}`,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const onSubmit = (data: ProductFormValues) => {
     // Create a clean object with only the fields needed for API submission using the specified format
@@ -147,7 +169,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
       } : {})
     };
     
-    createProduct.mutate(formattedData as any);
+    if (initialData?.id) {
+      // If we have an ID, we're updating an existing product
+      updateProduct.mutate({ 
+        ...formattedData, 
+        id: initialData.id 
+      } as any);
+    } else {
+      // Otherwise we're creating a new product
+      createProduct.mutate(formattedData as any);
+    }
   };
 
   return (
@@ -278,7 +309,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                 <FormLabel>Unit of Measure</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -448,7 +479,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                 <FormLabel>Status</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -474,7 +505,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                 <FormLabel>Product Type</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -506,9 +537,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
           </Button>
           <Button 
             type="submit" 
-            disabled={createProduct.isPending}
+            disabled={createProduct.isPending || updateProduct.isPending}
           >
-            {createProduct.isPending ? 'Saving...' : 'Save Product'}
+            {createProduct.isPending || updateProduct.isPending 
+              ? 'Saving...' 
+              : initialData?.id 
+                ? 'Update Product' 
+                : 'Save Product'
+            }
           </Button>
         </div>
       </form>
