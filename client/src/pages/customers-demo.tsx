@@ -7,7 +7,24 @@ import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+// Define the API Customer type based on the response
+interface ApiCustomer {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  totalPurchases: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const CustomersDemo: React.FC = () => {
   // States
@@ -18,44 +35,32 @@ const CustomersDemo: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [customerData, setCustomerData] = useState<CustomerData[]>([]);
   
-  // Sample customer data
-  const initialCustomerData: CustomerData[] = [
-    {
-      id: 1,
-      name: "Ahmed Salah",
-      position: "Procurement Manager",
-      company: "Cairo Pharmaceuticals",
-      sector: "Healthcare",
-      phone: "+20 112-345-6789",
-      email: "ahmed.salah@cairopharma.com",
-      address: "15 Nile Road, Cairo, Egypt"
-    },
-    {
-      id: 2,
-      name: "Nadia Ali",
-      position: "Supply Chain Director",
-      company: "Alexandria Chemicals",
-      sector: "Chemical Manufacturing",
-      phone: "+20 122-987-6543",
-      email: "nadia.ali@alexchem.com",
-      address: "27 Mediterranean Avenue, Alexandria, Egypt"
-    },
-    {
-      id: 3,
-      name: "Mohammed Ibrahim",
-      position: "Chief Medical Officer",
-      company: "Al-Delta Hospital Group",
-      sector: "Medical Services",
-      phone: "+20 106-732-4582",
-      email: "m.ibrahim@deltahealth.org",
-      address: "8 Mansoura Road, Tanta, Egypt"
+  // Fetch customers from API
+  const { data: apiCustomers, isLoading, isError } = useQuery<ApiCustomer[]>({
+    queryKey: ['/api/customers'],
+    queryFn: async () => {
+      console.log('API GET request to /api/customers:', searchQuery);
+      const res = await apiRequest('GET', '/api/customers');
+      return res.json();
     }
-  ];
+  });
   
-  // Initialize customer data
+  // Convert API customers to our UI format when data is loaded
   useEffect(() => {
-    setCustomerData(initialCustomerData);
-  }, []);
+    if (apiCustomers) {
+      const formattedCustomers: CustomerData[] = apiCustomers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        position: "Customer", // Default position
+        company: customer.city, // Using city as company for demo
+        sector: customer.state, // Using state as sector for demo
+        phone: customer.phone,
+        email: customer.email,
+        address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zipCode}`
+      }));
+      setCustomerData(formattedCustomers);
+    }
+  }, [apiCustomers]);
 
   // Action handlers (just for demo purposes)
   const handleViewProfile = (customer: CustomerData) => {
@@ -189,7 +194,17 @@ const CustomersDemo: React.FC = () => {
             </div>
             
             {/* Customer data */}
-            {filteredCustomers.length > 0 ? (
+            {isLoading ? (
+              <div className="py-8 text-center text-slate-500">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                <p className="text-lg font-medium">Loading customers...</p>
+              </div>
+            ) : isError ? (
+              <div className="py-8 text-center text-red-500">
+                <p className="text-lg font-medium">Error loading customers</p>
+                <p>Please try again later</p>
+              </div>
+            ) : filteredCustomers.length > 0 ? (
               filteredCustomers.map((customer: CustomerData) => (
                 <CustomerCard 
                   key={customer.id}

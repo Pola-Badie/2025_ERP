@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
     { path: '/accounting', key: 'accounting', icon: 'landmark' },
     { path: '/suppliers', key: 'suppliers', icon: 'truck' },
+    { path: '/customers-demo', key: 'customers', icon: 'user-plus' },
     { path: '/create-invoice', key: 'createInvoice', icon: 'file-plus' },
     { path: '/create-quotation', key: 'createQuotation', icon: 'file-plus' },
     { path: '/invoice-history', key: 'invoiceHistory', icon: 'receipt' },
