@@ -64,13 +64,28 @@ const CustomersDemo: React.FC = () => {
         "Regional Manager"
       ];
       
+      // Industry sectors to assign
+      const industrySectors = [
+        "Healthcare",
+        "Pharmaceuticals",
+        "Medical Devices",
+        "Biotechnology",
+        "Food & Beverage",
+        "Chemical Manufacturing",
+        "Research & Development",
+        "Hospital & Clinics",
+        "Retail Pharmacy",
+        "Wholesale Distribution"
+      ];
+      
       const formattedCustomers: CustomerData[] = apiCustomers.map(customer => ({
         id: customer.id,
         name: customer.name,
         // Assign a management position based on customer ID (for consistency)
         position: managementPositions[customer.id % managementPositions.length],
         company: customer.city + " Pharmaceuticals", // Using city as part of company name
-        sector: customer.state, // Using state as sector for demo
+        // Assign an industry sector based on customer ID (for consistency)
+        sector: industrySectors[customer.id % industrySectors.length],
         phone: customer.phone,
         email: customer.email,
         address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zipCode}`
@@ -172,17 +187,37 @@ const CustomersDemo: React.FC = () => {
     );
   });
   
+  // Industry sectors to assign
+  const industrySectors = [
+    "Healthcare",
+    "Pharmaceuticals",
+    "Medical Devices",
+    "Biotechnology",
+    "Food & Beverage",
+    "Chemical Manufacturing",
+    "Research & Development",
+    "Hospital & Clinics",
+    "Retail Pharmacy",
+    "Wholesale Distribution"
+  ];
+  
   // Handle CSV import
   const handleImportCSV = (csvData: Record<string, string>[]) => {
     try {
       // Transform CSV data to our CustomerData format
       const importedCustomers = csvData.map((row, index) => {
+        // Get sector from CSV or select a valid sector from our list
+        const csvSector = row.sector || row.Sector || '';
+        const sector = industrySectors.includes(csvSector) 
+          ? csvSector 
+          : industrySectors[Math.floor(Math.random() * industrySectors.length)];
+          
         return {
           id: customerData.length + index + 1,
           name: row.name || row.Name || '',
           position: row.position || row.Position || 'Procurement Manager',
           company: row.company || row.Company || 'Pharmaceutical Company',
-          sector: row.sector || row.Sector || 'Healthcare',
+          sector: sector,
           phone: row.phone || row.Phone || '',
           email: row.email || row.Email || '',
           address: row.address || row.Address || ''

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CustomerData } from './CustomerCard';
 
 interface AddCustomerDialogProps {
@@ -17,11 +18,25 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
   onOpenChange,
   onSave
 }) => {
+  // Industry sectors to select from
+  const industrySectors = [
+    "Healthcare",
+    "Pharmaceuticals",
+    "Medical Devices",
+    "Biotechnology",
+    "Food & Beverage",
+    "Chemical Manufacturing",
+    "Research & Development",
+    "Hospital & Clinics",
+    "Retail Pharmacy",
+    "Wholesale Distribution"
+  ];
+  
   const [customer, setCustomer] = useState<Partial<CustomerData>>({
     name: '',
     company: '',
     position: '',
-    sector: '',
+    sector: 'Healthcare', // Default sector
     phone: '',
     email: '',
     address: ''
@@ -36,6 +51,10 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
     if (name === 'name' && value.trim() && nameError) {
       setNameError(null);
     }
+  };
+  
+  const handleSectorChange = (value: string) => {
+    setCustomer(prev => ({ ...prev, sector: value }));
   };
   
   const handleSave = () => {
@@ -118,13 +137,23 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
           
           <div className="grid gap-2">
             <Label htmlFor="sector">Sector</Label>
-            <Input
-              id="sector"
-              name="sector"
-              placeholder="Business sector"
-              value={customer.sector || ''}
-              onChange={handleInputChange}
-            />
+            <Select 
+              defaultValue={customer.sector} 
+              onValueChange={handleSectorChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select industry sector" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {industrySectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid gap-2">
