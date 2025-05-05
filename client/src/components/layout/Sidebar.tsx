@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
@@ -17,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const navItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
     { path: '/inventory', key: 'products', icon: 'package' },
+    { path: '/procurement', key: 'procurement', icon: 'shopping-bag' },
     { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
     { path: '/accounting', key: 'accounting', icon: 'landmark' },
     { path: '/suppliers', key: 'suppliers', icon: 'truck' },

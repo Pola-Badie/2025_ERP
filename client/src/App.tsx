@@ -23,6 +23,7 @@ import LabelGenerator from "@/pages/LabelGenerator";
 import Accounting from "@/pages/Accounting";
 import UserManagement from "@/pages/UserManagement";
 import CustomersDemo from "@/pages/customers-demo";
+import Procurement from "@/pages/Procurement";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
             <Route path="/system-preferences" component={SystemPreferences} />
             <Route path="/users" component={UserManagement} />
             <Route path="/customers-demo" component={CustomersDemo} />
+            <Route path="/procurement" component={Procurement} />
             <Route component={NotFound} />
           </Switch>
         </MainLayout>
