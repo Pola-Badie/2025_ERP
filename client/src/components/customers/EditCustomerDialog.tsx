@@ -20,6 +20,20 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
   customer,
   onSave
 }) => {
+  // Industry sectors to select from
+  const industrySectors = [
+    "Healthcare",
+    "Pharmaceuticals",
+    "Medical Devices",
+    "Biotechnology",
+    "Food & Beverage",
+    "Chemical Manufacturing",
+    "Research & Development",
+    "Hospital & Clinics",
+    "Retail Pharmacy",
+    "Wholesale Distribution"
+  ];
+  
   const [editedCustomer, setEditedCustomer] = useState<Partial<CustomerData>>({});
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   
@@ -41,6 +55,20 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
       setFormErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+  
+  // Handle sector change from dropdown
+  const handleSectorChange = (value: string) => {
+    setEditedCustomer(prev => ({ ...prev, sector: value }));
+    
+    // Clear error for this field if it exists
+    if (formErrors.sector) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.sector;
         return newErrors;
       });
     }
@@ -152,13 +180,23 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
           
           <div className="grid gap-2">
             <Label htmlFor="sector">Sector</Label>
-            <Input
-              id="sector"
-              name="sector"
-              placeholder="Business sector"
-              value={editedCustomer.sector || ''}
-              onChange={handleInputChange}
-            />
+            <Select 
+              value={editedCustomer.sector} 
+              onValueChange={handleSectorChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select industry sector" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {industrySectors.map((sector) => (
+                    <SelectItem key={sector} value={sector}>
+                      {sector}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid gap-2">
