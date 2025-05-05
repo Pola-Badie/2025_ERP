@@ -37,6 +37,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, Filter, FileDown, MoreVertical, Trash2, Edit, AlertCircle, FileCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
+import PurchaseOrderForm from '@/components/procurement/PurchaseOrderForm';
 
 // Define types for Purchase Order and Supplier
 interface Supplier {
@@ -319,20 +320,18 @@ const Procurement: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog for creating a new purchase order will be implemented later */}
+      {/* Dialog for creating a new purchase order */}
       <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Purchase Order</DialogTitle>
             <DialogDescription>
               Create a new purchase order to send to a supplier
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center text-muted-foreground">
-              Purchase order form will be implemented in future updates
-            </p>
-          </div>
+          <PurchaseOrderForm 
+            onSuccess={() => setIsPurchaseOrderFormOpen(false)} 
+          />
         </DialogContent>
       </Dialog>
     </div>
