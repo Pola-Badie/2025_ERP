@@ -49,13 +49,13 @@ interface Product {
 const salesData = [
   { name: 'Jan', sales: 65 },
   { name: 'Feb', sales: 59 },
-  { name: 'March', sales: 80 },
+  { name: 'Mar', sales: 80 },
   { name: 'Apr', sales: 81 },
   { name: 'May', sales: 56 },
-  { name: 'June', sales: 55 },
-  { name: 'July', sales: 40 },
-  { name: 'August', sales: 50 },
-  { name: 'Sept', sales: 65 },
+  { name: 'Jun', sales: 55 },
+  { name: 'Jul', sales: 40 },
+  { name: 'Aug', sales: 50 },
+  { name: 'Sep', sales: 65 },
   { name: 'Oct', sales: 75 },
   { name: 'Nov', sales: 96 },
   { name: 'Dec', sales: 110 },
@@ -79,6 +79,25 @@ const categoryPerformanceData = [
 
 const Dashboard: React.FC = () => {
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Check screen width on component mount and when window resizes
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
@@ -316,14 +335,38 @@ const Dashboard: React.FC = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-0 h-[200px]">
+          <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={salesData}
                 margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={props => {
+                    const { x, y, payload } = props;
+                    return (
+                      <g transform={`translate(${x},${y})`}>
+                        <text 
+                          x={0} 
+                          y={0} 
+                          dy={16} 
+                          textAnchor="middle" 
+                          fill="#666" 
+                          fontSize={10}
+                        >
+                          {payload.value}
+                        </text>
+                      </g>
+                    );
+                  }}
+                  padding={{ left: 10, right: 10 }}
+                  height={30}
+                  interval={isMobile ? 1 : 0}
+                />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line 
