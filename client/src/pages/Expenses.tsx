@@ -398,7 +398,7 @@ const Expenses: React.FC = () => {
 
       {/* New Expense Dialog */}
       <Dialog open={isExpenseFormOpen} onOpenChange={setIsExpenseFormOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Expense Entry</DialogTitle>
           </DialogHeader>
@@ -408,7 +408,7 @@ const Expenses: React.FC = () => {
 
       {/* Category Settings Dialog */}
       <Dialog open={isCategorySettingsOpen} onOpenChange={setIsCategorySettingsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Category Settings</DialogTitle>
             <DialogDescription>Manage expense categories for better organization</DialogDescription>
