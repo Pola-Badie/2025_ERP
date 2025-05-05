@@ -58,9 +58,11 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
         
         <div className="hidden md:block">
-          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 inline-block">
-            {customer.sector}
-          </span>
+          <div className="w-fit max-w-full">
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 inline-block truncate max-w-[120px]" title={customer.sector}>
+              {customer.sector}
+            </span>
+          </div>
         </div>
         
         <div className="hidden sm:block md:block">
@@ -125,11 +127,13 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
       {/* Mobile view extra information */}
       <div className="md:hidden mt-2 text-xs text-slate-500 space-y-1">
         <div><span className="font-medium">Company:</span> {customer.company}</div>
-        <div>
-          <span className="font-medium">Sector:</span> 
-          <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            {customer.sector}
-          </span>
+        <div className="flex items-center">
+          <span className="font-medium mr-1">Sector:</span> 
+          <div className="w-fit max-w-[calc(100%-60px)]">
+            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate max-w-full" title={customer.sector}>
+              {customer.sector}
+            </span>
+          </div>
         </div>
         <div><span className="font-medium">Address:</span> {customer.address}</div>
       </div>
