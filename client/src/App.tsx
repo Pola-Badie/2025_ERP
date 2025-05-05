@@ -10,7 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
 import Reports from "@/pages/Reports";
-import Approvals from "@/pages/Approvals";
+import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
 import Preferences from "@/pages/Preferences";
@@ -47,7 +47,7 @@ function App() {
             <Route path="/invoice-history" component={InvoiceHistory} />
             <Route path="/quotation-history" component={QuotationHistory} />
             <Route path="/label" component={LabelGenerator} />
-            <Route path="/suppliers" component={Approvals} />
+            <Route path="/suppliers" component={Suppliers} />
             <Route path="/backup" component={BackupRestore} />
             <Route path="/settings" component={Settings} />
             <Route path="/preferences" component={Preferences} />

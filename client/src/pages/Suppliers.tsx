@@ -223,16 +223,7 @@ const Suppliers: React.FC = () => {
     (supplier.phone && supplier.phone.toLowerCase().includes(search.toLowerCase()))
   );
 
-  const csvColumns = [
-    { header: 'Name', accessorKey: 'name' },
-    { header: 'Contact Person', accessorKey: 'contactPerson' },
-    { header: 'Email', accessorKey: 'email' },
-    { header: 'Phone', accessorKey: 'phone' },
-    { header: 'Address', accessorKey: 'address' },
-    { header: 'City', accessorKey: 'city' },
-    { header: 'State', accessorKey: 'state' },
-    { header: 'Zip Code', accessorKey: 'zipCode' },
-  ];
+
 
   return (
     <div className="container mx-auto p-6">
@@ -244,19 +235,31 @@ const Suppliers: React.FC = () => {
         <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
           <CSVExport
             data={suppliers}
-            columns={csvColumns}
-            filename="suppliers"
+            filename="suppliers.csv"
+            customHeaders={{
+              name: 'Name',
+              contactPerson: 'Contact Person',
+              email: 'Email',
+              phone: 'Phone',
+              address: 'Address',
+              city: 'City',
+              state: 'State',
+              zipCode: 'Zip Code'
+            }}
+            buttonText="Export Suppliers"
             size="sm"
           />
           <CSVImport
-            endpoint="/api/suppliers/import"
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+            onImport={(data) => {
+              // Here we would normally send this data to the backend
+              // But for now just show a toast that indicates successful import
               toast({
-                title: 'Success',
-                description: 'Suppliers imported successfully',
+                title: 'Import Functionality',
+                description: `Imported ${data.length} suppliers (API endpoint not implemented yet)`,
               });
+              queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
             }}
+            buttonText="Import Suppliers"
             size="sm"
           />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
