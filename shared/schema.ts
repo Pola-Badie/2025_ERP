@@ -49,6 +49,7 @@ export const products = pgTable("products", {
   lowStockThreshold: integer("low_stock_threshold").default(10),
   expiryDate: date("expiry_date"),
   status: text("status").default("active").notNull(), // 'active', 'expired', 'out_of_stock', 'near'
+  productType: text("product_type").default("finished").notNull(), // 'raw', 'semi-raw', 'finished'
   manufacturer: text("manufacturer"),
   location: text("location"),
   shelf: text("shelf"),
@@ -422,6 +423,7 @@ export const insertProductSchema = createInsertSchema(products)
     lowStockThreshold: true,
     expiryDate: true,
     status: true,
+    productType: true,
     manufacturer: true,
     location: true,
     shelf: true,
@@ -628,6 +630,7 @@ export const updateProductSchema = z.object({
   location: z.string().optional(),
   shelf: z.string().optional(),
   status: z.string().optional(),
+  productType: z.string().optional(),
   imagePath: z.string().optional(),
   updatedAt: z.date().optional()
 });

@@ -49,6 +49,7 @@ const productFormSchema = z.object({
   shelf: z.string().optional(),
   expiryDate: z.string().optional(),
   status: z.string().default('active'),
+  productType: z.string().default('finished'),
 });
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -89,6 +90,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     shelf: '',
     expiryDate: '',
     status: 'active',
+    productType: 'finished',
   };
 
   // Initialize the form
