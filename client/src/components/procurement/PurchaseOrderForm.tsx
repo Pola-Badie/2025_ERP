@@ -11,13 +11,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Trash2, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Trash2, Plus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Supplier {
   id: number;
@@ -71,9 +87,26 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   const [currentItem, setCurrentItem] = useState<{
     productId: number;
     quantity: number;
+    unitPrice?: number;
   }>({
     productId: 0,
     quantity: 1,
+  });
+  
+  const [showProductDialog, setShowProductDialog] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    stock: 0,
+    uom: 'unit',
+    category_id: 1,
+    image: '',
+    status: 'active',
+    reorder_level: 10,
+    location: '',
+    shelf: '',
+    type: 'raw'
   });
 
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<PurchaseOrderFormValues>({
@@ -95,6 +128,34 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
 
   const { data: products, isLoading: isProductsLoading } = useQuery<Product[]>({
     queryKey: ['/api/products'],
+  });
+
+  const createProductMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/products', data);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Success',
+        description: 'Product has been created',
+      });
+      setShowProductDialog(false);
+      setCurrentItem({
+        ...currentItem,
+        productId: data.id,
+        unitPrice: data.price
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating product:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create product',
+        variant: 'destructive',
+      });
+    }
   });
 
   const createMutation = useMutation({
@@ -205,6 +266,19 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
     updatedItems.splice(index, 1);
     setItems(updatedItems);
   };
+  
+  const handleCreateProduct = () => {
+    if (!newProduct.name || !newProduct.price) {
+      toast({
+        title: 'Required fields',
+        description: 'Please fill out the product name and price',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    createProductMutation.mutate(newProduct);
+  };
 
   const calculateTotal = () => {
     return items.reduce((sum, item) => sum + item.total, 0);
@@ -314,22 +388,81 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="w-full sm:w-1/2">
               <Label htmlFor="product">Product</Label>
-              <Select 
-                value={currentItem.productId?.toString() || ''} 
-                onValueChange={(value) => setCurrentItem({...currentItem, productId: parseInt(value)})}
-              >
-                <SelectTrigger id="product">
-                  <SelectValue placeholder="Select product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products?.map((product) => (
-                    <SelectItem key={product.id} value={product.id.toString()}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              <div className="relative">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                    >
+                      {currentItem.productId 
+                        ? products?.find(product => product.id === currentItem.productId)?.name || "Select product" 
+                        : "Select or add product"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search for a product..." />
+                      <CommandEmpty>
+                        <div className="p-2 text-sm text-gray-500">
+                          No products found.
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            onClick={() => setShowProductDialog(true)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add New
+                          </Button>
+                        </div>
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {products?.map((product) => (
+                          <CommandItem
+                            key={product.id}
+                            value={product.id.toString()}
+                            onSelect={(value) => {
+                              setCurrentItem({
+                                ...currentItem,
+                                productId: parseInt(value),
+                                unitPrice: product.price
+                              });
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                currentItem.productId === product.id
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                            <span className="flex-1">{product.name}</span>
+                            <span className="text-sm text-gray-500">${product.price?.toFixed(2)}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandSeparator />
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => {
+                            setShowProductDialog(true);
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add New Product
+                        </CommandItem>
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
+            
             <div className="w-full sm:w-1/4">
               <Label htmlFor="quantity">Quantity</Label>
               <Input
@@ -344,6 +477,7 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
               type="button"
               onClick={handleAddItem}
               className="w-full sm:w-auto"
+              disabled={!currentItem.productId}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Item
@@ -446,6 +580,105 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           {isEditMode ? 'Update' : 'Create'} Purchase Order
         </Button>
       </div>
+
+      {/* Product Dialog */}
+      <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+            <DialogDescription>
+              Fill out the form below to add a new product to your inventory.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Product Name</Label>
+                <Input
+                  id="name"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                  placeholder="Enter product name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="uom">Unit of Measure</Label>
+                <Select
+                  value={newProduct.uom}
+                  onValueChange={(value) => setNewProduct({...newProduct, uom: value})}
+                >
+                  <SelectTrigger id="uom">
+                    <SelectValue placeholder="Select UoM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unit">Unit</SelectItem>
+                    <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                    <SelectItem value="g">Gram (g)</SelectItem>
+                    <SelectItem value="mg">Milligram (mg)</SelectItem>
+                    <SelectItem value="l">Liter (L)</SelectItem>
+                    <SelectItem value="ml">Milliliter (mL)</SelectItem>
+                    <SelectItem value="box">Box</SelectItem>
+                    <SelectItem value="bottle">Bottle</SelectItem>
+                    <SelectItem value="pack">Pack</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">Product Type</Label>
+                <Select
+                  value={newProduct.type}
+                  onValueChange={(value) => setNewProduct({...newProduct, type: value})}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="raw">Raw Material</SelectItem>
+                    <SelectItem value="semi-raw">Semi-Raw Material</SelectItem>
+                    <SelectItem value="finished">Finished Product</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input
+                id="description"
+                value={newProduct.description}
+                onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                placeholder="Enter product description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowProductDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleCreateProduct}
+              disabled={createProductMutation.isPending}
+            >
+              {createProductMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 };
