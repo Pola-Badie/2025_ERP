@@ -72,6 +72,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Landmark size={20} />;
       case 'truck':
         return <Truck size={20} />;
+      case 'shopping-bag':
+        return <ShoppingBag size={20} />;
       default:
         return null;
     }

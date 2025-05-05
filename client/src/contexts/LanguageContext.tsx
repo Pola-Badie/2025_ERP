@@ -36,6 +36,7 @@ const translations: Record<Language, Record<string, string>> = {
     systemPreferences: 'System Preferences',
     label: 'Label',
     reports: 'Reports',
+    procurement: 'Procurement',
     
     // Dashboard
     totalCustomers: 'Total Customers',
@@ -100,6 +101,7 @@ const translations: Record<Language, Record<string, string>> = {
     systemPreferences: 'تفضيلات النظام',
     label: 'الملصقات',
     reports: 'التقارير',
+    procurement: 'المشتريات',
     
     // Dashboard
     totalCustomers: 'إجمالي العملاء',

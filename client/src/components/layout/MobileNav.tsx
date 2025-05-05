@@ -7,11 +7,14 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import { ShoppingBag } from 'lucide-react';
 import ExpenseForm from '@/components/expenses/ExpenseForm';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const MobileNav: React.FC = () => {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = React.useState(false);
+  const { t } = useLanguage();
 
   const handleNewExpense = () => {
     setIsOpen(true);
@@ -32,7 +35,7 @@ const MobileNav: React.FC = () => {
                 <rect width="7" height="9" x="14" y="12" rx="1"></rect>
                 <rect width="7" height="5" x="3" y="16" rx="1"></rect>
               </svg>
-              <span className="text-xs mt-1">Dashboard</span>
+              <span className="text-xs mt-1">{t('dashboard')}</span>
             </div>
           </Link>
           
@@ -47,47 +50,49 @@ const MobileNav: React.FC = () => {
                 <polyline points="3.29 7 12 12 20.71 7"></polyline>
                 <line x1="12" y1="22" x2="12" y2="12"></line>
               </svg>
-              <span className="text-xs mt-1">Inventory</span>
+              <span className="text-xs mt-1">{t('products')}</span>
             </div>
           </Link>
           
-          <Link href="/expenses">
+          <Link href="/procurement">
             <div className={cn(
               "flex flex-col items-center justify-center cursor-pointer",
-              location === "/expenses" ? "text-primary" : "text-slate-500"
+              location === "/procurement" ? "text-primary" : "text-slate-500"
             )}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign">
-                <line x1="12" y1="2" x2="12" y2="22"></line>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-              </svg>
-              <span className="text-xs mt-1">Expenses</span>
+              <ShoppingBag size={20} />
+              <span className="text-xs mt-1">{t('procurement')}</span>
             </div>
           </Link>
           
-          <Link href="/sales">
+          <Link href="/suppliers">
             <div className={cn(
               "flex flex-col items-center justify-center cursor-pointer",
-              location === "/sales" ? "text-primary" : "text-slate-500"
+              location === "/suppliers" ? "text-primary" : "text-slate-500"
             )}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shopping-cart">
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-truck">
+                <path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"></path>
+                <path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"></path>
+                <circle cx="7" cy="18" r="2"></circle>
+                <circle cx="17" cy="18" r="2"></circle>
               </svg>
-              <span className="text-xs mt-1">Sales</span>
+              <span className="text-xs mt-1">{t('suppliers')}</span>
             </div>
           </Link>
           
-          <Link href="/preferences">
+          <Link href="/accounting">
             <div className={cn(
               "flex flex-col items-center justify-center cursor-pointer",
-              location === "/preferences" ? "text-primary" : "text-slate-500"
+              location === "/accounting" ? "text-primary" : "text-slate-500"
             )}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-landmark">
+                <line x1="3" x2="21" y1="22" y2="22"></line>
+                <line x1="6" x2="6" y1="18" y2="11"></line>
+                <line x1="10" x2="10" y1="18" y2="11"></line>
+                <line x1="14" x2="14" y1="18" y2="11"></line>
+                <line x1="18" x2="18" y1="18" y2="11"></line>
+                <polygon points="12 2 20 7 4 7"></polygon>
               </svg>
-              <span className="text-xs mt-1">Preferences</span>
+              <span className="text-xs mt-1">{t('accounting')}</span>
             </div>
           </Link>
         </div>
