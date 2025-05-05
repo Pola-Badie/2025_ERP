@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="pb-8">
+    <div className="pb-12">
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
         <div>
@@ -423,7 +423,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Activity Log and Product Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-4">
         {/* Recent Activity Log */}
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
