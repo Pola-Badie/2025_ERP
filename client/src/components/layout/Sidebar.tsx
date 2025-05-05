@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
@@ -19,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/inventory', key: 'products', icon: 'package' },
     { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
     { path: '/accounting', key: 'accounting', icon: 'landmark' },
+    { path: '/suppliers', key: 'suppliers', icon: 'truck' },
     { path: '/create-invoice', key: 'createInvoice', icon: 'file-plus' },
     { path: '/create-quotation', key: 'createQuotation', icon: 'file-plus' },
     { path: '/invoice-history', key: 'invoiceHistory', icon: 'receipt' },
@@ -67,6 +68,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Calculator size={20} />;
       case 'landmark':
         return <Landmark size={20} />;
+      case 'truck':
+        return <Truck size={20} />;
       default:
         return null;
     }
