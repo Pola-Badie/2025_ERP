@@ -133,6 +133,13 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                 )}>
                   {t(item.key).toUpperCase()}
                 </span>
+                {location === item.path && (
+                  <span className={language === 'ar' ? 'mr-auto' : 'ml-auto'}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d={language === 'ar' ? "M15 18L9 12L15 6" : "M9 18L15 12L9 6"} stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                )}
 
               </div>
             </li>
