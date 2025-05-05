@@ -45,8 +45,8 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
 }) => {
   return (
     <div className="border-b border-slate-200 py-3">
-      <div className="grid grid-cols-7 gap-4 items-center text-sm">
-        <div>
+      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm">
+        <div className="col-span-2 md:col-span-1">
           <div className="flex flex-col">
             <span className="font-medium text-slate-800">{customer.name}</span>
             <span className="text-slate-500 text-xs">{customer.position}</span>
@@ -54,30 +54,34 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
         </div>
       
         <div className="hidden md:block">
-          <span className="text-slate-800">{customer.company}</span>
+          <span className="text-slate-800 truncate block">{customer.company}</span>
         </div>
         
         <div className="hidden md:block">
-          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 inline-block">
             {customer.sector}
           </span>
         </div>
         
-        <div>
-          <span className="text-slate-800">{customer.phone}</span>
+        <div className="hidden sm:block md:block">
+          <span className="text-slate-800 truncate block">{customer.phone}</span>
         </div>
         
-        <div>
-          <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline truncate max-w-[150px] block">
-            {customer.email}
+        <div className="col-span-1">
+          <a 
+            href={`mailto:${customer.email}`} 
+            className="text-blue-600 hover:underline truncate w-full block overflow-hidden text-ellipsis"
+            title={customer.email}
+          >
+            {customer.email.length > 15 ? customer.email.substring(0, 15) + '...' : customer.email}
           </a>
         </div>
         
         <div className="hidden md:block">
-          <span className="text-slate-800 truncate max-w-[150px] block">{customer.address}</span>
+          <span className="text-slate-800 truncate block w-full">{customer.address}</span>
         </div>
         
-        <div className="text-center">
+        <div className="text-right md:text-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="text-slate-600 hover:text-slate-900">

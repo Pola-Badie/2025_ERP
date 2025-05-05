@@ -252,50 +252,53 @@ const CustomersDemo: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <CardTitle>Customer Records</CardTitle>
-            <div className="flex items-center space-x-2 flex-wrap gap-2">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search customers..."
-                  className="w-[150px] sm:w-[200px] pl-8"
+                  className="w-full sm:w-[200px] pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               
-              {/* Import/Export Buttons */}
-              <div className="flex space-x-2">
-                <CSVImport
-                  onImport={handleImportCSV}
-                  buttonText="Import"
-                  size="sm"
-                  variant="outline"
-                  requiredColumns={["name", "position", "company", "phone", "email"]}
-                />
-                <CSVExport
-                  data={filteredCustomers}
-                  filename="customers_export.csv"
-                  buttonText="Export"
-                  size="sm"
-                  variant="outline"
-                />
+              {/* Control Buttons */}
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                {/* Import/Export Buttons */}
+                <div className="flex space-x-2">
+                  <CSVImport
+                    onImport={handleImportCSV}
+                    buttonText="Import"
+                    size="sm"
+                    variant="outline"
+                    requiredColumns={["name", "position", "company", "phone", "email"]}
+                  />
+                  <CSVExport
+                    data={filteredCustomers}
+                    filename="customers_export.csv"
+                    buttonText="Export"
+                    size="sm"
+                    variant="outline"
+                  />
+                </div>
+                
+                <Button size="sm" onClick={handleAddCustomer}>
+                  <Plus className="h-4 w-4 mr-1" /> Add Customer
+                </Button>
               </div>
-              
-              <Button size="sm" onClick={handleAddCustomer}>
-                <Plus className="h-4 w-4 mr-1" /> Add Customer
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
             {/* Table header */}
-            <div className="grid grid-cols-7 gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
-              <div className="">Name</div>
+            <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
+              <div className="col-span-2 md:col-span-1">Name</div>
               <div className="hidden md:block">Company</div>
               <div className="hidden md:block">Sector</div>
-              <div className="">Phone</div>
-              <div className="">Email</div>
+              <div className="hidden sm:block md:block">Phone</div>
+              <div className="col-span-1">Email</div>
               <div className="hidden md:block">Address</div>
-              <div className="text-center">Action</div>
+              <div className="text-right md:text-center">Action</div>
             </div>
             
             {/* Customer data */}
