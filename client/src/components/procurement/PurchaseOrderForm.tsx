@@ -82,6 +82,10 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       date: initialData?.date ? new Date(initialData.date) : new Date(),
       items: initialData?.items || [],
       status: initialData?.status || 'draft',
+    },
+    // Add validation for the supplierId field
+    validate: {
+      supplierId: (value) => value > 0 || "Supplier is required"
     }
   });
 
@@ -215,13 +219,32 @@ const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       });
       return;
     }
-
-    const formattedData = {
-      ...data,
-      date: format(data.date, 'yyyy-MM-dd'),
+    
+    // Generate a PO number based on date and supplier ID
+    const dateStr = format(new Date(), 'yyyyMMdd');
+    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const poNumber = `PO-${dateStr}-${randomNum}`;
+    
+    // Format the data as the backend API expects
+    const orderData = {
+      poNumber,
+      supplierId: data.supplierId,
+      userId: 1, // Default user ID - in a real system this would come from auth context
+      orderDate: format(data.date, 'yyyy-MM-dd'),
+      expectedDeliveryDate: null,
+      status: data.status,
       totalAmount: calculateTotal(),
-      // Find supplier name from ID
-      supplier: suppliers?.find(s => s.id === data.supplierId)?.name || '',
+      notes: '',
+    };
+    
+    // Format the purchase order data as expected by the backend
+    const formattedData = {
+      order: orderData,
+      items: items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+      })),
     };
 
     if (isEditMode) {
