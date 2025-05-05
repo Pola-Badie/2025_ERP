@@ -79,6 +79,7 @@ interface Product {
   shelf?: string;
   expiryDate: string;
   status: string;
+  productType?: 'raw' | 'semi-raw' | 'finished';
   createdAt: string;
 }
 
@@ -169,7 +170,8 @@ const Inventory: React.FC = () => {
           location: 'Location',
           shelf: 'Shelf',
           expiryDate: 'Expiry Date',
-          status: 'Status'
+          status: 'Status',
+          productType: 'Product Type'
         },
         exportButtonText: 'Export Inventory',
         importButtonText: 'Import Products',
@@ -530,6 +532,7 @@ const Inventory: React.FC = () => {
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">SKU</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Type</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Shelf</th>
@@ -553,6 +556,19 @@ const Inventory: React.FC = () => {
                               {product.category}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
+                            <td className="px-4 py-3">
+                              {product.productType ? (
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  product.productType === 'raw' 
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : product.productType === 'semi-raw'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {product.productType.charAt(0).toUpperCase() + product.productType.slice(1)}
+                                </span>
+                              ) : '-'}
+                            </td>
                             <td className="px-4 py-3">
                               {product.quantity} {product.unitOfMeasure}
                             </td>
