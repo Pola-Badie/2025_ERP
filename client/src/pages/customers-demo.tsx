@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Search, Plus, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { CSVExport } from '@/components/csv/CSVExport';
+import { CSVImport } from '@/components/csv/CSVImport';
 
 // Define the API Customer type based on the response
 interface ApiCustomer {
@@ -169,6 +171,40 @@ const CustomersDemo: React.FC = () => {
       customer.address.toLowerCase().includes(query)
     );
   });
+  
+  // Handle CSV import
+  const handleImportCSV = (csvData: Record<string, string>[]) => {
+    try {
+      // Transform CSV data to our CustomerData format
+      const importedCustomers = csvData.map((row, index) => {
+        return {
+          id: customerData.length + index + 1,
+          name: row.name || row.Name || '',
+          position: row.position || row.Position || 'Procurement Manager',
+          company: row.company || row.Company || 'Pharmaceutical Company',
+          sector: row.sector || row.Sector || 'Healthcare',
+          phone: row.phone || row.Phone || '',
+          email: row.email || row.Email || '',
+          address: row.address || row.Address || ''
+        } as CustomerData;
+      });
+      
+      // Add the imported customers to our state
+      setCustomerData(prev => [...prev, ...importedCustomers]);
+      
+      toast({
+        title: 'Import Successful',
+        description: `Imported ${importedCustomers.length} customers.`,
+      });
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'Failed to import customers data.',
+        variant: 'destructive'
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto py-6 px-4">
@@ -181,7 +217,7 @@ const CustomersDemo: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <CardTitle>Customer Records</CardTitle>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 flex-wrap gap-2">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -191,6 +227,25 @@ const CustomersDemo: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              
+              {/* Import/Export Buttons */}
+              <div className="flex space-x-2">
+                <CSVImport
+                  onImport={handleImportCSV}
+                  buttonText="Import"
+                  size="sm"
+                  variant="outline"
+                  requiredColumns={["name", "position", "company", "phone", "email"]}
+                />
+                <CSVExport
+                  data={filteredCustomers}
+                  filename="customers_export.csv"
+                  buttonText="Export"
+                  size="sm"
+                  variant="outline"
+                />
+              </div>
+              
               <Button size="sm" onClick={handleAddCustomer}>
                 <Plus className="h-4 w-4 mr-1" /> Add Customer
               </Button>
