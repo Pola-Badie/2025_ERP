@@ -90,6 +90,7 @@ const Inventory: React.FC = () => {
 
   // State for product management
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -379,9 +380,10 @@ const Inventory: React.FC = () => {
   };
   
   const handleEditProduct = (product: Product) => {
-    // This would open the edit dialog with the product data
+    // Set the product to edit and open the dialog
+    setProductToEdit(product);
     setIsProductFormOpen(true);
-    // In a real implementation, you would set the current product to edit
+    
     toast({
       title: "Edit Product",
       description: `Editing ${product.name}`,
@@ -422,7 +424,10 @@ const Inventory: React.FC = () => {
               </div>
             </>
           )}
-          <Button onClick={() => setIsProductFormOpen(true)}>
+          <Button onClick={() => {
+            setProductToEdit(null);
+            setIsProductFormOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Add Product
           </Button>
@@ -518,7 +523,10 @@ const Inventory: React.FC = () => {
                       : 'Add your first product to get started'}
                   </p>
                   {!(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
-                    <Button onClick={() => setIsProductFormOpen(true)}>
+                    <Button onClick={() => {
+                      setProductToEdit(null);
+                      setIsProductFormOpen(true);
+                    }}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Product
                     </Button>
@@ -832,12 +840,21 @@ const Inventory: React.FC = () => {
       </Dialog>
 
       {/* Product Form Dialog */}
-      <Dialog open={isProductFormOpen} onOpenChange={setIsProductFormOpen}>
+      <Dialog open={isProductFormOpen} onOpenChange={(open) => {
+        setIsProductFormOpen(open);
+        if (!open) setProductToEdit(null);
+      }}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
+            <DialogTitle>{productToEdit ? 'Edit Product' : 'Add New Product'}</DialogTitle>
           </DialogHeader>
-          <ProductForm onSuccess={() => setIsProductFormOpen(false)} />
+          <ProductForm 
+            initialData={productToEdit} 
+            onSuccess={() => {
+              setIsProductFormOpen(false);
+              setProductToEdit(null);
+            }} 
+          />
         </DialogContent>
       </Dialog>
     </div>

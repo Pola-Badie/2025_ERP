@@ -57,6 +57,7 @@ type ProductFormValues = z.infer<typeof productFormSchema>;
 interface ProductFormProps {
   onSuccess?: () => void;
   productId?: number; // For editing an existing product
+  initialData?: any; // For populating form with existing product data
 }
 
 interface Category {
@@ -65,7 +66,7 @@ interface Category {
   description: string | null;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initialData }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,23 +75,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId }) => {
     queryKey: ['/api/categories'],
   });
 
-  // Define default values
+  // Define default values, populating from initialData if provided
   const defaultValues: Partial<ProductFormValues> = {
-    name: '',
-    drugName: '',
-    categoryId: 0,
-    sku: '',
-    description: '',
-    quantity: 0,
-    unitOfMeasure: 'PCS',
-    lowStockThreshold: 10,
-    costPrice: 0,
-    sellingPrice: 0,
-    location: '',
-    shelf: '',
-    expiryDate: '',
-    status: 'active',
-    productType: 'finished',
+    name: initialData?.name || '',
+    drugName: initialData?.drugName || '',
+    categoryId: initialData?.categoryId || 0,
+    sku: initialData?.sku || '',
+    description: initialData?.description || '',
+    quantity: initialData?.quantity || 0,
+    unitOfMeasure: initialData?.unitOfMeasure || 'PCS',
+    lowStockThreshold: initialData?.lowStockThreshold || 10,
+    costPrice: initialData?.costPrice || 0,
+    sellingPrice: initialData?.sellingPrice || 0,
+    location: initialData?.location || '',
+    shelf: initialData?.shelf || '',
+    expiryDate: initialData?.expiryDate || '',
+    status: initialData?.status || 'active',
+    productType: initialData?.productType || 'finished',
   };
 
   // Initialize the form
