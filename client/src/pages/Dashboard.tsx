@@ -584,8 +584,8 @@ const Dashboard: React.FC = () => {
         {/* Product Tables */}
         <div className="lg:col-span-2 grid grid-cols-1 gap-3 xl:gap-4">
           {/* Expiring Products */}
-          <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b">
+          <Card className="bg-white border rounded-md shadow-sm flex flex-col h-[300px]">
+            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b flex-shrink-0">
               <CardTitle className="text-sm font-medium text-gray-700">EXPIRING PRODUCTS</CardTitle>
               <div className="flex space-x-1">
                 <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
@@ -599,10 +599,10 @@ const Dashboard: React.FC = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-auto">
+            <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+              <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent h-full">
                 <table className="w-full">
-                  <thead>
+                  <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-gray-200">
                       <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Drug Name</th>
                       <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Status</th>
@@ -652,6 +652,25 @@ const Dashboard: React.FC = () => {
                           </td>
                           <td className="px-3 py-1.5 text-sm">20 Sep, 2025</td>
                         </tr>
+                        {/* Extra dummy rows to demonstrate scrolling */}
+                        <tr>
+                          <td className="px-3 py-1.5 text-sm">Amoxicillin 500mg</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              EXPIRED
+                            </span>
+                          </td>
+                          <td className="px-3 py-1.5 text-sm">15 Mar 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-1.5 text-sm">Ceftriaxone 1g</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-3 py-1.5 text-sm">30 Nov 2024</td>
+                        </tr>
                       </>
                     ) : (
                       dashboardData?.expiringProducts?.map((product: Product) => (
@@ -676,8 +695,8 @@ const Dashboard: React.FC = () => {
           </Card>
 
           {/* Low Stock Products */}
-          <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b">
+          <Card className="bg-white border rounded-md shadow-sm flex flex-col h-[300px]">
+            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b flex-shrink-0">
               <CardTitle className="text-sm font-medium text-gray-700">PRODUCTS WITH LOW STOCK</CardTitle>
               <div className="flex space-x-1">
                 <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
@@ -691,10 +710,10 @@ const Dashboard: React.FC = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-auto">
+            <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+              <div className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent h-full">
                 <table className="w-full">
-                  <thead>
+                  <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-gray-200">
                       <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Drug Name</th>
                       <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Quantity</th>
@@ -743,6 +762,25 @@ const Dashboard: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-3 py-1.5 text-sm">19 June 2023</td>
+                        </tr>
+                        {/* Extra dummy rows to demonstrate scrolling */}
+                        <tr>
+                          <td className="px-3 py-1.5 text-sm">Azithromycin 250mg</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              5
+                            </span>
+                          </td>
+                          <td className="px-3 py-1.5 text-sm">22 May 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-3 py-1.5 text-sm">Omeprazole 20mg</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              8
+                            </span>
+                          </td>
+                          <td className="px-3 py-1.5 text-sm">14 Apr 2024</td>
                         </tr>
                       </>
                     ) : (
