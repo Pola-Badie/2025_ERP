@@ -793,7 +793,20 @@ const Dashboard: React.FC = () => {
                             </td>
                             <td className="px-4 py-2 text-sm">25 Nov 2024</td>
                           </tr>
-                          <tr className="hover:bg-gray-50 cursor-pointer">
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 10,
+                                name: "Atorvastatin 20mg",
+                                drugName: "Atorvastatin 20mg",
+                                quantity: 42,
+                                expiryDate: "2024-12-12",
+                                status: "near"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
                             <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
@@ -801,6 +814,50 @@ const Dashboard: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">12 Dec 2024</td>
+                          </tr>
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 12,
+                                name: "Fluoxetine 20mg",
+                                drugName: "Fluoxetine 20mg",
+                                quantity: 35,
+                                expiryDate: "2024-10-05",
+                                status: "near"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
+                            <td className="px-4 py-2 text-sm">Fluoxetine 20mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">05 Oct 2024</td>
+                          </tr>
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 13,
+                                name: "Sertraline 50mg",
+                                drugName: "Sertraline 50mg",
+                                quantity: 28,
+                                expiryDate: "2024-11-18",
+                                status: "near"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
+                            <td className="px-4 py-2 text-sm">Sertraline 50mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">18 Nov 2024</td>
                           </tr>
                         </>
                       ) : (
@@ -917,7 +974,20 @@ const Dashboard: React.FC = () => {
                             </td>
                             <td className="px-4 py-2 text-sm">19 June 2024</td>
                           </tr>
-                          <tr className="hover:bg-gray-50 cursor-pointer">
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 14,
+                                name: "Amoxicillin 500mg",
+                                drugName: "Amoxicillin 500mg",
+                                quantity: 8,
+                                expiryDate: "2024-12-22",
+                                status: "low_stock"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
                             <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
