@@ -466,10 +466,10 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Activity Log and Product Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 xl:gap-4">
         {/* Recent Activity Log */}
-        <Card className="bg-white border rounded-md shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+        <Card className="bg-white border rounded-md shadow-sm h-full flex flex-col">
+          <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">RECENT ACTIVITY LOG</CardTitle>
             <div className="flex space-x-1">
               <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
@@ -477,104 +477,104 @@ const Dashboard: React.FC = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-auto max-h-[400px]">
+          <CardContent className="p-0 flex-1 flex flex-col">
+            <div className="overflow-auto flex-1">
               <div className="divide-y divide-gray-100">
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
-                      <UserPlus className="h-5 w-5 text-blue-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-blue-100 rounded-full p-1.5 flex-shrink-0">
+                      <UserPlus className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">User Login</p>
                       <p className="text-xs text-slate-500 mt-0.5">Admin user Dr. Sarah Johnson logged in from Cairo location</p>
-                      <p className="text-xs text-slate-400 mt-1">10 minutes ago</p>
+                      <p className="text-xs text-slate-400 mt-0.5">10 minutes ago</p>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-green-100 rounded-full p-2 flex-shrink-0">
-                      <Receipt className="h-5 w-5 text-green-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-green-100 rounded-full p-1.5 flex-shrink-0">
+                      <Receipt className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">New Invoice Created</p>
                       <p className="text-xs text-slate-500 mt-0.5">Invoice #INV-2025-0042 for Ahmed Hassan was created by Sales Rep</p>
-                      <p className="text-xs text-slate-400 mt-1">25 minutes ago</p>
+                      <p className="text-xs text-slate-400 mt-0.5">25 minutes ago</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-yellow-100 rounded-full p-2 flex-shrink-0">
-                      <PackagePlus className="h-5 w-5 text-yellow-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-yellow-100 rounded-full p-1.5 flex-shrink-0">
+                      <PackagePlus className="h-4 w-4 text-yellow-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">Product Updated</p>
                       <p className="text-xs text-slate-500 mt-0.5">Panadol Advance inventory was updated to 250 units by Inventory Manager</p>
-                      <p className="text-xs text-slate-400 mt-1">1 hour ago</p>
+                      <p className="text-xs text-slate-400 mt-0.5">1 hour ago</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-purple-100 rounded-full p-2 flex-shrink-0">
-                      <UserCog className="h-5 w-5 text-purple-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-purple-100 rounded-full p-1.5 flex-shrink-0">
+                      <UserCog className="h-4 w-4 text-purple-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">System Setting Changed</p>
                       <p className="text-xs text-slate-500 mt-0.5">Default currency was changed to EGP by System Administrator</p>
-                      <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
+                      <p className="text-xs text-slate-400 mt-0.5">2 hours ago</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-red-100 rounded-full p-2 flex-shrink-0">
-                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-red-100 rounded-full p-1.5 flex-shrink-0">
+                      <AlertTriangle className="h-4 w-4 text-red-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">Low Stock Alert</p>
                       <p className="text-xs text-slate-500 mt-0.5">Aspirin has reached the minimum stock level. Requires attention</p>
-                      <p className="text-xs text-slate-400 mt-1">3 hours ago</p>
+                      <p className="text-xs text-slate-400 mt-0.5">3 hours ago</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-blue-100 rounded-full p-2 flex-shrink-0">
-                      <UserPlus className="h-5 w-5 text-blue-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-blue-100 rounded-full p-1.5 flex-shrink-0">
+                      <UserPlus className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">New User Created</p>
                       <p className="text-xs text-slate-500 mt-0.5">New Sales Representative account was created for Mahmoud Ali</p>
-                      <p className="text-xs text-slate-400 mt-1">Yesterday, 15:30</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Yesterday, 15:30</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 hover:bg-slate-50">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-green-100 rounded-full p-2 flex-shrink-0">
-                      <Receipt className="h-5 w-5 text-green-600" />
+                <div className="py-2 px-3 hover:bg-slate-50">
+                  <div className="flex items-start space-x-2.5">
+                    <div className="bg-green-100 rounded-full p-1.5 flex-shrink-0">
+                      <Receipt className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-slate-900">Payment Received</p>
                       <p className="text-xs text-slate-500 mt-0.5">Payment of EGP 5,250 received for invoice #INV-2025-0039</p>
-                      <p className="text-xs text-slate-400 mt-1">Yesterday, 13:45</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Yesterday, 13:45</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="px-3 py-1 border-t border-gray-100">
-              <Button variant="outline" size="sm" className="w-full h-8">
-                <Eye className="h-4 w-4 mr-2" />
+            <div className="px-3 py-1 border-t border-gray-100 mt-auto">
+              <Button variant="outline" size="sm" className="w-full h-7 text-xs">
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
                 View All Activity
               </Button>
             </div>
@@ -582,10 +582,10 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Product Tables */}
-        <div className="lg:col-span-2 grid grid-cols-1 gap-4">
+        <div className="lg:col-span-2 grid grid-cols-1 gap-3 xl:gap-4">
           {/* Expiring Products */}
           <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b">
               <CardTitle className="text-sm font-medium text-gray-700">EXPIRING PRODUCTS</CardTitle>
               <div className="flex space-x-1">
                 <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
@@ -604,68 +604,68 @@ const Dashboard: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry Date</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Status</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Expiry Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
+                        <td colSpan={3} className="px-3 py-1.5 text-center text-sm text-gray-500">Loading...</td>
                       </tr>
                     ) : dashboardData?.expiringProducts?.length === 0 ? (
                       <>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Panadol Advance</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Panadol Advance</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               EXPIRED
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">20 May 2024</td>
+                          <td className="px-3 py-1.5 text-sm">20 May 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Diclofenac 500mg</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               EXPIRED
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                          <td className="px-3 py-1.5 text-sm">Diosmin/Hesperidin</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#FFB454] text-white">
                               NEAR
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">15 Dec 2024</td>
+                          <td className="px-3 py-1.5 text-sm">15 Dec 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Metformin 850mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Metformin 850mg</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               EXPIRED
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">20 Sep, 2025</td>
+                          <td className="px-3 py-1.5 text-sm">20 Sep, 2025</td>
                         </tr>
                       </>
                     ) : (
                       dashboardData?.expiringProducts?.map((product: Product) => (
                         <tr key={product.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          <td className="px-3 py-1.5 text-sm">{product.drugName}</td>
+                          <td className="px-3 py-1.5">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                               product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
                               'bg-[#FFB454] text-white'
                             }`}>
                               {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
+                          <td className="px-3 py-1.5 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
                         </tr>
                       ))
                     )}
@@ -677,7 +677,7 @@ const Dashboard: React.FC = () => {
 
           {/* Low Stock Products */}
           <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+            <CardHeader className="flex flex-row items-center justify-between py-1.5 px-3 border-b">
               <CardTitle className="text-sm font-medium text-gray-700">PRODUCTS WITH LOW STOCK</CardTitle>
               <div className="flex space-x-1">
                 <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
@@ -696,61 +696,61 @@ const Dashboard: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Stock Date</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Quantity</th>
+                      <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-500">Stock Date</th>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
+                        <td colSpan={3} className="px-3 py-1.5 text-center text-sm text-gray-500">Loading...</td>
                       </tr>
                     ) : dashboardData?.lowStockProducts?.length === 0 ? (
                       <>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Asprine</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Asprine</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Gulvas Met 850/1000</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Zyrtic</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Zyrtic</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Daflon 500</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                          <td className="px-3 py-1.5 text-sm">Daflon 500</td>
+                          <td className="px-3 py-1.5">
+                            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2023</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2023</td>
                         </tr>
                       </>
                     ) : (
                       dashboardData?.lowStockProducts?.map((product: Product) => (
                         <tr key={product.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          <td className="px-3 py-1.5 text-sm">{product.drugName}</td>
+                          <td className="px-3 py-1.5">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                               product.quantity === 0 || product.status === 'out_of_stock'
                                 ? 'bg-[#F16F6F] text-white' 
                                 : 'bg-[#F16F6F] text-white'
@@ -758,7 +758,7 @@ const Dashboard: React.FC = () => {
                               {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-3 py-1.5 text-sm">19 June 2024</td>
                         </tr>
                       ))
                     )}
