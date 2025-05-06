@@ -81,10 +81,41 @@ const Dashboard: React.FC = () => {
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
+  // Get responsive chart settings based on screen width
+  const getChartSettings = () => {
+    const width = window.innerWidth;
+    if (width < 640) {
+      return {
+        interval: 2 as const, // Only show every 3rd month on extra small screens
+        fontSize: 8,
+        minTickGap: 15,
+        margin: { top: 15, right: 10, left: 0, bottom: 5 }
+      };
+    } else if (width < 768) {
+      return {
+        interval: 1 as const, // Show every other month on small screens
+        fontSize: 9,
+        minTickGap: 20,
+        margin: { top: 15, right: 15, left: 0, bottom: 10 }
+      };
+    } else {
+      return {
+        interval: "preserveStart" as const, // Show first, last, and some middle months on larger screens
+        fontSize: 10,
+        minTickGap: 25,
+        margin: { top: 20, right: 20, left: 0, bottom: 10 }
+      };
+    }
+  };
+
+  const [chartSettings, setChartSettings] = useState(getChartSettings());
+  
   // Check screen width on component mount and when window resizes
   React.useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setChartSettings(getChartSettings());
     };
     
     // Set initial value
@@ -339,7 +370,7 @@ const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={salesData}
-                margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
+                margin={chartSettings.margin}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                 <XAxis 
@@ -356,18 +387,21 @@ const Dashboard: React.FC = () => {
                           dy={16} 
                           textAnchor="middle" 
                           fill="#666" 
-                          fontSize={10}
+                          fontSize={chartSettings.fontSize}
                         >
-                          {payload.value}
+                          {/* Abbreviate month names to 3 characters */}
+                          {payload.value.substring(0, 3)}
                         </text>
                       </g>
                     );
                   }}
                   padding={{ left: 10, right: 10 }}
                   height={30}
-                  interval={isMobile ? 1 : 0}
+                  // Use numeric values for small screens, and explicit controls for larger screens
+                  interval={typeof chartSettings.interval === 'number' ? chartSettings.interval : 'preserveStartEnd'}
+                  minTickGap={chartSettings.minTickGap}
                 />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: chartSettings.fontSize }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line 
                   type="monotone" 
