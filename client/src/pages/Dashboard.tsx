@@ -653,20 +653,20 @@ const Dashboard: React.FC = () => {
                         <tr>
                           <td className="px-4 py-2 text-sm">Panadol Advance</td>
                           <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              EXPIRED
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">20 May 2024</td>
+                          <td className="px-4 py-2 text-sm">20 Aug 2024</td>
                         </tr>
                         <tr>
                           <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
                           <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              EXPIRED
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-4 py-2 text-sm">19 Sep 2024</td>
                         </tr>
                         <tr>
                           <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
@@ -680,11 +680,65 @@ const Dashboard: React.FC = () => {
                         <tr>
                           <td className="px-4 py-2 text-sm">Metformin 850mg</td>
                           <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              EXPIRED
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">20 Sep, 2025</td>
+                          <td className="px-4 py-2 text-sm">20 Sep 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">15 Oct 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Ibuprofen 400mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">30 Nov 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Aspirin 100mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">05 Sep 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">18 Oct 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">25 Nov 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                              NEAR
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">12 Dec 2024</td>
                         </tr>
                       </>
                     ) : (
@@ -743,7 +797,7 @@ const Dashboard: React.FC = () => {
                     ) : dashboardData?.lowStockProducts?.length === 0 ? (
                       <>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Asprine</td>
+                          <td className="px-4 py-2 text-sm">Aspirin</td>
                           <td className="px-4 py-2">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
@@ -752,31 +806,85 @@ const Dashboard: React.FC = () => {
                           <td className="px-4 py-2 text-sm">19 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Gulvas Met 850/1000</td>
+                          <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
                           <td className="px-4 py-2">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
+                              8
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-4 py-2 text-sm">22 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Zyrtic</td>
+                          <td className="px-4 py-2 text-sm">Paracetamol 500mg</td>
                           <td className="px-4 py-2">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td className="px-4 py-2 text-sm">15 June 2024</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-2 text-sm">Daflon 500</td>
+                          <td className="px-4 py-2 text-sm">Metformin 850mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              8
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">20 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Enalapril 10mg</td>
                           <td className="px-4 py-2">
                             <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
                               10
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-sm">19 June 2023</td>
+                          <td className="px-4 py-2 text-sm">25 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              8
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">28 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Diclofenac 50mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">14 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              8
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">18 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              10
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">23 June 2024</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm">Amlodipine 5mg</td>
+                          <td className="px-4 py-2">
+                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                              8
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-sm">16 June 2024</td>
                         </tr>
                       </>
                     ) : (
