@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
   DialogHeader, 
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -80,6 +81,9 @@ const categoryPerformanceData = [
 const Dashboard: React.FC = () => {
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isExpiringProductsCollapsed, setIsExpiringProductsCollapsed] = useState(false);
+  const [isLowStockProductsCollapsed, setIsLowStockProductsCollapsed] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Get responsive chart settings based on screen width
   const getChartSettings = () => {
@@ -618,296 +622,409 @@ const Dashboard: React.FC = () => {
         {/* Product Tables */}
         <div className="lg:col-span-2 grid grid-cols-1 gap-4">
           {/* Expiring Products */}
-          <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+          <Card 
+            className={`bg-white border rounded-md shadow-sm transition-all duration-200 ${
+              isExpiringProductsCollapsed ? 'hover:shadow-md cursor-pointer' : 'hover:shadow-md'
+            }`}
+          >
+            <CardHeader 
+              className="flex flex-row items-center justify-between pb-2 border-b cursor-pointer"
+              onClick={() => setIsExpiringProductsCollapsed(!isExpiringProductsCollapsed)}
+            >
               <CardTitle className="text-sm font-medium text-gray-700">EXPIRING PRODUCTS</CardTitle>
               <div className="flex space-x-1">
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Action for maximize
+                  }}
+                >
                   <Maximize2 className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Action for thermometer
+                  }}
+                >
                   <Thermometer className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                  <Minimize2 className="h-3 w-3" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpiringProductsCollapsed(!isExpiringProductsCollapsed);
+                  }}
+                >
+                  {isExpiringProductsCollapsed ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                <table className="w-full">
-                  <thead className="sticky top-0 bg-white z-10">
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoading ? (
-                      <tr>
-                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
+            {!isExpiringProductsCollapsed && (
+              <CardContent className="p-0">
+                <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  <table className="w-full">
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Expiry Date</th>
                       </tr>
-                    ) : dashboardData?.expiringProducts?.length === 0 ? (
-                      <>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
                         <tr>
-                          <td className="px-4 py-2 text-sm">Panadol Advance</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">20 Aug 2024</td>
+                          <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
                         </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">19 Sep 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">15 Dec 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Metformin 850mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">20 Sep 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">15 Oct 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Ibuprofen 400mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">30 Nov 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Aspirin 100mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">05 Sep 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">18 Oct 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">25 Nov 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                              NEAR
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">12 Dec 2024</td>
-                        </tr>
-                      </>
-                    ) : (
-                      dashboardData?.expiringProducts?.map((product: Product) => (
-                        <tr key={product.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                              product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
-                              'bg-[#FFB454] text-white'
-                            }`}>
-                              {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
+                      ) : dashboardData?.expiringProducts?.length === 0 ? (
+                        <>
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 1,
+                                name: "Panadol Advance",
+                                drugName: "Panadol Advance",
+                                quantity: 45,
+                                expiryDate: "2024-08-20",
+                                status: "near"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
+                            <td className="px-4 py-2 text-sm">Panadol Advance</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">20 Aug 2024</td>
+                          </tr>
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 2,
+                                name: "Diclofenac 500mg",
+                                drugName: "Diclofenac 500mg",
+                                quantity: 30,
+                                expiryDate: "2024-09-19",
+                                status: "near"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
+                            <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">19 Sep 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">15 Dec 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Metformin 850mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">20 Sep 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">15 Oct 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Ibuprofen 400mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">30 Nov 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Aspirin 100mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">05 Sep 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">18 Oct 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">25 Nov 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
+                                NEAR
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">12 Dec 2024</td>
+                          </tr>
+                        </>
+                      ) : (
+                        dashboardData?.expiringProducts?.map((product: Product) => (
+                          <tr 
+                            key={product.id} 
+                            className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setSelectedProduct(product)}
+                          >
+                            <td className="px-4 py-2 text-sm">{product.drugName}</td>
+                            <td className="px-4 py-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
+                                'bg-[#FFB454] text-white'
+                              }`}>
+                                {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Low Stock Products */}
-          <Card className="bg-white border rounded-md shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+          <Card 
+            className={`bg-white border rounded-md shadow-sm transition-all duration-200 ${
+              isLowStockProductsCollapsed ? 'hover:shadow-md cursor-pointer' : 'hover:shadow-md'
+            }`}
+          >
+            <CardHeader 
+              className="flex flex-row items-center justify-between pb-2 border-b cursor-pointer"
+              onClick={() => setIsLowStockProductsCollapsed(!isLowStockProductsCollapsed)}
+            >
               <CardTitle className="text-sm font-medium text-gray-700">PRODUCTS WITH LOW STOCK</CardTitle>
               <div className="flex space-x-1">
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Action for maximize
+                  }}
+                >
                   <Maximize2 className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Action for alert
+                  }}
+                >
                   <AlertCircle className="h-3 w-3" />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                  <Minimize2 className="h-3 w-3" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLowStockProductsCollapsed(!isLowStockProductsCollapsed);
+                  }}
+                >
+                  {isLowStockProductsCollapsed ? <Maximize2 className="h-3 w-3" /> : <Minimize2 className="h-3 w-3" />}
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                <table className="w-full">
-                  <thead className="sticky top-0 bg-white z-10">
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Stock Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoading ? (
-                      <tr>
-                        <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
+            {!isLowStockProductsCollapsed && (
+              <CardContent className="p-0">
+                <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                  <table className="w-full">
+                    <thead className="sticky top-0 bg-white z-10">
+                      <tr className="border-b border-gray-200">
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Stock Date</th>
                       </tr>
-                    ) : dashboardData?.lowStockProducts?.length === 0 ? (
-                      <>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
                         <tr>
-                          <td className="px-4 py-2 text-sm">Aspirin</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          <td colSpan={3} className="px-4 py-2 text-center text-sm text-gray-500">Loading...</td>
                         </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              8
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">22 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Paracetamol 500mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">15 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Metformin 850mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              8
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">20 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Enalapril 10mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">25 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              8
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">28 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Diclofenac 50mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">14 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              8
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">18 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              10
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">23 June 2024</td>
-                        </tr>
-                        <tr>
-                          <td className="px-4 py-2 text-sm">Amlodipine 5mg</td>
-                          <td className="px-4 py-2">
-                            <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
-                              8
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">16 June 2024</td>
-                        </tr>
-                      </>
-                    ) : (
-                      dashboardData?.lowStockProducts?.map((product: Product) => (
-                        <tr key={product.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-sm">{product.drugName}</td>
-                          <td className="px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                              product.quantity === 0 || product.status === 'out_of_stock'
-                                ? 'bg-[#F16F6F] text-white' 
-                                : 'bg-[#F16F6F] text-white'
-                            }`}>
-                              {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm">19 June 2024</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
+                      ) : dashboardData?.lowStockProducts?.length === 0 ? (
+                        <>
+                          <tr 
+                            className="hover:bg-gray-50 cursor-pointer"
+                            onClick={() => {
+                              const product: Product = {
+                                id: 11,
+                                name: "Aspirin",
+                                drugName: "Aspirin",
+                                quantity: 10,
+                                expiryDate: "2024-12-19",
+                                status: "low_stock"
+                              };
+                              setSelectedProduct(product);
+                            }}
+                          >
+                            <td className="px-4 py-2 text-sm">Aspirin</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                10
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                8
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">22 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Paracetamol 500mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                10
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">15 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Metformin 850mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                8
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">20 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Enalapril 10mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                10
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">25 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                8
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">28 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Diclofenac 50mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                10
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">14 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                8
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">18 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                10
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">23 June 2024</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50 cursor-pointer">
+                            <td className="px-4 py-2 text-sm">Amlodipine 5mg</td>
+                            <td className="px-4 py-2">
+                              <span className="px-2 py-1 rounded text-xs font-semibold bg-[#F16F6F] text-white">
+                                8
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">16 June 2024</td>
+                          </tr>
+                        </>
+                      ) : (
+                        dashboardData?.lowStockProducts?.map((product: Product) => (
+                          <tr 
+                            key={product.id} 
+                            className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setSelectedProduct(product)}
+                          >
+                            <td className="px-4 py-2 text-sm">{product.drugName}</td>
+                            <td className="px-4 py-2">
+                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                product.quantity === 0 || product.status === 'out_of_stock'
+                                  ? 'bg-[#F16F6F] text-white' 
+                                  : 'bg-[#F16F6F] text-white'
+                              }`}>
+                                {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2 text-sm">19 June 2024</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
       </div>
@@ -921,6 +1038,68 @@ const Dashboard: React.FC = () => {
           <div className="py-4">
             <p className="text-sm text-gray-500">Product form will be implemented here.</p>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Details Dialog */}
+      <Dialog open={!!selectedProduct} onOpenChange={(open) => !open && setSelectedProduct(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Product Details</DialogTitle>
+            <DialogDescription>
+              Detailed information about the selected product
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Product Name</h3>
+                  <p className="text-sm">{selectedProduct.name || selectedProduct.drugName}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                  <div className="mt-1">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      selectedProduct.status === 'expired' ? 'bg-[#F16F6F] text-white' : 
+                      selectedProduct.status === 'near' ? 'bg-[#FFB454] text-white' :
+                      'bg-green-500 text-white'
+                    }`}>
+                      {selectedProduct.status === 'expired' ? 'EXPIRED' : 
+                       selectedProduct.status === 'near' ? 'NEAR EXPIRY' :
+                       selectedProduct.status === 'out_of_stock' ? 'OUT OF STOCK' : 'ACTIVE'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Quantity</h3>
+                  <p className="text-sm">{selectedProduct.quantity !== undefined ? selectedProduct.quantity : 'N/A'}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Expiry Date</h3>
+                  <p className="text-sm">{selectedProduct.expiryDate ? new Date(selectedProduct.expiryDate).toLocaleDateString() : 'N/A'}</p>
+                </div>
+              </div>
+              
+              <div className="pt-4 flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedProduct(null)}
+                >
+                  Close
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // Action to view full product details or edit the product
+                    setSelectedProduct(null);
+                  }}
+                >
+                  View Full Details
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
