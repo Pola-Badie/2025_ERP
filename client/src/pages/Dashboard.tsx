@@ -634,9 +634,9 @@ const Dashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 <table className="w-full">
-                  <thead>
+                  <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Status</th>
@@ -726,9 +726,9 @@ const Dashboard: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 <table className="w-full">
-                  <thead>
+                  <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Drug Name</th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Quantity</th>
