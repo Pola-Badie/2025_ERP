@@ -572,8 +572,8 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="px-3 py-2 border-t border-gray-100">
-              <Button variant="outline" size="sm" className="w-full">
+            <div className="px-3 py-1 border-t border-gray-100">
+              <Button variant="outline" size="sm" className="w-full h-8">
                 <Eye className="h-4 w-4 mr-2" />
                 View All Activity
               </Button>
