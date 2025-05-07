@@ -30,7 +30,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/reports', key: 'reports', icon: 'pie-chart' },
     { path: '/management', key: 'management', icon: 'briefcase' },
     { path: '/users', key: 'userManagement', icon: 'users' },
-    { path: '/preferences', key: 'preferences', icon: 'settings' },
     { path: '/system-preferences', key: 'systemPreferences', icon: 'sliders' },
   ];
 
