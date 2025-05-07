@@ -30,7 +30,6 @@ const translations: Record<Language, Record<string, string>> = {
     logout: 'Logout',
     
     // Navigation Items
-    management: 'Management',
     userManagement: 'User Management',
     preferences: 'Preferences',
     systemPreferences: 'System Preferences',
@@ -95,7 +94,6 @@ const translations: Record<Language, Record<string, string>> = {
     logout: 'تسجيل الخروج',
     
     // Navigation Items
-    management: 'الإدارة',
     userManagement: 'إدارة المستخدمين',
     preferences: 'التفضيلات',
     systemPreferences: 'تفضيلات النظام',
