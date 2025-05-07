@@ -68,19 +68,6 @@ const InvoiceHistory = () => {
       return await res.json();
     },
   });
-  
-  // Generate sample invoices
-  const generateSampleInvoices = async () => {
-    try {
-      const res = await apiRequest('POST', '/api/invoices/generate-demo');
-      const data = await res.json();
-      console.log('Generated sample invoices:', data);
-      // Refetch the invoices list
-      refetch();
-    } catch (error) {
-      console.error('Error generating sample invoices:', error);
-    }
-  };
 
   // Filter invoices based on search term and filters
   const filteredInvoices = invoices.filter(invoice => {
@@ -125,19 +112,10 @@ const InvoiceHistory = () => {
           <h1 className="text-2xl font-bold">Invoice History</h1>
           <p className="text-muted-foreground">View and manage all your invoices</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={generateSampleInvoices}
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Generate Sample Invoices
-          </Button>
-          <Button onClick={() => window.location.href = '/create-invoice'}>
-            <FileText className="mr-2 h-4 w-4" />
-            Create New Invoice
-          </Button>
-        </div>
+        <Button onClick={() => window.location.href = '/create-invoice'}>
+          <FileText className="mr-2 h-4 w-4" />
+          Create New Invoice
+        </Button>
       </div>
 
       <Card>
