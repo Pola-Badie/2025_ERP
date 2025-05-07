@@ -509,7 +509,42 @@ const CreateQuotation: React.FC = () => {
                                     />
                                     <CommandList>
                                       <CommandEmpty>
-                                        <p className="py-3 text-center text-sm">No products found</p>
+                                        <div className="py-3 px-2">
+                                          <p className="text-sm font-medium text-center mb-2">No exact matches found</p>
+                                          <p className="text-xs text-muted-foreground mb-3 text-center">Try these popular products:</p>
+                                          <div className="space-y-1">
+                                            {[
+                                              { id: 100, name: "Paracetamol 500mg", sellingPrice: 12.99, uom: "unit" },
+                                              { id: 101, name: "Amoxicillin 500mg", sellingPrice: 25.99, uom: "unit" },
+                                              { id: 102, name: "Fluoxetine 20mg", sellingPrice: 35.50, uom: "unit" }
+                                            ].map((product) => (
+                                              <div 
+                                                key={product.id}
+                                                className="flex items-center justify-between px-2 py-1 rounded-md hover:bg-muted cursor-pointer"
+                                                onClick={() => {
+                                                  const items = form.getValues('items');
+                                                  items[index] = {
+                                                    productId: product.id,
+                                                    productName: product.name,
+                                                    quantity: 1,
+                                                    unitPrice: parseFloat(product.sellingPrice.toString()),
+                                                    total: parseFloat(product.sellingPrice.toString()),
+                                                    uom: product.uom || 'unit',
+                                                  };
+                                                  form.setValue('items', items);
+                                                }}
+                                              >
+                                                <span className="text-sm">{product.name}</span>
+                                                <span className="text-xs text-muted-foreground">
+                                                  {new Intl.NumberFormat('en-US', {
+                                                    style: 'currency',
+                                                    currency: 'USD'
+                                                  }).format(parseFloat(product.sellingPrice.toString()))}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
                                       </CommandEmpty>
                                       <CommandGroup heading="Products">
                                         {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
