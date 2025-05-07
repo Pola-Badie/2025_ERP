@@ -655,6 +655,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Invoice Endpoints =============
+  
+  // Get all invoices with filtering options
+  app.get("/api/invoices", async (req: Request, res: Response) => {
+    try {
+      const { query, status, date } = req.query;
+      
+      // Fetch base sales data to convert to invoices
+      const salesData = await storage.getSales();
+      
+      // Map sales data to invoice format
+      const invoices = salesData.map(sale => {
+        // Convert database sale to invoice format expected by frontend
+        return {
+          id: sale.id,
+          invoiceNumber: sale.invoiceNumber,
+          customerName: sale.customerName || 'Unknown Customer',
+          date: sale.date,
+          amount: parseFloat(sale.grandTotal.toString()),
+          status: sale.paymentStatus === 'completed' ? 'paid' : 'unpaid',
+          items: sale.items ? sale.items.map(item => ({
+            productName: item.productName || 'Unknown Product',
+            quantity: item.quantity,
+            unitPrice: parseFloat(item.unitPrice.toString()),
+            total: parseFloat(item.total.toString())
+          })) : []
+        };
+      });
+      
+      // Return the invoices
+      res.json(invoices);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
   // ============= Report Endpoints =============
   
   // Generate sales report
