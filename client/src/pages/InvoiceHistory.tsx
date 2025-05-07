@@ -38,13 +38,15 @@ interface Invoice {
   invoiceNumber: string;
   customerName: string;
   date: string;
+  dueDate?: string;
   amount: number;
-  status: 'paid' | 'unpaid' | 'partial';
+  status: 'paid' | 'unpaid' | 'partial' | 'overdue';
   items: {
     productName: string;
     quantity: number;
     unitPrice: number;
     total: number;
+    unitOfMeasure?: string;
   }[];
 }
 
@@ -56,7 +58,7 @@ const InvoiceHistory = () => {
   const [showPreview, setShowPreview] = useState(false);
 
   // Fetch invoices
-  const { data: invoices = [], isLoading } = useQuery<Invoice[]>({
+  const { data: invoices = [], isLoading, refetch } = useQuery<Invoice[]>({
     queryKey: ['/api/invoices', searchTerm, statusFilter, dateFilter],
     queryFn: async () => {
       const res = await apiRequest(
@@ -66,6 +68,19 @@ const InvoiceHistory = () => {
       return await res.json();
     },
   });
+  
+  // Generate sample invoices
+  const generateSampleInvoices = async () => {
+    try {
+      const res = await apiRequest('POST', '/api/invoices/generate-demo');
+      const data = await res.json();
+      console.log('Generated sample invoices:', data);
+      // Refetch the invoices list
+      refetch();
+    } catch (error) {
+      console.error('Error generating sample invoices:', error);
+    }
+  };
 
   // Filter invoices based on search term and filters
   const filteredInvoices = invoices.filter(invoice => {
@@ -93,9 +108,11 @@ const InvoiceHistory = () => {
       case 'paid':
         return <Badge className="bg-green-100 text-green-800">Paid</Badge>;
       case 'unpaid':
-        return <Badge className="bg-red-100 text-red-800">Unpaid</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800">Unpaid</Badge>;
       case 'partial':
         return <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>;
+      case 'overdue':
+        return <Badge className="bg-red-100 text-red-800">Overdue</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -108,10 +125,19 @@ const InvoiceHistory = () => {
           <h1 className="text-2xl font-bold">Invoice History</h1>
           <p className="text-muted-foreground">View and manage all your invoices</p>
         </div>
-        <Button onClick={() => window.location.href = '/create-invoice'}>
-          <FileText className="mr-2 h-4 w-4" />
-          Create New Invoice
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={generateSampleInvoices}
+          >
+            <FileText className="mr-2 h-4 w-4" />
+            Generate Sample Invoices
+          </Button>
+          <Button onClick={() => window.location.href = '/create-invoice'}>
+            <FileText className="mr-2 h-4 w-4" />
+            Create New Invoice
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -147,6 +173,7 @@ const InvoiceHistory = () => {
                     <SelectItem value="paid">Paid</SelectItem>
                     <SelectItem value="unpaid">Unpaid</SelectItem>
                     <SelectItem value="partial">Partial</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -275,7 +302,10 @@ const InvoiceHistory = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-bold">Invoice #: {selectedInvoice.invoiceNumber}</p>
-                  <p>Date: {format(new Date(selectedInvoice.date), 'PP')}</p>
+                  <p>Issue Date: {format(new Date(selectedInvoice.date), 'PP')}</p>
+                  {selectedInvoice.dueDate && (
+                    <p>Due Date: {format(new Date(selectedInvoice.dueDate), 'PP')}</p>
+                  )}
                   <p className="mt-2">
                     {getStatusBadge(selectedInvoice.status)}
                   </p>
