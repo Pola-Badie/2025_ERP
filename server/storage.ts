@@ -387,6 +387,10 @@ export class DatabaseStorage implements IStorage {
     return sale;
   }
   
+  async getSaleItems(saleId: number): Promise<SaleItem[]> {
+    return db.select().from(saleItems).where(eq(saleItems.saleId, saleId));
+  }
+  
   async createSale(saleData: InsertSale, saleItemsData: InsertSaleItem[]): Promise<Sale> {
     // Start a transaction
     // Note: For simplicity, this doesn't use a transaction, but in production you should

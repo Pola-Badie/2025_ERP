@@ -819,6 +819,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Report Endpoints =============
   
+  // Invoice endpoints
+  
+  // Get all invoices with optional filters
+  app.get("/api/invoices", async (req: Request, res: Response) => {
+    try {
+      const { query, status, date } = req.query;
+      
+      // Fetch sales data as invoices
+      const salesData = await storage.getSales();
+      
+      // Process sales to include customer names and format as invoices
+      const invoices = await Promise.all(salesData.map(async (sale) => {
+        // Get customer name if available
+        let customerName = 'Unknown Customer';
+        if (sale.customerId) {
+          try {
+            const customer = await storage.getCustomer(sale.customerId);
+            if (customer) {
+              customerName = customer.name;
+            }
+          } catch (error) {
+            console.error(`Error fetching customer ${sale.customerId}:`, error);
+          }
+        }
+        
+        return {
+          id: sale.id,
+          invoiceNumber: sale.invoiceNumber,
+          customerName,
+          date: sale.date,
+          amount: parseFloat(sale.grandTotal?.toString() || "0"),
+          status: sale.paymentStatus === 'completed' ? 'paid' : 'unpaid'
+        };
+      }));
+      
+      // Apply filters if provided
+      let filteredInvoices = [...invoices];
+      
+      // Filter by query (search)
+      if (query && query !== '') {
+        const searchTerm = (query as string).toLowerCase();
+        filteredInvoices = filteredInvoices.filter(invoice => 
+          invoice.invoiceNumber.toLowerCase().includes(searchTerm) || 
+          invoice.customerName.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Filter by status
+      if (status && status !== 'all') {
+        filteredInvoices = filteredInvoices.filter(invoice => invoice.status === status);
+      }
+      
+      // Filter by date
+      if (date && date !== 'all') {
+        const today = new Date();
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(today.getMonth() - 1);
+        
+        filteredInvoices = filteredInvoices.filter(invoice => {
+          const invoiceDate = new Date(invoice.date);
+          
+          if (date === 'today') {
+            return invoiceDate.toDateString() === today.toDateString();
+          } else if (date === 'week') {
+            return invoiceDate >= lastWeek;
+          } else if (date === 'month') {
+            return invoiceDate >= lastMonth;
+          }
+          return true;
+        });
+      }
+      
+      // Return the filtered invoices
+      res.json(filteredInvoices);
+    } catch (error) {
+      console.error("Error fetching invoices:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+  
+  // Get invoice details by ID
+  app.get("/api/invoices/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Get sale data
+      const sale = await storage.getSale(id);
+      if (!sale) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Get customer data
+      let customer = null;
+      if (sale.customerId) {
+        customer = await storage.getCustomer(sale.customerId);
+      }
+      
+      // Get sale items
+      const saleItems = await storage.getSaleItems(id);
+      
+      // Get products for each sale item
+      const items = await Promise.all(saleItems.map(async (item) => {
+        const product = await storage.getProduct(item.productId);
+        return {
+          ...item,
+          productName: product ? product.name : "Unknown Product",
+          productSku: product ? product.sku : "",
+          unitOfMeasure: product ? product.unitOfMeasure : "PCS"
+        };
+      }));
+      
+      // Format the invoice
+      const invoice = {
+        id: sale.id,
+        invoiceNumber: sale.invoiceNumber,
+        date: sale.date,
+        customer: customer ? {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          address: customer.address
+        } : null,
+        items,
+        subtotal: parseFloat(sale.totalAmount?.toString() || "0"),
+        tax: parseFloat(sale.tax?.toString() || "0"),
+        discount: parseFloat(sale.discount?.toString() || "0"),
+        total: parseFloat(sale.grandTotal?.toString() || "0"),
+        paymentMethod: sale.paymentMethod,
+        paymentStatus: sale.paymentStatus,
+        notes: sale.notes
+      };
+      
+      res.json(invoice);
+    } catch (error) {
+      console.error("Error fetching invoice details:", error);
+      res.status(500).json({ message: "Failed to fetch invoice details" });
+    }
+  });
+  
+  // Generate demo invoices for testing
+  app.post("/api/invoices/generate-demo", async (req: Request, res: Response) => {
+    try {
+      // Get customers for our demo invoices
+      const customerList = await storage.getCustomers();
+      
+      if (customerList.length === 0) {
+        return res.status(400).json({ message: "Need at least one customer to generate invoices" });
+      }
+      
+      // Get products for our demo invoices
+      const productList = await storage.getProducts();
+      
+      if (productList.length === 0) {
+        return res.status(400).json({ message: "Need at least one product to generate invoices" });
+      }
+      
+      // Get a user to use as creator
+      const users = await storage.getUsers();
+      if (users.length === 0) {
+        return res.status(400).json({ message: "Need at least one user to generate invoices" });
+      }
+      const creatorUser = users[0];
+      
+      const createdInvoices = [];
+      
+      // Create 5 demo invoices
+      for (let i = 0; i < 5; i++) {
+        // Generate a random invoice
+        const customer = customerList[Math.floor(Math.random() * customerList.length)];
+        
+        // Calculate a random date within the last 30 days
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        
+        // Create 1-3 random items for this invoice
+        const itemCount = Math.floor(Math.random() * 3) + 1;
+        const items = [];
+        let subtotal = 0;
+        
+        for (let j = 0; j < itemCount; j++) {
+          const product = productList[Math.floor(Math.random() * productList.length)];
+          const quantity = Math.floor(Math.random() * 5) + 1;
+          const unitPrice = parseFloat(product.sellingPrice.toString());
+          const total = quantity * unitPrice;
+          
+          items.push({
+            productId: product.id,
+            quantity,
+            unitPrice: unitPrice.toString(),
+            discount: "0",
+            total: total.toString()
+          });
+          
+          subtotal += total;
+        }
+        
+        // Calculate total with tax
+        const taxRate = 0.05; // 5% tax
+        const taxAmount = subtotal * taxRate;
+        const grandTotal = subtotal + taxAmount;
+        
+        // Generate unique invoice number
+        const invoiceNumber = `INV-${Date.now().toString().slice(-6)}-${i+1}`;
+        
+        // Create the sale (invoice)
+        const paymentStatus = Math.random() > 0.5 ? "completed" : "pending";
+        const paymentMethod = ["cash", "credit_card", "bank_transfer"][Math.floor(Math.random() * 3)];
+        
+        const saleData = {
+          invoiceNumber,
+          customerId: customer.id,
+          userId: creatorUser.id,
+          date,
+          totalAmount: subtotal.toString(),
+          discount: "0",
+          tax: taxAmount.toString(),
+          grandTotal: grandTotal.toString(),
+          paymentMethod,
+          paymentStatus,
+          notes: `Demo invoice #${i + 1} generated for testing`
+        };
+        
+        // We don't need to set saleId - it will be set by the storage method
+        const createdSale = await storage.createSale(saleData, items);
+        
+        createdInvoices.push(createdSale);
+      }
+      
+      res.status(201).json({ 
+        message: `Successfully created ${createdInvoices.length} demo invoices`,
+        invoices: createdInvoices
+      });
+      
+    } catch (error) {
+      console.error("Error generating demo invoices:", error);
+      res.status(500).json({ message: "Failed to generate demo invoices" });
+    }
+  });
+  
   // Generate sales report
   app.get("/api/reports/sales", async (req: Request, res: Response) => {
     try {
