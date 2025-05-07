@@ -54,6 +54,8 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
     suppliers: true,
     reports: true,
     financial: true,
+    expenses: true,
+    procurement: true,
     systemPreferences: true
   });
 
@@ -247,12 +249,34 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
               <div className="flex items-center justify-between">
                 <Label htmlFor="financial" className="flex items-center gap-2">
                   <HardDrive className="h-4 w-4" />
-                  Financial Data (Accounting & Expenses)
+                  Financial Data (Accounting)
                 </Label>
                 <Switch 
                   id="financial" 
                   checked={backupSelections.financial}
                   onCheckedChange={() => handleToggleChange('financial')}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="expenses" className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  Expenses
+                </Label>
+                <Switch 
+                  id="expenses" 
+                  checked={backupSelections.expenses}
+                  onCheckedChange={() => handleToggleChange('expenses')}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="procurement" className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4" />
+                  Procurement
+                </Label>
+                <Switch 
+                  id="procurement" 
+                  checked={backupSelections.procurement}
+                  onCheckedChange={() => handleToggleChange('procurement')}
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -401,7 +425,9 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
                   <p className="text-green-600">[2025-05-06 09:14:57] ✓ Backing up Customers data (42 records)</p>
                   <p className="text-green-600">[2025-05-06 09:14:58] ✓ Backing up Invoices data (156 records)</p>
                   <p className="text-green-600">[2025-05-06 09:14:59] ✓ Backing up Financial data (231 records)</p>
-                  <p className="text-green-600">[2025-05-06 09:15:00] ✓ Backup completed successfully</p>
+                  <p className="text-green-600">[2025-05-06 09:15:00] ✓ Backing up Expenses data (87 records)</p>
+                  <p className="text-green-600">[2025-05-06 09:15:01] ✓ Backing up Procurement data (64 records)</p>
+                  <p className="text-green-600">[2025-05-06 09:15:02] ✓ Backup completed successfully</p>
                 </div>
               </div>
             </div>
