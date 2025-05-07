@@ -18,8 +18,11 @@ import {
   insertRolePermissionSchema,
   insertLoginLogSchema,
   insertQuotationSchema,
-  insertQuotationItemSchema
+  insertQuotationItemSchema,
+  users,
+  sales
 } from "@shared/schema";
+import { eq, sql } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
 import userRoutes from "./routes-user";
 import multer from "multer";
@@ -657,32 +660,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Invoice Endpoints =============
   
+  // Create demo invoices for testing
+  app.post("/api/invoices/generate-demo", async (req: Request, res: Response) => {
+    try {
+      // Get customers for our demo invoices
+      const customerList = await storage.getCustomers();
+      
+      if (customerList.length === 0) {
+        return res.status(400).json({ message: "Need at least one customer to generate invoices" });
+      }
+      
+      // Get products for our demo invoices
+      const productList = await storage.getProducts();
+      
+      if (productList.length === 0) {
+        return res.status(400).json({ message: "Need at least one product to generate invoices" });
+      }
+      
+      // Get admin user for the creator ID
+      const [adminUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.role, "admin"))
+        .limit(1);
+        
+      if (!adminUser) {
+        return res.status(400).json({ message: "Need at least one admin user to generate invoices" });
+      }
+      
+      const createdInvoices = [];
+      
+      // Create 5 demo invoices
+      for (let i = 0; i < 5; i++) {
+        // Generate a random invoice
+        const customer = customerList[Math.floor(Math.random() * customerList.length)];
+        
+        // Calculate a random date within the last 30 days
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+        
+        // Create 1-3 random items for this invoice
+        const itemCount = Math.floor(Math.random() * 3) + 1;
+        const items = [];
+        let subtotal = 0;
+        
+        for (let j = 0; j < itemCount; j++) {
+          const product = productList[Math.floor(Math.random() * productList.length)];
+          const quantity = Math.floor(Math.random() * 5) + 1;
+          const unitPrice = parseFloat(product.sellingPrice.toString());
+          const total = quantity * unitPrice;
+          
+          items.push({
+            productId: product.id,
+            quantity,
+            unitPrice,
+            discount: "0",
+            total
+          });
+          
+          subtotal += total;
+        }
+        
+        // Calculate total with tax
+        const taxRate = 0.05; // 5% tax
+        const taxAmount = subtotal * taxRate;
+        const grandTotal = subtotal + taxAmount;
+        
+        // Generate unique invoice number
+        const invoiceCount = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(sales);
+        
+        const invoiceNumber = `INV-${(invoiceCount[0]?.count || 0) + i + 1}`.padStart(8, '0');
+        
+        // Create the sale (invoice)
+        const paymentStatus = Math.random() > 0.5 ? "completed" : "pending";
+        const paymentMethod = ["cash", "credit_card", "bank_transfer"][Math.floor(Math.random() * 3)];
+        
+        const validatedSale = {
+          invoiceNumber,
+          customerId: customer.id,
+          userId: adminUser.id,
+          date,
+          totalAmount: subtotal.toString(),
+          discount: "0",
+          tax: taxAmount.toString(),
+          grandTotal: grandTotal.toString(),
+          paymentMethod,
+          paymentStatus,
+          notes: `Demo invoice #${i + 1} generated for testing`
+        };
+        
+        // Convert items to match the expected format
+        const validatedItems = items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice.toString(),
+          discount: item.discount,
+          total: item.total.toString()
+        }));
+        
+        const createdSale = await storage.createSale(validatedSale, validatedItems);
+        createdInvoices.push(createdSale);
+      }
+      
+      res.status(201).json({ 
+        message: `Successfully created ${createdInvoices.length} demo invoices`,
+        invoices: createdInvoices
+      });
+      
+    } catch (error) {
+      console.error("Error generating demo invoices:", error);
+      res.status(500).json({ message: "Failed to generate demo invoices" });
+    }
+  });
+  
   // Get all invoices with filtering options
   app.get("/api/invoices", async (req: Request, res: Response) => {
     try {
       const { query, status, date } = req.query;
       
-      // Fetch base sales data to convert to invoices
+      // Directly return a simplified list of invoices from sales data
+      // This is a temporary implementation until we have proper invoice storage
       const salesData = await storage.getSales();
       
-      // Map sales data to invoice format
-      const invoices = salesData.map(sale => {
-        // Convert database sale to invoice format expected by frontend
+      // Convert sales data to simplified invoice format
+      const invoices = await Promise.all(salesData.map(async (sale) => {
+        // Get customer name if available
+        let customerName = 'Unknown Customer';
+        if (sale.customerId) {
+          try {
+            const customer = await storage.getCustomer(sale.customerId);
+            if (customer) {
+              customerName = customer.name;
+            }
+          } catch (error) {
+            console.error(`Error fetching customer ${sale.customerId}:`, error);
+          }
+        }
+        
         return {
           id: sale.id,
-          invoiceNumber: sale.invoiceNumber,
-          customerName: sale.customerName || 'Unknown Customer',
+          invoiceNumber: sale.invoiceNumber || `INV-${sale.id.toString().padStart(6, '0')}`,
+          customerName,
           date: sale.date,
-          amount: parseFloat(sale.grandTotal.toString()),
-          status: sale.paymentStatus === 'completed' ? 'paid' : 'unpaid',
-          items: sale.items ? sale.items.map(item => ({
-            productName: item.productName || 'Unknown Product',
-            quantity: item.quantity,
-            unitPrice: parseFloat(item.unitPrice.toString()),
-            total: parseFloat(item.total.toString())
-          })) : []
+          amount: parseFloat(sale.grandTotal?.toString() || "0"),
+          status: sale.paymentStatus === 'completed' ? 'paid' : 'unpaid'
         };
-      });
+      }));
       
       // Return the invoices
       res.json(invoices);
