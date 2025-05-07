@@ -133,6 +133,13 @@ const SystemPreferences: React.FC = () => {
                 {renderTabIcon('company')}
                 <span className="hidden md:inline">Company</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="backup" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
+                {renderTabIcon('backup')}
+                <span className="hidden md:inline">Backup</span>
+              </TabsTrigger>
             </TabsList>
             
             <div className="p-6">
@@ -158,6 +165,10 @@ const SystemPreferences: React.FC = () => {
               
               <TabsContent value="company" className="mt-0">
                 <CompanyInfoTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="backup" className="mt-0">
+                <BackupTab preferences={preferences} refetch={refetch} />
               </TabsContent>
             </div>
           </Tabs>
