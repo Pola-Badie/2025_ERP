@@ -10,6 +10,7 @@ import {
   ShieldIcon,
   BellIcon,
   BuildingIcon,
+  CloudIcon
 } from 'lucide-react';
 
 // Import tab components
@@ -19,6 +20,7 @@ import FinancialSettingsTab from '@/components/system-preferences/FinancialSetti
 import AccessControlTab from '@/components/system-preferences/AccessControlTab';
 import NotificationsTab from '@/components/system-preferences/NotificationsTab';
 import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
+import BackupTab from '@/components/system-preferences/BackupTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -45,6 +47,8 @@ const SystemPreferences: React.FC = () => {
         return <BellIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'company':
         return <BuildingIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'backup':
+        return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
         return null;
     }
@@ -86,7 +90,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-3 md:grid-cols-6 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-4 md:grid-cols-7 border-b rounded-none h-auto">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
