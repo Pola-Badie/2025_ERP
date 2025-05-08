@@ -1508,14 +1508,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Fetching raw materials with direct pool query");
       
-      // Use direct SQL query
-      const query = `
-        SELECT * FROM products 
-        WHERE product_type = 'raw'
-      `;
+      // Try to fetch test data first to debug
+      const testQuery = "SELECT id, name, product_type FROM products LIMIT 5";
+      const testResult = await pool.query(testQuery);
+      console.log("Test query results:", testResult.rows);
       
+      // Use direct SQL query for raw materials
+      const query = `SELECT * FROM products WHERE product_type = 'raw'`;
       const { rows } = await pool.query(query);
-      console.log("Raw materials found via direct query:", rows.length);
+      console.log("Raw materials found via direct query:", rows.length, rows);
       
       res.json(rows);
     } catch (error) {
@@ -1529,14 +1530,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Fetching semi-raw products with direct pool query");
       
-      // Use direct SQL query
-      const query = `
-        SELECT * FROM products 
-        WHERE product_type = 'semi-raw'
-      `;
-      
+      // Use direct SQL query for semi-raw products
+      const query = `SELECT * FROM products WHERE product_type = 'semi-raw'`;
       const { rows } = await pool.query(query);
-      console.log("Semi-raw products found via direct query:", rows.length);
+      console.log("Semi-raw products found via direct query:", rows.length, rows);
       
       res.json(rows);
     } catch (error) {

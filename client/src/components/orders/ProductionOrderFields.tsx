@@ -164,22 +164,20 @@ const ProductionOrderFields: React.FC<ProductionOrderFieldsProps> = ({
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="targetProduct">Target Product</Label>
-            <Select
-              onValueChange={handleTargetProductChange}
-              value={targetProduct?.id?.toString() || ''}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a product" />
-              </SelectTrigger>
-              <SelectContent>
-                {products?.map((product: any) => (
-                  <SelectItem key={product.id} value={product.id.toString()}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="targetProductDescription">Target Product Description</Label>
+            <Input
+              id="targetProductDescription"
+              placeholder="Enter detailed description of the target product"
+              value={targetProduct?.name || ''}
+              onChange={(e) => {
+                // Create a simple object with just the name
+                setTargetProduct({ name: e.target.value });
+              }}
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              Provide a detailed description of the product you want to produce
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="expectedOutputQuantity">Expected Output Quantity</Label>
