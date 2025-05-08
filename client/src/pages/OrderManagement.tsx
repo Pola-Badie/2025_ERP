@@ -224,21 +224,20 @@ const OrderManagement = () => {
       </Tabs>
 
       {showOrderForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
               Create {orderType === 'production' ? 'Production' : 'Refining'} Order
             </h2>
             
-            {/* Order form will be added here */}
-            <p className="mb-4">Order form placeholder - to be implemented</p>
-            
-            <div className="flex justify-end gap-2 mt-4">
-              <Button variant="outline" onClick={handleOrderFormCancel}>
-                Cancel
-              </Button>
-              <Button>Save Order</Button>
-            </div>
+            <OrderForm 
+              onCancel={handleOrderFormCancel} 
+              onSuccess={() => {
+                setShowOrderForm(false);
+                // Invalidate and refetch the orders
+                queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+              }}
+            />
           </div>
         </div>
       )}
