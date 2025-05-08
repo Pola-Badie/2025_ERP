@@ -80,6 +80,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Quotations
     createQuotation: 'Create Quotation',
     quotationHistory: 'Quotation History',
+    
+    // Order Management
+    orders: 'Order Management',
   },
   ar: {
     // Common
@@ -144,6 +147,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Quotations
     createQuotation: 'إنشاء عرض سعر',
     quotationHistory: 'سجل عروض الأسعار',
+    
+    // Order Management
+    orders: 'إدارة الطلبات',
   }
 };
 
