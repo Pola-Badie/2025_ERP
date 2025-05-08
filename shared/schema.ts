@@ -772,3 +772,78 @@ export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
 
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
 export type UserPermission = typeof userPermissions.$inferSelect;
+
+// Order Management
+export const orders = pgTable("orders", {
+  id: serial("id").primaryKey(),
+  orderNumber: text("order_number").notNull().unique(),
+  orderType: text("order_type").notNull(), // 'production', 'refining'
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  description: text("description"),
+  totalMaterialCost: numeric("total_material_cost").default("0").notNull(),
+  totalAdditionalFees: numeric("total_additional_fees").default("0").notNull(),
+  totalCost: numeric("total_cost").default("0").notNull(),
+  status: text("status").default("pending").notNull(), // 'pending', 'in_progress', 'completed', 'cancelled'
+  targetProductId: integer("target_product_id").references(() => products.id), // For refining orders
+  expectedOutputQuantity: numeric("expected_output_quantity"), // For refining orders
+  refiningSteps: text("refining_steps"), // Optional steps for refining
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const orderItems = pgTable("order_items", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").references(() => orders.id).notNull(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  quantity: numeric("quantity").notNull(),
+  unitCost: numeric("unit_cost").notNull(),
+  subtotal: numeric("subtotal").notNull(),
+});
+
+export const orderFees = pgTable("order_fees", {
+  id: serial("id").primaryKey(),
+  orderId: integer("order_id").references(() => orders.id).notNull(),
+  feeLabel: text("fee_label").notNull(),
+  amount: numeric("amount").notNull(),
+});
+
+// Order Management schemas
+export const insertOrderSchema = createInsertSchema(orders).pick({
+  orderNumber: true,
+  orderType: true,
+  customerId: true,
+  userId: true,
+  description: true,
+  totalMaterialCost: true,
+  totalAdditionalFees: true,
+  totalCost: true,
+  status: true,
+  targetProductId: true,
+  expectedOutputQuantity: true,
+  refiningSteps: true,
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).pick({
+  orderId: true,
+  productId: true,
+  quantity: true,
+  unitCost: true,
+  subtotal: true,
+});
+
+export const insertOrderFeeSchema = createInsertSchema(orderFees).pick({
+  orderId: true,
+  feeLabel: true,
+  amount: true,
+});
+
+// Order Management types
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type Order = typeof orders.$inferSelect;
+
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+
+export type InsertOrderFee = z.infer<typeof insertOrderFeeSchema>;
+export type OrderFee = typeof orderFees.$inferSelect;

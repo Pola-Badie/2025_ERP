@@ -19,8 +19,12 @@ import {
   insertLoginLogSchema,
   insertQuotationSchema,
   insertQuotationItemSchema,
+  insertOrderSchema,
+  insertOrderItemSchema,
+  insertOrderFeeSchema,
   users,
-  sales
+  sales,
+  orders
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
