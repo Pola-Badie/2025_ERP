@@ -55,6 +55,7 @@ const RefiningOrderFields: React.FC<RefiningOrderFieldsProps> = ({
       if (!response.ok) {
         throw new Error('Failed to fetch semi-finished products');
       }
+      console.log('Semi-finished products fetched:', await response.clone().json());
       return response.json();
     }
   });

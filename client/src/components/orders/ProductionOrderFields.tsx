@@ -58,6 +58,7 @@ const ProductionOrderFields: React.FC<ProductionOrderFieldsProps> = ({
       if (!response.ok) {
         throw new Error('Failed to fetch raw materials');
       }
+      console.log('Raw materials fetched:', await response.clone().json());
       return response.json();
     }
   });
