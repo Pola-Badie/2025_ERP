@@ -44,7 +44,7 @@ export interface IStorage {
   deleteUserPermission(userId: number, moduleName: string): Promise<boolean>;
   
   // Product methods
-  getProducts(): Promise<Product[]>;
+  getProducts(filters?: { type?: string; status?: string; categoryId?: number }): Promise<Product[]>;
   getProductsByCategory(categoryId: number): Promise<Product[]>;
   getProductsByStatus(status: string): Promise<Product[]>;
   getLowStockProducts(): Promise<Product[]>;
@@ -241,16 +241,38 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Product methods
-  async getProducts(): Promise<Product[]> {
-    return db.select().from(products);
+  async getProducts(filters?: { type?: string; status?: string; categoryId?: number }): Promise<Product[]> {
+    let query = db.select().from(products);
+    
+    if (filters) {
+      const conditions = [];
+      
+      if (filters.type !== undefined) {
+        conditions.push(eq(products.productType, filters.type));
+      }
+      
+      if (filters.status !== undefined) {
+        conditions.push(eq(products.status, filters.status));
+      }
+      
+      if (filters.categoryId !== undefined) {
+        conditions.push(eq(products.categoryId, filters.categoryId));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+    }
+    
+    return await query;
   }
   
   async getProductsByCategory(categoryId: number): Promise<Product[]> {
-    return db.select().from(products).where(eq(products.categoryId, categoryId));
+    return this.getProducts({ categoryId });
   }
   
   async getProductsByStatus(status: string): Promise<Product[]> {
-    return db.select().from(products).where(eq(products.status, status));
+    return this.getProducts({ status });
   }
   
   async getLowStockProducts(): Promise<Product[]> {

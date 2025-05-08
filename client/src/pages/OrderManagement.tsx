@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Filter, Loader2 } from 'lucide-react';
+import { PlusCircle, Filter, Loader2, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import OrderForm from '@/components/orders/OrderForm';
 
 const OrderManagement = () => {
   const [orderType, setOrderType] = useState<'production' | 'refining'>('production');
-  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [activeView, setActiveView] = useState<'list' | 'create'>('list');
   const { t } = useLanguage();
 
   const { data: orders, isLoading } = useQuery({
@@ -26,11 +26,11 @@ const OrderManagement = () => {
   });
 
   const handleCreateOrder = () => {
-    setShowOrderForm(true);
+    setActiveView('create');
   };
 
-  const handleOrderFormCancel = () => {
-    setShowOrderForm(false);
+  const handleBackToList = () => {
+    setActiveView('list');
   };
 
   const handleTabChange = (value: string) => {
@@ -52,8 +52,8 @@ const OrderManagement = () => {
     }
   };
 
-  return (
-    <div className="p-6 space-y-6">
+  const ListingView = () => (
+    <>
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{t('orders')}</h1>
         <div className="flex gap-2">
@@ -224,25 +224,33 @@ const OrderManagement = () => {
           )}
         </TabsContent>
       </Tabs>
+    </>
+  );
 
-      {showOrderForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
-              Create {orderType === 'production' ? 'Production' : 'Refining'} Order
-            </h2>
-            
-            <OrderForm 
-              onCancel={handleOrderFormCancel} 
-              onSuccess={() => {
-                setShowOrderForm(false);
-                // Invalidate and refetch the orders
-                queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-              }}
-            />
-          </div>
-        </div>
-      )}
+  const CreateView = () => (
+    <div className="space-y-6">
+      <div className="flex items-center mb-4">
+        <Button variant="ghost" size="sm" onClick={handleBackToList} className="mr-2">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Orders
+        </Button>
+        <h1 className="text-2xl font-bold">Create {orderType === 'production' ? 'Production' : 'Refining'} Order</h1>
+      </div>
+      
+      <OrderForm 
+        onCancel={handleBackToList} 
+        onSuccess={() => {
+          setActiveView('list');
+          // Invalidate and refetch the orders
+          queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div className="p-6 space-y-6">
+      {activeView === 'list' ? <ListingView /> : <CreateView />}
     </div>
   );
 };
