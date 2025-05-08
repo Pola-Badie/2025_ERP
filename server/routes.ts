@@ -1325,6 +1325,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Order Management Endpoints =============
+  
+  // Get all orders
+  app.get("/api/orders", async (req: Request, res: Response) => {
+    try {
+      const query = req.query.query as string || '';
+      const orderType = req.query.orderType as string || '';
+      const status = req.query.status as string || '';
+      
+      const orders = await storage.getOrders(query, orderType, status);
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+  
+  // Get order by ID
+  app.get("/api/orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const order = await storage.getOrder(id);
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+  
+  // Create new order
+  app.post("/api/orders", async (req: Request, res: Response) => {
+    try {
+      // Format order data
+      const orderData = {
+        orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
+        orderType: req.body.orderType,
+        customerId: req.body.customerId,
+        userId: 1, // Temp hardcoded user ID 
+        description: req.body.description || '',
+        totalMaterialCost: req.body.totalMaterialCost.toString(),
+        totalAdditionalFees: req.body.totalAdditionalFees.toString(),
+        totalCost: req.body.totalCost.toString(),
+        status: 'pending',
+        targetProductId: req.body.targetProductId || null,
+        expectedOutputQuantity: req.body.expectedOutputQuantity ? req.body.expectedOutputQuantity.toString() : null,
+        refiningSteps: req.body.refiningSteps || null
+      };
+      
+      // Validate order data
+      const validatedOrder = insertOrderSchema.parse(orderData);
+      
+      // Create order
+      const order = await storage.createOrder(validatedOrder);
+      
+      // Process order items
+      if (req.body.items && req.body.items.length > 0) {
+        for (const item of req.body.items) {
+          const itemData = {
+            orderId: order.id,
+            productId: item.productId,
+            quantity: item.quantity.toString(),
+            unitCost: item.unitCost.toString(),
+            subtotal: item.subtotal.toString()
+          };
+          
+          const validatedItem = insertOrderItemSchema.parse(itemData);
+          await storage.createOrderItem(validatedItem);
+        }
+      }
+      
+      // Process additional fees
+      if (req.body.fees && req.body.fees.length > 0) {
+        for (const fee of req.body.fees) {
+          const feeData = {
+            orderId: order.id,
+            feeLabel: fee.label,
+            amount: fee.amount.toString()
+          };
+          
+          const validatedFee = insertOrderFeeSchema.parse(feeData);
+          await storage.createOrderFee(validatedFee);
+        }
+      }
+      
+      res.status(201).json({
+        ...order,
+        items: req.body.items,
+        fees: req.body.fees
+      });
+    } catch (error) {
+      console.error("Error creating order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+  
+  // Update order status
+  app.patch("/api/orders/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!['pending', 'in_progress', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+      
+      const order = await storage.updateOrder(id, { status });
+      
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+  
+  // Delete order
+  app.delete("/api/orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteOrder(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      res.status(500).json({ message: "Failed to delete order" });
+    }
+  });
+  
+  // Get raw materials (for production orders)
+  app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
+    try {
+      const rawMaterials = await storage.getProductsByStatus('raw');
+      res.json(rawMaterials);
+    } catch (error) {
+      console.error("Error fetching raw materials:", error);
+      res.status(500).json({ message: "Failed to fetch raw materials" });
+    }
+  });
+  
+  // Get semi-finished products (for refining orders)
+  app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
+    try {
+      const semiFinishedProducts = await db.select()
+        .from(products)
+        .where(eq(products.productType, 'semi-raw'));
+      res.json(semiFinishedProducts);
+    } catch (error) {
+      console.error("Error fetching semi-finished products:", error);
+      res.status(500).json({ message: "Failed to fetch semi-finished products" });
+    }
+  });
+
   return httpServer;
 }
 

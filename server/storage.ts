@@ -850,6 +850,148 @@ export class DatabaseStorage implements IStorage {
     await db.delete(quotationItems).where(eq(quotationItems.quotationId, quotationId));
     return true;
   }
+
+  // ============ Order Management Methods ============
+  
+  // Get all orders with filtering
+  async getOrders(query: string = '', orderType: string = '', status: string = ''): Promise<Order[]> {
+    let ordersList = db.select({
+      order: orders,
+      customer: customers
+    })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .orderBy(desc(orders.createdAt));
+    
+    // Apply filters if provided
+    if (orderType && orderType !== 'all') {
+      ordersList = ordersList.where(eq(orders.orderType, orderType));
+    }
+    
+    if (status && status !== 'all') {
+      ordersList = ordersList.where(eq(orders.status, status));
+    }
+    
+    if (query && query.trim() !== '') {
+      ordersList = ordersList.where(
+        sql`LOWER(${orders.orderNumber}) LIKE LOWER(${'%' + query + '%'}) OR 
+            LOWER(${orders.description || ''}) LIKE LOWER(${'%' + query + '%'}) OR
+            LOWER(${customers.name || ''}) LIKE LOWER(${'%' + query + '%'})`
+      );
+    }
+    
+    // Execute query
+    const results = await ordersList;
+    
+    // Transform results
+    return results.map(row => ({
+      ...row.order,
+      customer: row.customer
+    })) as unknown as Order[];
+  }
+  
+  // Get order by ID with details
+  async getOrder(id: number): Promise<Order | undefined> {
+    const result = await db.select({
+      order: orders,
+      customer: customers
+    })
+    .from(orders)
+    .leftJoin(customers, eq(orders.customerId, customers.id))
+    .where(eq(orders.id, id))
+    .limit(1);
+    
+    if (result.length === 0) return undefined;
+    
+    // Get related items and fees
+    const items = await this.getOrderItems(id);
+    const fees = await this.getOrderFees(id);
+    
+    // If it's a refining order, get target product details
+    let targetProduct = undefined;
+    if (result[0].order.targetProductId) {
+      targetProduct = await this.getProduct(result[0].order.targetProductId);
+    }
+    
+    return {
+      ...result[0].order,
+      customer: result[0].customer,
+      items,
+      fees,
+      targetProduct
+    } as unknown as Order;
+  }
+  
+  // Get order items for a specific order
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {
+    const items = await db.select({
+      item: orderItems,
+      product: products
+    })
+    .from(orderItems)
+    .innerJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, orderId));
+    
+    return items.map(row => ({
+      ...row.item,
+      product: row.product
+    })) as unknown as OrderItem[];
+  }
+  
+  // Get order fees for a specific order
+  async getOrderFees(orderId: number): Promise<OrderFee[]> {
+    return db.select().from(orderFees).where(eq(orderFees.orderId, orderId));
+  }
+  
+  // Create new order
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const [createdOrder] = await db.insert(orders).values(order).returning();
+    return createdOrder;
+  }
+  
+  // Create order item
+  async createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+    const [createdItem] = await db.insert(orderItems).values(item).returning();
+    return createdItem;
+  }
+  
+  // Create order fee
+  async createOrderFee(fee: InsertOrderFee): Promise<OrderFee> {
+    const [createdFee] = await db.insert(orderFees).values(fee).returning();
+    return createdFee;
+  }
+  
+  // Update order
+  async updateOrder(id: number, data: Partial<Order>): Promise<Order | undefined> {
+    const [updatedOrder] = await db.update(orders)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
+    return updatedOrder;
+  }
+  
+  // Delete order
+  async deleteOrder(id: number): Promise<boolean> {
+    // Delete related items and fees first
+    await this.deleteOrderItems(id);
+    await this.deleteOrderFees(id);
+    
+    // Then delete the order
+    await db.delete(orders).where(eq(orders.id, id));
+    return true;
+  }
+  
+  // Delete order items
+  async deleteOrderItems(orderId: number): Promise<boolean> {
+    await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    return true;
+  }
+  
+  // Delete order fees
+  async deleteOrderFees(orderId: number): Promise<boolean> {
+    await db.delete(orderFees).where(eq(orderFees.orderId, orderId));
+    return true;
+  }
 }
 
 export const storage = new DatabaseStorage();
