@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { z } from "zod";
 import { 
   insertProductSchema,
@@ -1472,21 +1472,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      // Direct SQL query to get raw materials
-      const result = await db.select().from(products).where(eq(products.productType, 'raw'));
-      res.json(result);
+      console.log("Attempting to fetch raw materials with direct SQL");
+      // Use direct pool query to bypass any ORM issues
+      const { rows } = await pool.query('SELECT * FROM products WHERE product_type = $1', ['raw']);
+      console.log("Raw materials found via direct SQL:", rows.length);
+      
+      res.json(rows);
     } catch (error) {
       console.error("Error fetching raw materials:", error);
-      res.status(500).json({ message: "Failed to fetch raw materials" });
+      res.status(500).json({ message: "Failed to fetch raw materials", error: String(error) });
     }
   });
   
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      // Direct SQL query to get semi-raw products
-      const result = await db.select().from(products).where(eq(products.productType, 'semi-raw'));
-      res.json(result);
+      console.log("Attempting to fetch semi-raw products with direct SQL");
+      // Use direct pool query to bypass any ORM issues
+      const { rows } = await pool.query('SELECT * FROM products WHERE product_type = $1', ['semi-raw']);
+      console.log("Semi-raw products found via direct SQL:", rows.length);
+      
+      res.json(rows);
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
       res.status(500).json({ message: "Failed to fetch semi-finished products" });
