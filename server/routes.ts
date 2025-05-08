@@ -1506,17 +1506,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      console.log("Attempting to fetch raw materials with direct SQL");
+      console.log("Fetching raw materials with direct pool query");
       
-      // Get all products first (this works as confirmed in the test)
-      const allProducts = await db.select().from(products);
-      console.log("All products count from db.select():", allProducts.length);
+      // Use direct SQL query
+      const query = `
+        SELECT * FROM products 
+        WHERE product_type = 'raw'
+      `;
       
-      // Filter for raw materials only
-      const rawMaterials = allProducts.filter(product => product.productType === 'raw');
-      console.log("Raw materials after filtering:", rawMaterials.length, rawMaterials);
+      const { rows } = await pool.query(query);
+      console.log("Raw materials found via direct query:", rows.length);
       
-      res.json(rawMaterials);
+      res.json(rows);
     } catch (error) {
       console.error("Error fetching raw materials:", error);
       res.status(500).json({ message: "Failed to fetch raw materials", error: String(error) });
@@ -1526,20 +1527,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      console.log("Attempting to fetch semi-raw products");
+      console.log("Fetching semi-raw products with direct pool query");
       
-      // Get all products first (this works as confirmed in the test)
-      const allProducts = await db.select().from(products);
-      console.log("All products count from db.select() for semi-raw:", allProducts.length);
+      // Use direct SQL query
+      const query = `
+        SELECT * FROM products 
+        WHERE product_type = 'semi-raw'
+      `;
       
-      // Filter for semi-raw products only
-      const semiRawProducts = allProducts.filter(product => product.productType === 'semi-raw');
-      console.log("Semi-raw products after filtering:", semiRawProducts.length, semiRawProducts);
+      const { rows } = await pool.query(query);
+      console.log("Semi-raw products found via direct query:", rows.length);
       
-      res.json(semiRawProducts);
+      res.json(rows);
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
-      res.status(500).json({ message: "Failed to fetch semi-finished products" });
+      res.status(500).json({ message: "Failed to fetch semi-finished products", error: String(error) });
     }
   });
 
