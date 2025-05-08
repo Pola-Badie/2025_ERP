@@ -24,7 +24,8 @@ import {
   insertOrderFeeSchema,
   users,
   sales,
-  orders
+  orders,
+  products
 } from "@shared/schema";
 import { eq, sql } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
@@ -1471,11 +1472,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      // Get all products and filter manually
-      const allProducts = await storage.getProducts();
-      const rawMaterials = allProducts.filter(product => product.productType === 'raw');
-      console.log("Raw materials:", rawMaterials);
-      res.json(rawMaterials);
+      // Direct SQL query to get raw materials
+      const result = await db.select().from(products).where(eq(products.productType, 'raw'));
+      res.json(result);
     } catch (error) {
       console.error("Error fetching raw materials:", error);
       res.status(500).json({ message: "Failed to fetch raw materials" });
@@ -1485,11 +1484,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      // Get all products and filter manually
-      const allProducts = await storage.getProducts();
-      const semiFinishedProducts = allProducts.filter(product => product.productType === 'semi-raw');
-      console.log("Semi-raw products:", semiFinishedProducts);
-      res.json(semiFinishedProducts);
+      // Direct SQL query to get semi-raw products
+      const result = await db.select().from(products).where(eq(products.productType, 'semi-raw'));
+      res.json(result);
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
       res.status(500).json({ message: "Failed to fetch semi-finished products" });
