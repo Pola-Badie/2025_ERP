@@ -5,7 +5,9 @@ import { PlusCircle, Filter, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
+import OrderForm from '@/components/orders/OrderForm';
 
 const OrderManagement = () => {
   const [orderType, setOrderType] = useState<'production' | 'refining'>('production');
