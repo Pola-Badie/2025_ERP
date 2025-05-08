@@ -250,7 +250,7 @@ const OrderManagement = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {activeView === 'list' ? <ListingView /> : <CreateView />}
+      
     </div>
   );
 };
