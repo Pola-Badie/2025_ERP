@@ -17,7 +17,10 @@ import {
   rolePermissions, type RolePermission, type InsertRolePermission,
   loginLogs, type LoginLog, type InsertLoginLog,
   quotations, type Quotation, type InsertQuotation,
-  quotationItems, type QuotationItem, type InsertQuotationItem
+  quotationItems, type QuotationItem, type InsertQuotationItem,
+  orders, type Order, type InsertOrder,
+  orderItems, type OrderItem, type InsertOrderItem,
+  orderFees, type OrderFee, type InsertOrderFee
 } from "@shared/schema";
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -125,6 +128,19 @@ export interface IStorage {
   updateQuotation(id: number, data: Partial<Quotation>): Promise<Quotation | undefined>;
   deleteQuotation(id: number): Promise<boolean>;
   deleteQuotationItems(quotationId: number): Promise<boolean>;
+  
+  // Order Management methods
+  getOrders(query?: string, orderType?: string, status?: string): Promise<Order[]>;
+  getOrder(id: number): Promise<Order | undefined>;
+  getOrderItems(orderId: number): Promise<OrderItem[]>;
+  getOrderFees(orderId: number): Promise<OrderFee[]>;
+  createOrder(order: InsertOrder): Promise<Order>;
+  createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
+  createOrderFee(fee: InsertOrderFee): Promise<OrderFee>;
+  updateOrder(id: number, data: Partial<Order>): Promise<Order | undefined>;
+  deleteOrder(id: number): Promise<boolean>;
+  deleteOrderItems(orderId: number): Promise<boolean>;
+  deleteOrderFees(orderId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
