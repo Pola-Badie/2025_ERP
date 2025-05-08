@@ -1473,9 +1473,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/test-db", async (req: Request, res: Response) => {
     try {
       console.log("Testing database connectivity");
-      const { rows } = await pool.query('SELECT * FROM products LIMIT 3');
-      console.log("Database test successful, found products:", rows.length);
-      res.json({ success: true, products: rows });
+      
+      // Test basic query
+      const { rows: allRows } = await pool.query('SELECT * FROM products LIMIT 3');
+      console.log("Database test successful, found products:", allRows.length);
+      
+      // Test specific query for raw materials
+      const { rows: rawRows } = await pool.query('SELECT * FROM products WHERE product_type = $1', ['raw']);
+      console.log("Raw materials found via direct query:", rawRows.length, rawRows);
+      
+      // Also try using Drizzle ORM
+      const drizzleProducts = await db.select().from(products);
+      console.log("Drizzle products count:", drizzleProducts.length);
+      
+      // Filter for raw products using JavaScript
+      const rawProducts = drizzleProducts.filter(p => p.productType === 'raw');
+      console.log("Raw products after JS filtering:", rawProducts.length, rawProducts);
+      
+      res.json({ 
+        success: true, 
+        queryProducts: allRows,
+        rawQueryProducts: rawRows,
+        drizzleProducts: drizzleProducts.slice(0, 3),
+        rawDrizzleProducts: rawProducts
+      });
     } catch (error) {
       console.error("Error testing database:", error);
       res.status(500).json({ message: "Database test failed", error: String(error) });
