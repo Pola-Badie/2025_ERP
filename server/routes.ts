@@ -1471,8 +1471,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      // Filter products by type as 'raw'
-      const rawMaterials = await storage.getProducts({ type: 'raw' });
+      // Get all products and filter manually
+      const allProducts = await storage.getProducts();
+      const rawMaterials = allProducts.filter(product => product.productType === 'raw');
+      console.log("Raw materials:", rawMaterials);
       res.json(rawMaterials);
     } catch (error) {
       console.error("Error fetching raw materials:", error);
@@ -1483,8 +1485,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      // Filter products by type as 'semi-raw'
-      const semiFinishedProducts = await storage.getProducts({ type: 'semi-raw' });
+      // Get all products and filter manually
+      const allProducts = await storage.getProducts();
+      const semiFinishedProducts = allProducts.filter(product => product.productType === 'semi-raw');
+      console.log("Semi-raw products:", semiFinishedProducts);
       res.json(semiFinishedProducts);
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
