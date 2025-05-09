@@ -1,136 +1,201 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import ProductionOrderFields from './ProductionOrderFields';
 import RefiningOrderFields from './RefiningOrderFields';
-import AdditionalFeesSection from './AdditionalFeesSection';
-import OrderSummary from './OrderSummary';
 
 interface OrderFormProps {
   onCancel: () => void;
-  onSuccess?: () => void;
+  onSuccess: () => void;
+}
+
+interface Material {
+  id: number;
+  name: string;
+  quantity: number;
+  unitPrice: string;
+  unitOfMeasure?: string;
 }
 
 const OrderForm: React.FC<OrderFormProps> = ({ onCancel, onSuccess }) => {
-  const [orderType, setOrderType] = useState<'production' | 'refining'>('production');
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-  const [orderItems, setOrderItems] = useState<any[]>([]);
-  const [additionalFees, setAdditionalFees] = useState<any[]>([]);
-  const [targetProduct, setTargetProduct] = useState<any>(null);
-  const [expectedOutputQuantity, setExpectedOutputQuantity] = useState<string>('');
-  const [refiningSteps, setRefiningSteps] = useState<string>('');
-  
   const { toast } = useToast();
-
-  // Base schema for both order types
-  const formSchema = z.object({
-    customerId: z.string().min(1, 'Customer is required'),
-    description: z.string().optional(),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      customerId: '',
-      description: '',
-    },
-  });
-
-  // Fetch customers for the dropdown
-  const { data: customers } = useQuery({
-    queryKey: ['/api/customers'],
-    queryFn: async () => {
-      const response = await fetch('/api/customers');
-      if (!response.ok) {
-        throw new Error('Failed to fetch customers');
-      }
-      return response.json();
-    }
-  });
-
-  // Handle customer selection
-  const handleCustomerChange = (value: string) => {
-    setSelectedCustomerId(Number(value));
-    form.setValue('customerId', value);
-  };
-
-  // Calculate totals
-  const calculateTotals = () => {
-    const materialCost = orderItems.reduce((sum, item) => sum + Number(item.subtotal), 0);
-    const feesTotal = additionalFees.reduce((sum, fee) => sum + Number(fee.amount), 0);
-    const totalCost = materialCost + feesTotal;
+  const [orderType, setOrderType] = useState<'production' | 'refining'>('production');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Shared state
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  
+  // Production order state
+  const [batchNumber, setBatchNumber] = useState('');
+  const [selectedMaterials, setSelectedMaterials] = useState<Material[]>([]);
+  const [productDescription, setProductDescription] = useState('');
+  const [totalPrice, setTotalPrice] = useState('0.00');
+  
+  // Refining order state
+  const [refiningBatchNumber, setRefiningBatchNumber] = useState('');
+  const [sourceType, setSourceType] = useState('production');
+  const [selectedProductionOrder, setSelectedProductionOrder] = useState('');
+  const [selectedStockItem, setSelectedStockItem] = useState('');
+  const [refiningSteps, setRefiningSteps] = useState<string[]>([]);
+  const [expectedOutput, setExpectedOutput] = useState('');
+  const [costAdjustments, setCostAdjustments] = useState('0.00');
+  
+  // Calculate total price whenever materials change
+  useEffect(() => {
+    const total = selectedMaterials.reduce((sum, material) => {
+      const quantity = parseFloat(material.quantity.toString()) || 0;
+      const unitPrice = parseFloat(material.unitPrice) || 0;
+      return sum + (quantity * unitPrice);
+    }, 0);
     
-    return {
-      materialCost: materialCost.toFixed(2),
-      feesTotal: feesTotal.toFixed(2),
-      totalCost: totalCost.toFixed(2)
-    };
+    setTotalPrice(total.toFixed(2));
+  }, [selectedMaterials]);
+  
+  const handleTabChange = (value: string) => {
+    setOrderType(value as 'production' | 'refining');
   };
-
-  const totals = calculateTotals();
-
-  // Form submission handler
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  
+  const validateProductionOrder = () => {
+    if (!selectedCustomer) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a customer",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!batchNumber) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a batch number",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (selectedMaterials.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please add at least one material",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!productDescription) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a product description",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const validateRefiningOrder = () => {
+    if (!selectedCustomer) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a customer",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!refiningBatchNumber) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a batch number",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (sourceType === 'production' && !selectedProductionOrder) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a production order",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (sourceType === 'stock' && !selectedStockItem) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a stock item",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (refiningSteps.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please add at least one refining step",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!expectedOutput) {
+      toast({
+        title: "Validation Error",
+        description: "Please describe the expected output",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const handleSubmit = async () => {
+    let isValid = false;
+    
+    if (orderType === 'production') {
+      isValid = validateProductionOrder();
+    } else {
+      isValid = validateRefiningOrder();
+    }
+    
+    if (!isValid) return;
+    
+    setIsSubmitting(true);
+    
     try {
-      if (orderItems.length === 0) {
-        toast({
-          title: 'Material items required',
-          description: 'Please add at least one material item to the order',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Prepare the data based on order type
-      const orderData = {
-        orderType,
-        customerId: Number(values.customerId),
-        description: values.description || '',
-        items: orderItems,
-        fees: additionalFees,
-        totalMaterialCost: totals.materialCost,
-        totalAdditionalFees: totals.feesTotal,
-        totalCost: totals.totalCost,
-      };
-
-      // Add production-specific fields
-      if (orderType === 'production' && targetProduct) {
-        Object.assign(orderData, {
-          targetProductId: targetProduct.id,
-          expectedOutputQuantity: expectedOutputQuantity,
-        });
-      }
+      // Prepare order data
+      const orderData = orderType === 'production'
+        ? {
+            orderType: 'production',
+            batchNumber,
+            customerId: selectedCustomer.id,
+            customerName: selectedCustomer.name,
+            materials: selectedMaterials,
+            finalProduct: productDescription,
+            totalMaterialCost: totalPrice,
+            totalAdditionalFees: '0.00',
+            totalCost: totalPrice,
+          }
+        : {
+            orderType: 'refining',
+            batchNumber: refiningBatchNumber,
+            customerId: selectedCustomer.id,
+            customerName: selectedCustomer.name,
+            sourceType,
+            sourceId: sourceType === 'production' ? selectedProductionOrder : selectedStockItem,
+            refiningSteps: refiningSteps.join('||'),
+            expectedOutput,
+            totalMaterialCost: '0.00',
+            totalAdditionalFees: costAdjustments,
+            totalCost: costAdjustments,
+          };
       
-      // Add refining-specific fields
-      if (orderType === 'refining') {
-        Object.assign(orderData, {
-          refiningSteps: refiningSteps,
-        });
-      }
-
-      // Send the data to the server
+      // Send API request
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -138,134 +203,87 @@ const OrderForm: React.FC<OrderFormProps> = ({ onCancel, onSuccess }) => {
         },
         body: JSON.stringify(orderData),
       });
-
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create order');
+        throw new Error(`Failed to create order: ${response.statusText}`);
       }
-
+      
       toast({
-        title: 'Order created',
-        description: 'Your order has been created successfully',
+        title: "Success",
+        description: `${orderType === 'production' ? 'Production' : 'Refining'} order created successfully`,
       });
-
-      if (onSuccess) {
-        onSuccess();
-      }
+      
+      onSuccess();
     } catch (error) {
+      console.error('Error creating order:', error);
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create order',
-        variant: 'destructive',
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create order",
+        variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="production" onValueChange={(value) => setOrderType(value as 'production' | 'refining')}>
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="production" onValueChange={handleTabChange}>
+        <TabsList className="grid w-[500px] grid-cols-2 mb-6">
           <TabsTrigger value="production">Production Order</TabsTrigger>
-          <TabsTrigger value="refining">Refining Order</TabsTrigger>
+          <TabsTrigger value="refining">Refining Process</TabsTrigger>
         </TabsList>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
-            {/* Common Fields for Both Order Types */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="customerId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer</FormLabel>
-                    <Select
-                      onValueChange={handleCustomerChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a customer" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {customers?.map((customer) => (
-                          <SelectItem key={customer.id} value={customer.id.toString()}>
-                            {customer.name} ({customer.company})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Order Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter any additional details about this order"
-                        className="resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Order Type Specific Fields */}
-            <TabsContent value="production" className="space-y-6 border p-4 rounded-lg">
-              <ProductionOrderFields 
-                orderItems={orderItems} 
-                setOrderItems={setOrderItems}
-                targetProduct={targetProduct}
-                setTargetProduct={setTargetProduct}
-                expectedOutputQuantity={expectedOutputQuantity}
-                setExpectedOutputQuantity={setExpectedOutputQuantity}
-              />
-            </TabsContent>
-
-            <TabsContent value="refining" className="space-y-6 border p-4 rounded-lg">
-              <RefiningOrderFields 
-                orderItems={orderItems} 
-                setOrderItems={setOrderItems}
-                refiningSteps={refiningSteps}
-                setRefiningSteps={setRefiningSteps}
-              />
-            </TabsContent>
-
-            {/* Additional Fees Section (Common for both types) */}
-            <AdditionalFeesSection 
-              additionalFees={additionalFees} 
-              setAdditionalFees={setAdditionalFees} 
-            />
-
-            {/* Order Summary */}
-            <OrderSummary 
-              materialCost={totals.materialCost}
-              feesTotal={totals.feesTotal}
-              totalCost={totals.totalCost}
-            />
-
-            {/* Form Actions */}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Create Order
-              </Button>
-            </div>
-          </form>
-        </Form>
+        
+        <TabsContent value="production" className="space-y-6">
+          <ProductionOrderFields
+            batchNumber={batchNumber}
+            onBatchNumberChange={setBatchNumber}
+            selectedCustomer={selectedCustomer}
+            onCustomerSelect={setSelectedCustomer}
+            selectedMaterials={selectedMaterials}
+            onMaterialsChange={setSelectedMaterials}
+            productDescription={productDescription}
+            onProductDescriptionChange={setProductDescription}
+            totalPrice={totalPrice}
+          />
+        </TabsContent>
+        
+        <TabsContent value="refining" className="space-y-6">
+          <RefiningOrderFields
+            batchNumber={refiningBatchNumber}
+            onBatchNumberChange={setRefiningBatchNumber}
+            selectedCustomer={selectedCustomer}
+            onCustomerSelect={setSelectedCustomer}
+            sourceType={sourceType}
+            onSourceTypeChange={setSourceType}
+            selectedProductionOrder={selectedProductionOrder}
+            onProductionOrderSelect={setSelectedProductionOrder}
+            selectedStockItem={selectedStockItem}
+            onStockItemSelect={setSelectedStockItem}
+            refiningSteps={refiningSteps}
+            onRefiningStepsChange={setRefiningSteps}
+            expectedOutput={expectedOutput}
+            onExpectedOutputChange={setExpectedOutput}
+            costAdjustments={costAdjustments}
+            onCostAdjustmentsChange={setCostAdjustments}
+          />
+        </TabsContent>
       </Tabs>
+      
+      <div className="flex gap-3 justify-end">
+        <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>Cancel</Button>
+        <Button onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting && (
+            <span className="mr-2">
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+          )}
+          Create {orderType === 'production' ? 'Production' : 'Refining'} Order
+        </Button>
+      </div>
     </div>
   );
 };
