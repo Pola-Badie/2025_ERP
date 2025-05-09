@@ -49,7 +49,7 @@ const OrderManagement = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [orderType, setOrderType] = useState<'production' | 'refining'>('production');
-  const [activeView, setActiveView] = useState<'list' | 'create'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'create'>('create');
   const [searchQuery, setSearchQuery] = useState('');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);

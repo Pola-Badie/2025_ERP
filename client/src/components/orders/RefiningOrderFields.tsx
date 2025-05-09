@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -11,13 +11,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   RadioGroup,
   RadioGroupItem,
-} from "@/components/ui/radio-group";
+} from '@/components/ui/radio-group';
+import { useQuery } from '@tanstack/react-query';
 import CustomerSearch from './CustomerSearch';
-import CustomerDetails from './CustomerDetails';
 import BatchNumberField from './BatchNumberField';
 
 interface RefiningOrderFieldsProps {
@@ -28,9 +28,9 @@ interface RefiningOrderFieldsProps {
   sourceType: string;
   onSourceTypeChange: (value: string) => void;
   selectedProductionOrder: string;
-  onProductionOrderSelect: (orderId: string) => void;
+  onProductionOrderSelect: (value: string) => void;
   selectedStockItem: string;
-  onStockItemSelect: (productId: string) => void;
+  onStockItemSelect: (value: string) => void;
   refiningSteps: string[];
   onRefiningStepsChange: (steps: string[]) => void;
   expectedOutput: string;
@@ -55,263 +55,218 @@ const RefiningOrderFields: React.FC<RefiningOrderFieldsProps> = ({
   expectedOutput,
   onExpectedOutputChange,
   costAdjustments,
-  onCostAdjustmentsChange
+  onCostAdjustmentsChange,
 }) => {
-  const [productionOrders, setProductionOrders] = useState<any[]>([]);
-  const [stockItems, setStockItems] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [newStep, setNewStep] = useState('');
   
-  // Fetch production orders and semi-finished products
-  useEffect(() => {
-    setIsLoading(true);
-    
-    // Fetch production orders
-    fetch('/api/orders?orderType=production')
-      .then(response => response.json())
-      .then(data => {
-        setProductionOrders(data || []);
-      })
-      .catch(error => {
-        console.error('Error fetching production orders:', error);
-        // Fallback data for demo
-        setProductionOrders([
-          { id: 1, orderNumber: 'PROD-000001', finalProduct: 'Sample Production 1' },
-          { id: 2, orderNumber: 'PROD-000002', finalProduct: 'Sample Production 2' }
-        ]);
-      });
-    
-    // Fetch semi-finished products
-    fetch('/api/products/semi-finished')
-      .then(response => response.json())
-      .then(data => {
-        setStockItems(data || []);
-      })
-      .catch(error => {
-        console.error('Error fetching semi-finished products:', error);
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
-  
-  const addRefiningStep = () => {
-    onRefiningStepsChange([...refiningSteps, '']);
-  };
-  
-  const updateRefiningStep = (index: number, value: string) => {
-    const newSteps = [...refiningSteps];
-    newSteps[index] = value;
-    onRefiningStepsChange(newSteps);
-  };
-  
-  const removeRefiningStep = (index: number) => {
-    onRefiningStepsChange(refiningSteps.filter((_, i) => i !== index));
-  };
-  
-  const getSourceMaterialName = () => {
-    if (sourceType === 'production') {
-      const order = productionOrders.find(o => o.id.toString() === selectedProductionOrder);
-      return order?.finalProduct || '';
-    } else {
-      const product = stockItems.find(p => p.id.toString() === selectedStockItem);
-      return product?.name || '';
+  // Fetch production orders for source selection
+  const { data: productionOrders, isLoading: isLoadingOrders } = useQuery({
+    queryKey: ['/api/orders'],
+    queryFn: async () => {
+      const response = await fetch('/api/orders');
+      if (!response.ok) {
+        throw new Error('Failed to fetch production orders');
+      }
+      
+      const orders = await response.json();
+      return orders.filter((order: any) => order.orderType === 'production');
     }
+  });
+  
+  // Fetch semi-finished products for source selection
+  const { data: semiFinishedProducts, isLoading: isLoadingProducts } = useQuery({
+    queryKey: ['/api/products/semi-finished'],
+    queryFn: async () => {
+      const response = await fetch('/api/products/semi-finished');
+      if (!response.ok) {
+        throw new Error('Failed to fetch semi-finished products');
+      }
+      return response.json();
+    }
+  });
+  
+  const handleAddStep = () => {
+    if (newStep.trim() === '') return;
+    
+    onRefiningStepsChange([...refiningSteps, newStep.trim()]);
+    setNewStep('');
   };
-
+  
+  const handleRemoveStep = (index: number) => {
+    const updatedSteps = [...refiningSteps];
+    updatedSteps.splice(index, 1);
+    onRefiningStepsChange(updatedSteps);
+  };
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div className="space-y-6">
-          {/* Batch Number */}
-          <BatchNumberField 
-            orderType="refining"
-            value={batchNumber}
-            onChange={onBatchNumberChange}
-          />
-          
-          {/* Customer Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="customer">Customer</Label>
-            <CustomerSearch 
-              selectedCustomer={selectedCustomer} 
-              onCustomerSelect={onCustomerSelect}
-            />
-            {selectedCustomer && <CustomerDetails customer={selectedCustomer} />}
+        <CustomerSearch
+          value={selectedCustomer}
+          onChange={onCustomerSelect}
+        />
+        
+        <BatchNumberField
+          value={batchNumber}
+          onChange={onBatchNumberChange}
+          orderType="refining"
+        />
+      </div>
+      
+      <div className="space-y-4">
+        <Label>Source Material</Label>
+        <RadioGroup value={sourceType} onValueChange={onSourceTypeChange} className="flex flex-col space-y-1">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="production" id="production" />
+            <Label htmlFor="production">From Production Order</Label>
           </div>
-          
-          {/* Source Type Selection */}
-          <div className="space-y-3">
-            <Label>Source Material</Label>
-            <RadioGroup 
-              value={sourceType} 
-              onValueChange={onSourceTypeChange}
-              className="flex space-x-4"
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="stock" id="stock" />
+            <Label htmlFor="stock">From Stock Item</Label>
+          </div>
+        </RadioGroup>
+        
+        {sourceType === 'production' ? (
+          <div className="space-y-2">
+            <Label htmlFor="productionOrder">Select Production Order</Label>
+            <Select
+              value={selectedProductionOrder}
+              onValueChange={onProductionOrderSelect}
             >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="production" id="production" />
-                <Label htmlFor="production">From Production Order</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="stock" id="stock" />
-                <Label htmlFor="stock">From Stock</Label>
-              </div>
-            </RadioGroup>
-            
-            {/* Source Selection based on type */}
-            <div className="pt-2">
-              {sourceType === 'production' ? (
-                <>
-                  <Label htmlFor="productionOrder" className="mb-1 block">Production Order</Label>
-                  <Select 
-                    value={selectedProductionOrder}
-                    onValueChange={onProductionOrderSelect}
-                    disabled={isLoading || productionOrders.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a production order" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {productionOrders.length > 0 ? (
-                        productionOrders.map(order => (
-                          <SelectItem key={order.id} value={order.id.toString()}>
-                            {order.orderNumber} - {order.finalProduct || 'N/A'}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="none" disabled>No production orders available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </>
-              ) : (
-                <>
-                  <Label htmlFor="stockItem" className="mb-1 block">Stock Item</Label>
-                  <Select 
-                    value={selectedStockItem}
-                    onValueChange={onStockItemSelect}
-                    disabled={isLoading || stockItems.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a stock item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stockItems.length > 0 ? (
-                        stockItems.map(item => (
-                          <SelectItem key={item.id} value={item.id.toString()}>
-                            {item.name} {item.unitOfMeasure ? `(${item.unitOfMeasure})` : ''}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="none" disabled>No semi-finished products available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-            </div>
+              <SelectTrigger id="productionOrder">
+                <SelectValue placeholder="Select production order" />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingOrders ? (
+                  <SelectItem value="loading" disabled>
+                    Loading orders...
+                  </SelectItem>
+                ) : (
+                  productionOrders?.map((order: any) => (
+                    <SelectItem key={order.id} value={order.id.toString()}>
+                      {order.batchNumber || order.orderNumber} - {order.finalProduct || "Unknown product"}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
-          
-          {/* Expected Output */}
+        ) : (
           <div className="space-y-2">
-            <Label htmlFor="expectedOutput">Expected Output</Label>
-            <Textarea
-              id="expectedOutput"
-              placeholder="Describe the expected output after refining..."
-              value={expectedOutput}
-              onChange={(e) => onExpectedOutputChange(e.target.value)}
-              rows={3}
-            />
+            <Label htmlFor="stockItem">Select Stock Item</Label>
+            <Select
+              value={selectedStockItem}
+              onValueChange={onStockItemSelect}
+            >
+              <SelectTrigger id="stockItem">
+                <SelectValue placeholder="Select stock item" />
+              </SelectTrigger>
+              <SelectContent>
+                {isLoadingProducts ? (
+                  <SelectItem value="loading" disabled>
+                    Loading stock items...
+                  </SelectItem>
+                ) : (
+                  semiFinishedProducts?.map((product: any) => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.name} - {product.batchNumber || "No batch"}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Refining Steps</Label>
+        <div className="flex space-x-2">
+          <Input
+            placeholder="Enter a refining step..."
+            value={newStep}
+            onChange={(e) => setNewStep(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="button" onClick={handleAddStep}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add
+          </Button>
         </div>
-
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* Refining Steps */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <Label>Refining Process Steps</Label>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
-                onClick={addRefiningStep}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Step
-              </Button>
+        
+        <div className="border rounded-lg mt-2">
+          {refiningSteps.length > 0 ? (
+            <ul className="divide-y">
+              {refiningSteps.map((step, index) => (
+                <li key={index} className="flex items-center justify-between p-3">
+                  <div className="flex items-center">
+                    <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-sm mr-3">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveStep(index)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              No refining steps added yet. Add steps above.
             </div>
-            
-            {refiningSteps.length > 0 ? (
-              <div className="space-y-3">
-                {refiningSteps.map((step, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <div className="flex-grow">
-                      <Textarea
-                        value={step}
-                        onChange={(e) => updateRefiningStep(index, e.target.value)}
-                        placeholder={`Step ${index + 1}`}
-                        rows={2}
-                      />
-                    </div>
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => removeRefiningStep(index)}
-                      className="mt-1"
-                    >
-                      <X className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 border rounded-md text-muted-foreground">
-                No refining steps added. Click "Add Step" to begin.
-              </div>
-            )}
-          </div>
-          
-          {/* Cost Adjustments */}
-          <div className="space-y-2">
-            <Label htmlFor="costAdjustments">Additional Cost</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-              <Input
-                id="costAdjustments"
-                value={costAdjustments}
-                onChange={(e) => onCostAdjustmentsChange(e.target.value)}
-                className="pl-8"
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-          
-          {/* Order Summary */}
-          <div className="space-y-2">
-            <Label>Order Summary</Label>
-            <Card className="border border-blue-100">
-              <CardContent className="p-4">
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Source Material:</div>
-                    <div className="font-medium">{getSourceMaterialName() || 'Not selected'}</div>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <div className="text-sm text-muted-foreground">Process:</div>
-                    <div className="font-medium">{refiningSteps.length} step(s)</div>
-                  </div>
-                  
-                  <div className="pt-2 border-t flex justify-between text-lg font-bold">
-                    <span>Total Cost:</span>
-                    <span>${costAdjustments || '0.00'}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          )}
         </div>
       </div>
+      
+      <div className="space-y-2">
+        <Label>Expected Output</Label>
+        <Textarea
+          placeholder="Describe the expected output of the refining process..."
+          value={expectedOutput}
+          onChange={(e) => onExpectedOutputChange(e.target.value)}
+          className="min-h-[100px]"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Additional Cost Adjustments</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            value={costAdjustments}
+            onChange={(e) => onCostAdjustmentsChange(e.target.value)}
+            className="pl-7"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Enter any additional costs associated with the refining process.
+        </p>
+      </div>
+      
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Cost</p>
+              <p className="text-2xl font-bold">${parseFloat(costAdjustments || '0').toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Refining Steps</p>
+              <p className="text-xl font-semibold">{refiningSteps.length}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

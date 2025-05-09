@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { PlusCircle, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -10,7 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -18,8 +25,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface Material {
   id: number;
@@ -30,129 +39,194 @@ interface Material {
 }
 
 interface MaterialsSelectionProps {
-  selectedMaterials: Material[];
-  onMaterialsChange: (materials: Material[]) => void;
-  materialType?: 'raw' | 'semi-finished' | 'all';
+  value: Material[];
+  onChange: (materials: Material[]) => void;
 }
 
-const MaterialsSelection: React.FC<MaterialsSelectionProps> = ({ 
-  selectedMaterials, 
-  onMaterialsChange,
-  materialType = 'raw'
-}) => {
+const MaterialsSelection: React.FC<MaterialsSelectionProps> = ({ value, onChange }) => {
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [availableMaterials, setAvailableMaterials] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    fetchMaterials();
-  }, [materialType]);
-
-  const fetchMaterials = async () => {
-    setIsLoading(true);
-    try {
-      let endpoint = '/api/products';
-      
-      // Use specific endpoints for material types if available
-      if (materialType === 'raw') {
-        endpoint = '/api/products/raw-materials';
-      } else if (materialType === 'semi-finished') {
-        endpoint = '/api/products/semi-finished';
-      }
-      
-      const response = await fetch(endpoint);
+  const [selectedMaterial, setSelectedMaterial] = useState<string | number>('');
+  const [quantity, setQuantity] = useState<number>(1);
+  const [unitPrice, setUnitPrice] = useState<string>('0.00');
+  
+  // Fetch raw materials
+  const { data: materials, isLoading: isLoadingMaterials } = useQuery({
+    queryKey: ['/api/products/raw-materials'],
+    queryFn: async () => {
+      const response = await fetch('/api/products/raw-materials');
       if (!response.ok) {
-        throw new Error(`Failed to fetch materials: ${response.statusText}`);
+        throw new Error('Failed to fetch raw materials');
       }
-      
-      const data = await response.json();
-      setAvailableMaterials(data || []);
-    } catch (error) {
-      console.error('Error fetching materials:', error);
-      // Fallback to regular products endpoint if specific endpoint fails
-      if (materialType !== 'all') {
-        try {
-          const fallbackResponse = await fetch('/api/products');
-          const fallbackData = await fallbackResponse.json();
-          
-          // Filter by productType if possible
-          const filtered = fallbackData.filter((p: any) => {
-            if (materialType === 'raw') {
-              return p.productType === 'raw' || p.type === 'raw' || p.product_type === 'raw';
-            } else if (materialType === 'semi-finished') {
-              return p.productType === 'semi-raw' || p.productType === 'semi-finished' || 
-                     p.type === 'semi-raw' || p.type === 'semi-finished' ||
-                     p.product_type === 'semi-raw' || p.product_type === 'semi-finished';
-            }
-            return true;
-          });
-          
-          setAvailableMaterials(filtered);
-        } catch (fallbackError) {
-          console.error('Error fetching fallback products:', fallbackError);
-        }
-      }
-    } finally {
-      setIsLoading(false);
+      return response.json();
     }
-  };
-
-  const calculateSubtotal = (material: Material) => {
-    const quantity = parseFloat(material.quantity.toString()) || 0;
-    const unitPrice = parseFloat(material.unitPrice) || 0;
-    return (quantity * unitPrice).toFixed(2);
-  };
-
-  const updateMaterialQuantity = (index: number, quantity: number) => {
-    const newMaterials = [...selectedMaterials];
-    newMaterials[index] = { ...newMaterials[index], quantity };
-    onMaterialsChange(newMaterials);
-  };
-
-  const updateMaterialPrice = (index: number, price: string) => {
-    const newMaterials = [...selectedMaterials];
-    newMaterials[index] = { ...newMaterials[index], unitPrice: price };
-    onMaterialsChange(newMaterials);
-  };
-
-  const removeMaterial = (index: number) => {
-    const newMaterials = selectedMaterials.filter((_, i) => i !== index);
-    onMaterialsChange(newMaterials);
-  };
-
-  const addMaterial = (material: any) => {
-    // Check if already selected
-    const exists = selectedMaterials.some(m => m.id === material.id);
-    if (exists) return;
+  });
+  
+  const handleAddMaterial = () => {
+    if (!selectedMaterial) {
+      toast({
+        title: 'Missing Material',
+        description: 'Please select a material',
+        variant: 'destructive',
+      });
+      return;
+    }
     
-    const newMaterial = {
-      id: material.id,
-      name: material.name,
-      quantity: 1,
-      unitPrice: material.costPrice || "0",
-      unitOfMeasure: material.unitOfMeasure
-    };
+    if (quantity <= 0) {
+      toast({
+        title: 'Invalid Quantity',
+        description: 'Quantity must be greater than 0',
+        variant: 'destructive',
+      });
+      return;
+    }
     
-    onMaterialsChange([...selectedMaterials, newMaterial]);
+    if (parseFloat(unitPrice) <= 0) {
+      toast({
+        title: 'Invalid Price',
+        description: 'Unit price must be greater than 0',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Find the selected material from the materials list
+    const selectedMaterialObj = materials?.find((m: any) => m.id === Number(selectedMaterial));
+    if (!selectedMaterialObj) {
+      toast({
+        title: 'Invalid Material',
+        description: 'Selected material not found',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Check if material already exists in the list
+    const existingIndex = value.findIndex(m => m.id === Number(selectedMaterial));
+    if (existingIndex >= 0) {
+      // Update existing material
+      const updatedMaterials = [...value];
+      updatedMaterials[existingIndex] = {
+        ...updatedMaterials[existingIndex],
+        quantity: updatedMaterials[existingIndex].quantity + quantity,
+      };
+      onChange(updatedMaterials);
+    } else {
+      // Add new material
+      const newMaterial: Material = {
+        id: Number(selectedMaterial),
+        name: selectedMaterialObj.name,
+        quantity,
+        unitPrice,
+        unitOfMeasure: selectedMaterialObj.unitOfMeasure || 'pcs',
+      };
+      onChange([...value, newMaterial]);
+    }
+    
+    // Reset form
+    setSelectedMaterial('');
+    setQuantity(1);
+    setUnitPrice('0.00');
     setIsDialogOpen(false);
   };
-
+  
+  const handleRemoveMaterial = (index: number) => {
+    const updatedMaterials = [...value];
+    updatedMaterials.splice(index, 1);
+    onChange(updatedMaterials);
+  };
+  
+  const handleQuantityChange = (index: number, newQuantity: number) => {
+    if (newQuantity <= 0) return;
+    
+    const updatedMaterials = [...value];
+    updatedMaterials[index] = {
+      ...updatedMaterials[index],
+      quantity: newQuantity,
+    };
+    onChange(updatedMaterials);
+  };
+  
+  const formatPrice = (price: string) => {
+    return parseFloat(price).toFixed(2);
+  };
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <Label>Raw Materials</Label>
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setIsDialogOpen(true)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Material
-        </Button>
+        <Label>Materials</Label>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Material
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Material</DialogTitle>
+              <DialogDescription>
+                Select a raw material to add to the production order.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="material">Material</Label>
+                <Select
+                  value={selectedMaterial.toString()}
+                  onValueChange={setSelectedMaterial}
+                >
+                  <SelectTrigger id="material">
+                    <SelectValue placeholder="Select material" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingMaterials ? (
+                      <SelectItem value="loading" disabled>
+                        Loading materials...
+                      </SelectItem>
+                    ) : (
+                      materials?.map((material: any) => (
+                        <SelectItem key={material.id} value={material.id.toString()}>
+                          {material.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unitPrice">Unit Price</Label>
+                <Input
+                  id="unitPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={unitPrice}
+                  onChange={(e) => setUnitPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddMaterial}>Add</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {selectedMaterials.length > 0 ? (
+      
+      {value.length > 0 ? (
         <div className="border rounded-md">
           <Table>
             <TableHeader>
@@ -161,44 +235,39 @@ const MaterialsSelection: React.FC<MaterialsSelectionProps> = ({
                 <TableHead>Quantity</TableHead>
                 <TableHead>Unit Price</TableHead>
                 <TableHead>Subtotal</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {selectedMaterials.map((material, index) => (
-                <TableRow key={material.id}>
-                  <TableCell className="font-medium">
-                    {material.name}
-                    {material.unitOfMeasure && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({material.unitOfMeasure})
+              {value.map((material, index) => (
+                <TableRow key={`${material.id}-${index}`}>
+                  <TableCell className="font-medium">{material.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={material.quantity}
+                        onChange={(e) => handleQuantityChange(index, Number(e.target.value))}
+                        className="w-20"
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {material.unitOfMeasure}
                       </span>
-                    )}
+                    </div>
                   </TableCell>
+                  <TableCell>${formatPrice(material.unitPrice)}</TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={material.quantity}
-                      onChange={(e) => updateMaterialQuantity(index, parseInt(e.target.value) || 1)}
-                      className="w-24"
-                    />
+                    ${formatPrice((Number(material.quantity) * parseFloat(material.unitPrice)).toString())}
                   </TableCell>
-                  <TableCell>
-                    <Input
-                      type="text"
-                      value={material.unitPrice}
-                      onChange={(e) => updateMaterialPrice(index, e.target.value)}
-                      className="w-28"
-                    />
-                  </TableCell>
-                  <TableCell>${calculateSubtotal(material)}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
-                      size="icon"
-                      onClick={() => removeMaterial(index)}
+                      size="sm"
+                      onClick={() => handleRemoveMaterial(index)}
+                      className="h-8 w-8 p-0"
                     >
+                      <span className="sr-only">Remove</span>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </TableCell>
@@ -208,80 +277,10 @@ const MaterialsSelection: React.FC<MaterialsSelectionProps> = ({
           </Table>
         </div>
       ) : (
-        <div className="text-center py-8 border rounded-md text-muted-foreground">
-          No materials selected. Click "Add Material" to begin.
+        <div className="flex items-center justify-center border rounded-md p-4">
+          <p className="text-muted-foreground">No materials added yet. Click "Add Material" to add some.</p>
         </div>
       )}
-
-      {/* Material Selection Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Select Materials</DialogTitle>
-            <DialogDescription>
-              Choose the materials needed for this order.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <ScrollArea className="h-[400px] pr-4">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-40">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Material</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {availableMaterials.length > 0 ? (
-                    availableMaterials.map((material) => (
-                      <TableRow key={material.id} className="hover:bg-muted">
-                        <TableCell className="font-medium">
-                          {material.name}
-                          {material.unitOfMeasure && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              ({material.unitOfMeasure})
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>{material.quantity || 0}</TableCell>
-                        <TableCell>${parseFloat(material.costPrice || 0).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => addMaterial(material)}
-                            disabled={selectedMaterials.some(m => m.id === material.id)}
-                          >
-                            {selectedMaterials.some(m => m.id === material.id) ? "Added" : "Add"}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
-                        No materials found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </ScrollArea>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

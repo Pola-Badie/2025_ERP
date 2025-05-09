@@ -83,6 +83,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Order Management
     orders: 'Order Management',
+    orderManagement: 'Order Management',
   },
   ar: {
     // Common
@@ -150,6 +151,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Order Management
     orders: 'إدارة الطلبات',
+    orderManagement: 'إدارة الطلبات',
   }
 };
 
