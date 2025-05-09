@@ -1343,6 +1343,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Get the latest batch number
+  app.get("/api/orders/latest-batch", async (req: Request, res: Response) => {
+    try {
+      const orderType = req.query.type as string;
+      if (!orderType) {
+        return res.status(400).json({ message: "Order type is required" });
+      }
+      
+      // Query the database for the latest order of the specified type
+      const orders = await storage.getOrders('', orderType, '');
+      
+      // Find the latest batch number based on orderType
+      let latestBatchNumber = "";
+      let numericPart = 1; // Starting number
+      
+      if (orders && orders.length > 0) {
+        const sortedOrders = orders.sort((a, b) => 
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+        );
+        
+        // Get the latest batch number
+        latestBatchNumber = sortedOrders[0].orderNumber;
+        
+        // Extract the numeric part if possible
+        if (latestBatchNumber) {
+          const matches = latestBatchNumber.match(/\d+$/);
+          if (matches && matches[0]) {
+            numericPart = parseInt(matches[0]) + 1;
+          }
+        }
+      }
+      
+      // Generate new batch number with the next sequential number
+      let newBatchNumber;
+      if (orderType === 'production') {
+        newBatchNumber = `PROD-${numericPart.toString().padStart(6, '0')}`;
+      } else if (orderType === 'refining') {
+        newBatchNumber = `REF-${numericPart.toString().padStart(6, '0')}`;
+      } else {
+        newBatchNumber = `ORD-${numericPart.toString().padStart(6, '0')}`;
+      }
+      
+      res.json({ 
+        latestBatchNumber, 
+        newBatchNumber,
+        nextNumber: numericPart
+      });
+    } catch (error) {
+      console.error("Error fetching latest batch number:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch latest batch number", 
+        error: String(error),
+        defaultBatchNumber: orderType === 'production' ? 'PROD-000001' : 
+                          orderType === 'refining' ? 'REF-000001' : 'ORD-000001'
+      });
+    }
+  });
+  
   // Get order by ID
   app.get("/api/orders/:id", async (req: Request, res: Response) => {
     try {
@@ -1363,20 +1421,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new order
   app.post("/api/orders", async (req: Request, res: Response) => {
     try {
-      // Format order data
+      // Format order data with custom batch/order number
+      let orderNumber;
+      if (req.body.batchNumber && req.body.batchNumber.trim()) {
+        // If batch number is provided, use it
+        orderNumber = req.body.batchNumber;
+      } else if (req.body.orderType === 'production') {
+        // Generate a production-specific order number
+        orderNumber = `PROD-${Date.now().toString().slice(-6)}`;
+      } else if (req.body.orderType === 'refining') {
+        // Generate a refining-specific order number
+        orderNumber = `REF-${Date.now().toString().slice(-6)}`;
+      } else {
+        // Default order number format
+        orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      }
+      
       const orderData = {
-        orderNumber: `ORD-${Date.now().toString().slice(-6)}`,
+        orderNumber,
         orderType: req.body.orderType,
         customerId: req.body.customerId,
+        customerName: req.body.customerName, // Store customer name for easier display
         userId: 1, // Temp hardcoded user ID 
         description: req.body.description || '',
-        totalMaterialCost: req.body.totalMaterialCost.toString(),
-        totalAdditionalFees: req.body.totalAdditionalFees.toString(),
+        productDescription: req.body.productDescription || '', // For production orders
+        finalProduct: req.body.finalProduct || '', // For production orders - description of target
+        sourceMaterial: req.body.sourceMaterial || '', // For refining orders
+        materials: req.body.materials ? JSON.stringify(req.body.materials) : null, // Store materials as JSON
+        totalMaterialCost: req.body.totalMaterialCost ? req.body.totalMaterialCost.toString() : '0',
+        totalAdditionalFees: req.body.totalAdditionalFees ? req.body.totalAdditionalFees.toString() : '0',
         totalCost: req.body.totalCost.toString(),
         status: 'pending',
         targetProductId: req.body.targetProductId || null,
         expectedOutputQuantity: req.body.expectedOutputQuantity ? req.body.expectedOutputQuantity.toString() : null,
-        refiningSteps: req.body.refiningSteps || null
+        refiningSteps: req.body.refiningSteps || null,
+        createdAt: new Date().toISOString()
       };
       
       // Validate order data
