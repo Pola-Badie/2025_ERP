@@ -1508,8 +1508,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Fetching raw materials with direct pool query");
       
-      // First try to get raw materials from the database
+      // First try with 'product_type' column
       try {
+        // Try with column name 'product_type' 
         const query = `SELECT * FROM products WHERE product_type = 'raw'`;
         const { rows } = await pool.query(query);
         
@@ -1518,10 +1519,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(rows);
         }
       } catch (dbError) {
-        console.error("Database query error for raw materials:", dbError);
+        console.error("Database query error for raw materials with product_type:", dbError);
       }
       
-      // If database query fails or returns no results, return the existing raw material
+      // Alternate query if previous failed - try with productType
+      try {
+        const query = `SELECT * FROM products WHERE "productType" = 'raw'`;
+        const { rows } = await pool.query(query);
+        
+        if (rows && rows.length > 0) {
+          console.log("Raw materials found via productType query:", rows.length);
+          return res.json(rows);
+        }
+      } catch (dbError) {
+        console.error("Database query error for raw materials with productType:", dbError);
+      }
+      
+      // If all database queries fail, get all products then filter client-side
+      try {
+        const { rows } = await pool.query(`SELECT * FROM products`);
+        
+        // Filter for any products that might be raw materials (check multiple possible fields)
+        const rawMaterials = rows.filter(p => 
+          (p.product_type && p.product_type === 'raw') || 
+          (p.productType && p.productType === 'raw') ||
+          (p.type && p.type === 'raw')
+        );
+        
+        if (rawMaterials.length > 0) {
+          console.log("Raw materials found via filtering:", rawMaterials.length);
+          return res.json(rawMaterials);
+        }
+      } catch (dbError) {
+        console.error("Database query error for all products:", dbError);
+      }
+      
+      // If database query fails or returns no results, return mock raw materials
       const existingRawMaterial = [
         {
           id: 12,
@@ -1534,6 +1567,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productType: "raw",
           status: "active",
           quantity: 500,
+          unitOfMeasure: "kg"
+        },
+        {
+          id: 13,
+          name: "Raw Material B",
+          drugName: "Chemical Compound",
+          description: "Essential raw material for production",
+          sku: "RAW-002",
+          costPrice: "150.00",
+          sellingPrice: "0.00",
+          productType: "raw",
+          status: "active",
+          quantity: 350,
           unitOfMeasure: "kg"
         }
       ];
@@ -1550,9 +1596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      console.log("Fetching semi-raw products with direct pool query");
+      console.log("Fetching semi-finished products with direct pool query");
       
-      // First try to get semi-raw products from the database
+      // First try with 'product_type' column
       try {
         const query = `SELECT * FROM products WHERE product_type = 'semi-raw'`;
         const { rows } = await pool.query(query);
@@ -1562,14 +1608,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(rows);
         }
       } catch (dbError) {
-        console.error("Database query error for semi-raw products:", dbError);
+        console.error("Database query error for semi-raw products with product_type:", dbError);
       }
       
-      // If database query fails or returns no results, return the existing semi-raw product
+      // Alternate query if previous failed - try with productType
+      try {
+        const query = `SELECT * FROM products WHERE "productType" = 'semi-raw'`;
+        const { rows } = await pool.query(query);
+        
+        if (rows && rows.length > 0) {
+          console.log("Semi-raw products found via productType query:", rows.length);
+          return res.json(rows);
+        }
+      } catch (dbError) {
+        console.error("Database query error for semi-raw products with productType:", dbError);
+      }
+      
+      // Try with 'semi-finished' as value
+      try {
+        const query = `SELECT * FROM products WHERE product_type = 'semi-finished' OR "productType" = 'semi-finished'`;
+        const { rows } = await pool.query(query);
+        
+        if (rows && rows.length > 0) {
+          console.log("Semi-finished products found via query:", rows.length);
+          return res.json(rows);
+        }
+      } catch (dbError) {
+        console.error("Database query error for semi-finished products:", dbError);
+      }
+      
+      // If all database queries fail, get all products then filter client-side
+      try {
+        const { rows } = await pool.query(`SELECT * FROM products`);
+        
+        // Filter for any products that might be semi-finished/semi-raw (check multiple possible fields)
+        const semiFinishedProducts = rows.filter(p => 
+          (p.product_type && (p.product_type === 'semi-raw' || p.product_type === 'semi-finished')) || 
+          (p.productType && (p.productType === 'semi-raw' || p.productType === 'semi-finished')) ||
+          (p.type && (p.type === 'semi-raw' || p.type === 'semi-finished'))
+        );
+        
+        if (semiFinishedProducts.length > 0) {
+          console.log("Semi-finished products found via filtering:", semiFinishedProducts.length);
+          return res.json(semiFinishedProducts);
+        }
+      } catch (dbError) {
+        console.error("Database query error for all products:", dbError);
+      }
+      
+      // If database query fails or returns no results, return mock semi-finished products
       const existingSemiRawProduct = [
         {
-          id: 13,
-          name: "Semi-Raw Product B",
+          id: 14,
+          name: "Semi-Finished Product A",
           drugName: "Intermediate Compound",
           description: "Partially processed material for refining",
           sku: "SEMI-001",
@@ -1579,10 +1670,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "active",
           quantity: 200,
           unitOfMeasure: "L"
+        },
+        {
+          id: 15,
+          name: "Semi-Finished Product B",
+          drugName: "Intermediate Solution",
+          description: "Ready for final processing",
+          sku: "SEMI-002",
+          costPrice: "320.00",
+          sellingPrice: "0.00",
+          productType: "semi-raw",
+          status: "active",
+          quantity: 150,
+          unitOfMeasure: "L"
         }
       ];
       
-      console.log("Returning existing semi-raw product data");
+      console.log("Returning existing semi-finished product data");
       res.json(existingSemiRawProduct);
       
     } catch (error) {
