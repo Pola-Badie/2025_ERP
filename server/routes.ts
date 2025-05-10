@@ -1346,57 +1346,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get the latest batch number
   app.get("/api/orders/latest-batch", async (req: Request, res: Response) => {
     try {
-      const orderType = req.query.type as string;
-      if (!orderType) {
-        return res.status(400).json({ message: "Order type is required" });
-      }
+      // Query for production orders (BATCH-XXXX)
+      const productionQuery = `
+        SELECT batch_number, "batchNumber", order_number, "orderNumber"
+        FROM orders 
+        WHERE batch_number LIKE 'BATCH-%' 
+           OR "batchNumber" LIKE 'BATCH-%'
+           OR order_number LIKE 'BATCH-%'
+           OR "orderNumber" LIKE 'BATCH-%'
+        ORDER BY id DESC 
+        LIMIT 1
+      `;
       
-      // Query the database for the latest order of the specified type
-      const orders = await storage.getOrders('', orderType, '');
+      // Query for refining orders (REF-XXXX)
+      const refiningQuery = `
+        SELECT batch_number, "batchNumber", order_number, "orderNumber"
+        FROM orders 
+        WHERE batch_number LIKE 'REF-%' 
+           OR "batchNumber" LIKE 'REF-%'
+           OR order_number LIKE 'REF-%'
+           OR "orderNumber" LIKE 'REF-%'
+        ORDER BY id DESC 
+        LIMIT 1
+      `;
       
-      // Find the latest batch number based on orderType
-      let latestBatchNumber = "";
-      let numericPart = 1; // Starting number
+      let latestProductionBatch = 'BATCH-0000';
+      let latestRefiningBatch = 'REF-0000';
       
-      if (orders && orders.length > 0) {
-        const sortedOrders = orders.sort((a, b) => 
-          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-        );
-        
-        // Get the latest batch number
-        latestBatchNumber = sortedOrders[0].orderNumber;
-        
-        // Extract the numeric part if possible
-        if (latestBatchNumber) {
-          const matches = latestBatchNumber.match(/\d+$/);
-          if (matches && matches[0]) {
-            numericPart = parseInt(matches[0]) + 1;
-          }
+      try {
+        // Try to get latest production batch
+        const productionResult = await pool.query(productionQuery);
+        if (productionResult.rows.length > 0) {
+          const row = productionResult.rows[0];
+          latestProductionBatch = row.batch_number || row.batchNumber || row.order_number || row.orderNumber || 'BATCH-0000';
         }
+        
+        // Try to get latest refining batch
+        const refiningResult = await pool.query(refiningQuery);
+        if (refiningResult.rows.length > 0) {
+          const row = refiningResult.rows[0];
+          latestRefiningBatch = row.batch_number || row.batchNumber || row.order_number || row.orderNumber || 'REF-0000';
+        }
+      } catch (dbError) {
+        console.error("Database error fetching batch numbers:", dbError);
+        // Will continue with default values
       }
       
-      // Generate new batch number with the next sequential number
-      let newBatchNumber;
-      if (orderType === 'production') {
-        newBatchNumber = `PROD-${numericPart.toString().padStart(6, '0')}`;
-      } else if (orderType === 'refining') {
-        newBatchNumber = `REF-${numericPart.toString().padStart(6, '0')}`;
-      } else {
-        newBatchNumber = `ORD-${numericPart.toString().padStart(6, '0')}`;
-      }
-      
+      // Return both batch numbers
       res.json({ 
-        latestBatchNumber, 
-        newBatchNumber,
-        nextNumber: numericPart
+        latestBatch: latestProductionBatch,
+        latestRefiningBatch: latestRefiningBatch
       });
     } catch (error) {
-      console.error("Error fetching latest batch number:", error);
+      console.error("Error fetching latest batch:", error);
       res.status(500).json({ 
         message: "Failed to fetch latest batch number", 
         error: String(error),
-        defaultBatchNumber: orderType === 'production' ? 'PROD-000001' : 
-                          orderType === 'refining' ? 'REF-000001' : 'ORD-000001'
+        latestBatch: 'BATCH-0000',
+        latestRefiningBatch: 'REF-0000'
       });
     }
   });
