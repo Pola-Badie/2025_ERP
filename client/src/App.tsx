@@ -55,7 +55,7 @@ function App() {
             <Route path="/users" component={UserManagement} />
             <Route path="/customers-demo" component={CustomersDemo} />
             <Route path="/procurement" component={Procurement} />
-            <Route path="/orders" component={OrderManagement} />
+            <Route path="/order-management" component={OrderManagement} />
             <Route component={NotFound} />
           </Switch>
         </MainLayout>

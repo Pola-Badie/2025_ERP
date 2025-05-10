@@ -127,18 +127,26 @@ const OrderManagement = () => {
     }
   });
   
-  // Fetch production orders
-  const { data: productionOrders, isLoading: isLoadingOrders } = useQuery({
+  // Fetch all orders
+  const { data: allOrders, isLoading: isLoadingOrders } = useQuery({
     queryKey: ['/api/orders'],
     queryFn: async () => {
       const response = await fetch('/api/orders');
       if (!response.ok) {
         throw new Error('Failed to fetch orders');
       }
-      const orders = await response.json();
-      return orders.filter((order: any) => order.orderType === 'production');
+      return response.json();
     }
   });
+  
+  // Separate production and refining orders
+  const productionOrders = React.useMemo(() => {
+    return allOrders?.filter((order: any) => order.orderType === 'production') || [];
+  }, [allOrders]);
+  
+  const refiningOrders = React.useMemo(() => {
+    return allOrders?.filter((order: any) => order.orderType === 'refining') || [];
+  }, [allOrders]);
   
   // Fetch semi-finished products
   const { data: semiFinishedProducts, isLoading: isLoadingSemiFinished } = useQuery({
@@ -1081,8 +1089,8 @@ const OrderManagement = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    (productionOrders?.filter((o: any) => o.orderType === 'refining') || []).length > 0 ? (
-                      productionOrders?.filter((o: any) => o.orderType === 'refining').map((order: any) => (
+                    refiningOrders.length > 0 ? (
+                      refiningOrders.map((order: any) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">
                             {order.batchNumber || order.orderNumber}
