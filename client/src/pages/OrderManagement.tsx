@@ -83,6 +83,12 @@ const OrderManagement = () => {
   const [materialQuantity, setMaterialQuantity] = useState<number>(0);
   const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('0.00');
   const [finalProductDescription, setFinalProductDescription] = useState('');
+  
+  // Packaging states
+  const [packagingItems, setPackagingItems] = useState<any[]>([]);
+  const [packagingToAdd, setPackagingToAdd] = useState<any>(null);
+  const [packagingQuantity, setPackagingQuantity] = useState<number>(0);
+  const [packagingUnitPrice, setPackagingUnitPrice] = useState<string>('0.00');
   const [taxPercentage, setTaxPercentage] = useState<number>(14);
   const [subtotalPrice, setSubtotalPrice] = useState('0.00');
   const [totalPrice, setTotalPrice] = useState('0.00');
@@ -99,18 +105,27 @@ const OrderManagement = () => {
   const [refiningSubtotal, setRefiningSubtotal] = useState('0.00');
   const [refiningCost, setRefiningCost] = useState('0.00');
   
-  // Calculate subtotal and total price (with tax) when raw materials or tax percentage change
+  // Calculate subtotal and total price (with tax) when raw materials, packaging items, or tax percentage change
   useEffect(() => {
-    const subtotal = rawMaterials.reduce((sum, material) => {
+    // Calculate materials cost
+    const materialsCost = rawMaterials.reduce((sum, material) => {
       return sum + (material.quantity * parseFloat(material.unitPrice));
     }, 0);
+    
+    // Calculate packaging cost
+    const packagingCost = packagingItems.reduce((sum, item) => {
+      return sum + (item.quantity * parseFloat(item.unitPrice));
+    }, 0);
+    
+    // Calculate the total subtotal
+    const subtotal = materialsCost + packagingCost;
     setSubtotalPrice(subtotal.toFixed(2));
     
     // Calculate total with tax
     const taxAmount = subtotal * (taxPercentage / 100);
     const total = subtotal + taxAmount;
     setTotalPrice(total.toFixed(2));
-  }, [rawMaterials, taxPercentage]);
+  }, [rawMaterials, packagingItems, taxPercentage]);
   
   // Calculate refining cost with tax
   useEffect(() => {
@@ -174,6 +189,28 @@ const OrderManagement = () => {
         throw new Error('Failed to fetch semi-finished products');
       }
       return response.json();
+    }
+  });
+  
+  // Fetch packaging materials
+  const { data: packagingMaterials, isLoading: isLoadingPackaging } = useQuery({
+    queryKey: ['/api/products'],
+    queryFn: async () => {
+      // Fetch products and filter for packaging items on the client-side
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const products = await response.json();
+      // Filter for packaging items or return all products if no specific filter available
+      return products.filter((p: any) => 
+        p.name?.toLowerCase().includes('package') || 
+        p.name?.toLowerCase().includes('box') || 
+        p.name?.toLowerCase().includes('container') ||
+        p.name?.toLowerCase().includes('bottle') ||
+        p.name?.toLowerCase().includes('bag') ||
+        p.productType === 'packaging'
+      ) || products.slice(0, 10);
     }
   });
   
@@ -306,6 +343,58 @@ const OrderManagement = () => {
     setRawMaterials(updatedMaterials);
   };
   
+  const handleAddPackaging = () => {
+    if (!packagingToAdd) {
+      toast({
+        title: "Select packaging",
+        description: "Please select a packaging item",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!packagingQuantity || packagingQuantity <= 0) {
+      toast({
+        title: "Invalid quantity",
+        description: "Please enter a valid quantity",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const packagingItem = packagingMaterials?.find((p: any) => p.id.toString() === packagingToAdd);
+    if (!packagingItem) {
+      toast({
+        title: "Packaging not found",
+        description: "The selected packaging was not found",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Add the packaging item to the list
+    const newPackagingItem = {
+      id: packagingItem.id,
+      name: packagingItem.name,
+      quantity: packagingQuantity,
+      unitPrice: packagingUnitPrice || packagingItem.costPrice || '0.00',
+      unitOfMeasure: packagingItem.unitOfMeasure || 'pcs'
+    };
+    
+    setPackagingItems([...packagingItems, newPackagingItem]);
+    
+    // Reset the form
+    setPackagingToAdd(null);
+    setPackagingQuantity(0);
+    setPackagingUnitPrice('0.00');
+  };
+  
+  const handleRemovePackaging = (index: number) => {
+    const updatedPackaging = [...packagingItems];
+    updatedPackaging.splice(index, 1);
+    setPackagingItems(updatedPackaging);
+  };
+  
   const handleAddRefiningStep = () => {
     if (!newRefiningStep.trim()) return;
     setRefiningSteps([...refiningSteps, newRefiningStep.trim()]);
@@ -328,6 +417,7 @@ const OrderManagement = () => {
         customerId: selectedCustomer.id,
         customerName: selectedCustomer.name,
         materials: rawMaterials,
+        packaging: packagingItems,
         finalProduct: finalProductDescription,
         subtotal: subtotalPrice,
         taxPercentage: taxPercentage,
