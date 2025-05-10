@@ -472,6 +472,7 @@ const OrderManagement = () => {
         sourceMaterial: sourceType === 'production' 
           ? productionOrders?.find((o: any) => o.id.toString() === sourceProductionOrder)?.finalProduct
           : semiFinishedProducts?.find((p: any) => p.id.toString() === sourceStockItem)?.name,
+        materials: rawMaterials,
         refiningSteps: refiningSteps.join('||'),
         expectedOutput,
         subtotal: refiningSubtotal,
@@ -593,6 +594,22 @@ const OrderManagement = () => {
       return false;
     }
     
+    // Raw materials are optional, but we could add validation if needed
+    // For example, we could ensure that if materials are present, they have proper quantities:
+    /*
+    if (rawMaterials.length > 0) {
+      const invalidMaterial = rawMaterials.find(m => m.quantity <= 0 || parseFloat(m.unitPrice) <= 0);
+      if (invalidMaterial) {
+        toast({
+          title: "Invalid Material",
+          description: "Please ensure all materials have valid quantities and prices",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+    */
+    
     if (refiningSteps.length === 0) {
       toast({
         title: "No Refining Steps",
@@ -638,8 +655,13 @@ const OrderManagement = () => {
     setSourceType('production');
     setSourceProductionOrder('');
     setSourceStockItem('');
+    setRawMaterials([]);
+    setMaterialToAdd(null);
+    setMaterialQuantity(0);
+    setMaterialUnitPrice('0.00');
     setRefiningSteps([]);
     setExpectedOutput('');
+    setRefiningSubtotal('0.00');
     setRefiningCost('0.00');
   };
   
@@ -1250,6 +1272,111 @@ const OrderManagement = () => {
                 </Select>
               </div>
             )}
+          </div>
+
+          {/* Raw Materials Section for Refining */}
+          <div className="space-y-4 border border-gray-200 rounded-md p-4 bg-slate-50">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Additional Raw Materials</h3>
+              {rawMaterials.length > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  {rawMaterials.length} item{rawMaterials.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-4">
+                <Select value={materialToAdd} onValueChange={setMaterialToAdd}>
+                  <SelectTrigger className="w-[300px]">
+                    <SelectValue placeholder="Select material" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {isLoadingMaterials ? (
+                      <SelectItem value="loading" disabled>Loading materials...</SelectItem>
+                    ) : (
+                      materials?.map((material: any) => (
+                        <SelectItem key={material.id} value={material.id.toString()}>
+                          {material.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                
+                <Input
+                  type="number"
+                  placeholder="Qty"
+                  className="w-24"
+                  value={materialQuantity || ''}
+                  onChange={(e) => setMaterialQuantity(parseInt(e.target.value) || 0)}
+                />
+                
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    type="text"
+                    placeholder="0.00"
+                    className="pl-7 w-24"
+                    value={materialUnitPrice}
+                    onChange={(e) => setMaterialUnitPrice(e.target.value)}
+                  />
+                </div>
+                
+                <Button variant="secondary" onClick={handleAddMaterial}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+            </div>
+            
+            {/* Materials Table */}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Raw Material</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Unit Price</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rawMaterials.length > 0 ? (
+                    rawMaterials.map((material, index) => (
+                      <TableRow key={`${material.id}-${index}`}>
+                        <TableCell className="font-medium">
+                          {material.name}
+                        </TableCell>
+                        <TableCell>
+                          {material.quantity} {material.unitOfMeasure}
+                        </TableCell>
+                        <TableCell>${parseFloat(material.unitPrice).toFixed(2)}</TableCell>
+                        <TableCell>
+                          ${(material.quantity * parseFloat(material.unitPrice)).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveMaterial(index)}
+                          >
+                            <X className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-20 text-center">
+                        No additional materials added.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
           
           <div className="space-y-4">
