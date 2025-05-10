@@ -541,6 +541,9 @@ const OrderManagement = () => {
       return false;
     }
     
+    // Packaging is optional, so we don't validate for its presence
+    // But we could add specific validations for packaging items if needed
+    
     if (!finalProductDescription) {
       toast({
         title: "Missing Description",
@@ -616,8 +619,16 @@ const OrderManagement = () => {
     setBatchNumber('');
     generateBatchNumber('production');
     setRawMaterials([]);
+    setPackagingItems([]);
     setFinalProductDescription('');
+    setSubtotalPrice('0.00');
     setTotalPrice('0.00');
+    setMaterialToAdd(null);
+    setMaterialQuantity(0);
+    setMaterialUnitPrice('0.00');
+    setPackagingToAdd(null);
+    setPackagingQuantity(0);
+    setPackagingUnitPrice('0.00');
   };
   
   const resetRefiningForm = () => {
