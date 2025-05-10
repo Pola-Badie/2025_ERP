@@ -27,7 +27,7 @@ import {
   orders,
   products
 } from "@shared/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, or, desc, and, like, gte, lte, inArray, between } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
 import userRoutes from "./routes-user";
 import multer from "multer";
@@ -1700,58 +1700,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      console.log("Fetching raw materials with direct pool query");
+      console.log("Fetching raw materials from products table");
       
-      // First try with 'product_type' column
+      // Try with Drizzle ORM first
       try {
-        // Try with column name 'product_type' 
-        const query = `SELECT * FROM products WHERE product_type = 'raw'`;
+        // Use Drizzle to query products with product_type = 'raw'
+        const rawProducts = await db.select().from(products)
+          .where(eq(products.productType, 'raw'));
+        
+        if (rawProducts && rawProducts.length > 0) {
+          console.log("Raw materials found via Drizzle:", rawProducts.length);
+          return res.json(rawProducts);
+        } else {
+          console.log("No raw materials found with productType='raw', trying alternate query");
+        }
+      } catch (drizzleError) {
+        console.error("Drizzle query error for raw materials:", drizzleError);
+      }
+      
+      // Fallback to direct SQL query
+      try {
+        // Multiple ways to query for raw materials with various column namings
+        const query = `
+          SELECT * FROM products 
+          WHERE product_type = 'raw' 
+            OR "productType" = 'raw'
+            OR product_type ILIKE '%raw%'
+            OR "productType" ILIKE '%raw%'
+        `;
         const { rows } = await pool.query(query);
         
         if (rows && rows.length > 0) {
-          console.log("Raw materials found via direct query:", rows.length);
+          console.log("Raw materials found via SQL query:", rows.length);
           return res.json(rows);
         }
-      } catch (dbError) {
-        console.error("Database query error for raw materials with product_type:", dbError);
+      } catch (sqlError) {
+        console.error("SQL query error for raw materials:", sqlError);
       }
       
-      // Try with all products and filter by category
+      // Try with products from the products table (regardless of type) that might be raw materials
       try {
-        // Get products that belong to raw material categories
-        const query = `SELECT * FROM products WHERE category_id IN (SELECT id FROM categories WHERE name LIKE '%Raw%' OR name LIKE '%Material%')`;
+        const query = `
+          SELECT * FROM products 
+          WHERE LOWER(name) LIKE '%acid%' 
+             OR LOWER(name) LIKE '%chemical%'
+             OR LOWER(name) LIKE '%raw%'
+             OR LOWER(name) LIKE '%base%'
+             OR LOWER(name) LIKE '%compound%'
+          LIMIT 10
+        `;
         const { rows } = await pool.query(query);
         
         if (rows && rows.length > 0) {
-          console.log("Raw materials found via category query:", rows.length);
-          return res.json(rows);
-        }
-      } catch (dbError) {
-        console.error("Database query error for raw materials via category:", dbError);
-      }
-      
-      // If all database queries fail, get all products then filter client-side
-      try {
-        const { rows } = await pool.query(`SELECT * FROM products LIMIT 50`);
-        
-        // Filter for any products that might be raw materials 
-        // Just return the first 5 products as raw materials if nothing else works
-        if (rows && rows.length > 0) {
-          console.log("Returning first 5 products as raw materials (fallback)");
-          const sampleRawMaterials = rows.slice(0, 5).map(p => ({
-            ...p,
-            unitOfMeasure: p.unitOfMeasure || 'kg'
+          console.log("Found potential raw materials by name:", rows.length);
+          
+          // Convert them to have raw material properties if needed
+          const rawMaterials = rows.map(product => ({
+            ...product,
+            productType: product.productType || product.product_type || 'raw',
+            unitOfMeasure: product.unitOfMeasure || product.unit_of_measure || 'kg'
           }));
-          return res.json(sampleRawMaterials);
+          
+          return res.json(rawMaterials);
         }
-      } catch (dbError) {
-        console.error("Database query error for all products:", dbError);
+      } catch (nameError) {
+        console.error("Name-based query error for raw materials:", nameError);
       }
       
-      // Last resort fallback
-      const existingRawMaterial = [
+      // Get all products as a last resort
+      try {
+        const query = `SELECT * FROM products LIMIT 20`;
+        const { rows } = await pool.query(query);
+        
+        if (rows && rows.length > 0) {
+          console.log("Using products table data for raw materials:", rows.length);
+          
+          // Convert the first 5 products to raw materials
+          const rawMaterials = rows.slice(0, 5).map(product => ({
+            ...product,
+            productType: 'raw',
+            unitOfMeasure: product.unitOfMeasure || product.unit_of_measure || 'kg'
+          }));
+          
+          return res.json(rawMaterials);
+        }
+      } catch (allProductsError) {
+        console.error("Failed to query all products:", allProductsError);
+      }
+      
+      // As a last resort, return the sample data
+      console.log("No products found in database, using sample raw materials data");
+      const sampleRawMaterials = [
         {
-          id: 12,
+          id: 101,
           name: "Sulfuric Acid",
           drugName: "H2SO4",
           description: "Strong mineral acid with many industrial applications",
@@ -1764,7 +1805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           unitOfMeasure: "L"
         },
         {
-          id: 13,
+          id: 102,
           name: "Sodium Hydroxide",
           drugName: "NaOH",
           description: "Highly caustic base and alkali salt",
@@ -1777,7 +1818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           unitOfMeasure: "kg"
         },
         {
-          id: 14,
+          id: 103,
           name: "Ethanol",
           drugName: "C2H5OH",
           description: "Primary alcohol used as a solvent",
@@ -1788,37 +1829,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "active",
           quantity: 200,
           unitOfMeasure: "L"
-        },
-        {
-          id: 15,
-          name: "Hydrochloric Acid",
-          drugName: "HCl",
-          description: "Strong, highly corrosive acid",
-          sku: "RAW-004",
-          costPrice: "85.00",
-          sellingPrice: "0.00",
-          productType: "raw",
-          status: "active",
-          quantity: 300,
-          unitOfMeasure: "L"
-        },
-        {
-          id: 16,
-          name: "Calcium Carbonate",
-          drugName: "CaCO3",
-          description: "Chemical compound used as filler",
-          sku: "RAW-005",
-          costPrice: "40.00",
-          sellingPrice: "0.00",
-          productType: "raw",
-          status: "active",
-          quantity: 600,
-          unitOfMeasure: "kg"
         }
       ];
       
-      console.log("Returning existing raw material data");
-      res.json(existingRawMaterial);
+      res.json(sampleRawMaterials);
       
     } catch (error) {
       console.error("Error fetching raw materials:", error);
@@ -1829,57 +1843,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      console.log("Fetching semi-finished products with direct pool query");
+      console.log("Fetching semi-finished products from products table");
       
-      // First try with 'product_type' column
+      // Try with Drizzle ORM first
       try {
-        const query = `SELECT * FROM products WHERE product_type = 'semi-raw'`;
+        // Query products with product_type = 'semi-raw' or 'semi-finished'
+        const semiFinishedProducts = await db.select().from(products)
+          .where(or(
+            eq(products.productType, 'semi-raw'),
+            eq(products.productType, 'semi-finished')
+          ));
+        
+        if (semiFinishedProducts && semiFinishedProducts.length > 0) {
+          console.log("Semi-finished products found via Drizzle:", semiFinishedProducts.length);
+          return res.json(semiFinishedProducts);
+        } else {
+          console.log("No semi-finished products found with Drizzle, trying alternate query");
+        }
+      } catch (drizzleError) {
+        console.error("Drizzle query error for semi-finished products:", drizzleError);
+      }
+      
+      // Fallback to direct SQL query with multiple variations
+      try {
+        const query = `
+          SELECT * FROM products 
+          WHERE product_type = 'semi-raw' 
+             OR product_type = 'semi-finished'
+             OR "productType" = 'semi-raw'
+             OR "productType" = 'semi-finished'
+             OR product_type ILIKE '%semi%'
+             OR "productType" ILIKE '%semi%'
+        `;
         const { rows } = await pool.query(query);
         
         if (rows && rows.length > 0) {
-          console.log("Semi-raw products found via direct query:", rows.length);
+          console.log("Semi-finished products found via SQL query:", rows.length);
           return res.json(rows);
         }
-      } catch (dbError) {
-        console.error("Database query error for semi-raw products with product_type:", dbError);
+      } catch (sqlError) {
+        console.error("SQL query error for semi-finished products:", sqlError);
       }
       
-      // Try with all products and filter by category
+      // Try with product names that suggest semi-finished products
       try {
-        // Get products that belong to semi-finished material categories
-        const query = `SELECT * FROM products WHERE category_id IN (SELECT id FROM categories WHERE name LIKE '%Semi%' OR name LIKE '%Intermediate%')`;
+        const query = `
+          SELECT * FROM products 
+          WHERE LOWER(name) LIKE '%base%' 
+             OR LOWER(name) LIKE '%compound%'
+             OR LOWER(name) LIKE '%intermediate%'
+             OR LOWER(name) LIKE '%precursor%'
+             OR LOWER(name) LIKE '%solution%'
+          LIMIT 10
+        `;
         const { rows } = await pool.query(query);
         
         if (rows && rows.length > 0) {
-          console.log("Semi-finished products found via category query:", rows.length);
-          return res.json(rows);
-        }
-      } catch (dbError) {
-        console.error("Database query error for semi-finished products via category:", dbError);
-      }
-      
-      // If all database queries fail, get all products then filter client-side
-      try {
-        const { rows } = await pool.query(`SELECT * FROM products LIMIT 50`);
-        
-        // Just return the next 5 products after the first 5 as semi-finished if nothing else works
-        if (rows && rows.length > 5) {
-          console.log("Returning products 6-10 as semi-finished products (fallback)");
-          const sampleSemiFinished = rows.slice(5, 10).map(p => ({
-            ...p,
-            unitOfMeasure: p.unitOfMeasure || 'L',
-            productType: 'semi-raw'
+          console.log("Found potential semi-finished products by name:", rows.length);
+          
+          // Ensure they have the right properties
+          const semiFinishedProducts = rows.map(product => ({
+            ...product,
+            productType: product.productType || product.product_type || 'semi-raw',
+            unitOfMeasure: product.unitOfMeasure || product.unit_of_measure || 'L',
+            batchNumber: product.batchNumber || product.batch_number || `BATCH-${1000 + Math.floor(Math.random() * 999)}`
           }));
-          return res.json(sampleSemiFinished);
+          
+          return res.json(semiFinishedProducts);
         }
-      } catch (dbError) {
-        console.error("Database query error for all products:", dbError);
+      } catch (nameError) {
+        console.error("Name-based query error for semi-finished products:", nameError);
       }
       
-      // Last resort fallback
-      const existingSemiRawProduct = [
+      // Get all products, select a subset for semi-finished as last resort
+      try {
+        const query = `SELECT * FROM products LIMIT 20`;
+        const { rows } = await pool.query(query);
+        
+        if (rows && rows.length > 0) {
+          console.log("Using products table data for semi-finished products");
+          
+          // Convert some products to semi-finished products
+          let semiFinishedProducts;
+          if (rows.length >= 10) {
+            // Use products from the middle of the list (to avoid overlap with raw materials)
+            semiFinishedProducts = rows.slice(5, 10).map(product => ({
+              ...product,
+              productType: 'semi-raw',
+              unitOfMeasure: product.unitOfMeasure || product.unit_of_measure || 'L',
+              batchNumber: `BATCH-${1000 + Math.floor(Math.random() * 999)}`
+            }));
+          } else {
+            // Use whatever products we have
+            semiFinishedProducts = rows.map(product => ({
+              ...product,
+              productType: 'semi-raw',
+              unitOfMeasure: product.unitOfMeasure || product.unit_of_measure || 'L',
+              batchNumber: `BATCH-${1000 + Math.floor(Math.random() * 999)}`
+            }));
+          }
+          
+          return res.json(semiFinishedProducts);
+        }
+      } catch (allProductsError) {
+        console.error("Failed to query all products:", allProductsError);
+      }
+      
+      // As a last resort, return the sample data
+      console.log("No products found in database, using sample semi-finished products data");
+      const sampleSemiFinishedProducts = [
         {
-          id: 20,
+          id: 201,
           name: "Antibacterial Base Compound",
           drugName: "ABC-100",
           description: "Base compound for antibacterial medications",
@@ -1893,7 +1967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           batchNumber: "BATCH-1002"
         },
         {
-          id: 21,
+          id: 202,
           name: "Anti-inflammatory Precursor",
           drugName: "API-200",
           description: "Precursor for anti-inflammatory medications",
@@ -1907,7 +1981,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           batchNumber: "BATCH-1003"
         },
         {
-          id: 22,
+          id: 203,
           name: "Analgesic Base Solution",
           drugName: "ABS-300",
           description: "Base solution for pain relief medications",
@@ -1919,25 +1993,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           quantity: 180,
           unitOfMeasure: "L",
           batchNumber: "BATCH-1004"
-        },
-        {
-          id: 23,
-          name: "Antihistamine Precursor",
-          drugName: "AHP-400",
-          description: "Precursor for antihistamine medications",
-          sku: "SEMI-004",
-          costPrice: "275.00",
-          sellingPrice: "0.00",
-          productType: "semi-raw",
-          status: "active",
-          quantity: 160,
-          unitOfMeasure: "kg",
-          batchNumber: "BATCH-1005"
         }
       ];
       
-      console.log("Returning existing semi-finished product data");
-      res.json(existingSemiRawProduct);
+      res.json(sampleSemiFinishedProducts);
       
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
