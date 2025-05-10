@@ -839,6 +839,7 @@ const OrderManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Raw Material</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Unit Price</TableHead>
                     <TableHead>Total</TableHead>
@@ -850,7 +851,10 @@ const OrderManagement = () => {
                     rawMaterials.map((material, index) => (
                       <TableRow key={`${material.id}-${index}`}>
                         <TableCell className="font-medium">
-                          {material.quantity} {material.unitOfMeasure} {material.name}
+                          {material.name}
+                        </TableCell>
+                        <TableCell>
+                          {material.quantity} {material.unitOfMeasure}
                         </TableCell>
                         <TableCell>${parseFloat(material.unitPrice).toFixed(2)}</TableCell>
                         <TableCell>
@@ -869,7 +873,7 @@ const OrderManagement = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-20 text-center">
+                      <TableCell colSpan={5} className="h-20 text-center">
                         No materials added. Select materials from the dropdown above.
                       </TableCell>
                     </TableRow>
@@ -878,7 +882,7 @@ const OrderManagement = () => {
                   {rawMaterials.length > 0 && (
                     <>
                       <TableRow>
-                        <TableCell colSpan={2} className="text-right font-medium">
+                        <TableCell colSpan={3} className="text-right font-medium">
                           Subtotal:
                         </TableCell>
                         <TableCell className="font-medium">
@@ -887,7 +891,7 @@ const OrderManagement = () => {
                         <TableCell></TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={2} className="text-right font-medium">
+                        <TableCell colSpan={3} className="text-right font-medium">
                           Tax ({taxPercentage}%):
                         </TableCell>
                         <TableCell className="font-medium">
@@ -896,7 +900,7 @@ const OrderManagement = () => {
                         <TableCell></TableCell>
                       </TableRow>
                       <TableRow>
-                        <TableCell colSpan={2} className="text-right font-medium">
+                        <TableCell colSpan={3} className="text-right font-medium">
                           Total:
                         </TableCell>
                         <TableCell className="font-bold">
