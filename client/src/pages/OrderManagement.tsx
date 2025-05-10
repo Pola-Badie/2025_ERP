@@ -1191,7 +1191,18 @@ const OrderManagement = () => {
           
           {/* Production Orders History */}
           <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-bold">Production Orders History</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Production Orders History</h2>
+              <Button 
+                onClick={handleExportProductionOrders} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FileDown className="h-4 w-4" />
+                Export to CSV
+              </Button>
+            </div>
             
             <div className="rounded-md border overflow-hidden">
               <Table>
@@ -1598,7 +1609,18 @@ const OrderManagement = () => {
           
           {/* Refining Orders History */}
           <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-bold">Refining Orders History</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold">Refining Orders History</h2>
+              <Button 
+                onClick={handleExportRefiningOrders} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <FileDown className="h-4 w-4" />
+                Export to CSV
+              </Button>
+            </div>
             
             <div className="rounded-md border overflow-hidden">
               <Table>
