@@ -899,6 +899,104 @@ const OrderManagement = () => {
               </Table>
             </div>
           </div>
+
+          {/* Packaging Section */}
+          <div className="space-y-4 border border-gray-200 rounded-md p-4 bg-slate-50">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Packaging Materials</h3>
+              {packagingItems.length > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  {packagingItems.length} item{packagingItems.length !== 1 ? 's' : ''}
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center space-x-4">
+                <Select 
+                  value={packagingToAdd || ''} 
+                  onValueChange={(value) => setPackagingToAdd(value)}
+                >
+                  <SelectTrigger className="w-[300px]">
+                    <SelectValue placeholder="Select packaging material" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {packagingMaterials?.map((item: any) => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.name} ({item.unitOfMeasure})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="number"
+                  placeholder="Qty"
+                  className="w-24"
+                  value={packagingQuantity || ''}
+                  onChange={(e) => setPackagingQuantity(parseInt(e.target.value) || 0)}
+                />
+                
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    type="text"
+                    placeholder="0.00"
+                    className="pl-7 w-24"
+                    value={packagingUnitPrice}
+                    onChange={(e) => setPackagingUnitPrice(e.target.value)}
+                  />
+                </div>
+                
+                <Button variant="secondary" onClick={handleAddPackaging}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+            </div>
+            
+            {/* Packaging Table */}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Packaging Material</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {packagingItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        No packaging items added
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    packagingItems.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>
+                          {item.quantity} {item.unitOfMeasure}
+                        </TableCell>
+                        <TableCell>${parseFloat(item.unitPrice).toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemovePackaging(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
           
           <div className="space-y-2">
             <Label>Final Product Description</Label>
