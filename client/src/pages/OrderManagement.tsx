@@ -10,7 +10,9 @@ import {
   Plus,
   PlusCircle,
   X,
-  Search
+  Search,
+  Download,
+  FileDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -717,6 +719,110 @@ const OrderManagement = () => {
     toast({
       title: "Info",
       description: "Invoice creation will be implemented in a future update.",
+    });
+  };
+  
+  // Export production orders to CSV
+  const handleExportProductionOrders = () => {
+    if (!productionOrders || productionOrders.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No production orders available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Prepare CSV headers
+    const headers = [
+      "Batch Number", 
+      "Customer", 
+      "Final Product", 
+      "Total Cost", 
+      "Date Created"
+    ];
+    
+    // Prepare row data
+    const rows = productionOrders.map((order: any) => [
+      order.batchNumber || order.orderNumber,
+      order.customerName || order.customer?.name || "Unknown",
+      order.finalProduct || "N/A",
+      parseFloat(order.totalCost || 0).toFixed(2),
+      formatDate(order.createdAt)
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `production-orders-${format(new Date(), 'dd-MM-yyyy')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: "Production orders exported to CSV",
+    });
+  };
+  
+  // Export refining orders to CSV
+  const handleExportRefiningOrders = () => {
+    if (!refiningOrders || refiningOrders.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No refining orders available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Prepare CSV headers
+    const headers = [
+      "Batch Number", 
+      "Customer", 
+      "Source Material", 
+      "Expected Output", 
+      "Total Cost", 
+      "Date Created"
+    ];
+    
+    // Prepare row data
+    const rows = refiningOrders.map((order: any) => [
+      order.batchNumber || order.orderNumber,
+      order.customerName || order.customer?.name || "Unknown",
+      order.sourceMaterial || "N/A",
+      order.expectedOutput || "N/A",
+      parseFloat(order.totalCost || 0).toFixed(2),
+      formatDate(order.createdAt)
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `refining-orders-${format(new Date(), 'dd-MM-yyyy')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export Successful",
+      description: "Refining orders exported to CSV",
     });
   };
   
