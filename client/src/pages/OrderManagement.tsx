@@ -83,6 +83,8 @@ const OrderManagement = () => {
   const [materialQuantity, setMaterialQuantity] = useState<number>(0);
   const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('0.00');
   const [finalProductDescription, setFinalProductDescription] = useState('');
+  const [taxPercentage, setTaxPercentage] = useState<number>(14);
+  const [subtotalPrice, setSubtotalPrice] = useState('0.00');
   const [totalPrice, setTotalPrice] = useState('0.00');
   
   // Refining order states
@@ -93,15 +95,30 @@ const OrderManagement = () => {
   const [refiningSteps, setRefiningSteps] = useState<string[]>([]);
   const [newRefiningStep, setNewRefiningStep] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
+  const [refiningTaxPercentage, setRefiningTaxPercentage] = useState<number>(14);
+  const [refiningSubtotal, setRefiningSubtotal] = useState('0.00');
   const [refiningCost, setRefiningCost] = useState('0.00');
   
-  // Calculate total price when raw materials change
+  // Calculate subtotal and total price (with tax) when raw materials or tax percentage change
   useEffect(() => {
-    const total = rawMaterials.reduce((sum, material) => {
+    const subtotal = rawMaterials.reduce((sum, material) => {
       return sum + (material.quantity * parseFloat(material.unitPrice));
     }, 0);
+    setSubtotalPrice(subtotal.toFixed(2));
+    
+    // Calculate total with tax
+    const taxAmount = subtotal * (taxPercentage / 100);
+    const total = subtotal + taxAmount;
     setTotalPrice(total.toFixed(2));
-  }, [rawMaterials]);
+  }, [rawMaterials, taxPercentage]);
+  
+  // Calculate refining cost with tax
+  useEffect(() => {
+    const subtotal = parseFloat(refiningSubtotal);
+    const taxAmount = subtotal * (refiningTaxPercentage / 100);
+    const total = subtotal + taxAmount;
+    setRefiningCost(total.toFixed(2));
+  }, [refiningSubtotal, refiningTaxPercentage]);
   
   // Fetch customers
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
@@ -312,8 +329,11 @@ const OrderManagement = () => {
         customerName: selectedCustomer.name,
         materials: rawMaterials,
         finalProduct: finalProductDescription,
-        totalMaterialCost: totalPrice,
-        totalAdditionalFees: '0.00',
+        subtotal: subtotalPrice,
+        taxPercentage: taxPercentage,
+        taxAmount: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
+        totalMaterialCost: subtotalPrice,
+        totalAdditionalFees: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
         totalCost: totalPrice,
         status: 'pending',
         createdAt: new Date().toISOString()
@@ -364,8 +384,11 @@ const OrderManagement = () => {
           : semiFinishedProducts?.find((p: any) => p.id.toString() === sourceStockItem)?.name,
         refiningSteps: refiningSteps.join('||'),
         expectedOutput,
-        totalMaterialCost: '0.00',
-        totalAdditionalFees: refiningCost,
+        subtotal: refiningSubtotal,
+        taxPercentage: refiningTaxPercentage,
+        taxAmount: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
+        totalMaterialCost: refiningSubtotal,
+        totalAdditionalFees: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
         totalCost: refiningCost,
         status: 'pending',
         createdAt: new Date().toISOString()
@@ -752,15 +775,35 @@ const OrderManagement = () => {
                   )}
                   
                   {rawMaterials.length > 0 && (
-                    <TableRow>
-                      <TableCell colSpan={2} className="text-right font-medium">
-                        Total:
-                      </TableCell>
-                      <TableCell className="font-bold">
-                        ${totalPrice}
-                      </TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
+                    <>
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-right font-medium">
+                          Subtotal:
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          ${subtotalPrice}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-right font-medium">
+                          Tax ({taxPercentage}%):
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          ${(parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2)}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-right font-medium">
+                          Total:
+                        </TableCell>
+                        <TableCell className="font-bold">
+                          ${totalPrice}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </>
                   )}
                 </TableBody>
               </Table>
@@ -777,17 +820,36 @@ const OrderManagement = () => {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label>Pricing</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-              <Input
-                type="text"
-                placeholder="Total price"
-                className="pl-7"
-                value={totalPrice}
-                onChange={(e) => setTotalPrice(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Tax Percentage (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Tax percentage"
+                  value={taxPercentage}
+                  onChange={(e) => setTaxPercentage(parseFloat(e.target.value) || 0)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Standard rate: 14%</p>
+              </div>
+              <div>
+                <Label>Final Price</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    type="text"
+                    placeholder="Total price"
+                    className="pl-7"
+                    value={totalPrice}
+                    onChange={(e) => setTotalPrice(e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Subtotal: ${subtotalPrice} + Tax: ${(parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2)}
+                </p>
+              </div>
             </div>
           </div>
           
@@ -1043,21 +1105,54 @@ const OrderManagement = () => {
             />
           </div>
           
-          <div className="space-y-2">
-            <Label>Cost Adjustments</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
-              <Input
-                type="text"
-                placeholder="0.00"
-                className="pl-7"
-                value={refiningCost}
-                onChange={(e) => setRefiningCost(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Base Cost</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    type="text"
+                    placeholder="0.00"
+                    className="pl-7"
+                    value={refiningSubtotal}
+                    onChange={(e) => setRefiningSubtotal(e.target.value)}
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Base cost for the refining process
+                </p>
+              </div>
+              <div>
+                <Label>Tax Percentage (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Tax percentage"
+                  value={refiningTaxPercentage}
+                  onChange={(e) => setRefiningTaxPercentage(parseFloat(e.target.value) || 0)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Standard rate: 14%</p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Enter any additional costs associated with the refining process
-            </p>
+            
+            <div>
+              <Label>Total Cost (with Tax)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                <Input
+                  type="text"
+                  placeholder="0.00"
+                  className="pl-7"
+                  value={refiningCost}
+                  readOnly
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Subtotal: ${refiningSubtotal} + Tax: ${(parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2)}
+              </p>
+            </div>
           </div>
           
           <Button className="w-full" onClick={handleCreateRefiningOrder}>
@@ -1164,6 +1259,14 @@ const OrderManagement = () => {
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-1">Status</h3>
                   <Badge>{selectedOrder.status || 'pending'}</Badge>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Subtotal</h3>
+                  <p>${parseFloat(selectedOrder.subtotal || selectedOrder.totalMaterialCost || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Tax {selectedOrder.taxPercentage ? `(${selectedOrder.taxPercentage}%)` : ''}</h3>
+                  <p>${parseFloat(selectedOrder.taxAmount || selectedOrder.totalAdditionalFees || 0).toFixed(2)}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-1">Total Cost</h3>
