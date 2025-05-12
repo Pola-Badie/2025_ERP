@@ -95,6 +95,10 @@ const Inventory: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   
+  // State for product history dialog
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [selectedProductHistory, setSelectedProductHistory] = useState<Product | null>(null);
+  
   // CSV Integration
   const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
   
@@ -387,6 +391,16 @@ const Inventory: React.FC = () => {
     toast({
       title: "Edit Product",
       description: `Editing ${product.name}`,
+    });
+  };
+  
+  const handleShowHistory = (product: Product) => {
+    setSelectedProductHistory(product);
+    setIsHistoryDialogOpen(true);
+    
+    toast({
+      title: "Product History",
+      description: `Viewing history for ${product.name}`,
     });
   };
   
