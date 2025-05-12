@@ -635,6 +635,10 @@ const Inventory: React.FC = () => {
                                     <Tag className="h-4 w-4 mr-2" />
                                     Create Label
                                   </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleShowHistory(product)}>
+                                    <Calendar className="h-4 w-4 mr-2" />
+                                    Show History
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                                     <Pencil className="h-4 w-4 mr-2" />
                                     Edit
@@ -869,6 +873,114 @@ const Inventory: React.FC = () => {
               setProductToEdit(null);
             }} 
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Product History Dialog */}
+      <Dialog open={isHistoryDialogOpen} onOpenChange={(open) => {
+        setIsHistoryDialogOpen(open);
+        if (!open) setSelectedProductHistory(null);
+      }}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Product History</DialogTitle>
+            <DialogDescription>
+              {selectedProductHistory ? `Viewing history for ${selectedProductHistory.name}` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProductHistory && (
+            <div className="space-y-4 py-2">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Current Information</h3>
+                <Badge variant="outline">{selectedProductHistory.status}</Badge>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 border p-4 rounded-md bg-slate-50">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">SKU</p>
+                  <p>{selectedProductHistory.sku}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Drug Name</p>
+                  <p>{selectedProductHistory.drugName}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Quantity</p>
+                  <p>{selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Category</p>
+                  <p>{selectedProductHistory.category}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Cost Price</p>
+                  <p>{formatCurrency(selectedProductHistory.costPrice)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Selling Price</p>
+                  <p>{formatCurrency(selectedProductHistory.sellingPrice)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Expiry Date</p>
+                  <p>{formatDate(selectedProductHistory.expiryDate)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Location</p>
+                  <p>{selectedProductHistory.location || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <h3 className="text-lg font-medium mb-3">History Timeline</h3>
+                
+                {/* This would typically be populated from backend data */}
+                <div className="space-y-3">
+                  <div className="flex items-start border-l-2 border-primary pl-4 pb-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
+                      <Pencil className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Product Updated</p>
+                      <p className="text-sm text-slate-500">{formatDate(new Date().toISOString())}</p>
+                      <p className="text-sm mt-1">Quantity changed from 150 to {selectedProductHistory.quantity}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start border-l-2 border-primary pl-4 pb-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
+                      <Tag className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Label Generated</p>
+                      <p className="text-sm text-slate-500">{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</p>
+                      <p className="text-sm mt-1">Label created for batch #LB{selectedProductHistory.id}21</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start border-l-2 border-primary pl-4">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
+                      <Plus className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Product Added</p>
+                      <p className="text-sm text-slate-500">{formatDate(selectedProductHistory.createdAt)}</p>
+                      <p className="text-sm mt-1">Initial quantity: 100 {selectedProductHistory.unitOfMeasure}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsHistoryDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
