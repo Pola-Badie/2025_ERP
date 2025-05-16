@@ -82,7 +82,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-// We'll use html2canvas for printing instead of react-to-print due to TypeScript compatibility issues
 import JsBarcode from 'jsbarcode';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -110,9 +109,9 @@ import packagingIndustrial from "@assets/Packaging-7.png";
 const productFormSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(1, 'Product name is required'),
-  sku: z.string().min(1, 'SKU is required'),
-  sellingPrice: z.coerce.number().min(0.01, 'Price must be greater than 0'),
-  categoryId: z.coerce.number().min(1, 'Category is required'),
+  sku: z.string().optional(),
+  sellingPrice: z.coerce.number().optional(),
+  categoryId: z.coerce.number().optional(),
   formula: z.string().optional(),
   molecularWeight: z.string().optional(),
   manufacturingDate: z.date().optional(),
@@ -219,6 +218,25 @@ const LabelGenerator: React.FC = () => {
   // Handle product selection
   const handleSelectProduct = (product: any) => {
     setSelectedProduct(product);
+    
+    // Update form values with product data
+    form.reset({
+      name: product.name,
+      sku: product.sku || '',
+      sellingPrice: product.sellingPrice || 0,
+      categoryId: product.categoryId || 0,
+      formula: product.formula || '',
+      molecularWeight: product.molecularWeight?.toString() || '',
+      batchNumber: product.batchNumber || '',
+      weight: product.weight?.toString() || '',
+      manufacturingDate: product.manufacturingDate 
+        ? new Date(product.manufacturingDate) 
+        : undefined,
+      expiryDate: product.expiryDate 
+        ? new Date(product.expiryDate) 
+        : undefined,
+    });
+    
     setSearchQuery('');
   };
 
@@ -238,6 +256,13 @@ const LabelGenerator: React.FC = () => {
     }
   }, [selectedProduct]);
 
+  // Form validation
+  useEffect(() => {
+    const values = form.getValues();
+    const isValid = !!(values.name);
+    setIsFormValid(isValid);
+  }, [form, selectedProduct]);
+
   // Generate barcode using JsBarcode
   const generateBarcode = () => {
     if (!selectedProduct) return;
@@ -254,13 +279,6 @@ const LabelGenerator: React.FC = () => {
     
     setBarcodeURL(canvas.toDataURL('image/png'));
   };
-  
-  // Form validation
-  useEffect(() => {
-    const values = form.getValues();
-    const isValid = !!(values.name && selectedProduct);
-    setIsFormValid(isValid);
-  }, [form, selectedProduct]);
   
   // Get hazard image path based on hazard type
   const getHazardImagePath = (hazardType: string) => {
@@ -328,6 +346,10 @@ const LabelGenerator: React.FC = () => {
       sku: '',
       sellingPrice: 0,
       categoryId: 0,
+      formula: '',
+      molecularWeight: '',
+      batchNumber: '',
+      weight: '',
     });
     setSelectedProduct(null);
     setSelectedHazard('');
@@ -339,7 +361,7 @@ const LabelGenerator: React.FC = () => {
 
   // Custom printing functionality
   const printLabel = () => {
-    if (!labelRef.current || !selectedProduct) return;
+    if (!labelRef.current) return;
     
     setIsGenerating(true);
     
@@ -361,7 +383,7 @@ const LabelGenerator: React.FC = () => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Label: ${selectedProduct.name}</title>
+            <title>Label: ${form.getValues("name")}</title>
             <style>
               body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
               img { max-width: 100%; }
@@ -391,7 +413,7 @@ const LabelGenerator: React.FC = () => {
         setIsGenerating(false);
         toast({
           title: 'Print prepared',
-          description: `Label for ${selectedProduct.name} has been sent to printer`,
+          description: `Label for ${form.getValues("name")} has been sent to printer`,
         });
       }, 1000);
     }).catch(error => {
@@ -407,7 +429,7 @@ const LabelGenerator: React.FC = () => {
 
   // Handle PDF export
   const downloadPdfLabel = async () => {
-    if (!labelRef.current || !selectedProduct) return;
+    if (!labelRef.current) return;
 
     setIsGenerating(true);
 
@@ -434,7 +456,7 @@ const LabelGenerator: React.FC = () => {
         }
       }
 
-      pdf.save(`${selectedProduct.name}-Label.pdf`);
+      pdf.save(`${form.getValues("name")}-Label.pdf`);
 
       toast({
         title: 'PDF generated',
@@ -514,39 +536,27 @@ const LabelGenerator: React.FC = () => {
                                       );
                                     }}
                                   >
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Add as new product
+                                    Create new product
                                   </Button>
                                 </div>
                               ) : (
-                                <p className="py-6 text-center text-sm">Start typing to search...</p>
+                                <p className="py-6 text-center text-sm">No products found.</p>
                               )}
                             </CommandEmpty>
-
-                            <CommandGroup heading="Products">
+                            <CommandGroup>
                               {products.map((product) => (
                                 <CommandItem
                                   key={product.id}
+                                  value={product.name}
                                   onSelect={() => handleSelectProduct(product)}
-                                  className="flex items-center justify-between"
                                 >
-                                  <div>
-                                    <span className="font-medium">{product.name}</span>
-                                    <span className="ml-2 text-sm text-muted-foreground">
-                                      {new Intl.NumberFormat('en-US', {
-                                        style: 'currency',
-                                        currency: 'USD'
-                                      }).format(product.sellingPrice)}
-                                    </span>
-                                  </div>
                                   <Check
                                     className={cn(
-                                      "ml-auto h-4 w-4",
-                                      selectedProduct?.id === product.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
+                                      "mr-2 h-4 w-4",
+                                      selectedProduct?.id === product.id ? "opacity-100" : "opacity-0"
                                     )}
                                   />
+                                  {product.name}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
@@ -555,350 +565,565 @@ const LabelGenerator: React.FC = () => {
                       </PopoverContent>
                     </Popover>
                   </div>
-
+                 
                   {selectedProduct && (
-                    <div className="p-4 border rounded-md bg-muted/50">
-                      <div className="flex justify-between items-start">
+                    <div className="border rounded-lg p-4 bg-muted/30">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <h3 className="font-medium">{selectedProduct.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            SKU: {selectedProduct.sku || selectedProduct.id}
-                          </p>
-                          <p className="text-sm font-medium mt-1">
-                            Price: {new Intl.NumberFormat('en-US', {
-                              style: 'currency',
-                              currency: 'USD'
-                            }).format(selectedProduct.sellingPrice)}
-                          </p>
+                          <Label className="text-xs">Category:</Label>
+                          <p className="font-medium">{selectedProduct.category?.name || 'N/A'}</p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedProduct(null)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <div>
+                          <Label className="text-xs">SKU:</Label>
+                          <p className="font-medium">{selectedProduct.sku || 'N/A'}</p>
+                        </div>
                       </div>
                     </div>
                   )}
+
                 </div>
               </TabsContent>
               
               <TabsContent value="new" className="space-y-4 pt-4">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Product Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter product name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="sku"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>SKU</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter product SKU" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="sellingPrice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Selling Price</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              placeholder="0.00"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="categoryId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Category</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            defaultValue={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a category" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem
-                                  key={category.id}
-                                  value={category.id.toString()}
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button type="submit" disabled={createProductMutation.isPending}>
-                      {createProductMutation.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Add Product
-                    </Button>
-                  </form>
-                </Form>
+                {/* New Product Form Fields */}
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Product Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter product name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </TabsContent>
             </Tabs>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <div>
-                <Label>Label Format</Label>
-                <Select
-                  value={selectedFormat.id}
-                  onValueChange={(value) => {
-                    const format = labelFormats.find(f => f.id === value);
-                    if (format) setSelectedFormat(format);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {labelFormats.map((format) => (
-                      <SelectItem key={format.id} value={format.id}>
-                        {format.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            
+            <div className="space-y-4 pt-4">
+              <h3 className="font-medium">Label Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="formula"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chemical Formula</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. C6H12O6" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="molecularWeight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Molecular Weight</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 180.16" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="multiple-labels">Multiple Labels</Label>
-                  <p className="text-[0.8rem] text-muted-foreground">
-                    Generate multiple copies of the same label
-                  </p>
-                </div>
-                <Switch
-                  id="multiple-labels"
-                  checked={showMultiple}
-                  onCheckedChange={setShowMultiple}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="manufacturingDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Manufacturing Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="expiryDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Expiry Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="batchNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Batch Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter batch number" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Weight (kg)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g. 25" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              {showMultiple && (
-                <div>
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={quantity}
-                      onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                      className="w-20"
-                    />
-                    <span className="text-sm text-muted-foreground">labels</span>
+              {/* Hazard Type Selection */}
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-medium">Hazard Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Primary Hazard Type</Label>
+                    <Select 
+                      onValueChange={(value) => setSelectedHazard(value)}
+                      value={selectedHazard}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select hazard type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="explosive">Explosive</SelectItem>
+                        <SelectItem value="oxidising">Oxidising</SelectItem>
+                        <SelectItem value="flammable">Extremely Flammable</SelectItem>
+                        <SelectItem value="corrosive">Corrosive</SelectItem>
+                        <SelectItem value="environment">Dangerous for the Environment</SelectItem>
+                        <SelectItem value="harmful">Harmful</SelectItem>
+                        <SelectItem value="highlyFlammable">Highly Flammable</SelectItem>
+                        <SelectItem value="toxic">Toxic</SelectItem>
+                        <SelectItem value="irritant">Irritant</SelectItem>
+                        <SelectItem value="veryToxic">Very Toxic</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Secondary Hazard (Optional)</Label>
+                    <Select 
+                      onValueChange={(value) => setSecondaryHazard(value)}
+                      value={secondaryHazard || ""}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select secondary hazard (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="explosive">Explosive</SelectItem>
+                        <SelectItem value="oxidising">Oxidising</SelectItem>
+                        <SelectItem value="flammable">Extremely Flammable</SelectItem>
+                        <SelectItem value="corrosive">Corrosive</SelectItem>
+                        <SelectItem value="environment">Dangerous for the Environment</SelectItem>
+                        <SelectItem value="harmful">Harmful</SelectItem>
+                        <SelectItem value="highlyFlammable">Highly Flammable</SelectItem>
+                        <SelectItem value="toxic">Toxic</SelectItem>
+                        <SelectItem value="irritant">Irritant</SelectItem>
+                        <SelectItem value="veryToxic">Very Toxic</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={generateBarcode}
-              disabled={!selectedProduct}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh Barcode
-            </Button>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => printLabel()}
-                disabled={!selectedProduct || isGenerating}
-              >
-                {isGenerating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Printer className="mr-2 h-4 w-4" />
-                )}
-                Print
-              </Button>
-              <Button
-                onClick={downloadPdfLabel}
-                disabled={!selectedProduct || isGenerating}
-              >
-                {isGenerating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
-                )}
-                Download PDF
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-
-        {/* Right Side - Label Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Label Preview</CardTitle>
-            <CardDescription>
-              Preview how the label will look when printed
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center min-h-[300px] bg-gray-50 rounded-md p-6">
-            {selectedProduct ? (
-              <div 
-                ref={labelRef} 
-                style={labelStyle}
-                className="flex flex-col justify-between font-sans"
-              >
-                <div className="text-center">
-                  <h3 className="font-bold" style={{ fontSize: `${selectedFormat.width * 0.07}mm` }}>
-                    {selectedProduct.name}
-                  </h3>
-                  <p className="font-semibold" style={{ fontSize: `${selectedFormat.width * 0.05}mm` }}>
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(selectedProduct.sellingPrice)}
-                  </p>
-                </div>
                 
-                <div className="flex justify-center mt-2">
-                  {barcodeURL && (
-                    <img
-                      src={barcodeURL}
-                      alt="Product Barcode"
-                      style={{ 
-                        width: `${selectedFormat.width * 0.8}mm`,
-                        maxHeight: `${selectedFormat.height * 0.4}mm`,
-                      }}
-                    />
-                  )}
-                </div>
-                
-                <div className="text-center mt-1">
-                  <p className="text-xs text-muted-foreground">
-                    PharmaOverseas Ltd.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center p-8 text-muted-foreground">
-                <Tag className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p>Select a product to generate a label</p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="text-sm text-muted-foreground">
-            {selectedProduct ? (
-              <p>Label size: {selectedFormat.width}mm × {selectedFormat.height}mm</p>
-            ) : (
-              <p>No product selected</p>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
-
-      {showMultiple && selectedProduct && (
-        <div className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Multiple Labels Preview</CardTitle>
-              <CardDescription>
-                This shows how multiple labels will be generated
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: Math.min(quantity, 8) }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      ...labelStyle,
-                      transform: 'scale(0.7)',
-                      transformOrigin: 'top left',
-                      margin: '0',
-                    }}
-                    className="flex flex-col justify-between font-sans border-dashed border-gray-300"
-                  >
-                    <div className="text-center">
-                      <h3 className="font-bold" style={{ fontSize: `${selectedFormat.width * 0.07}mm` }}>
-                        {selectedProduct.name}
-                      </h3>
-                      <p className="font-semibold" style={{ fontSize: `${selectedFormat.width * 0.05}mm` }}>
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(selectedProduct.sellingPrice)}
-                      </p>
-                    </div>
-                    
-                    <div className="flex justify-center mt-2">
-                      {barcodeURL && (
-                        <img
-                          src={barcodeURL}
-                          alt="Product Barcode"
-                          style={{ 
-                            width: `${selectedFormat.width * 0.8}mm`,
-                            maxHeight: `${selectedFormat.height * 0.4}mm`,
-                          }}
+                <div className="grid grid-cols-2 gap-6 mt-4">
+                  <div className="flex flex-col items-center">
+                    <Label className="mb-2">Primary Hazard</Label>
+                    <div className="w-24 h-32 border rounded-md flex items-center justify-center bg-amber-50">
+                      {selectedHazard ? (
+                        <img 
+                          src={getHazardImagePath(selectedHazard)} 
+                          alt={selectedHazard} 
+                          className="max-w-full max-h-full" 
                         />
+                      ) : (
+                        <AlertCircle className="text-muted-foreground h-8 w-8" />
                       )}
                     </div>
-                    
-                    <div className="text-center mt-1">
-                      <p className="text-xs text-muted-foreground">
-                        PharmaOverseas Ltd.
-                      </p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center">
+                    <Label className="mb-2">Secondary Hazard</Label>
+                    <div className="w-24 h-32 border rounded-md flex items-center justify-center bg-amber-50">
+                      {secondaryHazard ? (
+                        <img 
+                          src={getHazardImagePath(secondaryHazard)} 
+                          alt={secondaryHazard}
+                          className="max-w-full max-h-full" 
+                        />
+                      ) : (
+                        <Ban className="text-muted-foreground h-8 w-8" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lab Test Fields */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Laboratory Tests</h3>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={addLabTest}
+                  >
+                    <Plus className="w-4 h-4 mr-1" /> Add Lab Test
+                  </Button>
+                </div>
+                
+                {labTests.map((test, index) => (
+                  <div key={index} className="grid grid-cols-2 gap-4 border p-3 rounded-md">
+                    <div>
+                      <Label>Lab Test Type</Label>
+                      <Select 
+                        value={test.type} 
+                        onValueChange={(value) => updateLabTest(index, 'type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select test type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="assay">Assay</SelectItem>
+                          <SelectItem value="ph">pH</SelectItem>
+                          <SelectItem value="dissolution">Dissolution</SelectItem>
+                          <SelectItem value="impurity">Impurity</SelectItem>
+                          <SelectItem value="moisture">Moisture</SelectItem>
+                          <SelectItem value="chloride">Chloride (CI)</SelectItem>
+                          <SelectItem value="iron">Iron (Fe)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Label>Lab Test {index + 1}</Label>
+                        <Input 
+                          value={test.value} 
+                          onChange={(e) => updateLabTest(index, 'value', e.target.value)}
+                          placeholder="Test value"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-6"
+                        onClick={() => removeLabTest(index)}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
-                {quantity > 8 && (
-                  <div className="flex items-center justify-center p-4 border border-dashed rounded-md">
-                    <p className="text-muted-foreground">+{quantity - 8} more labels</p>
+              </div>
+
+              {/* Packaging Type Selection */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Packaging Selection</h3>
+                </div>
+
+                <div>
+                  <Label>Packaging Type</Label>
+                  <Select 
+                    onValueChange={(value) => setSelectedPackaging(value)}
+                    value={selectedPackaging}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select packaging type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="industrial">Industrial</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="mt-4 p-2 border rounded-md flex justify-center bg-slate-50">
+                    {selectedPackaging ? (
+                      <img 
+                        src={getPackagingImagePath(selectedPackaging)} 
+                        alt={`${selectedPackaging} packaging`}
+                        className="max-h-32 object-contain" 
+                      />
+                    ) : (
+                      <Package className="text-muted-foreground h-16 w-16 my-8" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Right Side - Preview & Generate */}
+        <div className="space-y-6">
+          <Card className="h-full flex flex-col">
+            <CardHeader>
+              <CardTitle>Label Preview</CardTitle>
+              <CardDescription>
+                Preview how the label will look when printed
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow pt-0">
+              <div 
+                ref={labelRef} 
+                className="min-h-[500px] border rounded-md p-4 bg-white"
+              >
+                {/* Label preview */}
+                {isGenerating ? (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                    <p>Generating label...</p>
+                  </div>
+                ) : form.getValues("name") ? (
+                  <div className="label-preview bg-white">
+                    {/* Blue header with company name */}
+                    <div className="bg-sky-500 text-white p-3">
+                      <div className="text-2xl font-bold uppercase text-center">MORGAN CHEMICALS IND. CO.</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-5 gap-2 p-3">
+                      {/* Left side with QR code and atom logo */}
+                      <div className="col-span-1">
+                        <div className="flex flex-col items-center space-y-4">
+                          {/* QR Code */}
+                          <div className="w-24 h-24 bg-white border">
+                            <Barcode className="w-full h-full p-2" />
+                          </div>
+                          
+                          {/* Logo placeholder */}
+                          <div className="w-20 h-20 flex items-center justify-center">
+                            <div className="relative w-16 h-16">
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-blue-500"></div>
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-16 h-3 border-2 border-green-500 rounded-full transform rotate-45"></div>
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-16 h-3 border-2 border-red-500 rounded-full transform -rotate-45"></div>
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-16 h-3 border-2 border-orange-500 rounded-full transform rotate-90"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Center section with product info */}
+                      <div className="col-span-3 flex flex-col space-y-2">
+                        {/* Product name */}
+                        <div className="text-xl font-bold text-center">
+                          {form.getValues("name")}
+                        </div>
+                        
+                        {/* Formula and MW line */}
+                        <div className="flex justify-between text-sm font-semibold">
+                          <div>
+                            <span className="font-bold">Formula:</span> {form.getValues("formula") || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-bold">M.W.:</span> {form.getValues("molecularWeight") || 'N/A'}
+                          </div>
+                        </div>
+                        
+                        {/* Assay & appearance line */}
+                        <div className="flex justify-between text-sm">
+                          <div>
+                            <span className="font-bold">Assay:</span> NLT {labTests.find(t => t.type === 'assay')?.value || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-bold">Appearance:</span> conform
+                          </div>
+                        </div>
+                        
+                        {/* Additional lab tests */}
+                        {labTests.filter(t => t.type !== 'assay').map((test, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="font-bold">{test.type}:</span>
+                            <span>LT {test.value || 'N/A'} ppm</span>
+                          </div>
+                        ))}
+                        
+                        <div className="text-xs mt-2">
+                          Complies with the chemical specifications of B.P
+                        </div>
+                      </div>
+                      
+                      {/* Right section with dates and hazard */}
+                      <div className="col-span-1">
+                        <div className="flex flex-col h-full">
+                          {/* Dates section */}
+                          <div className="space-y-1 text-sm mb-2">
+                            <div>
+                              <div className="font-bold">Manf. Date:</div>
+                              <div>
+                                {form.getValues("manufacturingDate") 
+                                  ? new Date(form.getValues("manufacturingDate") as Date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                                  : "N/A"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-bold">EXP:</div>
+                              <div>
+                                {form.getValues("expiryDate")
+                                  ? new Date(form.getValues("expiryDate") as Date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                                  : "N/A"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-bold">Batch no.:</div>
+                              <div>{form.getValues("batchNumber") || "N/A"}</div>
+                            </div>
+                            <div className="mt-1">
+                              <div className="font-bold text-right">{form.getValues("weight") || "25"} Kg.</div>
+                            </div>
+                          </div>
+                          
+                          {/* Hazard symbol */}
+                          {selectedHazard && (
+                            <div className="mt-auto">
+                              <img 
+                                src={getHazardImagePath(selectedHazard)} 
+                                alt={selectedHazard} 
+                                className="w-full h-auto" 
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Arabic footer with contact details */}
+                    <div className="bg-sky-100 text-xs p-2 text-center">
+                      <p>إنتاج شركة مرجان للصناعات الكيماوية (العاشر من رمضان) صنع في مصر</p>
+                      <p className="font-semibold mt-1">Head office & factory: 3rd industrial Zone A1 Taba St. Tenth of Ramadan city</p>
+                      <p className="mt-1">
+                        <span className="mr-2">Mob: 01223991290</span>
+                        <span className="mr-2">Fax: 055/4410115</span>
+                        <span>Tel: 055/4410890 - 055/4410891 - 055/4410255</span>
+                      </p>
+                      <p>E-mail: morgan_chem.ind@hotmail.com</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                    <Package className="h-12 w-12 mb-2 opacity-30" />
+                    <p>Fill out the form to preview the label</p>
+                    <p className="text-xs mt-1">All required fields must be completed</p>
                   </div>
                 )}
               </div>
             </CardContent>
+            <CardFooter className="flex justify-between border-t pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={resetForm}
+                disabled={isGenerating}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={downloadPdfLabel}
+                  disabled={isGenerating || !isFormValid}
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
+                <Button
+                  type="button"
+                  onClick={printLabel}
+                  disabled={isGenerating || !isFormValid}
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 };
