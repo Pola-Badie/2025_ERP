@@ -114,8 +114,8 @@ const productFormSchema = z.object({
   categoryId: z.coerce.number().optional(),
   formula: z.string().optional(),
   molecularWeight: z.string().optional(),
-  manufacturingDate: z.date().optional(),
-  expiryDate: z.date().optional(),
+  manufacturingDate: z.union([z.date(), z.string()]).optional().nullable(),
+  expiryDate: z.union([z.date(), z.string()]).optional().nullable(),
   batchNumber: z.string().optional(),
   weight: z.string().optional(),
 });
@@ -183,6 +183,8 @@ const LabelGenerator: React.FC = () => {
       molecularWeight: '',
       batchNumber: '',
       weight: '',
+      manufacturingDate: null,
+      expiryDate: null,
     },
   });
 
