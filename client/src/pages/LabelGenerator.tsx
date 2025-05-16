@@ -72,6 +72,13 @@ import {
   Loader2,
   RefreshCw,
   X,
+  AlertCircle,
+  Ban,
+  Package,
+  Calendar as CalendarIcon,
+  FileDown,
+  Barcode,
+  Trash,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -79,6 +86,25 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import JsBarcode from 'jsbarcode';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+
+// Import hazard symbol images
+import hazardExplosive from "@assets/hazard_0_0.png";
+import hazardOxidising from "@assets/hazard_0_1.png";
+import hazardFlammable from "@assets/hazard_0_2.png";
+import hazardCorrosive from "@assets/hazard_0_3.png";
+import hazardEnvironment from "@assets/hazard_0_4.png";
+import hazardHarmful from "@assets/hazard_1_0.png";
+import hazardHighlyFlammable from "@assets/hazard_1_1.png";
+import hazardToxic from "@assets/hazard_1_2.png";
+import hazardIrritant from "@assets/hazard_1_3.png";
+import hazardVeryToxic from "@assets/hazard_1_4.png";
+
+// Import packaging images
+import packagingStandard from "@assets/Packaging-6.png";
+import packagingPremium from "@assets/Packaging-5.png";
+import packagingIndustrial from "@assets/Packaging-7.png";
 
 // Define schemas for form validation
 const productFormSchema = z.object({
@@ -87,6 +113,12 @@ const productFormSchema = z.object({
   sku: z.string().min(1, 'SKU is required'),
   sellingPrice: z.coerce.number().min(0.01, 'Price must be greater than 0'),
   categoryId: z.coerce.number().min(1, 'Category is required'),
+  formula: z.string().optional(),
+  molecularWeight: z.string().optional(),
+  manufacturingDate: z.date().optional(),
+  expiryDate: z.date().optional(),
+  batchNumber: z.string().optional(),
+  weight: z.string().optional(),
 });
 
 // Define the available label formats
@@ -116,6 +148,11 @@ const LabelGenerator: React.FC = () => {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [barcodeURL, setBarcodeURL] = useState<string | null>(null);
+  const [selectedHazard, setSelectedHazard] = useState<string>('');
+  const [secondaryHazard, setSecondaryHazard] = useState<string | null>(null);
+  const [selectedPackaging, setSelectedPackaging] = useState<string>('');
+  const [labTests, setLabTests] = useState<Array<{ type: string; value: string }>>([]);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   // Fetch products
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
@@ -143,6 +180,10 @@ const LabelGenerator: React.FC = () => {
       sku: '',
       sellingPrice: 0,
       categoryId: 0,
+      formula: '',
+      molecularWeight: '',
+      batchNumber: '',
+      weight: '',
     },
   });
 
@@ -213,9 +254,91 @@ const LabelGenerator: React.FC = () => {
     
     setBarcodeURL(canvas.toDataURL('image/png'));
   };
+  
+  // Form validation
+  useEffect(() => {
+    const values = form.getValues();
+    const isValid = !!(values.name && selectedProduct);
+    setIsFormValid(isValid);
+  }, [form, selectedProduct]);
+  
+  // Get hazard image path based on hazard type
+  const getHazardImagePath = (hazardType: string) => {
+    switch (hazardType) {
+      case 'explosive':
+        return hazardExplosive;
+      case 'oxidising':
+        return hazardOxidising;
+      case 'flammable':
+        return hazardFlammable;
+      case 'corrosive':
+        return hazardCorrosive;
+      case 'environment':
+        return hazardEnvironment;
+      case 'harmful':
+        return hazardHarmful;
+      case 'highlyFlammable':
+        return hazardHighlyFlammable;
+      case 'toxic':
+        return hazardToxic;
+      case 'irritant':
+        return hazardIrritant;
+      case 'veryToxic':
+        return hazardVeryToxic;
+      default:
+        return '';
+    }
+  };
+  
+  // Get packaging image path based on packaging type
+  const getPackagingImagePath = (packagingType: string) => {
+    switch (packagingType) {
+      case 'standard':
+        return packagingStandard;
+      case 'premium':
+        return packagingPremium;
+      case 'industrial':
+        return packagingIndustrial;
+      default:
+        return '';
+    }
+  };
+  
+  // Lab tests management
+  const addLabTest = () => {
+    setLabTests([...labTests, { type: '', value: '' }]);
+  };
+  
+  const removeLabTest = (index: number) => {
+    const newLabTests = [...labTests];
+    newLabTests.splice(index, 1);
+    setLabTests(newLabTests);
+  };
+  
+  const updateLabTest = (index: number, field: 'type' | 'value', value: string) => {
+    const newLabTests = [...labTests];
+    newLabTests[index][field] = value;
+    setLabTests(newLabTests);
+  };
+  
+  // Reset form
+  const resetForm = () => {
+    form.reset({
+      name: '',
+      sku: '',
+      sellingPrice: 0,
+      categoryId: 0,
+    });
+    setSelectedProduct(null);
+    setSelectedHazard('');
+    setSecondaryHazard(null);
+    setSelectedPackaging('');
+    setLabTests([]);
+    setBarcodeURL(null);
+  };
 
   // Custom printing functionality
-  const handlePrint = () => {
+  const printLabel = () => {
     if (!labelRef.current || !selectedProduct) return;
     
     setIsGenerating(true);
@@ -283,7 +406,7 @@ const LabelGenerator: React.FC = () => {
   };
 
   // Handle PDF export
-  const handleDownloadPDF = async () => {
+  const downloadPdfLabel = async () => {
     if (!labelRef.current || !selectedProduct) return;
 
     setIsGenerating(true);
@@ -624,7 +747,7 @@ const LabelGenerator: React.FC = () => {
             <div className="space-x-2">
               <Button
                 variant="outline"
-                onClick={() => handlePrint()}
+                onClick={() => printLabel()}
                 disabled={!selectedProduct || isGenerating}
               >
                 {isGenerating ? (
@@ -635,7 +758,7 @@ const LabelGenerator: React.FC = () => {
                 Print
               </Button>
               <Button
-                onClick={handleDownloadPDF}
+                onClick={downloadPdfLabel}
                 disabled={!selectedProduct || isGenerating}
               >
                 {isGenerating ? (
