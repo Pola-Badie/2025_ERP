@@ -1,8 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import React, { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -11,15 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import {
   Select,
   SelectContent,
@@ -33,15 +21,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   Popover,
   PopoverContent,
@@ -57,36 +36,26 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import {
   Check,
   ChevronsUpDown,
   Printer,
-  Download,
   Plus,
-  Tag,
-  Search,
   Loader2,
   RefreshCw,
-  X,
   AlertCircle,
   Ban,
   Package,
-  Calendar as CalendarIcon,
-  FileDown,
   Barcode,
+  FileDown,
   Trash,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import JsBarcode from 'jsbarcode';
-import { jsPDF } from 'jspdf';
+import { apiRequest } from '@/lib/queryClient';
 import html2canvas from 'html2canvas';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
+import { jsPDF } from 'jspdf';
 
 // Import hazard symbol images
 import hazardExplosive from "@assets/hazard_0_0.png";
@@ -105,53 +74,23 @@ import packagingStandard from "@assets/Packaging-6.png";
 import packagingPremium from "@assets/Packaging-5.png";
 import packagingIndustrial from "@assets/Packaging-7.png";
 
-// Define schemas for form validation
-const productFormSchema = z.object({
-  id: z.number().optional(),
-  name: z.string().min(1, 'Product name is required'),
-  sku: z.string().optional(),
-  sellingPrice: z.coerce.number().optional(),
-  categoryId: z.coerce.number().optional(),
-  formula: z.string().optional(),
-  molecularWeight: z.string().optional(),
-  manufacturingDate: z.union([z.date(), z.string()]).optional().nullable(),
-  expiryDate: z.union([z.date(), z.string()]).optional().nullable(),
-  batchNumber: z.string().optional(),
-  weight: z.string().optional(),
-});
-
-// Define the available label formats
-const labelFormats = [
-  { id: 'small', name: 'Small (50x30mm)', width: 50, height: 30 },
-  { id: 'medium', name: 'Medium (70x35mm)', width: 70, height: 35 },
-  { id: 'large', name: 'Large (100x50mm)', width: 100, height: 50 },
-];
-
 const LabelGenerator: React.FC = () => {
   const { toast } = useToast();
   const labelRef = useRef<HTMLDivElement>(null);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddingProduct, setIsAddingProduct] = useState(false);
-  const [selectedFormat, setSelectedFormat] = useState(labelFormats[0]);
-  const [showMultiple, setShowMultiple] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-  const [labelStyle, setLabelStyle] = useState<React.CSSProperties>({
-    width: '50mm',
-    height: '30mm',
-    padding: '3mm',
-    border: '1px dashed #ccc',
-    margin: '10px',
-    position: 'relative',
-    backgroundColor: 'white',
-  });
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [barcodeURL, setBarcodeURL] = useState<string | null>(null);
+  const [productName, setProductName] = useState('');
+  const [formula, setFormula] = useState('');
+  const [molecularWeight, setMolecularWeight] = useState('');
+  const [batchNumber, setBatchNumber] = useState('');
+  const [weight, setWeight] = useState('25');
+  const [manufacturingDate, setManufacturingDate] = useState('May 2025');
+  const [expiryDate, setExpiryDate] = useState('May 2027');
   const [selectedHazard, setSelectedHazard] = useState<string>('');
   const [secondaryHazard, setSecondaryHazard] = useState<string | null>(null);
   const [selectedPackaging, setSelectedPackaging] = useState<string>('');
   const [labTests, setLabTests] = useState<Array<{ type: string; value: string }>>([]);
-  const [isFormValid, setIsFormValid] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Fetch products
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
@@ -162,124 +101,15 @@ const LabelGenerator: React.FC = () => {
     },
   });
 
-  // Fetch categories for the product form
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery<any[]>({
-    queryKey: ['/api/categories'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/categories');
-      return await res.json();
-    },
-  });
-
-  // Setup form for new product
-  const form = useForm<z.infer<typeof productFormSchema>>({
-    resolver: zodResolver(productFormSchema),
-    defaultValues: {
-      name: '',
-      sku: '',
-      sellingPrice: 0,
-      categoryId: 0,
-      formula: '',
-      molecularWeight: '',
-      batchNumber: '',
-      weight: '',
-      manufacturingDate: null,
-      expiryDate: null,
-    },
-  });
-
-  // Create product mutation
-  const createProductMutation = useMutation({
-    mutationFn: async (productData: any) => {
-      const response = await apiRequest('POST', '/api/products', productData);
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: 'Product created',
-        description: `Successfully added ${data.name} to inventory`,
-      });
-      setSelectedProduct(data);
-      setIsAddingProduct(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to create product. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Handle form submission for new product
-  const onSubmit = (data: z.infer<typeof productFormSchema>) => {
-    createProductMutation.mutate(data);
-  };
-
   // Handle product selection
   const handleSelectProduct = (product: any) => {
     setSelectedProduct(product);
-    
-    // Update form values with product data
-    form.reset({
-      name: product.name,
-      sku: product.sku || '',
-      sellingPrice: product.sellingPrice || 0,
-      categoryId: product.categoryId || 0,
-      formula: product.formula || '',
-      molecularWeight: product.molecularWeight?.toString() || '',
-      batchNumber: product.batchNumber || '',
-      weight: product.weight?.toString() || '',
-      manufacturingDate: product.manufacturingDate 
-        ? new Date(product.manufacturingDate) 
-        : undefined,
-      expiryDate: product.expiryDate 
-        ? new Date(product.expiryDate) 
-        : undefined,
-    });
-    
+    setProductName(product.name);
+    setFormula(product.formula || '');
+    setMolecularWeight(product.molecularWeight?.toString() || '');
+    setBatchNumber(product.batchNumber || `B-${Math.floor(Math.random() * 10000)}`);
+    setWeight(product.weight?.toString() || '25');
     setSearchQuery('');
-  };
-
-  // Update label style when format changes
-  useEffect(() => {
-    setLabelStyle((prev) => ({
-      ...prev,
-      width: `${selectedFormat.width}mm`,
-      height: `${selectedFormat.height}mm`,
-    }));
-  }, [selectedFormat]);
-
-  // Generate barcode when product changes
-  useEffect(() => {
-    if (selectedProduct) {
-      generateBarcode();
-    }
-  }, [selectedProduct]);
-
-  // Form validation
-  useEffect(() => {
-    const values = form.getValues();
-    const isValid = !!(values.name);
-    setIsFormValid(isValid);
-  }, [form, selectedProduct]);
-
-  // Generate barcode using JsBarcode
-  const generateBarcode = () => {
-    if (!selectedProduct) return;
-
-    const canvas = document.createElement('canvas');
-    JsBarcode(canvas, selectedProduct.sku || selectedProduct.id.toString(), {
-      format: 'CODE128',
-      width: 2,
-      height: 40,
-      displayValue: true,
-      fontSize: 12,
-      margin: 0,
-    });
-    
-    setBarcodeURL(canvas.toDataURL('image/png'));
   };
   
   // Get hazard image path based on hazard type
@@ -326,7 +156,7 @@ const LabelGenerator: React.FC = () => {
   
   // Lab tests management
   const addLabTest = () => {
-    setLabTests([...labTests, { type: '', value: '' }]);
+    setLabTests([...labTests, { type: 'assay', value: '99.5%' }]);
   };
   
   const removeLabTest = (index: number) => {
@@ -343,22 +173,18 @@ const LabelGenerator: React.FC = () => {
   
   // Reset form
   const resetForm = () => {
-    form.reset({
-      name: '',
-      sku: '',
-      sellingPrice: 0,
-      categoryId: 0,
-      formula: '',
-      molecularWeight: '',
-      batchNumber: '',
-      weight: '',
-    });
+    setProductName('');
+    setFormula('');
+    setMolecularWeight('');
+    setBatchNumber('');
+    setWeight('25');
+    setManufacturingDate('May 2025');
+    setExpiryDate('May 2027');
     setSelectedProduct(null);
     setSelectedHazard('');
     setSecondaryHazard(null);
     setSelectedPackaging('');
     setLabTests([]);
-    setBarcodeURL(null);
   };
 
   // Custom printing functionality
@@ -385,7 +211,7 @@ const LabelGenerator: React.FC = () => {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Label: ${form.getValues("name")}</title>
+            <title>Label: ${productName}</title>
             <style>
               body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
               img { max-width: 100%; }
@@ -415,7 +241,7 @@ const LabelGenerator: React.FC = () => {
         setIsGenerating(false);
         toast({
           title: 'Print prepared',
-          description: `Label for ${form.getValues("name")} has been sent to printer`,
+          description: `Label for ${productName} has been sent to printer`,
         });
       }, 1000);
     }).catch(error => {
@@ -446,19 +272,15 @@ const LabelGenerator: React.FC = () => {
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: [selectedFormat.width + 10, selectedFormat.height + 10],
+        format: [210, 297], // A4 size
       });
 
-      pdf.addImage(imgData, 'PNG', 5, 5, selectedFormat.width, selectedFormat.height);
+      // Calculate the width and height to fit the A4 page with margins
+      const imgWidth = 190;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      if (showMultiple && quantity > 1) {
-        for (let i = 1; i < quantity; i++) {
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 5, 5, selectedFormat.width, selectedFormat.height);
-        }
-      }
-
-      pdf.save(`${form.getValues("name")}-Label.pdf`);
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      pdf.save(`${productName || 'Label'}.pdf`);
 
       toast({
         title: 'PDF generated',
@@ -475,12 +297,14 @@ const LabelGenerator: React.FC = () => {
     }
   };
 
+  const isFormValid = productName.trim() !== '';
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
         <div>
           <h1 className="text-2xl font-bold">Label Generator</h1>
-          <p className="text-muted-foreground">Create and print product labels with barcodes</p>
+          <p className="text-muted-foreground">Create professional chemical product labels with hazard warnings</p>
         </div>
       </div>
 
@@ -490,7 +314,7 @@ const LabelGenerator: React.FC = () => {
           <CardHeader>
             <CardTitle>Product Selection</CardTitle>
             <CardDescription>
-              Select an existing product or add a new one
+              Select an existing product or enter product details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -532,7 +356,7 @@ const LabelGenerator: React.FC = () => {
                                     variant="link"
                                     className="mt-2"
                                     onClick={() => {
-                                      form.setValue('name', searchQuery);
+                                      setProductName(searchQuery);
                                       document.querySelector('[data-value="new"]')?.dispatchEvent(
                                         new MouseEvent('click', { bubbles: true })
                                       );
@@ -587,21 +411,15 @@ const LabelGenerator: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="new" className="space-y-4 pt-4">
-                {/* New Product Form Fields */}
                 <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter product name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div>
+                    <Label>Product Name</Label>
+                    <Input 
+                      placeholder="Enter product name" 
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                    />
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -609,143 +427,63 @@ const LabelGenerator: React.FC = () => {
             <div className="space-y-4 pt-4">
               <h3 className="font-medium">Label Information</h3>
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="formula"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Chemical Formula</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. C6H12O6" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Chemical Formula</Label>
+                  <Input 
+                    placeholder="e.g. C6H12O6" 
+                    value={formula}
+                    onChange={(e) => setFormula(e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="molecularWeight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Molecular Weight</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. 180.16" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Molecular Weight</Label>
+                  <Input 
+                    placeholder="e.g. 180.16" 
+                    value={molecularWeight}
+                    onChange={(e) => setMolecularWeight(e.target.value)}
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="manufacturingDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Manufacturing Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Manufacturing Date</Label>
+                  <Input 
+                    placeholder="e.g. May 2025" 
+                    value={manufacturingDate}
+                    onChange={(e) => setManufacturingDate(e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="expiryDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Expiry Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Expiry Date</Label>
+                  <Input 
+                    placeholder="e.g. May 2027" 
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="batchNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Batch Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter batch number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Batch Number</Label>
+                  <Input 
+                    placeholder="Enter batch number" 
+                    value={batchNumber}
+                    onChange={(e) => setBatchNumber(e.target.value)}
+                  />
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="weight"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Weight (kg)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 25" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <Label>Weight (kg)</Label>
+                  <Input 
+                    placeholder="e.g. 25" 
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                  />
+                </div>
               </div>
 
               {/* Hazard Type Selection */}
@@ -872,7 +610,7 @@ const LabelGenerator: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <Label>Lab Test {index + 1}</Label>
+                        <Label>Test Value</Label>
                         <Input 
                           value={test.value} 
                           onChange={(e) => updateLabTest(index, 'value', e.target.value)}
@@ -952,7 +690,7 @@ const LabelGenerator: React.FC = () => {
                     <Loader2 className="h-8 w-8 animate-spin mb-2" />
                     <p>Generating label...</p>
                   </div>
-                ) : form.getValues("name") ? (
+                ) : productName ? (
                   <div className="label-preview bg-white">
                     {/* Blue header with company name */}
                     <div className="bg-sky-500 text-white p-3">
@@ -992,23 +730,23 @@ const LabelGenerator: React.FC = () => {
                       <div className="col-span-3 flex flex-col space-y-2">
                         {/* Product name */}
                         <div className="text-xl font-bold text-center">
-                          {form.getValues("name")}
+                          {productName}
                         </div>
                         
                         {/* Formula and MW line */}
                         <div className="flex justify-between text-sm font-semibold">
                           <div>
-                            <span className="font-bold">Formula:</span> {form.getValues("formula") || 'N/A'}
+                            <span className="font-bold">Formula:</span> {formula || 'N/A'}
                           </div>
                           <div>
-                            <span className="font-bold">M.W.:</span> {form.getValues("molecularWeight") || 'N/A'}
+                            <span className="font-bold">M.W.:</span> {molecularWeight || 'N/A'}
                           </div>
                         </div>
                         
                         {/* Assay & appearance line */}
                         <div className="flex justify-between text-sm">
                           <div>
-                            <span className="font-bold">Assay:</span> NLT {labTests.find(t => t.type === 'assay')?.value || 'N/A'}
+                            <span className="font-bold">Assay:</span> NLT {labTests.find(t => t.type === 'assay')?.value || '99.5%'}
                           </div>
                           <div>
                             <span className="font-bold">Appearance:</span> conform
@@ -1035,26 +773,18 @@ const LabelGenerator: React.FC = () => {
                           <div className="space-y-1 text-sm mb-2">
                             <div>
                               <div className="font-bold">Manf. Date:</div>
-                              <div>
-                                {form.getValues("manufacturingDate") 
-                                  ? new Date(form.getValues("manufacturingDate") as Date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                                  : "N/A"}
-                              </div>
+                              <div>{manufacturingDate}</div>
                             </div>
                             <div>
                               <div className="font-bold">EXP:</div>
-                              <div>
-                                {form.getValues("expiryDate")
-                                  ? new Date(form.getValues("expiryDate") as Date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-                                  : "N/A"}
-                              </div>
+                              <div>{expiryDate}</div>
                             </div>
                             <div>
                               <div className="font-bold">Batch no.:</div>
-                              <div>{form.getValues("batchNumber") || "N/A"}</div>
+                              <div>{batchNumber || "N/A"}</div>
                             </div>
                             <div className="mt-1">
-                              <div className="font-bold text-right">{form.getValues("weight") || "25"} Kg.</div>
+                              <div className="font-bold text-right">{weight || "25"} Kg.</div>
                             </div>
                           </div>
                           
@@ -1088,7 +818,7 @@ const LabelGenerator: React.FC = () => {
                   <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                     <Package className="h-12 w-12 mb-2 opacity-30" />
                     <p>Fill out the form to preview the label</p>
-                    <p className="text-xs mt-1">All required fields must be completed</p>
+                    <p className="text-xs mt-1">Product name is required</p>
                   </div>
                 )}
               </div>
