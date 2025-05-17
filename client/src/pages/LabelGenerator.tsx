@@ -931,7 +931,7 @@ const LabelGenerator: React.FC = () => {
                         
                         {/* Footer with company contact */}
                         <div className="bg-sky-100 text-[9px] leading-tight p-1.5 text-center">
-                          <p className="font-semibold">إنتاج شركة مرجان للصناعات الكيماوية (العاشر من رمضان) صنع في مصر</p>
+                          <p className="font-semibold" dir="rtl">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
                           <p className="font-semibold text-[8px]">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
                           <p className="text-[8px]">Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
                           <p className="text-[8px]">Fax: 055/4410115 | Email: morgan_chem.ind@hotmail.com</p>
