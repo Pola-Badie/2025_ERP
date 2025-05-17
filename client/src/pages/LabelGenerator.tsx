@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -8,6 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -37,6 +40,7 @@ import {
   Trash2,
   Package,
   AlertTriangle,
+  CalendarIcon,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import JsBarcode from 'jsbarcode';
@@ -674,20 +678,52 @@ const LabelGenerator: React.FC = () => {
                 
                 <div>
                   <Label>Manf. Date</Label>
-                  <Input 
-                    placeholder="Manufacturing Date" 
-                    value={manufacturingDate}
-                    onChange={(e) => setManufacturingDate(e.target.value)}
-                  />
+                  <div className="relative w-full">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {manufacturingDate ? manufacturingDate : <span className="text-muted-foreground">Select manufacturing date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={manufacturingDate ? new Date(manufacturingDate) : undefined}
+                          onSelect={(date) => date && setManufacturingDate(format(date, 'dd/MM/yyyy'))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
                 
                 <div>
                   <Label>Exp. Date</Label>
-                  <Input 
-                    placeholder="Expiry Date" 
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(e.target.value)}
-                  />
+                  <div className="relative w-full">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {expiryDate ? expiryDate : <span className="text-muted-foreground">Select expiry date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={expiryDate ? new Date(expiryDate) : undefined}
+                          onSelect={(date) => date && setExpiryDate(format(date, 'dd/MM/yyyy'))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
                 
                 <div>
