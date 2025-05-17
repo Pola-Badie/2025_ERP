@@ -910,8 +910,8 @@ const LabelGenerator: React.FC = () => {
                   {/* Settings */}
                   <div className="pt-3">
                     <h3 className="text-base font-medium mb-4">Label Settings</h3>
-                    <div className="flex flex-wrap justify-between gap-6">
-                      <div className="space-y-1.5 min-w-[30%] flex-1">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="space-y-1.5">
                         <Label htmlFor="hazard-type">Hazardous Type</Label>
                         <Select 
                           value={selectedHazard}
@@ -936,7 +936,7 @@ const LabelGenerator: React.FC = () => {
                         </Select>
                       </div>
                       
-                      <div className="space-y-1.5 min-w-[30%] flex-1">
+                      <div className="space-y-1.5">
                         <Label htmlFor="chem-spec">Chemical Specifications</Label>
                         <Select 
                           value={selectedSpecification}
@@ -954,24 +954,24 @@ const LabelGenerator: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                      
-                      <div className="space-y-1.5 min-w-[30%] flex-1">
-                        <Label htmlFor="label-size">Size on A4</Label>
-                        <Select 
-                          value={selectedSize}
-                          onValueChange={setSelectedSize}
-                        >
-                          <SelectTrigger id="label-size" className="w-full">
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
-                            <SelectItem value="1/2">1/2</SelectItem>
-                            <SelectItem value="1/3">1/3</SelectItem>
-                            <SelectItem value="1/6">1/6</SelectItem>
-                            <SelectItem value="1/24">1/24</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    </div>
+                    
+                    <div className="space-y-1.5 mb-4">
+                      <Label htmlFor="label-size">Size on A4</Label>
+                      <Select 
+                        value={selectedSize}
+                        onValueChange={setSelectedSize}
+                      >
+                        <SelectTrigger id="label-size" className="w-full">
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
+                          <SelectItem value="1/2">1/2</SelectItem>
+                          <SelectItem value="1/3">1/3</SelectItem>
+                          <SelectItem value="1/6">1/6</SelectItem>
+                          <SelectItem value="1/24">1/24</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </CardContent>
