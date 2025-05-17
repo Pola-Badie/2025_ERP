@@ -100,9 +100,17 @@ export function generatePendingInvoices(count = 10) {
 
 export function registerCustomerPaymentRoutes(app: Express) {
   // Get all customer payments
-  app.get("/api/accounting/payments", async (_req: Request, res: Response) => {
+  app.get("/api/accounting/payments", async (req: Request, res: Response) => {
     try {
-      const payments = generatePayments();
+      const { customerId } = req.query;
+      let payments = generatePayments();
+      
+      // Filter by customer ID if provided
+      if (customerId) {
+        payments = payments.filter(payment => 
+          payment.customerId === parseInt(customerId as string)
+        );
+      }
       
       // Sort by date, newest first
       payments.sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
@@ -115,9 +123,17 @@ export function registerCustomerPaymentRoutes(app: Express) {
   });
   
   // Get pending invoices for payments
-  app.get("/api/accounting/invoices/pending", async (_req: Request, res: Response) => {
+  app.get("/api/accounting/invoices/pending", async (req: Request, res: Response) => {
     try {
-      const pendingInvoices = generatePendingInvoices();
+      const { customerId } = req.query;
+      let pendingInvoices = generatePendingInvoices();
+      
+      // Filter by customer ID if provided
+      if (customerId) {
+        pendingInvoices = pendingInvoices.filter(invoice => 
+          invoice.customerId === parseInt(customerId as string)
+        );
+      }
       
       // Sort by due date, most urgent first
       pendingInvoices.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());

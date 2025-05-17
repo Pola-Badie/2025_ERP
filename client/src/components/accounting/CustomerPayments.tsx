@@ -185,12 +185,19 @@ const CustomerPayments: React.FC = () => {
           ? `/api/accounting/invoices/pending?customerId=${selectedCustomer}` 
           : '/api/accounting/invoices/pending';
         const res = await apiRequest('GET', url);
-        return await res.json();
+        const data = await res.json();
+        return data;
       } catch (error) {
         console.error("Error fetching pending invoices:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch pending invoices. Please try again.",
+          variant: "destructive",
+        });
         return [];
       }
-    }
+    },
+    refetchOnWindowFocus: false,
   });
 
   // Fetch payments
@@ -202,12 +209,19 @@ const CustomerPayments: React.FC = () => {
           ? `/api/accounting/payments?customerId=${selectedCustomer}` 
           : '/api/accounting/payments';
         const res = await apiRequest('GET', url);
-        return await res.json();
+        const data = await res.json();
+        return data;
       } catch (error) {
         console.error("Error fetching payments:", error);
+        toast({
+          title: "Error",
+          description: "Could not fetch payment records. Please try again.",
+          variant: "destructive",
+        });
         return [];
       }
-    }
+    },
+    refetchOnWindowFocus: false,
   });
 
   // Setup form with validation
