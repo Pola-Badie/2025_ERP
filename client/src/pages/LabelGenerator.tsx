@@ -902,7 +902,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectValue placeholder="Select hazard type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="explosive">Explosive</SelectItem>
                           <SelectItem value="oxidising">Oxidising</SelectItem>
                           <SelectItem value="flammable">Extremely Flammable</SelectItem>
