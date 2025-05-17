@@ -19,8 +19,34 @@ import {
   Landmark,
   Calendar,
   Receipt,
-  Clock
+  Clock,
+  Plus,
+  ShoppingBag,
+  FileWarning,
+  BellRing,
+  PlusCircle,
+  LineChart,
+  Download,
+  FileQuestion,
+  BarChart
 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import ChartOfAccounts from '@/components/accounting/ChartOfAccounts';
