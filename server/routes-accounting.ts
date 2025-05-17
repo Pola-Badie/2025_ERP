@@ -242,21 +242,124 @@ export function registerAccountingRoutes(app: Express) {
       const start = new Date(startDate as string);
       const end = new Date(endDate as string);
 
-      // Since we're just starting with the accounting module, return placeholder data
-      // This will be updated as users add accounts and journal entries
-
+      // Import the financial data
+      const { loadFinancialData } = await import('./financial-seed-data');
+      const financialData = loadFinancialData();
+      
+      // Generate P&L data from mock data
+      const salesData = financialData.dueInvoices.filter(invoice => 
+        new Date(invoice.invoiceDate) >= start && new Date(invoice.invoiceDate) <= end
+      );
+      
+      const cogsData = financialData.purchases.filter(purchase => 
+        new Date(purchase.date) >= start && new Date(purchase.date) <= end
+      );
+      
+      const expensesData = financialData.expenses.filter(expense => 
+        new Date(expense.date) >= start && new Date(expense.date) <= end
+      );
+      
+      // Calculate totals
+      const currentRevenueTotal = salesData.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+      const currentCogsTotal = cogsData.reduce((sum, purchase) => sum + purchase.total, 0);
+      const currentExpensesTotal = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+      
+      // Group expenses by cost center for breakdown
+      const expensesByCategory = {};
+      expensesData.forEach(expense => {
+        if (!expensesByCategory[expense.costCenter]) {
+          expensesByCategory[expense.costCenter] = [];
+        }
+        expensesByCategory[expense.costCenter].push(expense);
+      });
+      
+      // Calculate previous period (YTD) by taking a larger date range
+      const yearStart = new Date(start.getFullYear(), 0, 1); // Jan 1 of current year
+      
+      const ytdSalesTotal = financialData.dueInvoices
+        .filter(invoice => new Date(invoice.invoiceDate) >= yearStart && new Date(invoice.invoiceDate) <= end)
+        .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+      
+      const ytdCogsTotal = financialData.purchases
+        .filter(purchase => new Date(purchase.date) >= yearStart && new Date(purchase.date) <= end)
+        .reduce((sum, purchase) => sum + purchase.total, 0);
+      
+      const ytdExpensesTotal = financialData.expenses
+        .filter(expense => new Date(expense.date) >= yearStart && new Date(expense.date) <= end)
+        .reduce((sum, expense) => sum + expense.amount, 0);
+      
+      // Calculate variance (as percentage change, or 0 if previous period is 0)
+      const calculateVariance = (current, previous) => {
+        if (previous === 0) return 0;
+        return ((current - previous) / previous) * 100;
+      };
+      
+      // Calculate gross profit
+      const currentGrossProfit = currentRevenueTotal - currentCogsTotal;
+      const ytdGrossProfit = ytdSalesTotal - ytdCogsTotal;
+      
+      // Calculate net profit
+      const currentNetProfit = currentGrossProfit - currentExpensesTotal;
+      const ytdNetProfit = ytdGrossProfit - ytdExpensesTotal;
+      
+      // Prepare P&L report with detailed breakdown
       res.json({
         startDate: start,
         endDate: end,
         revenue: {
-          total: 0,
-          byAccount: [],
+          name: "Revenue",
+          current: currentRevenueTotal,
+          ytd: ytdSalesTotal,
+          variance: calculateVariance(currentRevenueTotal, ytdSalesTotal),
+          items: salesData.map((invoice, idx) => ({
+            id: idx + 1,
+            code: "400100", 
+            name: `Sales to ${invoice.client}`,
+            current: invoice.totalAmount,
+            ytd: invoice.totalAmount * 1.1, // Simulate YTD with slight increase
+            variance: 10 // Simulated variance
+          }))
         },
-        expenses: {
-          total: 0,
-          byAccount: [],
+        costOfGoodsSold: {
+          name: "Cost of Goods Sold",
+          current: currentCogsTotal,
+          ytd: ytdCogsTotal,
+          variance: calculateVariance(currentCogsTotal, ytdCogsTotal),
+          items: cogsData.map((purchase, idx) => ({
+            id: idx + 1,
+            code: "500100",
+            name: `Purchase of ${purchase.item}`,
+            current: purchase.total,
+            ytd: purchase.total * 1.05, // Simulate YTD with slight increase
+            variance: 5 // Simulated variance
+          }))
         },
-        netProfit: 0,
+        grossProfit: {
+          current: currentGrossProfit,
+          ytd: ytdGrossProfit,
+          variance: calculateVariance(currentGrossProfit, ytdGrossProfit)
+        },
+        operatingExpenses: {
+          name: "Operating Expenses",
+          current: currentExpensesTotal,
+          ytd: ytdExpensesTotal,
+          variance: calculateVariance(currentExpensesTotal, ytdExpensesTotal),
+          items: Object.entries(expensesByCategory).flatMap(([category, expenses]) => 
+            (expenses as any[]).map((expense, idx) => ({
+              id: parseInt(`${idx + 1}${Math.floor(Math.random() * 1000)}`),
+              code: "600100",
+              name: `${category} - ${expense.description}`,
+              current: expense.amount,
+              ytd: expense.amount * 1.08, // Simulate YTD with slight increase
+              variance: 8 // Simulated variance
+            }))
+          )
+        },
+        netProfit: {
+          current: currentNetProfit,
+          ytd: ytdNetProfit,
+          variance: calculateVariance(currentNetProfit, ytdNetProfit)
+        }
       });
     } catch (error) {
       console.error("Error generating P&L report:", error);
