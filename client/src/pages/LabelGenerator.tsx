@@ -831,15 +831,15 @@ const LabelGenerator: React.FC = () => {
                         className="bg-white overflow-hidden"
                       >
                         {/* Blue header with company name and logo */}
-                        <div className="bg-sky-500 text-white p-3">
-                          <div className="flex items-center justify-center">
+                        <div className="bg-sky-500 text-white p-3 relative">
+                          <div className="absolute left-1 top-0 h-full flex items-center">
                             <img 
-                              src="/src/assets/company-logo.png" 
+                              src="/src/assets/logo.png" 
                               alt="Company Logo" 
-                              className="h-10 mr-3" 
+                              className="h-10" 
                             />
-                            <div className="text-xl font-bold uppercase">MORGAN CHEMICALS IND. CO.</div>
                           </div>
+                          <div className="text-xl font-bold uppercase text-center">MORGAN CHEMICALS IND. CO.</div>
                         </div>
                         
                         <div className="grid grid-cols-5 gap-2 p-3">
