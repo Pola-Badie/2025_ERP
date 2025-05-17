@@ -884,7 +884,7 @@ const LabelGenerator: React.FC = () => {
                             ))}
                             
                             {selectedSpecification && (
-                              <div className="text-[11px] text-left pl-1 mt-2 font-semibold whitespace-nowrap overflow-hidden">
+                              <div className="text-[11px] text-left mr-16 mt-2 font-semibold whitespace-nowrap overflow-hidden">
                                 Complies with the chemical specifications of {selectedSpecification}
                               </div>
                             )}
