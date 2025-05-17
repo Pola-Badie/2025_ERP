@@ -692,7 +692,7 @@ const CustomerPayments: React.FC = () => {
               <SelectValue placeholder="Filter by customer" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Customers</SelectItem>
+              <SelectItem value="all">All Customers</SelectItem>
               {customers.map((customer: Customer) => (
                 <SelectItem key={customer.id} value={customer.id.toString()}>
                   {customer.name}
