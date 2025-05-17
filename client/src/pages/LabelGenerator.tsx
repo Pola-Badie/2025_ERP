@@ -839,7 +839,7 @@ const LabelGenerator: React.FC = () => {
                               className="h-10" 
                             />
                           </div>
-                          <div className="text-xl font-bold uppercase text-center">MORGAN CHEMICALS IND. CO.</div>
+                          <div className="text-xl font-bold uppercase" style={{ textAlign: 'center' }}>MORGAN CHEMICALS IND. CO.</div>
                         </div>
                         
                         <div className="grid grid-cols-5 gap-2 p-3">
