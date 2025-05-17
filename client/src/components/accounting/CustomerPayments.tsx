@@ -772,44 +772,61 @@ const CustomerPayments: React.FC = () => {
                     <TableCell colSpan={8} className="text-center">No pending invoices found.</TableCell>
                   </TableRow>
                 ) : (
-                  pendingInvoices
-                    .filter((invoice: Invoice) => {
-                      // Apply status filter
-                      if (statusFilter === 'all') return true;
-                      return invoice.status === statusFilter;
-                    })
-                    .map((invoice: Invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                      <TableCell>{invoice.customerName}</TableCell>
-                      <TableCell>{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(invoice.amountPaid)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(invoice.amountDue)}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            invoice.status === 'overdue' ? 'destructive' : 
-                            invoice.status === 'partial' ? 'warning' : 
-                            'outline'
-                          }
-                        >
-                          {invoice.status === 'overdue' ? 'Overdue' : 
-                           invoice.status === 'partial' ? 'Partially Paid' : 
-                           'Unpaid'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handlePayInvoice(invoice)}
-                        >
-                          <DollarSign className="h-3 w-3 mr-1" /> Record Payment
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  (() => {
+                    // Filter invoices based on customer and status
+                    const filteredInvoices = pendingInvoices.filter((invoice: Invoice) => {
+                      // Customer filter
+                      const customerMatch = selectedCustomer ? invoice.customerId === selectedCustomer : true;
+                      
+                      // Status filter
+                      const statusMatch = invoiceStatusFilter === 'all' ? true : invoice.status === invoiceStatusFilter;
+                      
+                      return customerMatch && statusMatch;
+                    });
+                    
+                    if (filteredInvoices.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center">
+                            No invoices match the selected filters.
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    
+                    return filteredInvoices.map((invoice: Invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                        <TableCell>{invoice.customerName}</TableCell>
+                        <TableCell>{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(invoice.amountPaid)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(invoice.amountDue)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={
+                              invoice.status === 'overdue' ? 'destructive' : 
+                              invoice.status === 'partial' ? 'warning' : 
+                              'outline'
+                            }
+                          >
+                            {invoice.status === 'overdue' ? 'Overdue' : 
+                             invoice.status === 'partial' ? 'Partially Paid' : 
+                             'Unpaid'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handlePayInvoice(invoice)}
+                          >
+                            <DollarSign className="h-3 w-3 mr-1" /> Record Payment
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ));
+                  })()
                 )}
               </TableBody>
             </Table>
