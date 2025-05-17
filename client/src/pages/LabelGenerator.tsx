@@ -713,11 +713,26 @@ const LabelGenerator: React.FC = () => {
                           <SelectContent>
                             <SelectItem value="assay">Assay</SelectItem>
                             <SelectItem value="ph">pH</SelectItem>
+                            <SelectItem value="melting_point">Melting point</SelectItem>
+                            <SelectItem value="identification">Identification</SelectItem>
+                            <SelectItem value="loss_on_drying">Loss on drying</SelectItem>
+                            <SelectItem value="loss_on_ignition">Loss on ignition</SelectItem>
+                            <SelectItem value="water_insoluble">Water insoluble matter</SelectItem>
+                            <SelectItem value="acid_insoluble">Acid insoluble matter</SelectItem>
+                            <SelectItem value="nonvolatile_matter">Nonvolatile matter</SelectItem>
+                            <SelectItem value="test_sulphate">Test for sulphate (SO4)</SelectItem>
+                            <SelectItem value="test_chlorine">Test for chlorine (Cl)</SelectItem>
+                            <SelectItem value="test_phosphate">Test for phosphate (PO4)</SelectItem>
+                            <SelectItem value="test_iron">Test for iron (Fe)</SelectItem>
+                            <SelectItem value="test_fluoride">Test for fluoride (F)</SelectItem>
+                            <SelectItem value="test_arsenic">Test for Arsenic (As)</SelectItem>
+                            <SelectItem value="test_lead">Test for lead (Pb)</SelectItem>
+                            <SelectItem value="test_mercury">Test for mercury (Hg)</SelectItem>
+                            <SelectItem value="test_barium">Test for barium (Ba)</SelectItem>
+                            <SelectItem value="heavy_metals">Test for heavy metals</SelectItem>
+                            <SelectItem value="moisture_content">Moisture content</SelectItem>
                             <SelectItem value="dissolution">Dissolution</SelectItem>
                             <SelectItem value="impurity">Impurity</SelectItem>
-                            <SelectItem value="moisture">Moisture</SelectItem>
-                            <SelectItem value="chloride">Chloride (CI)</SelectItem>
-                            <SelectItem value="iron">Iron (Fe)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
