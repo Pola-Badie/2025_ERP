@@ -634,7 +634,7 @@ const LabelGenerator: React.FC = () => {
                       <SelectTrigger>
                         <SelectValue placeholder="Select a product..." />
                       </SelectTrigger>
-                      <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                      <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
                         {products.map((product) => (
                           <SelectItem key={product.id} value={product.id.toString()}>
                             {product.name}
@@ -920,7 +920,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectTrigger id="hazard-type" className="w-full">
                             <SelectValue placeholder="Select hazard type" />
                           </SelectTrigger>
-                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
                             <SelectItem value="none">None</SelectItem>
                             <SelectItem value="explosive">Explosive</SelectItem>
                             <SelectItem value="oxidising">Oxidising</SelectItem>
@@ -945,7 +945,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectTrigger id="chem-spec" className="w-full">
                             <SelectValue placeholder="Select specification" />
                           </SelectTrigger>
-                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
                             <SelectItem value="FCC">FCC</SelectItem>
                             <SelectItem value="USP">USP</SelectItem>
                             <SelectItem value="BP">BP</SelectItem>
@@ -964,7 +964,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectTrigger id="label-size" className="w-full">
                             <SelectValue placeholder="Select size" />
                           </SelectTrigger>
-                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
                             <SelectItem value="1/2">1/2</SelectItem>
                             <SelectItem value="1/3">1/3</SelectItem>
                             <SelectItem value="1/6">1/6</SelectItem>
