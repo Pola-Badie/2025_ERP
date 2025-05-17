@@ -377,25 +377,132 @@ export function registerAccountingRoutes(app: Express) {
 
       const reportDate = new Date(date as string);
 
-      // Since we're just starting with the accounting module, return placeholder data
-      // This will be updated as users add accounts and journal entries
-
-      res.json({
-        date: reportDate,
+      // Import the financial data
+      const { loadFinancialData } = await import('./financial-seed-data');
+      const financialData = loadFinancialData();
+      
+      // Filter data for assets (Cash from expenses and purchases payments, Accounts Receivable from due invoices)
+      const cashAccountData = [
+        ...financialData.expenses.filter(expense => 
+          new Date(expense.date) <= reportDate && 
+          (expense.paymentMethod === 'Cash' || expense.paymentMethod === 'Bank Transfer')
+        ),
+        ...financialData.purchases.filter(purchase => 
+          new Date(purchase.date) <= reportDate && 
+          purchase.paidStatus === 'Paid' && 
+          (purchase.paymentMethod === 'Cash' || purchase.paymentMethod === 'Bank Transfer')
+        )
+      ];
+      
+      const accountsReceivableData = financialData.dueInvoices.filter(invoice => 
+        new Date(invoice.invoiceDate) <= reportDate && 
+        invoice.status !== 'Paid'
+      );
+      
+      // Calculate current balances
+      const cashBalance = -1 * cashAccountData.reduce((sum, item) => {
+        if ('amount' in item) {
+          return sum + (item as any).amount;
+        } else {
+          return sum + (item as any).total;
+        }
+      }, 0);
+      
+      const accountsReceivableBalance = accountsReceivableData.reduce((sum, invoice) => 
+        sum + invoice.balance, 0
+      );
+      
+      // Calculate liabilities from unpaid purchases
+      const accountsPayableData = financialData.purchases.filter(purchase => 
+        new Date(purchase.date) <= reportDate && 
+        purchase.paidStatus !== 'Paid'
+      );
+      
+      const accountsPayableBalance = accountsPayableData.reduce((sum, purchase) => 
+        sum + purchase.total, 0
+      );
+      
+      // Calculate equity (simplified as Assets - Liabilities)
+      const totalAssets = cashBalance + accountsReceivableBalance;
+      const totalLiabilities = accountsPayableBalance;
+      const equityBalance = totalAssets - totalLiabilities;
+      
+      // Generate detailed balance sheet with required structure
+      const balanceSheet = {
+        date: reportDate.toISOString(),
         assets: {
-          total: 0,
-          byAccount: [],
+          total: totalAssets,
+          byCategory: [
+            {
+              name: "Current Assets",
+              total: totalAssets,
+              accounts: [
+                {
+                  id: 1,
+                  code: "100100",
+                  name: "Cash",
+                  openingBalance: cashBalance * 0.8, // Simulated opening balance
+                  debits: Math.abs(cashBalance * 0.4), // Simulated debits
+                  credits: Math.abs(cashBalance * 0.2), // Simulated credits
+                  closingBalance: cashBalance
+                },
+                {
+                  id: 2,
+                  code: "100200",
+                  name: "Accounts Receivable",
+                  openingBalance: accountsReceivableBalance * 0.7, // Simulated opening balance
+                  debits: accountsReceivableBalance * 0.5, // Simulated debits
+                  credits: accountsReceivableBalance * 0.2, // Simulated credits
+                  closingBalance: accountsReceivableBalance
+                }
+              ]
+            }
+          ]
         },
         liabilities: {
-          total: 0,
-          byAccount: [],
+          total: totalLiabilities,
+          byCategory: [
+            {
+              name: "Current Liabilities",
+              total: totalLiabilities,
+              accounts: [
+                {
+                  id: 3,
+                  code: "200100",
+                  name: "Accounts Payable",
+                  openingBalance: accountsPayableBalance * 0.6, // Simulated opening balance
+                  debits: accountsPayableBalance * 0.2, // Simulated debits 
+                  credits: accountsPayableBalance * 0.6, // Simulated credits
+                  closingBalance: accountsPayableBalance
+                }
+              ]
+            }
+          ]
         },
         equity: {
-          total: 0,
-          byAccount: [],
+          total: equityBalance,
+          byCategory: [
+            {
+              name: "Equity",
+              total: equityBalance,
+              accounts: [
+                {
+                  id: 4,
+                  code: "300100",
+                  name: "Equity",
+                  openingBalance: equityBalance * 0.8, // Simulated opening balance
+                  debits: Math.max(0, equityBalance * -0.1), // Simulated debits (if negative)
+                  credits: Math.max(0, equityBalance * 0.3), // Simulated credits (if positive)
+                  closingBalance: equityBalance
+                }
+              ]
+            }
+          ]
         },
-        isBalanced: true,
-      });
+        isBalanced: true // Always balanced for simulation
+      };
+      
+      res.json(balanceSheet);
     } catch (error) {
       console.error("Error generating balance sheet:", error);
       res.status(500).json({ error: "Failed to generate balance sheet" });
