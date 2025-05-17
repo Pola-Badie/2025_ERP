@@ -161,6 +161,7 @@ const CustomerPayments: React.FC = () => {
   const [activeTab, setActiveTab] = useState("pending-invoices");
   const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
   const [expandedPayments, setExpandedPayments] = useState<number[]>([]);
+  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState<string>("all");
   
   // Fetch customers
   const { data: customers = [] } = useQuery({
@@ -695,25 +696,48 @@ const CustomerPayments: React.FC = () => {
         </Dialog>
       </div>
 
-      {/* Customer filter */}
-      <div className="flex justify-end mb-4">
-        <div className="w-[250px]">
-          <Select 
-            onValueChange={(value) => setSelectedCustomer(value ? parseInt(value) : null)} 
-            value={selectedCustomer?.toString() || ""}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by customer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Customers</SelectItem>
-              {customers.map((customer: Customer) => (
-                <SelectItem key={customer.id} value={customer.id.toString()}>
-                  {customer.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Filters */}
+      <div className="flex justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-medium">Status:</span>
+            <Select 
+              defaultValue="all"
+              value={invoiceStatusFilter}
+              onValueChange={(value) => setInvoiceStatusFilter(value)} 
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
+                <SelectItem value="partial">Partially Paid</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <div className="w-[250px]">
+            <Select 
+              onValueChange={(value) => setSelectedCustomer(value === "all" ? null : parseInt(value))} 
+              value={selectedCustomer?.toString() || "all"}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by customer" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Customers</SelectItem>
+                {customers.map((customer: Customer) => (
+                  <SelectItem key={customer.id} value={customer.id.toString()}>
+                    {customer.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -748,7 +772,13 @@ const CustomerPayments: React.FC = () => {
                     <TableCell colSpan={8} className="text-center">No pending invoices found.</TableCell>
                   </TableRow>
                 ) : (
-                  pendingInvoices.map((invoice: Invoice) => (
+                  pendingInvoices
+                    .filter((invoice: Invoice) => {
+                      // Apply status filter
+                      if (statusFilter === 'all') return true;
+                      return invoice.status === statusFilter;
+                    })
+                    .map((invoice: Invoice) => (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                       <TableCell>{invoice.customerName}</TableCell>
