@@ -824,103 +824,113 @@ const LabelGenerator: React.FC = () => {
                   <CardDescription>Preview how the label will look when printed</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="border rounded-lg p-4 mb-6 min-h-[300px] flex justify-center">
+                  <div className="border rounded-lg p-4 mb-6 min-h-[300px] flex items-center justify-center">
                     {productName ? (
                       <div 
                         ref={labelRef} 
-                        className="bg-white overflow-hidden"
+                        className="bg-white overflow-hidden border shadow-sm max-w-[500px] w-full flex flex-col"
                       >
-                        {/* Product name as header instead of company name */}
-                        <div className="p-2 border-b">
-                          <div className="text-xl font-bold uppercase text-center">{productName}</div>
+                        {/* Blue header with company name */}
+                        <div className="bg-sky-500 text-white p-3">
+                          <div className="text-xl font-bold uppercase text-center">MORGAN CHEMICALS IND. CO.</div>
                         </div>
                         
-                        <div className="flex p-2">
-                          {/* Left section with product info */}
-                          <div className="flex-1 pr-2">
-                            {/* Formula display similar to the example */}
-                            {formula && (
-                              <div className="text-md">
-                                <span>{formula}</span>
+                        <div className="flex-grow p-4">
+                          <div className="flex flex-row justify-between">
+                            {/* Left section with product info */}
+                            <div className="flex-1 pr-4">
+                              {/* Product name */}
+                              <div className="text-xl font-bold text-center mb-3">
+                                {productName}
                               </div>
-                            )}
-                            
-                            {/* Molecular weight on its own line */}
-                            {molecularWeight && (
-                              <div className="text-md mb-2">
-                                <span>M.W. {molecularWeight}</span>
-                              </div>
-                            )}
-                            
-                            {/* Lab tests in vertical layout */}
-                            {labTests.map((test, index) => (
-                              <div key={index} className="flex justify-between text-sm mb-1">
-                                <span className="font-semibold">{test.type}</span>
-                                <span>{test.value}</span>
-                              </div>
-                            ))}
-                            
-                            {/* Specification note at bottom */}
-                            {selectedSpecification && (
-                              <div className="text-xs mt-2 font-semibold">
-                                Complies with the chemical specifications of {selectedSpecification}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Middle section with dates and hazard symbol */}
-                          <div className="flex-1 px-2 border-x flex flex-col">
-                            {/* Dates section */}
-                            <div className="mb-2">
-                              {manufacturingDate && (
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="font-semibold">Manf. Date</span>
-                                  <span>: {manufacturingDate}</span>
+                              
+                              {/* Formula display */}
+                              {formula && (
+                                <div className="text-sm mb-1 flex justify-between">
+                                  <span className="font-semibold">Formula:</span>
+                                  <span>{formula}</span>
                                 </div>
                               )}
                               
-                              {expiryDate && (
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="font-semibold">EXP.</span>
-                                  <span>: {expiryDate}</span>
+                              {/* Molecular weight */}
+                              {molecularWeight && (
+                                <div className="text-sm mb-1 flex justify-between">
+                                  <span className="font-semibold">M.W:</span>
+                                  <span>{molecularWeight}</span>
                                 </div>
                               )}
                               
-                              {batchNumber && (
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="font-semibold">Batch no.</span>
-                                  <span>: {batchNumber}</span>
+                              {/* Lab tests */}
+                              {labTests.map((test, index) => (
+                                <div key={index} className="flex justify-between text-sm mb-1">
+                                  <span className="font-semibold">{test.type}:</span>
+                                  <span>{test.value}</span>
                                 </div>
-                              )}
+                              ))}
                             </div>
                             
-                            {/* Hazard symbol centered */}
-                            {selectedHazard && (
-                              <div className="flex justify-center items-center flex-grow">
-                                <img 
-                                  src={getHazardImagePath(selectedHazard)} 
-                                  alt="Hazard symbol" 
-                                  className="w-24 h-24" 
-                                />
+                            {/* Middle section with dates and barcode */}
+                            <div className="flex-1 px-4 border-x flex flex-col">
+                              {/* Dates section */}
+                              <div className="mb-2">
+                                {manufacturingDate && (
+                                  <div className="text-sm mb-1 flex justify-between">
+                                    <span className="font-semibold">Manf. Date:</span>
+                                    <span>{manufacturingDate}</span>
+                                  </div>
+                                )}
+                                
+                                {expiryDate && (
+                                  <div className="text-sm mb-1 flex justify-between">
+                                    <span className="font-semibold">EXP.:</span>
+                                    <span>{expiryDate}</span>
+                                  </div>
+                                )}
+                                
+                                {batchNumber && (
+                                  <div className="text-sm mb-1 flex justify-between">
+                                    <span className="font-semibold">Batch No.:</span>
+                                    <span>{batchNumber}</span>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                              
+                              {/* Barcode in the middle */}
+                              <div className="flex justify-center my-2">
+                                {barcodeURL ? (
+                                  <img src={barcodeURL} alt="Barcode" className="h-16" />
+                                ) : (
+                                  <div className="h-16 w-full flex items-center justify-center border bg-gray-50">
+                                    <Tag className="h-8 w-8 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                             
-                            {/* Weight at bottom */}
-                            {weight && (
-                              <div className="text-right mt-auto">
-                                <div className="text-2xl font-bold">{weight} Kg.</div>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Right side with barcode rotated vertically */}
-                          <div className="pl-2 flex items-center">
-                            <div className="rotate-90 origin-center">
-                              {barcodeURL ? (
-                                <img src={barcodeURL} alt="Barcode" className="h-16" />
-                              ) : (
-                                <div className="h-16 flex items-center justify-center">
-                                  <Tag className="h-8 w-8 text-gray-400" />
+                            {/* Right section with hazard and weight */}
+                            <div className="flex-1 pl-4 flex flex-col justify-between">
+                              {/* Hazard symbol */}
+                              {selectedHazard && (
+                                <div className="flex justify-end mb-auto">
+                                  <img 
+                                    src={getHazardImagePath(selectedHazard)} 
+                                    alt="Hazard symbol" 
+                                    className="w-20 h-20" 
+                                  />
+                                </div>
+                              )}
+                              
+                              {/* Weight at bottom */}
+                              {weight && (
+                                <div className="mt-auto text-right">
+                                  <div className="text-xl font-bold">{weight} Kg</div>
+                                </div>
+                              )}
+                              
+                              {/* Specification note */}
+                              {selectedSpecification && (
+                                <div className="text-xs text-right mt-2">
+                                  Complies with {selectedSpecification} specifications
                                 </div>
                               )}
                             </div>
