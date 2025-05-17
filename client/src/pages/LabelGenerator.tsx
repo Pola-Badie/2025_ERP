@@ -885,7 +885,7 @@ const LabelGenerator: React.FC = () => {
                             
                             {selectedSpecification && (
                               <div className="text-xs text-center mt-2 font-semibold">
-                                Complies with {selectedSpecification} specifications
+                                Complies with the chemical specifications of {selectedSpecification}
                               </div>
                             )}
                           </div>
