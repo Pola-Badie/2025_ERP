@@ -906,67 +906,70 @@ const LabelGenerator: React.FC = () => {
                   </div>
                   
                   {/* Settings */}
-                  <div className="grid grid-cols-3 gap-4 pt-3">
-                    <div>
-                      <Label>Hazardous Type</Label>
-                      <Select 
-                        value={selectedHazard}
-                        onValueChange={setSelectedHazard}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select hazard type" />
-                        </SelectTrigger>
-                        <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="explosive">Explosive</SelectItem>
-                          <SelectItem value="oxidising">Oxidising</SelectItem>
-                          <SelectItem value="flammable">Extremely Flammable</SelectItem>
-                          <SelectItem value="corrosive">Corrosive</SelectItem>
-                          <SelectItem value="environment">Dangerous for Environment</SelectItem>
-                          <SelectItem value="harmful">Harmful</SelectItem>
-                          <SelectItem value="highlyFlammable">Highly Flammable</SelectItem>
-                          <SelectItem value="toxic">Toxic</SelectItem>
-                          <SelectItem value="irritant">Irritant</SelectItem>
-                          <SelectItem value="veryToxic">Very Toxic</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label>Chemical Specifications</Label>
-                      <Select 
-                        value={selectedSpecification}
-                        onValueChange={setSelectedSpecification}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select specification" />
-                        </SelectTrigger>
-                        <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
-                          <SelectItem value="FCC">FCC</SelectItem>
-                          <SelectItem value="USP">USP</SelectItem>
-                          <SelectItem value="BP">BP</SelectItem>
-                          <SelectItem value="EXTRA PURE">EXTRA PURE</SelectItem>
-                          <SelectItem value="TECHNICAL GRADE">TECHNICAL GRADE</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label>Size on A4</Label>
-                      <Select 
-                        value={selectedSize}
-                        onValueChange={setSelectedSize}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select size" />
-                        </SelectTrigger>
-                        <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
-                          <SelectItem value="1/2">1/2</SelectItem>
-                          <SelectItem value="1/3">1/3</SelectItem>
-                          <SelectItem value="1/6">1/6</SelectItem>
-                          <SelectItem value="1/24">1/24</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="flex flex-col pt-3 gap-4">
+                    <h3 className="text-base font-medium">Label Settings</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="hazard-type">Hazardous Type</Label>
+                        <Select 
+                          value={selectedHazard}
+                          onValueChange={setSelectedHazard}
+                        >
+                          <SelectTrigger id="hazard-type" className="w-full">
+                            <SelectValue placeholder="Select hazard type" />
+                          </SelectTrigger>
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="explosive">Explosive</SelectItem>
+                            <SelectItem value="oxidising">Oxidising</SelectItem>
+                            <SelectItem value="flammable">Extremely Flammable</SelectItem>
+                            <SelectItem value="corrosive">Corrosive</SelectItem>
+                            <SelectItem value="environment">Dangerous for Environment</SelectItem>
+                            <SelectItem value="harmful">Harmful</SelectItem>
+                            <SelectItem value="highlyFlammable">Highly Flammable</SelectItem>
+                            <SelectItem value="toxic">Toxic</SelectItem>
+                            <SelectItem value="irritant">Irritant</SelectItem>
+                            <SelectItem value="veryToxic">Very Toxic</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <Label htmlFor="chem-spec">Chemical Specifications</Label>
+                        <Select 
+                          value={selectedSpecification}
+                          onValueChange={setSelectedSpecification}
+                        >
+                          <SelectTrigger id="chem-spec" className="w-full">
+                            <SelectValue placeholder="Select specification" />
+                          </SelectTrigger>
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                            <SelectItem value="FCC">FCC</SelectItem>
+                            <SelectItem value="USP">USP</SelectItem>
+                            <SelectItem value="BP">BP</SelectItem>
+                            <SelectItem value="EXTRA PURE">EXTRA PURE</SelectItem>
+                            <SelectItem value="TECHNICAL GRADE">TECHNICAL GRADE</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <Label htmlFor="label-size">Size on A4</Label>
+                        <Select 
+                          value={selectedSize}
+                          onValueChange={setSelectedSize}
+                        >
+                          <SelectTrigger id="label-size" className="w-full">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                            <SelectItem value="1/2">1/2</SelectItem>
+                            <SelectItem value="1/3">1/3</SelectItem>
+                            <SelectItem value="1/6">1/6</SelectItem>
+                            <SelectItem value="1/24">1/24</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
