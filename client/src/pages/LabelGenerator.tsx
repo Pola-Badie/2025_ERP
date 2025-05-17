@@ -906,10 +906,10 @@ const LabelGenerator: React.FC = () => {
                   </div>
                   
                   {/* Settings */}
-                  <div className="flex flex-col pt-3 gap-4">
-                    <h3 className="text-base font-medium">Label Settings</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
+                  <div className="pt-3">
+                    <h3 className="text-base font-medium mb-4">Label Settings</h3>
+                    <div className="flex flex-wrap justify-between gap-6">
+                      <div className="space-y-1.5 min-w-[30%] flex-1">
                         <Label htmlFor="hazard-type">Hazardous Type</Label>
                         <Select 
                           value={selectedHazard}
@@ -934,7 +934,7 @@ const LabelGenerator: React.FC = () => {
                         </Select>
                       </div>
                       
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 min-w-[30%] flex-1">
                         <Label htmlFor="chem-spec">Chemical Specifications</Label>
                         <Select 
                           value={selectedSpecification}
@@ -953,7 +953,7 @@ const LabelGenerator: React.FC = () => {
                         </Select>
                       </div>
                       
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 min-w-[30%] flex-1">
                         <Label htmlFor="label-size">Size on A4</Label>
                         <Select 
                           value={selectedSize}
