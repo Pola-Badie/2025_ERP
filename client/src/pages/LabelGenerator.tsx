@@ -625,6 +625,27 @@ const LabelGenerator: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
+                  <Label>Select Product</Label>
+                  <div className="relative">
+                    <Select onValueChange={(productId) => {
+                      const product = products.find(p => p.id.toString() === productId);
+                      if (product) handleSelectProductAdvanced(product);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a product..." />
+                      </SelectTrigger>
+                      <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.id.toString()}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div>
                   <Label>Name</Label>
                   <Input 
                     placeholder="Enter product name" 
@@ -755,26 +776,7 @@ const LabelGenerator: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="pt-4">
-                  <Label>Select Product</Label>
-                  <div className="mt-2 relative">
-                    <Select onValueChange={(productId) => {
-                      const product = products.find(p => p.id.toString() === productId);
-                      if (product) handleSelectProductAdvanced(product);
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a product..." />
-                      </SelectTrigger>
-                      <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-50" position="popper" side="bottom" align="start">
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id.toString()}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
             
