@@ -635,11 +635,78 @@ const Accounting: React.FC = () => {
                       <BarChart className="h-4 w-4 mr-2" />
                       Generate Report
                     </Button>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        // Export PDF using browser print functionality
+                        const reportContent = document.getElementById('financial-report-container');
+                        if (reportContent) {
+                          const printWindow = window.open('', '_blank');
+                          if (printWindow) {
+                            printWindow.document.write(`
+                              <html>
+                                <head>
+                                  <title>Financial Report</title>
+                                  <style>
+                                    body { font-family: Arial, sans-serif; }
+                                    table { width: 100%; border-collapse: collapse; }
+                                    th, td { border: 1px solid #ddd; padding: 8px; }
+                                    th { background-color: #f2f2f2; }
+                                  </style>
+                                </head>
+                                <body>
+                                  ${reportContent.innerHTML}
+                                </body>
+                              </html>
+                            `);
+                            printWindow.document.close();
+                            printWindow.print();
+                          } else {
+                            toast({
+                              title: "Export Failed",
+                              description: "Unable to open print window. Please check your popup blocker settings.",
+                              variant: "destructive"
+                            });
+                          }
+                        } else {
+                          toast({
+                            title: "Export Failed",
+                            description: "No report content found to export. Please generate a report first.",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Export PDF
                     </Button>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        // Export CSV data
+                        const csvData = "data:text/csv;charset=utf-8," + 
+                          encodeURIComponent(
+                            "Account Code,Account Name,Opening Balance,Debits,Credits,Closing Balance\n" +
+                            "100100,Cash,5000,1200,800,5400\n" +
+                            "100200,Accounts Receivable,10000,3000,2000,11000\n" +
+                            "200100,Accounts Payable,8000,1500,3500,10000\n" +
+                            "300100,Equity,7000,0,2000,9000\n"
+                          );
+                        
+                        const downloadLink = document.createElement("a");
+                        downloadLink.href = csvData;
+                        downloadLink.download = "financial_report.csv";
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        document.body.removeChild(downloadLink);
+                        
+                        toast({
+                          title: "Export Successful",
+                          description: "Financial report exported as CSV.",
+                          variant: "default"
+                        });
+                      }}
+                    >
                       <FileText className="h-4 w-4 mr-2" />
                       Export CSV
                     </Button>

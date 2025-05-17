@@ -59,9 +59,18 @@ const cronJobs: Record<string, cron.ScheduledTask | null> = {
   monthly: null
 };
 
+import { registerAccountingRoutes } from "./routes-accounting";
+import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
+  
+  // Register accounting routes
+  registerAccountingRoutes(app);
+  
+  // Register customer payment routes
+  registerCustomerPaymentRoutes(app);
 
   // ============= User Management Endpoints =============
 
