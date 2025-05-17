@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,34 +17,56 @@ import { format } from "date-fns";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+interface BalanceSheetAccountData {
+  id: number;
+  code: string;
+  name: string;
+  openingBalance: number;
+  debits: number;
+  credits: number;
+  closingBalance: number;
+}
 
 interface BalanceSheetData {
   date: string;
   assets: {
     total: number;
-    byAccount: {
-      id: number;
-      code: string;
+    byCategory: {
       name: string;
-      amount: number;
+      total: number;
+      accounts: BalanceSheetAccountData[];
     }[];
   };
   liabilities: {
     total: number;
-    byAccount: {
-      id: number;
-      code: string;
+    byCategory: {
       name: string;
-      amount: number;
+      total: number;
+      accounts: BalanceSheetAccountData[];
     }[];
   };
   equity: {
     total: number;
-    byAccount: {
-      id: number;
-      code: string;
+    byCategory: {
       name: string;
-      amount: number;
+      total: number;
+      accounts: BalanceSheetAccountData[];
     }[];
   };
   isBalanced: boolean;
@@ -54,6 +76,7 @@ const BalanceSheet: React.FC = () => {
   const { toast } = useToast();
   const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0]);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "assets" | "liabilities" | "equity">("all");
 
   // Fetch Balance Sheet data
   const { data, isLoading, refetch } = useQuery<BalanceSheetData>({
@@ -125,24 +148,44 @@ const BalanceSheet: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Balance Sheet</h3>
-        <Button 
-          variant="outline" 
-          onClick={generatePDF}
-          disabled={isLoading || !data || isPrinting}
-        >
-          <Download className="h-4 w-4 mr-2" />
-          {isPrinting ? "Generating PDF..." : "Export as PDF"}
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              const csvContent = "data:text/csv;charset=utf-8,";
+              // CSV generation logic would go here
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            disabled={isLoading || !data}
+          >
+            <FileDown className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={generatePDF}
+            disabled={isLoading || !data || isPrinting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isPrinting ? "Generating PDF..." : "Export PDF"}
+          </Button>
+        </div>
       </div>
 
       <Card>
         <CardHeader className="p-4">
-          <CardTitle className="text-md">Report Date</CardTitle>
-          <CardDescription>Select the date for the balance sheet</CardDescription>
+          <CardTitle className="text-md">Report Controls</CardTitle>
+          <CardDescription>Select the parameters for the balance sheet</CardDescription>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <div className="flex space-x-4 items-end">
-            <div className="grid w-full items-center gap-1.5">
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="grid w-full max-w-xs items-center gap-1.5">
               <label htmlFor="reportDate" className="text-sm font-medium">As of Date</label>
               <Input
                 id="reportDate"
@@ -150,6 +193,20 @@ const BalanceSheet: React.FC = () => {
                 value={reportDate}
                 onChange={(e) => setReportDate(e.target.value)}
               />
+            </div>
+            <div className="grid w-full max-w-xs items-center gap-1.5">
+              <label htmlFor="category-filter" className="text-sm font-medium">Category Filter</label>
+              <Select value={categoryFilter} onValueChange={(value: any) => setCategoryFilter(value)}>
+                <SelectTrigger id="category-filter">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="assets">Assets Only</SelectItem>
+                  <SelectItem value="liabilities">Liabilities Only</SelectItem>
+                  <SelectItem value="equity">Equity Only</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button onClick={() => refetch()}>
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -173,12 +230,12 @@ const BalanceSheet: React.FC = () => {
         </div>
       ) : (
         <Card className="w-full" id="balance-sheet-report">
-          <CardHeader className="text-center">
+          <CardHeader className="bg-navy-700 text-white text-center py-4">
             <CardTitle className="text-xl">PharmaOverseas</CardTitle>
-            <CardDescription className="text-md font-medium">
+            <CardDescription className="text-white text-md font-medium">
               Balance Sheet
             </CardDescription>
-            <CardDescription>
+            <CardDescription className="text-white">
               As of {format(new Date(data.date), 'MMMM dd, yyyy')}
             </CardDescription>
             <div className="flex justify-center mt-2">
@@ -195,83 +252,201 @@ const BalanceSheet: React.FC = () => {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             {/* Assets Section */}
-            <div className="space-y-2">
-              <h4 className="text-lg font-semibold">Assets</h4>
-              {data.assets.byAccount.length === 0 ? (
-                <p className="text-muted-foreground italic">No asset accounts with balances</p>
-              ) : (
-                <div className="space-y-1">
-                  {data.assets.byAccount.map((account) => (
-                    <div key={account.id} className="flex justify-between text-sm">
-                      <span>{account.code} - {account.name}</span>
-                      <span>{formatCurrency(account.amount)}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between font-medium mt-2">
-                    <span>Total Assets</span>
-                    <span>{formatCurrency(data.assets.total)}</span>
-                  </div>
+            {(categoryFilter === "all" || categoryFilter === "assets") && (
+              <>
+                <div>
+                  <h4 className="text-lg font-semibold text-navy-700 mb-3">Assets</h4>
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="w-1/4">Account Code</TableHead>
+                        <TableHead className="w-1/3">Account Name</TableHead>
+                        <TableHead className="text-right">Opening Balance</TableHead>
+                        <TableHead className="text-right">Debits</TableHead>
+                        <TableHead className="text-right">Credits</TableHead>
+                        <TableHead className="text-right">Closing Balance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.assets.byCategory.map((category) => (
+                        <React.Fragment key={category.name}>
+                          {/* Category header */}
+                          <TableRow className="bg-gray-100">
+                            <TableCell colSpan={3} className="font-medium">
+                              {category.name}
+                            </TableCell>
+                            <TableCell colSpan={3} className="text-right font-medium">
+                              {formatCurrency(category.total)}
+                            </TableCell>
+                          </TableRow>
+                          
+                          {/* Category accounts */}
+                          {category.accounts.map((account) => (
+                            <TableRow key={account.id}>
+                              <TableCell className="font-mono">{account.code}</TableCell>
+                              <TableCell>{account.name}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.openingBalance)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.debits)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.credits)}</TableCell>
+                              <TableCell className="text-right font-medium">{formatCurrency(account.closingBalance)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                      
+                      {/* Total row */}
+                      <TableRow className="bg-blue-50 font-bold">
+                        <TableCell colSpan={5} className="text-right">Total Assets</TableCell>
+                        <TableCell className="text-right">{formatCurrency(data.assets.total)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </div>
-            
-            <Separator />
+                
+                <Separator />
+              </>
+            )}
             
             {/* Liabilities Section */}
-            <div className="space-y-2">
-              <h4 className="text-lg font-semibold">Liabilities</h4>
-              {data.liabilities.byAccount.length === 0 ? (
-                <p className="text-muted-foreground italic">No liability accounts with balances</p>
-              ) : (
-                <div className="space-y-1">
-                  {data.liabilities.byAccount.map((account) => (
-                    <div key={account.id} className="flex justify-between text-sm">
-                      <span>{account.code} - {account.name}</span>
-                      <span>{formatCurrency(account.amount)}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between font-medium mt-2">
-                    <span>Total Liabilities</span>
-                    <span>{formatCurrency(data.liabilities.total)}</span>
-                  </div>
+            {(categoryFilter === "all" || categoryFilter === "liabilities") && (
+              <>
+                <div>
+                  <h4 className="text-lg font-semibold text-navy-700 mb-3">Liabilities</h4>
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="w-1/4">Account Code</TableHead>
+                        <TableHead className="w-1/3">Account Name</TableHead>
+                        <TableHead className="text-right">Opening Balance</TableHead>
+                        <TableHead className="text-right">Debits</TableHead>
+                        <TableHead className="text-right">Credits</TableHead>
+                        <TableHead className="text-right">Closing Balance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.liabilities.byCategory.map((category) => (
+                        <React.Fragment key={category.name}>
+                          {/* Category header */}
+                          <TableRow className="bg-gray-100">
+                            <TableCell colSpan={3} className="font-medium">
+                              {category.name}
+                            </TableCell>
+                            <TableCell colSpan={3} className="text-right font-medium">
+                              {formatCurrency(category.total)}
+                            </TableCell>
+                          </TableRow>
+                          
+                          {/* Category accounts */}
+                          {category.accounts.map((account) => (
+                            <TableRow key={account.id}>
+                              <TableCell className="font-mono">{account.code}</TableCell>
+                              <TableCell>{account.name}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.openingBalance)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.debits)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.credits)}</TableCell>
+                              <TableCell className="text-right font-medium">{formatCurrency(account.closingBalance)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                      
+                      {/* Total row */}
+                      <TableRow className="bg-blue-50 font-bold">
+                        <TableCell colSpan={5} className="text-right">Total Liabilities</TableCell>
+                        <TableCell className="text-right">{formatCurrency(data.liabilities.total)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </div>
-            
-            <Separator />
+                
+                <Separator />
+              </>
+            )}
             
             {/* Equity Section */}
-            <div className="space-y-2">
-              <h4 className="text-lg font-semibold">Equity</h4>
-              {data.equity.byAccount.length === 0 ? (
-                <p className="text-muted-foreground italic">No equity accounts with balances</p>
-              ) : (
-                <div className="space-y-1">
-                  {data.equity.byAccount.map((account) => (
-                    <div key={account.id} className="flex justify-between text-sm">
-                      <span>{account.code} - {account.name}</span>
-                      <span>{formatCurrency(account.amount)}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between font-medium mt-2">
-                    <span>Total Equity</span>
-                    <span>{formatCurrency(data.equity.total)}</span>
-                  </div>
+            {(categoryFilter === "all" || categoryFilter === "equity") && (
+              <>
+                <div>
+                  <h4 className="text-lg font-semibold text-navy-700 mb-3">Equity</h4>
+                  <Table>
+                    <TableHeader className="bg-gray-50">
+                      <TableRow>
+                        <TableHead className="w-1/4">Account Code</TableHead>
+                        <TableHead className="w-1/3">Account Name</TableHead>
+                        <TableHead className="text-right">Opening Balance</TableHead>
+                        <TableHead className="text-right">Debits</TableHead>
+                        <TableHead className="text-right">Credits</TableHead>
+                        <TableHead className="text-right">Closing Balance</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.equity.byCategory.map((category) => (
+                        <React.Fragment key={category.name}>
+                          {/* Category header */}
+                          <TableRow className="bg-gray-100">
+                            <TableCell colSpan={3} className="font-medium">
+                              {category.name}
+                            </TableCell>
+                            <TableCell colSpan={3} className="text-right font-medium">
+                              {formatCurrency(category.total)}
+                            </TableCell>
+                          </TableRow>
+                          
+                          {/* Category accounts */}
+                          {category.accounts.map((account) => (
+                            <TableRow key={account.id}>
+                              <TableCell className="font-mono">{account.code}</TableCell>
+                              <TableCell>{account.name}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.openingBalance)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.debits)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(account.credits)}</TableCell>
+                              <TableCell className="text-right font-medium">{formatCurrency(account.closingBalance)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                      
+                      {/* Total row */}
+                      <TableRow className="bg-blue-50 font-bold">
+                        <TableCell colSpan={5} className="text-right">Total Equity</TableCell>
+                        <TableCell className="text-right">{formatCurrency(data.equity.total)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </div>
+              </>
+            )}
             
-            <Separator />
-            
-            {/* Total Liabilities and Equity */}
-            <div className="flex justify-between items-center bg-muted/20 p-4 rounded">
-              <span className="font-bold text-lg">Total Liabilities & Equity</span>
-              <span className="font-bold text-lg">
-                {formatCurrency(data.liabilities.total + data.equity.total)}
-              </span>
-            </div>
+            {categoryFilter === "all" && (
+              <>
+                <Separator />
+                
+                {/* Total Liabilities and Equity */}
+                <div className="flex justify-between items-center bg-navy-700/10 p-4 rounded">
+                  <span className="font-bold text-lg">Total Liabilities & Equity</span>
+                  <span className="font-bold text-lg">
+                    {formatCurrency(data.liabilities.total + data.equity.total)}
+                  </span>
+                </div>
+                
+                {/* Validation check */}
+                <div className="flex justify-center mt-4">
+                  {data.isBalanced ? (
+                    <div className="flex items-center text-green-700">
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                      <span>Balance Sheet is balanced. Assets ({formatCurrency(data.assets.total)}) = Liabilities + Equity ({formatCurrency(data.liabilities.total + data.equity.total)})</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-red-700">
+                      <AlertCircle className="h-5 w-5 mr-2" />
+                      <span>Balance Sheet is not balanced! Assets ({formatCurrency(data.assets.total)}) ≠ Liabilities + Equity ({formatCurrency(data.liabilities.total + data.equity.total)})</span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
