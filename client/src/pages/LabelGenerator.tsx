@@ -835,7 +835,22 @@ const LabelGenerator: React.FC = () => {
                           <div className="text-xl font-bold uppercase text-center">MORGAN CHEMICALS IND. CO.</div>
                         </div>
                         
-                        <div className="grid grid-cols-4 gap-2 p-3">
+                        <div className="grid grid-cols-5 gap-2 p-3">
+                          {/* Left side with hazard symbol */}
+                          <div className="col-span-1">
+                            <div className="flex flex-col items-center justify-center h-full">
+                              {selectedHazard && (
+                                <div className="w-full flex items-center justify-center">
+                                  <img 
+                                    src={getHazardImagePath(selectedHazard)} 
+                                    alt="Hazard symbol" 
+                                    className="w-full max-w-[80px] mx-auto" 
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
                           {/* Center section with product info */}
                           <div className="col-span-3 flex flex-col space-y-1">
                             {/* Product name */}
@@ -901,16 +916,7 @@ const LabelGenerator: React.FC = () => {
                                 )}
                               </div>
                               
-                              {/* Hazard symbol */}
-                              {selectedHazard && (
-                                <div className="mt-auto">
-                                  <img 
-                                    src={getHazardImagePath(selectedHazard)} 
-                                    alt="Hazard symbol" 
-                                    className="w-full h-auto mt-2" 
-                                  />
-                                </div>
-                              )}
+                              {/* Space for other elements if needed */}
                             </div>
                           </div>
                         </div>
