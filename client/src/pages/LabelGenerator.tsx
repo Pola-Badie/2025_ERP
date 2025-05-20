@@ -89,10 +89,6 @@ const LabelGenerator: React.FC = () => {
   // Fetch products
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
     queryKey: ['/api/products', productQuery],
-    enabled: true,
-    staleTime: 30000,
-    retry: 3,
-    refetchOnWindowFocus: false,
   });
 
   // Update label style when format changes
