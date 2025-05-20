@@ -872,14 +872,14 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Product Name */}
-                        <div className="text-xl font-bold border-b border-gray-300 p-2 text-center">
+                        <div className="text-xl font-bold p-2 text-center">
                           {productName}
                         </div>
                         
                         {/* Main Content */}
                         <div className="flex">
                           {/* Left Side - Specifications */}
-                          <div className="w-3/5 border-r border-gray-300 p-3">
+                          <div className="w-3/5 p-3">
                             <table className="w-full text-sm">
                               <tbody>
                                 {formula && (
@@ -970,7 +970,7 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Footer */}
-                        <div className="bg-blue-50 text-[8px] leading-tight p-1.5 border-t border-gray-300">
+                        <div className="bg-blue-50 text-[8px] leading-tight p-1.5">
                           <p className="font-semibold" dir="rtl">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
                           <p className="font-semibold">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
                           <p>Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
