@@ -861,126 +861,132 @@ const LabelGenerator: React.FC = () => {
                 <CardContent>
                   <div className="border rounded-lg p-4 mb-6 min-h-[300px] flex justify-center">
                     {productName ? (
-                      <div
-                        ref={labelRef}
-                        className="bg-white shadow-sm overflow-hidden relative"
-                        style={{ width: '100%', maxWidth: '600px', margin: '0 auto' }}
+                      <div 
+                        ref={labelRef} 
+                        className="bg-white overflow-hidden relative" 
+                        style={{ maxWidth: '650px', margin: '0 auto' }}
                       >
-                        {/* Blue header with logo and company name */}
+                        {/* Blue header with company name and logo */}
                         <div className="bg-sky-500 text-white p-3">
                           <div className="flex items-center">
                             <img 
                               src="/src/assets/logo.png" 
                               alt="Company Logo" 
-                              className="h-10 mr-3" 
+                              className="h-10 mr-4" 
                             />
-                            <div className="text-xl font-bold uppercase text-center flex-1">
-                              MORGAN CHEMICALS IND. CO.
-                            </div>
+                            <div className="text-2xl font-bold uppercase text-center flex-1">MORGAN CHEMICALS IND. CO.</div>
                           </div>
                         </div>
                         
-                        {/* Product name */}
-                        <div className="text-2xl font-bold text-center py-2 border-b">
+                        {/* Product name centered below header */}
+                        <div className="text-3xl font-bold text-center py-2">
                           {productName}
                         </div>
                         
-                        {/* Main content in two columns */}
-                        <div className="grid grid-cols-2 gap-4 relative">
-                          {/* Left Column */}
-                          <div className="p-3">
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                              <div className="font-semibold">Formula:</div>
-                              <div>{formula || "zo23"}</div>
-                              
-                              {labTests.map((test, index) => (
-                                <React.Fragment key={index}>
-                                  <div className="font-semibold whitespace-nowrap">
-                                    {test.type.replace(/_/g, ' ')}:
-                                  </div>
-                                  <div>{test.value}</div>
-                                </React.Fragment>
-                              ))}
-                            </div>
+                        <div className="flex px-4 py-3 relative">
+                          {/* Left column with specifications */}
+                          <div className="w-1/2 pr-8">
+                            {formula && (
+                              <div className="flex justify-between mb-2">
+                                <span className="font-semibold">Formula:</span>
+                                <span>{formula}</span>
+                              </div>
+                            )}
                             
+                            {/* Lab tests section - formatted exactly like the image */}
+                            {labTests.map((test, index) => (
+                              <div key={index} className="flex justify-between mb-2">
+                                <span className="font-semibold whitespace-nowrap">
+                                  {test.type}:
+                                </span>
+                                <span>{test.value}</span>
+                              </div>
+                            ))}
+                            
+                            {/* Specification note at the bottom of the left column */}
                             {selectedSpecification && (
-                              <div className="mt-2 text-sm">
+                              <div className="mt-4 font-semibold text-sm">
                                 Complies with {selectedSpecification} specifications
                               </div>
                             )}
                           </div>
                           
-                          {/* Right Column */}
-                          <div className="p-3 relative">
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                              <div className="font-semibold text-right">M.W:</div>
-                              <div>{molecularWeight || "383884.4"}</div>
-                              
-                              {manufacturingDate && (
-                                <>
-                                  <div className="font-semibold text-right">Manf. Date:</div>
-                                  <div>{manufacturingDate}</div>
-                                </>
-                              )}
-                              
-                              {expiryDate && (
-                                <>
-                                  <div className="font-semibold text-right">Exp. Date:</div>
-                                  <div>{expiryDate}</div>
-                                </>
-                              )}
-                              
-                              {batchNumber && (
-                                <>
-                                  <div className="font-semibold text-right">Batch No:</div>
-                                  <div>{batchNumber}</div>
-                                </>
-                              )}
+                          {/* Right column with dates, hazard and weight */}
+                          <div className="w-1/2 pl-4">
+                            <div className="flex justify-between mb-2">
+                              <span className="font-semibold">M.W:</span>
+                              <span>{molecularWeight}</span>
                             </div>
                             
-                            {/* Hazard Symbol */}
-                            {selectedHazard && (
-                              <div className="flex justify-center mt-4">
+                            {manufacturingDate && (
+                              <div className="flex justify-between mb-2">
+                                <span className="font-semibold">Manf. Date:</span>
+                                <span>{manufacturingDate}</span>
+                              </div>
+                            )}
+                            
+                            {expiryDate && (
+                              <div className="flex justify-between mb-2">
+                                <span className="font-semibold">Exp. Date:</span>
+                                <span>{expiryDate}</span>
+                              </div>
+                            )}
+                            
+                            {batchNumber && (
+                              <div className="flex justify-between mb-2">
+                                <span className="font-semibold">Batch No:</span>
+                                <span>{batchNumber}</span>
+                              </div>
+                            )}
+                            
+                            {/* Hazard symbol */}
+                            <div className="flex justify-center mt-3 mb-2">
+                              {selectedHazard && (
                                 <div className="relative">
                                   <img 
                                     src={getHazardImagePath(selectedHazard)} 
                                     alt="Hazard symbol" 
-                                    className="w-20 h-20" 
+                                    className="w-24 h-24" 
                                   />
                                   {selectedHazard === 'corrosive' && (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-yellow-400 text-center text-black text-xs font-bold py-1">
+                                    <div className="absolute bottom-0 left-0 right-0 bg-yellow-400 text-center text-black font-bold">
                                       Corrosive
                                     </div>
                                   )}
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                             
+                            {/* Weight at the bottom right */}
                             {weight && (
-                              <div className="text-right mt-2">
-                                <span className="font-bold">{weight} Kg</span>
+                              <div className="text-right mt-3">
+                                <span className="font-bold text-lg">{weight} Kg</span>
                               </div>
                             )}
                           </div>
                           
-                          {/* Vertical barcode */}
+                          {/* Vertical barcode on the right edge */}
                           {barcodeURL && (
-                            <div className="absolute right-0 top-0 h-full flex items-center">
-                              <div style={{ 
-                                transform: 'rotate(90deg)',
-                                transformOrigin: 'right center',
-                                position: 'absolute',
-                                right: '0',
-                                width: '180px'
-                              }}>
-                                <img src={barcodeURL} alt="Barcode" className="w-full" />
-                              </div>
+                            <div className="absolute right-0 top-0 h-full" style={{ width: '40px' }}>
+                              <img 
+                                src={barcodeURL} 
+                                alt="Barcode" 
+                                className="h-full"
+                                style={{ 
+                                  transform: 'rotate(90deg) translateY(-100%)',
+                                  transformOrigin: 'top right',
+                                  position: 'absolute',
+                                  right: '0',
+                                  top: '50%',
+                                  width: '180px'
+                                }} 
+                              />
                             </div>
                           )}
                         </div>
                         
-                        {/* Footer */}
-                        <div className="bg-sky-100 text-[9px] leading-tight p-1.5 text-center mt-2">
+                        {/* Footer with company contact */}
+                        <div className="bg-sky-100 text-[9px] leading-tight p-1.5 text-center">
                           <p className="font-semibold" dir="rtl">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
                           <p className="font-semibold text-[8px]">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
                           <p className="text-[8px]">Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
