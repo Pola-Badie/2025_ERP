@@ -889,6 +889,13 @@ const LabelGenerator: React.FC = () => {
                                   </tr>
                                 )}
                                 
+                                {molecularWeight && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1 align-top">M.W:</td>
+                                    <td className="pb-1">{molecularWeight}</td>
+                                  </tr>
+                                )}
+                                
                                 {labTests.map((test, index) => (
                                   <tr key={index}>
                                     <td className="font-semibold pr-2 pb-1 align-top">{test.type}:</td>
@@ -909,13 +916,6 @@ const LabelGenerator: React.FC = () => {
                           <div className="w-2/5 p-3">
                             <table className="w-full text-sm mb-2">
                               <tbody>
-                                {molecularWeight && (
-                                  <tr>
-                                    <td className="font-semibold pr-2 pb-1">M.W:</td>
-                                    <td className="pb-1">{molecularWeight}</td>
-                                  </tr>
-                                )}
-                                
                                 {manufacturingDate && (
                                   <tr>
                                     <td className="font-semibold pr-2 pb-1">Manf. Date:</td>
