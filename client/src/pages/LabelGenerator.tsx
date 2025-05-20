@@ -914,30 +914,28 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Right Side - Dates and Hazard */}
                           <div className="w-2/5 p-3">
-                            <table className="w-full text-sm mb-2">
-                              <tbody>
-                                {manufacturingDate && (
-                                  <tr>
-                                    <td className="font-semibold pr-2 pb-1">Manf. Date:</td>
-                                    <td className="pb-1">{manufacturingDate}</td>
-                                  </tr>
-                                )}
-                                
-                                {expiryDate && (
-                                  <tr>
-                                    <td className="font-semibold pr-2 pb-1">Exp. Date:</td>
-                                    <td className="pb-1">{expiryDate}</td>
-                                  </tr>
-                                )}
-                                
-                                {batchNumber && (
-                                  <tr>
-                                    <td className="font-semibold pr-2 pb-1">Batch No:</td>
-                                    <td className="pb-1">{batchNumber}</td>
-                                  </tr>
-                                )}
-                              </tbody>
-                            </table>
+                            <div className="space-y-3 mb-3">
+                              {manufacturingDate && (
+                                <div>
+                                  <div className="font-semibold text-sm">Manf. Date</div>
+                                  <div className="text-sm">{manufacturingDate}</div>
+                                </div>
+                              )}
+                              
+                              {expiryDate && (
+                                <div>
+                                  <div className="font-semibold text-sm">Exp. Date</div>
+                                  <div className="text-sm">{expiryDate}</div>
+                                </div>
+                              )}
+                              
+                              {batchNumber && (
+                                <div>
+                                  <div className="font-semibold text-sm">Batch No</div>
+                                  <div className="text-sm">{batchNumber}</div>
+                                </div>
+                              )}
+                            </div>
                             
                             <div className="flex flex-col items-center mt-2">
                               {selectedHazard && (
