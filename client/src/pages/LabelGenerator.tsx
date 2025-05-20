@@ -123,11 +123,12 @@ const LabelGenerator: React.FC = () => {
     const canvas = document.createElement('canvas');
     JsBarcode(canvas, selectedProduct.sku || selectedProduct.id.toString(), {
       format: 'CODE128',
-      width: 2,
-      height: 40,
+      width: 1.5,
+      height: 80,
       displayValue: true,
-      fontSize: 12,
-      margin: 0,
+      fontSize: 10,
+      margin: 2,
+      background: '#ffffff',
     });
     
     setBarcodeURL(canvas.toDataURL('image/png'));
@@ -314,12 +315,46 @@ const LabelGenerator: React.FC = () => {
   const handleSelectProductAdvanced = (product: any) => {
     setSelectedProduct(product);
     setProductName(product.name);
-    setFormula(product.formula || '');
-    setMolecularWeight(product.molecularWeight || '');
-    setBatchNumber(product.batchNumber || `B-${Math.floor(Math.random() * 10000)}`);
+    setFormula(product.formula || 'zo23');
+    setMolecularWeight(product.molecularWeight || '383884.4');
+    setBatchNumber(product.batchNumber || `B-${Math.floor(1000 + Math.random() * 9000)}`);
     setWeight(product.weight || '25');
-    setManufacturingDate(product.manufacturingDate || '');
-    setExpiryDate(product.expiryDate || '');
+    
+    // Set sample lab tests if not available
+    if (labTests.length === 0) {
+      setLabTests([
+        { type: 'identification', value: '89234092' },
+        { type: 'acid_insoluble', value: '32442390239' },
+        { type: 'nonvolatile_matter', value: '293489283' }
+      ]);
+    }
+    
+    // Set current date for manufacturing date if not provided
+    if (!manufacturingDate) {
+      setManufacturingDate(format(new Date(), 'dd/MM/yyyy'));
+    } else {
+      setManufacturingDate(product.manufacturingDate);
+    }
+    
+    // Set expiry date 1 year from now if not provided
+    if (!expiryDate) {
+      const nextYear = new Date();
+      nextYear.setFullYear(nextYear.getFullYear() + 1);
+      setExpiryDate(format(nextYear, 'yyyy-MM-dd'));
+    } else {
+      setExpiryDate(product.expiryDate);
+    }
+    
+    // Set default hazard type if not selected
+    if (!selectedHazard) {
+      setSelectedHazard('corrosive');
+    }
+    
+    // Set default specification if not selected
+    if (!selectedSpecification) {
+      setSelectedSpecification('USP');
+    }
+    
     generateBarcode();
   };
 
@@ -831,100 +866,114 @@ const LabelGenerator: React.FC = () => {
                         className="bg-white overflow-hidden"
                       >
                         {/* Blue header with company name and logo */}
-                        <div className="bg-sky-500 text-white p-3 relative">
-                          <div className="absolute left-1 top-0 h-full flex items-center">
+                        <div className="bg-sky-500 text-white p-3">
+                          <div className="flex items-center justify-between">
                             <img 
                               src="/src/assets/logo.png" 
                               alt="Company Logo" 
                               className="h-10" 
                             />
+                            <div className="text-xl font-bold uppercase text-center mx-auto">MORGAN CHEMICALS IND. CO.</div>
+                            <div className="w-10"></div> {/* Spacer for balance */}
                           </div>
-                          <div className="text-xl font-bold uppercase" style={{ textAlign: 'center' }}>MORGAN CHEMICALS IND. CO.</div>
                         </div>
                         
-                        <div className="grid grid-cols-5 gap-2 p-3">
-                          {/* Left side with hazard symbol */}
-                          <div className="col-span-1">
-                            <div className="flex flex-col items-center justify-center h-full">
-                              {selectedHazard && (
-                                <div className="w-full flex items-center justify-center">
-                                  <img 
-                                    src={getHazardImagePath(selectedHazard)} 
-                                    alt="Hazard symbol" 
-                                    className="w-full max-w-[80px] mx-auto" 
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Center section with product info */}
-                          <div className="col-span-3 flex flex-col space-y-1">
-                            {/* Product name */}
-                            <div className="text-lg font-bold text-center">
-                              {productName}
-                            </div>
-                            
-                            {/* Formula and MW line */}
-                            <div className="flex justify-between text-xs">
-                              <div className="font-semibold">
-                                {formula && <span>Formula: {formula}</span>}
+                        {/* Product name centered below header */}
+                        <div className="text-2xl font-bold text-center py-2">
+                          {productName}
+                        </div>
+                        
+                        <div className="flex p-3">
+                          {/* Left side with specifications */}
+                          <div className="w-1/2 pr-4 space-y-2">
+                            {formula && (
+                              <div className="flex">
+                                <span className="font-semibold w-36">Formula:</span>
+                                <span>{formula}</span>
                               </div>
-                              <div>
-                                {molecularWeight && <span>M.W: {molecularWeight}</span>}
-                              </div>
-                            </div>
+                            )}
                             
-                            {/* Lab tests */}
+                            {/* Lab tests section - match the layout in the image */}
                             {labTests.map((test, index) => (
-                              <div key={index} className="flex justify-between text-xs">
-                                <span className="font-semibold">{test.type}:</span>
+                              <div key={index} className="flex">
+                                <span className="font-semibold w-36">{test.type.replace('_', ' ')}:</span>
                                 <span>{test.value}</span>
                               </div>
                             ))}
                             
                             {selectedSpecification && (
-                              <div className="text-[11px] text-left mt-2 font-semibold whitespace-nowrap overflow-hidden">
+                              <div className="mt-3 font-semibold text-sm">
                                 Complies with {selectedSpecification} specifications
                               </div>
                             )}
                           </div>
                           
-                          {/* Right section with dates */}
-                          <div className="col-span-1">
-                            <div className="flex flex-col h-full text-xs">
-                              {/* Dates section */}
-                              <div className="space-y-1">
-                                {manufacturingDate && (
-                                  <div>
-                                    <div className="font-semibold">Manf. Date:</div>
-                                    <div>{manufacturingDate}</div>
+                          {/* Right side with hazard and dates */}
+                          <div className="w-1/2 pl-2 relative flex">
+                            <div className="flex-1">
+                              <div className="flex flex-col">
+                                <div className="mb-4">
+                                  {/* M.W. and other info, formatted to match the image */}
+                                  <div className="grid grid-cols-2 gap-x-1 text-sm">
+                                    <div className="text-right font-semibold">M.W:</div>
+                                    <div>{molecularWeight}</div>
+                                    
+                                    {manufacturingDate && (
+                                      <>
+                                        <div className="text-right font-semibold">Manf. Date:</div>
+                                        <div>{manufacturingDate}</div>
+                                      </>
+                                    )}
+                                    
+                                    {expiryDate && (
+                                      <>
+                                        <div className="text-right font-semibold">Exp. Date:</div>
+                                        <div>{expiryDate}</div>
+                                      </>
+                                    )}
+                                    
+                                    {batchNumber && (
+                                      <>
+                                        <div className="text-right font-semibold">Batch No:</div>
+                                        <div>{batchNumber}</div>
+                                      </>
+                                    )}
                                   </div>
-                                )}
+                                </div>
                                 
-                                {expiryDate && (
-                                  <div>
-                                    <div className="font-semibold">Exp. Date:</div>
-                                    <div>{expiryDate}</div>
-                                  </div>
-                                )}
-                                
-                                {batchNumber && (
-                                  <div>
-                                    <div className="font-semibold">Batch No:</div>
-                                    <div>{batchNumber}</div>
+                                {/* Hazard symbol centered */}
+                                {selectedHazard && (
+                                  <div className="w-20 h-20 mx-auto">
+                                    <img 
+                                      src={getHazardImagePath(selectedHazard)} 
+                                      alt="Hazard symbol" 
+                                      className="w-full" 
+                                    />
                                   </div>
                                 )}
                                 
                                 {weight && (
-                                  <div className="text-right mt-1">
-                                    <div className="font-bold">{weight} Kg</div>
+                                  <div className="text-right mt-auto">
+                                    <span className="font-bold">{weight} Kg</span>
                                   </div>
                                 )}
                               </div>
-                              
-                              {/* Space for other elements if needed */}
                             </div>
+                            
+                            {/* Vertical barcode on the right edge */}
+                            {barcodeURL && (
+                              <div className="absolute right-0 top-0 h-full">
+                                <div className="h-full flex flex-col justify-between items-end">
+                                  <div className="transform rotate-90 origin-top-right" style={{ width: '200px', marginTop: '10px', marginRight: '-90px' }}>
+                                    <img src={barcodeURL} alt="Barcode" className="w-full h-full" />
+                                  </div>
+                                  
+                                  <div className="transform rotate-90 origin-bottom-right" style={{ width: '200px', marginBottom: '10px', marginRight: '-90px' }}>
+                                    <img src={barcodeURL} alt="Barcode" className="w-full h-full" />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
