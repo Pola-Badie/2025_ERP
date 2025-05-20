@@ -859,134 +859,122 @@ const LabelGenerator: React.FC = () => {
                     {productName ? (
                       <div 
                         ref={labelRef} 
-                        className="bg-white overflow-hidden relative" 
-                        style={{ maxWidth: '650px', margin: '0 auto' }}
+                        className="bg-white border border-gray-300 shadow-sm"
+                        style={{ width: "100%", maxWidth: "210mm", minHeight: "100mm" }}
                       >
-                        {/* Blue header with company name and logo */}
-                        <div className="bg-sky-500 text-white p-3">
-                          <div className="flex items-center">
-                            <img 
-                              src="/src/assets/logo.png" 
-                              alt="Company Logo" 
-                              className="h-10 mr-4" 
-                            />
-                            <div className="text-2xl font-bold uppercase text-center flex-1">MORGAN CHEMICALS IND. CO.</div>
+                        {/* Label Header */}
+                        <div className="bg-blue-600 text-white p-2">
+                          <div className="flex items-center justify-center">
+                            <div className="text-xl font-bold text-center">
+                              MORGAN CHEMICALS IND. CO. 
+                            </div>
                           </div>
                         </div>
                         
-                        {/* Product name centered below header */}
-                        <div className="text-3xl font-bold text-center py-2">
+                        {/* Product Name */}
+                        <div className="text-xl font-bold border-b border-gray-300 p-2 text-center">
                           {productName}
                         </div>
                         
-                        <div className="flex px-4 py-3 relative">
-                          {/* Left column with specifications */}
-                          <div className="w-1/2 pr-8">
-                            {formula && (
-                              <div className="flex justify-between mb-2">
-                                <span className="font-semibold">Formula:</span>
-                                <span>{formula}</span>
-                              </div>
-                            )}
+                        {/* Main Content */}
+                        <div className="flex">
+                          {/* Left Side - Specifications */}
+                          <div className="w-3/5 border-r border-gray-300 p-3">
+                            <table className="w-full text-sm">
+                              <tbody>
+                                {formula && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1 align-top">Formula:</td>
+                                    <td className="pb-1">{formula}</td>
+                                  </tr>
+                                )}
+                                
+                                {labTests.map((test, index) => (
+                                  <tr key={index}>
+                                    <td className="font-semibold pr-2 pb-1 align-top">{test.type}:</td>
+                                    <td className="pb-1">{test.value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
                             
-                            {/* Lab tests section - formatted exactly like the image */}
-                            {labTests.map((test, index) => (
-                              <div key={index} className="flex justify-between mb-2">
-                                <span className="font-semibold whitespace-nowrap">
-                                  {test.type}:
-                                </span>
-                                <span>{test.value}</span>
-                              </div>
-                            ))}
-                            
-                            {/* Specification note at the bottom of the left column */}
                             {selectedSpecification && (
-                              <div className="mt-4 font-semibold text-sm">
+                              <div className="mt-3 text-xs font-semibold">
                                 Complies with {selectedSpecification} specifications
                               </div>
                             )}
                           </div>
                           
-                          {/* Right column with dates, hazard and weight */}
-                          <div className="w-1/2 pl-4">
-                            <div className="flex justify-between mb-2">
-                              <span className="font-semibold">M.W:</span>
-                              <span>{molecularWeight}</span>
-                            </div>
+                          {/* Right Side - Dates and Hazard */}
+                          <div className="w-2/5 p-3">
+                            <table className="w-full text-sm mb-2">
+                              <tbody>
+                                {molecularWeight && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1">M.W:</td>
+                                    <td className="pb-1">{molecularWeight}</td>
+                                  </tr>
+                                )}
+                                
+                                {manufacturingDate && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1">Manf. Date:</td>
+                                    <td className="pb-1">{manufacturingDate}</td>
+                                  </tr>
+                                )}
+                                
+                                {expiryDate && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1">Exp. Date:</td>
+                                    <td className="pb-1">{expiryDate}</td>
+                                  </tr>
+                                )}
+                                
+                                {batchNumber && (
+                                  <tr>
+                                    <td className="font-semibold pr-2 pb-1">Batch No:</td>
+                                    <td className="pb-1">{batchNumber}</td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
                             
-                            {manufacturingDate && (
-                              <div className="flex justify-between mb-2">
-                                <span className="font-semibold">Manf. Date:</span>
-                                <span>{manufacturingDate}</span>
-                              </div>
-                            )}
-                            
-                            {expiryDate && (
-                              <div className="flex justify-between mb-2">
-                                <span className="font-semibold">Exp. Date:</span>
-                                <span>{expiryDate}</span>
-                              </div>
-                            )}
-                            
-                            {batchNumber && (
-                              <div className="flex justify-between mb-2">
-                                <span className="font-semibold">Batch No:</span>
-                                <span>{batchNumber}</span>
-                              </div>
-                            )}
-                            
-                            {/* Hazard symbol */}
-                            <div className="flex justify-center mt-3 mb-2">
+                            <div className="flex flex-col items-center mt-2">
                               {selectedHazard && (
-                                <div className="relative">
+                                <div className="mb-2">
                                   <img 
                                     src={getHazardImagePath(selectedHazard)} 
                                     alt="Hazard symbol" 
-                                    className="w-24 h-24" 
+                                    className="w-16 h-16" 
                                   />
-                                  {selectedHazard === 'corrosive' && (
-                                    <div className="absolute bottom-0 left-0 right-0 bg-yellow-400 text-center text-black font-bold">
-                                      Corrosive
-                                    </div>
-                                  )}
+                                </div>
+                              )}
+                              
+                              {weight && (
+                                <div className="font-bold mt-1 text-right w-full">
+                                  {weight} Kg
+                                </div>
+                              )}
+                              
+                              {barcodeURL && (
+                                <div className="mt-2 w-full text-center">
+                                  <img 
+                                    src={barcodeURL} 
+                                    alt="Barcode" 
+                                    className="max-h-[40px] inline-block"
+                                  />
                                 </div>
                               )}
                             </div>
-                            
-                            {/* Weight at the bottom right */}
-                            {weight && (
-                              <div className="text-right mt-3">
-                                <span className="font-bold text-lg">{weight} Kg</span>
-                              </div>
-                            )}
                           </div>
-                          
-                          {/* Vertical barcode on the right edge */}
-                          {barcodeURL && (
-                            <div className="absolute right-0 top-0 h-full" style={{ width: '40px' }}>
-                              <img 
-                                src={barcodeURL} 
-                                alt="Barcode" 
-                                className="h-full"
-                                style={{ 
-                                  transform: 'rotate(90deg) translateY(-100%)',
-                                  transformOrigin: 'top right',
-                                  position: 'absolute',
-                                  right: '0',
-                                  top: '50%',
-                                  width: '180px'
-                                }} 
-                              />
-                            </div>
-                          )}
                         </div>
                         
-                        {/* Footer with company contact */}
-                        <div className="bg-sky-100 text-[9px] leading-tight p-1.5 text-center">
+                        {/* Footer */}
+                        <div className="bg-blue-50 text-[8px] leading-tight p-1.5 border-t border-gray-300">
                           <p className="font-semibold" dir="rtl">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
-                          <p className="font-semibold text-[8px]">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
-                          <p className="text-[8px]">Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
-                          <p className="text-[8px]">Fax: 055/4410115 | Email: morgan_chem.ind@hotmail.com</p>
+                          <p className="font-semibold">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
+                          <p>Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
+                          <p>Fax: 055/4410115 | Email: morgan_chem.ind@hotmail.com</p>
                         </div>
                       </div>
                     ) : (
