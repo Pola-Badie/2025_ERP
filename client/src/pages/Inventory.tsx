@@ -494,6 +494,13 @@ const Inventory: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-2 overflow-x-auto pb-2">
+                <Button 
+                  variant={selectedWarehouse === 0 ? "default" : "outline"}
+                  className="whitespace-nowrap bg-green-50 hover:bg-green-100 border-green-200"
+                  onClick={() => setSelectedWarehouse(0)}
+                >
+                  All Stock
+                </Button>
                 {warehouses.map((warehouse) => (
                   <Button 
                     key={warehouse.id}
@@ -514,8 +521,14 @@ const Inventory: React.FC = () => {
               </div>
               
               <div className="text-sm text-muted-foreground">
-                Viewing inventory for <span className="font-medium">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span> 
-                {" - "}{warehouses.find(w => w.id === selectedWarehouse)?.location}
+                {selectedWarehouse === 0 ? (
+                  <span>Viewing inventory across <span className="font-medium">all warehouses</span></span>
+                ) : (
+                  <>
+                    Viewing inventory for <span className="font-medium">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span> 
+                    {" - "}{warehouses.find(w => w.id === selectedWarehouse)?.location}
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
