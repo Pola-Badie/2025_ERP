@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { 
   Select, 
   SelectContent, 
@@ -1069,9 +1070,9 @@ const Inventory: React.FC = () => {
           
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="warehouse-name" className="text-right">
+              <div className="text-right font-medium">
                 Name
-              </Label>
+              </div>
               <Input
                 id="warehouse-name"
                 value={warehouseToEdit ? warehouseToEdit.name : ''}
@@ -1087,9 +1088,9 @@ const Inventory: React.FC = () => {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="warehouse-location" className="text-right">
+              <div className="text-right font-medium">
                 Location
-              </Label>
+              </div>
               <Input
                 id="warehouse-location"
                 value={warehouseToEdit ? warehouseToEdit.location : ''}
