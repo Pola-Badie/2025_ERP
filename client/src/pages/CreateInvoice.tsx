@@ -316,7 +316,7 @@ const CreateInvoice = () => {
         saveDrafts(updated);
         
         // Set active invoice to the first one
-        setActiveInvoiceId(updated[0].id);
+        updateActiveInvoiceId(updated[0].id);
         
         return updated;
       });
@@ -448,7 +448,7 @@ const CreateInvoice = () => {
       return updated;
     });
     
-    setActiveInvoiceId(newId);
+    updateActiveInvoiceId(newId);
   };
   
   // Remove an invoice draft
@@ -468,7 +468,7 @@ const CreateInvoice = () => {
       
       // If removing the active draft, switch to another one
       if (activeInvoiceId === draftId) {
-        setActiveInvoiceId(updated[0].id);
+        updateActiveInvoiceId(updated[0].id);
       }
       
       return updated;
