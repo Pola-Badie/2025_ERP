@@ -851,7 +851,7 @@ const OrderManagement = () => {
       order.sourceMaterial || "N/A",
       order.expectedOutput || "N/A",
       parseFloat(order.totalCost || 0).toFixed(2),
-      order.location || "Main Floor", // Show actual location from the data
+      order.location || "Warehouse 1", // Default to Warehouse 1 instead of "Main Floor"
       formatDate(order.createdAt)
     ]);
     
@@ -1325,8 +1325,8 @@ const OrderManagement = () => {
                     <DropdownMenuItem onClick={() => handleExportProductionOrders("Warehouse 2")}>
                       Warehouse 2
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportProductionOrders("Main Floor")}>
-                      Main Floor
+                    <DropdownMenuItem onClick={() => handleExportProductionOrders("Central Storage")}>
+                      Central Storage
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1809,6 +1809,25 @@ const OrderManagement = () => {
                   </div>
                 </div>
               </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <Label>Warehouse Location</Label>
+                  <Select value="Warehouse 1" onValueChange={(value) => console.log(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select warehouse" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Warehouse 1">Warehouse 1</SelectItem>
+                      <SelectItem value="Warehouse 2">Warehouse 2</SelectItem>
+                      <SelectItem value="Central Storage">Central Storage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select the warehouse where this order will be processed
+                  </p>
+                </div>
+              </div>
 
               <Label>Total Cost (with Tax)</Label>
               <div className="relative">
@@ -1863,8 +1882,8 @@ const OrderManagement = () => {
                     <DropdownMenuItem onClick={() => handleExportRefiningOrders("Warehouse 2")}>
                       Warehouse 2
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportRefiningOrders("Main Floor")}>
-                      Main Floor
+                    <DropdownMenuItem onClick={() => handleExportRefiningOrders("Central Storage")}>
+                      Central Storage
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
