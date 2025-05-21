@@ -496,9 +496,14 @@ const Inventory: React.FC = () => {
               <div className="flex items-center space-x-2 overflow-x-auto pb-2">
                 <Button 
                   variant={selectedWarehouse === 0 ? "default" : "outline"}
-                  className="whitespace-nowrap bg-green-50 hover:bg-green-100 border-green-200"
+                  className={`whitespace-nowrap flex items-center gap-1.5 ${
+                    selectedWarehouse === 0 
+                      ? "bg-green-600 text-white hover:bg-green-700" 
+                      : "bg-green-50 text-green-700 hover:bg-green-100 border-green-300"
+                  }`}
                   onClick={() => setSelectedWarehouse(0)}
                 >
+                  <Database className="h-4 w-4" />
                   All Stock
                 </Button>
                 {warehouses.map((warehouse) => (
@@ -683,10 +688,21 @@ const Inventory: React.FC = () => {
                             </td>
                             <td className="px-4 py-3 text-slate-600">
                               <div className="flex flex-col">
-                                <span className="font-medium text-xs text-blue-600">
-                                  {warehouses.find(w => w.id === selectedWarehouse)?.name}
-                                </span>
-                                <span className="text-xs">{product.location || '-'}</span>
+                                {selectedWarehouse === 0 ? (
+                                  <>
+                                    <span className="font-medium text-xs text-blue-600">
+                                      {product.warehouseName || "Warehouse 1"}
+                                    </span>
+                                    <span className="text-xs">{product.location || '-'}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="font-medium text-xs text-blue-600">
+                                      {warehouses.find(w => w.id === selectedWarehouse)?.name}
+                                    </span>
+                                    <span className="text-xs">{product.location || '-'}</span>
+                                  </>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 py-3 text-slate-600 text-xs">
