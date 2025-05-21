@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -186,6 +186,34 @@ const CreateInvoice = () => {
   // Function to save drafts to localStorage
   const saveDrafts = (drafts: InvoiceDraft[]) => {
     localStorage.setItem('invoiceDrafts', JSON.stringify(drafts));
+  };
+  
+  // Reset all invoices to start with a single "Invoice 1" draft
+  const resetAllInvoices = () => {
+    // Create a fresh Invoice 1
+    const newDraft: InvoiceDraft = {
+      id: 'draft-1',
+      name: 'Invoice 1',
+      data: defaultFormValues,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Set our invoices array to just this one draft
+    setInvoiceDrafts([newDraft]);
+    
+    // Save to localStorage
+    saveDrafts([newDraft]);
+    
+    // Set the active invoice to this one
+    updateActiveInvoiceId('draft-1');
+    
+    // Reset the form with default values
+    form.reset(defaultFormValues);
+    
+    toast({
+      title: "Invoices reset",
+      description: "All invoice drafts have been cleared. Starting fresh with Invoice 1.",
+    });
   };
 
   // Get the currently active draft
@@ -579,6 +607,14 @@ const CreateInvoice = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium">Invoices In Progress</h2>
           <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetAllInvoices}
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset to Invoice 1
+            </Button>
             {invoiceDrafts.length < 4 && (
               <Button
                 variant="outline"
