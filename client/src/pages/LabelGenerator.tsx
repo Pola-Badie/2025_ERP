@@ -863,15 +863,8 @@ const LabelGenerator: React.FC = () => {
                         style={{ width: "100%", maxWidth: "210mm", minHeight: "100mm" }}
                       >
                         {/* Label Header */}
-                        <div className="bg-blue-600 text-white relative">
-                          <div className="absolute -top-1 -left-1" style={{ zIndex: 5 }}>
-                            <img 
-                              src="/logo.png"
-                              alt="Morgan Chemicals Logo" 
-                              className="w-18 h-18 object-contain"
-                            />
-                          </div>
-                          <div className="text-base font-bold text-center p-1.5">
+                        <div className="bg-blue-600 text-white p-1.5">
+                          <div className="text-base font-bold text-center">
                             MORGAN CHEMICALS IND. CO. 
                           </div>
                         </div>
