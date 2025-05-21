@@ -944,48 +944,39 @@ const LabelGenerator: React.FC = () => {
                             </div>
                             
                             {/* Vertical Barcode */}
-                            <div className="absolute top-0 right-1 h-full flex items-center">
-                              <div className="vertical-barcode" style={{ 
-                                transform: 'rotate(90deg)',
-                                transformOrigin: 'bottom right',
-                                height: '35px',
-                                width: '100%',
+                            <div className="absolute top-0 right-0 h-full" style={{ width: '40px', overflow: 'hidden', zIndex: 10 }}>
+                              <div style={{ 
                                 position: 'absolute',
-                                right: '10px'
+                                top: '50%',
+                                right: '-80px',
+                                transform: 'translateY(-50%) rotate(90deg)',
+                                width: '180px',
+                                height: '35px',
+                                backgroundColor: 'white'
                               }}>
-                                <svg 
-                                  width="100%" 
-                                  height="100%" 
-                                  className="barcode-svg" 
-                                  viewBox="0 0 200 35"
-                                >
-                                  {Array(40).fill(0).map((_, i) => {
-                                    const xPos = i * 5;
-                                    const width = (i % 2 === 0) ? 2 : 3;
-                                    return (
-                                      <rect 
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    height: '25px', 
+                                    width: '100%',
+                                    justifyContent: 'center'
+                                  }}>
+                                    {Array(20).fill(0).map((_, i) => (
+                                      <div 
                                         key={i} 
-                                        x={xPos} 
-                                        y="0" 
-                                        width={width} 
-                                        height="30" 
-                                        fill="black"
+                                        style={{ 
+                                          width: `${(i % 3 === 0) ? 3 : 2}px`, 
+                                          height: '100%',
+                                          backgroundColor: 'black',
+                                          marginRight: '2px'
+                                        }}
                                       />
-                                    )
-                                  })}
-                                  <text 
-                                    x="100" 
-                                    y="32" 
-                                    textAnchor="middle" 
-                                    dominantBaseline="hanging" 
-                                    style={{
-                                      fontSize: '8px',
-                                      fontWeight: 'bold'
-                                    }}
-                                  >
-                                    {batchNumber || '1234567890'}
-                                  </text>
-                                </svg>
+                                    ))}
+                                  </div>
+                                  <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop: '2px' }}>
+                                    {batchNumber || '123456789'}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
