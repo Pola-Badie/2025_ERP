@@ -33,6 +33,7 @@ import {
   CardDescription 
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -157,6 +158,9 @@ const Inventory: React.FC = () => {
   // State for category management
   const [categoryName, setCategoryName] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
+  
+  // State for product selection
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -657,6 +661,22 @@ const Inventory: React.FC = () => {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50">
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">
+                          <div className="flex items-center">
+                            <Checkbox 
+                              id="select-all" 
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedProducts(filteredProducts.map(p => p.id));
+                                } else {
+                                  setSelectedProducts([]);
+                                }
+                              }}
+                              checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                            />
+                            <label htmlFor="select-all" className="ml-2 cursor-pointer">Select All</label>
+                          </div>
+                        </th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">SKU</th>
@@ -674,6 +694,18 @@ const Inventory: React.FC = () => {
                         const expiryStatus = getExpiryStatus(product.expiryDate);
                         return (
                           <tr key={product.id} className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-4 py-3">
+                              <Checkbox 
+                                checked={selectedProducts.includes(product.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedProducts(prev => [...prev, product.id]);
+                                  } else {
+                                    setSelectedProducts(prev => prev.filter(id => id !== product.id));
+                                  }
+                                }}
+                              />
+                            </td>
                             <td className="px-4 py-3">
                               <div>
                                 <div className="font-medium">{product.name}</div>
