@@ -857,13 +857,11 @@ const LabelGenerator: React.FC = () => {
                     {productName ? (
                       <div 
                         ref={labelRef} 
-                        className="bg-white border border-gray-300 shadow-sm flex flex-col"
+                        className="bg-white border border-gray-300 shadow-sm"
                         style={{ 
                           width: "100%", 
                           maxWidth: "210mm", 
-                          minHeight: `${100 + Math.max(0, (labTests.length - 3) * 10)}mm`,
-                          display: "flex",
-                          flexDirection: "column"
+                          minHeight: `${100 + Math.max(0, (labTests.length - 3) * 10)}mm`
                         }}
                       >
                         {/* Label Header */}
@@ -887,12 +885,7 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Main Content */}
-                        <div className="flex relative" style={{ 
-                          flexGrow: 1, 
-                          minHeight: '1px',
-                          display: 'flex',
-                          flexDirection: 'row'
-                        }}>
+                        <div className="flex relative">
                           {/* Left Side - Specifications */}
                           <div className="w-1/2 p-3">
                             <table className="w-full text-xs">
@@ -1012,11 +1005,16 @@ const LabelGenerator: React.FC = () => {
                         {/* Footer */}
                         <div className="bg-blue-600 text-white text-[8px] leading-tight p-1.5 relative -mt-0.5">
                           {/* QR Code aligned perfectly with the blue rectangle corner */}
-                          <div className="absolute top-0 left-0 h-full">
+                          <div className="absolute top-0 left-0 h-full flex items-center">
                             <img 
                               src="/qrcode.png"
                               alt="QR Code" 
-                              className="h-full object-contain"
+                              style={{ 
+                                height: '100%', 
+                                width: 'auto',
+                                objectFit: 'cover',
+                                objectPosition: 'left center'
+                              }}
                             />
                           </div>
                           <div className="ml-[calc(100%/5)] -mt-1.5">
