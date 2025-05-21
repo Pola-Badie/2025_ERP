@@ -86,6 +86,25 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
+// Helper function to save form data to localStorage
+const saveFormToLocalStorage = (data: InvoiceFormValues) => {
+  localStorage.setItem('savedInvoice', JSON.stringify(data));
+};
+
+// Helper function to load form data from localStorage
+const loadFormFromLocalStorage = (): InvoiceFormValues | null => {
+  const savedData = localStorage.getItem('savedInvoice');
+  if (savedData) {
+    try {
+      return JSON.parse(savedData);
+    } catch (e) {
+      console.error('Error parsing saved invoice data:', e);
+      return null;
+    }
+  }
+  return null;
+};
+
 const CreateInvoice = () => {
   const { toast } = useToast();
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
