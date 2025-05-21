@@ -40,6 +40,8 @@ interface Invoice {
   date: string;
   dueDate?: string;
   amount: number;
+  amountPaid?: number;
+  paymentMethod?: string;
   status: 'paid' | 'unpaid' | 'partial' | 'overdue';
   items: {
     productName: string;
@@ -217,6 +219,8 @@ const InvoiceHistory = () => {
                     <TableHead>Customer</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Outstanding</TableHead>
+                    <TableHead>Payment Method</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -232,6 +236,20 @@ const InvoiceHistory = () => {
                           style: 'currency',
                           currency: 'USD'
                         }).format(invoice.amount)}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(invoice.status === 'paid' ? 0 : 
+                                  invoice.status === 'partial' ? invoice.amount - (invoice.amountPaid || 0) : 
+                                  invoice.amount)}
+                      </TableCell>
+                      <TableCell>
+                        {invoice.paymentMethod ? 
+                          invoice.paymentMethod.charAt(0).toUpperCase() + 
+                          invoice.paymentMethod.slice(1).replace('_', ' ') : 
+                          '-'}
                       </TableCell>
                       <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                       <TableCell className="text-right">
