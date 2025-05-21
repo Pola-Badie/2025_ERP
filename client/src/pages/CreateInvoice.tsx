@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -179,6 +179,18 @@ const CreateInvoice = () => {
   // Get the currently active draft
   const getCurrentDraft = (): InvoiceDraft | undefined => {
     return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
+  };
+  
+  // Refresh the current invoice data from server
+  const refreshInvoiceData = () => {
+    // Refresh customers and products data
+    queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+    
+    toast({
+      title: "Data refreshed",
+      description: "Customer and product data has been refreshed.",
+    });
   };
 
   // Set up the form
@@ -553,16 +565,26 @@ const CreateInvoice = () => {
       <div className="border rounded-md p-4 mb-6 bg-background">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium">Invoices In Progress</h2>
-          {invoiceDrafts.length < 4 && (
+          <div className="flex space-x-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={addNewDraft}
+              onClick={refreshInvoiceData}
+              title="Refresh customer and product data"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              New Invoice
+              <RefreshCw className="h-4 w-4" />
             </Button>
-          )}
+            {invoiceDrafts.length < 4 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addNewDraft}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Invoice
+              </Button>
+            )}
+          </div>
         </div>
         
         <Tabs value={activeInvoiceId} onValueChange={setActiveInvoiceId}>
