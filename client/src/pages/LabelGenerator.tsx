@@ -872,7 +872,7 @@ const LabelGenerator: React.FC = () => {
                               style={{ objectPosition: 'left top' }}
                             />
                           </div>
-                          <div className="text-base font-bold text-center">
+                          <div className="text-base font-bold text-center w-full px-3">
                             MORGAN CHEMICALS IND. CO. 
                           </div>
                         </div>
