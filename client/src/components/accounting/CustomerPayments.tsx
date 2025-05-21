@@ -861,9 +861,9 @@ const CustomerPayments: React.FC = () => {
                   <TableRow>
                     <TableCell colSpan={8} className="p-4">
                       <div className="flex flex-col items-center justify-center gap-4">
-                        <p className="text-muted-foreground">No payment history found in the system.</p>
-                        <AlertCircle className="h-12 w-12 text-muted-foreground/50" />
-                        <p className="text-sm text-muted-foreground">Payments will appear here once they are recorded.</p>
+                        <p className="text-muted-foreground">No payments found in the system.</p>
+                        <PlusCircle className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">Use the "Record Payment" button to add customer payments.</p>
                       </div>
                     </TableCell>
                   </TableRow>
