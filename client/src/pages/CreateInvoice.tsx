@@ -76,6 +76,9 @@ const invoiceFormSchema = z.object({
     total: z.number().min(0),
   })).min(1, 'At least one item is required'),
   subtotal: z.number(),
+  discountType: z.enum(['none', 'percentage', 'amount']).default('none'),
+  discountValue: z.number().min(0).default(0),
+  discountAmount: z.number().min(0).default(0),
   taxRate: z.number().min(0).max(100),
   taxAmount: z.number(),
   grandTotal: z.number(),
@@ -119,6 +122,9 @@ const defaultFormValues: InvoiceFormValues = {
     },
   ],
   subtotal: 0,
+  discountType: 'none',
+  discountValue: 0,
+  discountAmount: 0,
   taxRate: 0,
   taxAmount: 0,
   grandTotal: 0,
@@ -189,6 +195,8 @@ const CreateInvoice = () => {
   // Watch form values for calculations
   const watchItems = form.watch('items');
   const watchTaxRate = form.watch('taxRate');
+  const watchDiscountType = form.watch('discountType');
+  const watchDiscountValue = form.watch('discountValue');
   const watchPaymentStatus = form.watch('paymentStatus');
 
   // Fetch customers data
@@ -310,7 +318,7 @@ const CreateInvoice = () => {
     }
   }, [activeInvoiceId, form]);
 
-  // Calculate totals whenever items or tax rate changes
+  // Calculate totals whenever items, discount, or tax rate changes
   useEffect(() => {
     if (watchItems) {
       // Calculate item totals
@@ -319,12 +327,24 @@ const CreateInvoice = () => {
         form.setValue(`items.${index}.total`, total);
       });
 
-      // Calculate subtotal, tax, and grand total
+      // Calculate subtotal
       const subtotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-      const taxAmount = (subtotal * watchTaxRate) / 100;
-      const grandTotal = subtotal + taxAmount;
-
       form.setValue('subtotal', subtotal);
+      
+      // Calculate discount
+      let discountAmount = 0;
+      if (watchDiscountType === 'percentage' && watchDiscountValue > 0) {
+        discountAmount = (subtotal * watchDiscountValue) / 100;
+      } else if (watchDiscountType === 'amount' && watchDiscountValue > 0) {
+        discountAmount = Math.min(watchDiscountValue, subtotal); // Can't discount more than subtotal
+      }
+      form.setValue('discountAmount', discountAmount);
+      
+      // Calculate tax and grand total
+      const subtotalAfterDiscount = subtotal - discountAmount;
+      const taxAmount = (subtotalAfterDiscount * watchTaxRate) / 100;
+      const grandTotal = subtotalAfterDiscount + taxAmount;
+
       form.setValue('taxAmount', taxAmount);
       form.setValue('grandTotal', grandTotal);
       
@@ -1109,6 +1129,66 @@ const CreateInvoice = () => {
                       currency: 'USD'
                     }).format(form.watch('subtotal') || 0)}</span>
                   </div>
+                  
+                  {/* Discount Section */}
+                  <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
+                    <Label htmlFor="discountType" className="text-sm">Discount</Label>
+                    <div className="flex justify-end space-x-2">
+                      <Select
+                        value={form.watch('discountType')}
+                        onValueChange={(value) => form.setValue('discountType', value as 'none' | 'percentage' | 'amount')}
+                      >
+                        <SelectTrigger className="w-24">
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="percentage">Percentage</SelectItem>
+                          <SelectItem value="amount">Amount</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {form.watch('discountType') !== 'none' && (
+                        <Input
+                          type="number"
+                          min="0"
+                          step={form.watch('discountType') === 'percentage' ? '1' : '0.01'}
+                          max={form.watch('discountType') === 'percentage' ? '100' : undefined}
+                          className="w-20 text-right"
+                          {...form.register('discountValue', { 
+                            valueAsNumber: true,
+                            onChange: (e) => {
+                              if (form.watch('discountType') === 'percentage' && parseFloat(e.target.value) > 100) {
+                                e.target.value = "100";
+                              }
+                            }
+                          })}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  
+                  {form.watch('discountType') !== 'none' && form.watch('discountAmount') > 0 && (
+                    <div className="grid grid-cols-2 text-sm py-2">
+                      <span>Discount {form.watch('discountType') === 'percentage' ? 
+                        `(${form.watch('discountValue')}%)` : 'Amount'}</span>
+                      <span className="text-right font-medium text-green-600">-{new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(form.watch('discountAmount') || 0)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Subtotal after discount shown only if discount applied */}
+                  {form.watch('discountType') !== 'none' && form.watch('discountAmount') > 0 && (
+                    <div className="grid grid-cols-2 text-sm py-2 border-b pb-2">
+                      <span>Subtotal after discount</span>
+                      <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format((form.watch('subtotal') || 0) - (form.watch('discountAmount') || 0))}</span>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
                     <Label htmlFor="taxRate" className="text-sm">Tax Rate (%)</Label>
