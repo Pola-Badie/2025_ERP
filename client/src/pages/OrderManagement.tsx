@@ -1630,6 +1630,39 @@ const OrderManagement = () => {
             </div>
             
             <div>
+              {/* Transportation Section for Refining */}
+              <div className="space-y-4 border border-gray-200 rounded-md p-4 bg-blue-50 mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-md font-semibold">Transportation</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Transportation Cost</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                      <Input
+                        type="text"
+                        placeholder="0.00"
+                        className="pl-7"
+                        value={refiningTransportationCost}
+                        onChange={(e) => setRefiningTransportationCost(e.target.value)}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Enter the cost of transportation for refining</p>
+                  </div>
+                  <div>
+                    <Label>Transportation Notes</Label>
+                    <Textarea
+                      placeholder="Enter transportation details for refining..."
+                      value={refiningTransportationNotes}
+                      onChange={(e) => setRefiningTransportationNotes(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <Label>Total Cost (with Tax)</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
@@ -1642,7 +1675,9 @@ const OrderManagement = () => {
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Subtotal: ${refiningSubtotal} + Tax: ${(parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2)}
+                Process: ${refiningSubtotal} + 
+                Transport: ${parseFloat(refiningTransportationCost).toFixed(2)} + 
+                Tax: ${((parseFloat(refiningSubtotal) + parseFloat(refiningTransportationCost)) * (refiningTaxPercentage / 100)).toFixed(2)}
               </p>
             </div>
           </div>
