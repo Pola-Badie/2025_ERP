@@ -1001,11 +1001,21 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Footer */}
-                        <div className="bg-blue-50 text-[8px] leading-tight p-1.5">
-                          <p className="font-semibold text-left">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
-                          <p className="font-semibold">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
-                          <p>Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
-                          <p>Fax: 055/4410115 | Email: morgan_chem.ind@hotmail.com</p>
+                        <div className="bg-blue-50 text-[8px] leading-tight p-1.5 relative">
+                          {/* QR Code at bottom left */}
+                          <div className="absolute bottom-0 left-0">
+                            <img 
+                              src="/qrcode.png"
+                              alt="QR Code" 
+                              className="w-16 h-16 object-contain"
+                            />
+                          </div>
+                          <div className="ml-16">
+                            <p className="font-semibold text-left">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
+                            <p className="font-semibold">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
+                            <p>Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
+                            <p>Fax: 055/4410115 | Email: morgan_chem.ind@hotmail.com</p>
+                          </div>
                         </div>
                       </div>
                     ) : (
