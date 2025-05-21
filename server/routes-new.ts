@@ -63,6 +63,154 @@ import { registerAccountingRoutes } from "./routes-accounting";
 import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Generate sample invoices for demo purposes
+  app.get("/api/sample-invoices", async (_req: Request, res: Response) => {
+    try {
+      // Create sample invoices
+      const sampleInvoices = [
+        {
+          id: 1001,
+          invoiceNumber: "INV-002501",
+          customerName: "Ahmed Hassan",
+          date: "2025-05-01T10:30:00Z",
+          dueDate: "2025-05-16T10:30:00Z",
+          amount: 1250.75,
+          amountPaid: 1250.75,
+          paymentMethod: "credit_card",
+          status: "paid",
+          items: [
+            {
+              productName: "Pharmaceutical Grade Acetone",
+              quantity: 25,
+              unitPrice: 42.50,
+              total: 1062.50,
+              unitOfMeasure: "L"
+            },
+            {
+              productName: "Laboratory Glassware Set",
+              quantity: 2,
+              unitPrice: 94.12,
+              total: 188.24,
+              unitOfMeasure: "set"
+            }
+          ]
+        },
+        {
+          id: 1002,
+          invoiceNumber: "INV-002502",
+          customerName: "Cairo Medical Supplies Ltd.",
+          date: "2025-05-05T14:20:00Z",
+          dueDate: "2025-05-20T14:20:00Z",
+          amount: 3245.00,
+          amountPaid: 2000.00,
+          paymentMethod: "bank_transfer",
+          status: "partial",
+          items: [
+            {
+              productName: "Sodium Hydroxide (Technical Grade)",
+              quantity: 100,
+              unitPrice: 18.45,
+              total: 1845.00,
+              unitOfMeasure: "kg"
+            },
+            {
+              productName: "Hydrochloric Acid Solution",
+              quantity: 50,
+              unitPrice: 28.00,
+              total: 1400.00,
+              unitOfMeasure: "L"
+            }
+          ]
+        },
+        {
+          id: 1003,
+          invoiceNumber: "INV-002503",
+          customerName: "Alexandria Pharma Co.",
+          date: "2025-05-08T09:15:00Z",
+          dueDate: "2025-05-23T09:15:00Z",
+          amount: 875.50,
+          amountPaid: 0,
+          paymentMethod: "cheque",
+          status: "unpaid",
+          items: [
+            {
+              productName: "Industrial Ethanol",
+              quantity: 35,
+              unitPrice: 25.00,
+              total: 875.50,
+              unitOfMeasure: "L"
+            }
+          ]
+        },
+        {
+          id: 1004,
+          invoiceNumber: "INV-002504",
+          customerName: "Modern Laboratories Inc.",
+          date: "2025-04-20T16:45:00Z",
+          dueDate: "2025-05-05T16:45:00Z",
+          amount: 4520.75,
+          amountPaid: 0,
+          paymentMethod: "",
+          status: "overdue",
+          items: [
+            {
+              productName: "Pharmaceutical Grade Glycerin",
+              quantity: 75,
+              unitPrice: 32.25,
+              total: 2418.75,
+              unitOfMeasure: "L"
+            },
+            {
+              productName: "Purified Water USP",
+              quantity: 200,
+              unitPrice: 8.76,
+              total: 1752.00,
+              unitOfMeasure: "L"
+            },
+            {
+              productName: "Citric Acid Anhydrous",
+              quantity: 50,
+              unitPrice: 7.00,
+              total: 350.00,
+              unitOfMeasure: "kg"
+            }
+          ]
+        },
+        {
+          id: 1005,
+          invoiceNumber: "INV-002505",
+          customerName: "Giza Chemical Solutions",
+          date: "2025-05-12T11:10:00Z",
+          dueDate: "2025-05-27T11:10:00Z",
+          amount: 1865.25,
+          amountPaid: 1865.25,
+          paymentMethod: "cash",
+          status: "paid",
+          items: [
+            {
+              productName: "Magnesium Sulfate",
+              quantity: 125,
+              unitPrice: 6.50,
+              total: 812.50,
+              unitOfMeasure: "kg"
+            },
+            {
+              productName: "Sodium Bicarbonate",
+              quantity: 150,
+              unitPrice: 7.02,
+              total: 1052.75,
+              unitOfMeasure: "kg"
+            }
+          ]
+        }
+      ];
+      
+      res.json(sampleInvoices);
+    } catch (error) {
+      console.error("Error generating sample invoices:", error);
+      res.status(500).json({ message: "Failed to generate sample invoices" });
+    }
+  });
   // Create HTTP server
   const httpServer = createServer(app);
   

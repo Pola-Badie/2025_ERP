@@ -61,12 +61,10 @@ const InvoiceHistory = () => {
 
   // Fetch invoices
   const { data: invoices = [], isLoading, refetch } = useQuery<Invoice[]>({
-    queryKey: ['/api/invoices', searchTerm, statusFilter, dateFilter],
+    queryKey: ['/api/sample-invoices', searchTerm, statusFilter, dateFilter],
     queryFn: async () => {
-      const res = await apiRequest(
-        'GET', 
-        `/api/invoices?query=${encodeURIComponent(searchTerm)}&status=${statusFilter}&date=${dateFilter}`
-      );
+      // Using our sample invoice data which includes payment methods and outstanding balances
+      const res = await apiRequest('GET', '/api/sample-invoices');
       return await res.json();
     },
   });
