@@ -692,7 +692,7 @@ const Inventory: React.FC = () => {
                               }}
                               checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                             />
-                            <label htmlFor="select-all" className="ml-2 cursor-pointer">Select All</label>
+                            <label htmlFor="select-all" className="ml-2 cursor-pointer">All</label>
                           </div>
                         </th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
