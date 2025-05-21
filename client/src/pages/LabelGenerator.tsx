@@ -863,16 +863,16 @@ const LabelGenerator: React.FC = () => {
                         style={{ width: "100%", maxWidth: "210mm", minHeight: "100mm" }}
                       >
                         {/* Label Header */}
-                        <div className="bg-blue-600 text-white p-2">
+                        <div className="bg-blue-600 text-white p-1.5">
                           <div className="flex items-center justify-center">
-                            <div className="text-xl font-bold text-center">
+                            <div className="text-base font-bold text-center">
                               MORGAN CHEMICALS IND. CO. 
                             </div>
                           </div>
                         </div>
                         
                         {/* Product Name */}
-                        <div className="text-xl font-bold p-2 text-center">
+                        <div className="text-base font-bold p-1.5 text-center">
                           {productName}
                         </div>
                         
@@ -880,7 +880,7 @@ const LabelGenerator: React.FC = () => {
                         <div className="flex">
                           {/* Left Side - Specifications */}
                           <div className="w-3/5 p-3">
-                            <table className="w-full text-sm">
+                            <table className="w-full text-xs">
                               <tbody>
                                 {formula && (
                                   <tr>
@@ -906,7 +906,7 @@ const LabelGenerator: React.FC = () => {
                             </table>
                             
                             {selectedSpecification && (
-                              <div className="mt-3 text-xs font-semibold">
+                              <div className="mt-2 text-[10px] font-semibold">
                                 Complies with {selectedSpecification} specifications
                               </div>
                             )}
@@ -914,25 +914,25 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Right Side - Dates and Hazard */}
                           <div className="w-2/5 p-3">
-                            <div className="space-y-3 mb-3">
+                            <div className="space-y-2 mb-2">
                               {manufacturingDate && (
                                 <div>
-                                  <div className="font-semibold text-sm">Manf. Date</div>
-                                  <div className="text-sm">{manufacturingDate}</div>
+                                  <div className="font-semibold text-xs">Manf. Date</div>
+                                  <div className="text-xs">{manufacturingDate}</div>
                                 </div>
                               )}
                               
                               {expiryDate && (
                                 <div>
-                                  <div className="font-semibold text-sm">Exp. Date</div>
-                                  <div className="text-sm">{expiryDate}</div>
+                                  <div className="font-semibold text-xs">Exp. Date</div>
+                                  <div className="text-xs">{expiryDate}</div>
                                 </div>
                               )}
                               
                               {batchNumber && (
                                 <div>
-                                  <div className="font-semibold text-sm">Batch No</div>
-                                  <div className="text-sm">{batchNumber}</div>
+                                  <div className="font-semibold text-xs">Batch No</div>
+                                  <div className="text-xs">{batchNumber}</div>
                                 </div>
                               )}
                             </div>
