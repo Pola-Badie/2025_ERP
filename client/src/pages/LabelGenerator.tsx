@@ -1085,10 +1085,9 @@ const LabelGenerator: React.FC = () => {
                           <SelectValue placeholder="Select size" />
                         </SelectTrigger>
                         <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
-                          <SelectItem value="1/2">1/2</SelectItem>
-                          <SelectItem value="1/3">1/3</SelectItem>
-                          <SelectItem value="1/6">1/6</SelectItem>
-                          <SelectItem value="1/24">1/24</SelectItem>
+                          <SelectItem value="2_per_a4">2 PER A4</SelectItem>
+                          <SelectItem value="3_per_a4">3 PER A4</SelectItem>
+                          <SelectItem value="6_per_a4">6 PER A4</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
