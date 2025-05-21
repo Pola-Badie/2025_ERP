@@ -914,23 +914,23 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Right Side - Dates and Hazard */}
                           <div className="w-2/5 p-3">
-                            <div className="space-y-2 mb-2">
+                            <div className="space-y-2 mb-2 pl-4">
                               {manufacturingDate && (
-                                <div>
+                                <div className="text-right">
                                   <div className="font-semibold text-xs">Manf. Date</div>
                                   <div className="text-xs">{manufacturingDate}</div>
                                 </div>
                               )}
                               
                               {expiryDate && (
-                                <div>
+                                <div className="text-right">
                                   <div className="font-semibold text-xs">Exp. Date</div>
                                   <div className="text-xs">{expiryDate}</div>
                                 </div>
                               )}
                               
                               {batchNumber && (
-                                <div>
+                                <div className="text-right">
                                   <div className="font-semibold text-xs">Batch No</div>
                                   <div className="text-xs">{batchNumber}</div>
                                 </div>
