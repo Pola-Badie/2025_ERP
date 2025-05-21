@@ -1002,12 +1002,12 @@ const LabelGenerator: React.FC = () => {
                         
                         {/* Footer */}
                         <div className="bg-blue-600 text-white text-[8px] leading-tight p-1.5 relative -mt-3.5">
-                          {/* QR Code positioned for full visibility */}
-                          <div className="absolute bottom-0 left-0 mb-1 ml-1 bg-white p-1 rounded">
+                          {/* QR Code aligned perfectly with the blue rectangle corner */}
+                          <div className="absolute bottom-0 left-0 mb-0 ml-0 -mt-6">
                             <img 
                               src="/qrcode.png"
                               alt="QR Code" 
-                              className="w-14 h-14 object-contain"
+                              className="w-16 h-16 object-contain mb-0 ml-0"
                             />
                           </div>
                           <div className="ml-16 -mt-1.5">
