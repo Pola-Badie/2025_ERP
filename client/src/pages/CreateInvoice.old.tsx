@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Tabs,
@@ -49,10 +50,11 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer } from 'lucide-react';
+import { format } from 'date-fns';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, FileText, X, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -89,16 +91,15 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
-// Interface for our invoice drafts
-interface InvoiceDraft {
+// Type definition for our invoice tabs
+interface InvoiceTab {
   id: string;
   name: string;
-  data: InvoiceFormValues;
-  lastUpdated: string;
+  formData: InvoiceFormValues;
 }
 
-// Default form values
-const defaultFormValues: InvoiceFormValues = {
+// Initialize default form values
+const getDefaultFormValues = (): InvoiceFormValues => ({
   customer: {
     id: undefined,
     name: '',
@@ -128,7 +129,7 @@ const defaultFormValues: InvoiceFormValues = {
   paymentTerms: '0',
   amountPaid: 0,
   notes: '',
-};
+});
 
 const CreateInvoice = () => {
   const { toast } = useToast();
@@ -139,47 +140,89 @@ const CreateInvoice = () => {
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   
-  // Multi-invoice state
-  const [activeInvoiceId, setActiveInvoiceId] = useState<string>("draft-1");
-  const [invoiceDrafts, setInvoiceDrafts] = useState<InvoiceDraft[]>(() => {
-    try {
-      const savedDrafts = localStorage.getItem('invoiceDrafts');
-      if (savedDrafts) {
-        const parsed = JSON.parse(savedDrafts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Ensure activeInvoiceId points to a valid draft
-          setActiveInvoiceId(parsed[0].id);
-          return parsed;
-        }
+  // Multi-invoice tabs state
+  const [activeTab, setActiveTab] = useState('invoice-1');
+  const [invoiceTabs, setInvoiceTabs] = useState<InvoiceTab[]>(() => {
+    // Try to load saved invoices from localStorage
+    const savedInvoices = localStorage.getItem('invoiceTabs');
+    if (savedInvoices) {
+      try {
+        return JSON.parse(savedInvoices);
+      } catch (e) {
+        console.error('Error parsing saved invoices:', e);
       }
-    } catch (e) {
-      console.error('Error loading invoice drafts:', e);
     }
     
-    // Default to one invoice draft if nothing valid is saved
-    return [{
-      id: 'draft-1',
-      name: 'Invoice 1',
-      data: defaultFormValues,
-      lastUpdated: new Date().toISOString()
-    }];
+    // Default to one invoice tab if nothing is saved
+    return [
+      {
+        id: 'invoice-1',
+        name: 'Invoice 1',
+        formData: getDefaultFormValues(),
+      }
+    ];
   });
 
-  // Function to save drafts to localStorage
-  const saveDrafts = (drafts: InvoiceDraft[]) => {
-    localStorage.setItem('invoiceDrafts', JSON.stringify(drafts));
-  };
+  // Fetch customers with optimized performance
+  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<any[]>({
+    queryKey: ['/api/customers', customerSearchTerm],
+    queryFn: async () => {
+      if (customerSearchTerm && customerSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
+    enabled: customerSearchTerm.length > 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
-  // Get the currently active draft
-  const getCurrentDraft = (): InvoiceDraft | undefined => {
-    return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
-  };
+  // Fetch products with optimized performance
+  const { data: products = [], isLoading: isLoadingProducts } = useQuery<any[]>({
+    queryKey: ['/api/products', productSearchTerm],
+    queryFn: async () => {
+      // Only make API call when actively searching
+      if (productSearchTerm && productSearchTerm.length > 0) {
+        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
+        return await res.json();
+      }
+      return [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes of cache
+    enabled: true,
+    // Add these optimizations:
+    refetchOnWindowFocus: false, // Don't refetch when tab gets focus
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnReconnect: false, // Don't refetch when reconnecting
+  });
 
-  // Set up the form
+  // Get the active invoice tab data
+  const getActiveTabData = useCallback(() => {
+    const activeTabData = invoiceTabs.find(tab => tab.id === activeTab);
+    return activeTabData?.formData || getDefaultFormValues();
+  }, [activeTab, invoiceTabs]);
+
+  // Set up the form with the active tab's data
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: getCurrentDraft()?.data || defaultFormValues,
+    defaultValues: getActiveTabData(),
   });
+  
+  // Save form data to local storage when it changes
+  const saveFormData = useCallback((data: InvoiceFormValues) => {
+    setInvoiceTabs(prev => {
+      const updated = prev.map(tab => 
+        tab.id === activeTab 
+          ? { ...tab, formData: data } 
+          : tab
+      );
+      localStorage.setItem('invoiceTabs', JSON.stringify(updated));
+      return updated;
+    });
+  }, [activeTab]);
 
   const { fields, append, remove } = useFieldArray({
     name: 'items',
@@ -190,36 +233,6 @@ const CreateInvoice = () => {
   const watchItems = form.watch('items');
   const watchTaxRate = form.watch('taxRate');
   const watchPaymentStatus = form.watch('paymentStatus');
-
-  // Fetch customers data
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ['/api/customers', customerSearchTerm],
-    queryFn: async () => {
-      if (customerSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-        return await res.json();
-      }
-      return [];
-    },
-    enabled: customerSearchTerm.length > 0,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-
-  // Fetch products data
-  const { data: products = [] } = useQuery<any[]>({
-    queryKey: ['/api/products', productSearchTerm],
-    queryFn: async () => {
-      if (productSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
-        return await res.json();
-      }
-      return [];
-    },
-    enabled: productSearchTerm.length > 0,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
 
   // Mutation for creating a customer
   const createCustomerMutation = useMutation({
@@ -235,11 +248,8 @@ const CreateInvoice = () => {
       form.setValue('customer', {
         id: data.id,
         name: data.name,
-        company: data.company || '',
-        position: data.position || '',
         email: data.email || '',
         phone: data.phone || '',
-        sector: data.sector || '',
         address: data.address || '',
       });
       setIsCreatingCustomer(false);
@@ -265,29 +275,6 @@ const CreateInvoice = () => {
         title: 'Invoice created',
         description: `Successfully created invoice #${data.invoiceNumber}`,
       });
-      
-      // Remove this draft after successful creation
-      setInvoiceDrafts(prev => {
-        const updated = prev.filter(draft => draft.id !== activeInvoiceId);
-        
-        // If no more drafts, create a new empty one
-        if (updated.length === 0) {
-          updated.push({
-            id: 'draft-1',
-            name: 'Invoice 1',
-            data: defaultFormValues,
-            lastUpdated: new Date().toISOString()
-          });
-        }
-        
-        saveDrafts(updated);
-        
-        // Set active invoice to the first one
-        setActiveInvoiceId(updated[0].id);
-        
-        return updated;
-      });
-      
       setIsSubmitting(false);
       setShowInvoicePreview(true);
       queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
@@ -302,58 +289,97 @@ const CreateInvoice = () => {
     },
   });
 
-  // Update form when active invoice changes
-  useEffect(() => {
-    const activeDraft = getCurrentDraft();
-    if (activeDraft) {
-      form.reset(activeDraft.data);
-    }
-  }, [activeInvoiceId, form]);
-
-  // Calculate totals whenever items or tax rate changes
-  useEffect(() => {
+  // Calculate subtotal, tax, and total whenever items or tax rate changes
+  // Using React.useCallback to memoize the calculation function
+  const calculateTotals = React.useCallback(() => {
     if (watchItems) {
-      // Calculate item totals
-      watchItems.forEach((item, index) => {
+      // Calculate item totals and update in a batch to reduce renders
+      const updatedTotals = watchItems.map((item, index) => {
         const total = item.quantity * item.unitPrice;
+        return { index, total };
+      });
+      
+      // Set all totals at once
+      updatedTotals.forEach(({ index, total }) => {
         form.setValue(`items.${index}.total`, total);
       });
 
-      // Calculate subtotal, tax, and grand total
-      const subtotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+      // Calculate derived values
+      const subtotal = updatedTotals.reduce((sum, { total }) => sum + total, 0);
       const taxAmount = (subtotal * watchTaxRate) / 100;
       const grandTotal = subtotal + taxAmount;
-
+      
+      // Update form values all at once
       form.setValue('subtotal', subtotal);
       form.setValue('taxAmount', taxAmount);
       form.setValue('grandTotal', grandTotal);
-      
-      // If payment status is 'paid', update amount paid
-      if (form.getValues('paymentStatus') === 'paid') {
-        form.setValue('amountPaid', grandTotal);
-      }
     }
-    
-    // Save the current draft with a small delay to avoid too frequent updates
+  }, [watchItems, watchTaxRate, form]);
+
+  // Run the calculation with a small delay to avoid too frequent updates
+  useEffect(() => {
     const timer = setTimeout(() => {
-      const currentFormData = form.getValues();
-      setInvoiceDrafts(prev => {
-        const updated = prev.map(draft => 
-          draft.id === activeInvoiceId 
-            ? { 
-                ...draft, 
-                data: currentFormData,
-                lastUpdated: new Date().toISOString() 
-              }
-            : draft
-        );
-        saveDrafts(updated);
-        return updated;
-      });
-    }, 500);
+      calculateTotals();
+      
+      // Save the form data when it changes
+      const currentValues = form.getValues();
+      saveFormData(currentValues);
+    }, 50);
     
     return () => clearTimeout(timer);
-  }, [watchItems, watchTaxRate, form, activeInvoiceId]);
+  }, [calculateTotals, saveFormData]);
+  
+  // Load the correct form data when the active tab changes
+  useEffect(() => {
+    const tabData = getActiveTabData();
+    form.reset(tabData);
+  }, [activeTab, form, getActiveTabData]);
+  
+  // Functions to manage tabs
+  const addNewInvoiceTab = () => {
+    if (invoiceTabs.length >= 4) {
+      toast({
+        title: "Maximum invoices reached",
+        description: "You can have a maximum of 4 invoices open at once.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newTabId = `invoice-${invoiceTabs.length + 1}`;
+    const newTab: InvoiceTab = {
+      id: newTabId,
+      name: `Invoice ${invoiceTabs.length + 1}`,
+      formData: getDefaultFormValues(),
+    };
+    
+    setInvoiceTabs(prev => {
+      const updated = [...prev, newTab];
+      localStorage.setItem('invoiceTabs', JSON.stringify(updated));
+      return updated;
+    });
+    
+    setActiveTab(newTabId);
+  };
+  
+  const closeInvoiceTab = (tabId: string) => {
+    // Don't allow closing the last tab
+    if (invoiceTabs.length <= 1) {
+      return;
+    }
+    
+    setInvoiceTabs(prev => {
+      const updated = prev.filter(tab => tab.id !== tabId);
+      localStorage.setItem('invoiceTabs', JSON.stringify(updated));
+      
+      // If we're closing the active tab, switch to another tab
+      if (activeTab === tabId) {
+        setActiveTab(updated[0].id);
+      }
+      
+      return updated;
+    });
+  };
 
   // Update amount paid based on payment status
   useEffect(() => {
@@ -378,58 +404,6 @@ const CreateInvoice = () => {
     });
   };
 
-  // Add a new invoice draft
-  const addNewDraft = () => {
-    if (invoiceDrafts.length >= 4) {
-      toast({
-        title: "Maximum invoices reached",
-        description: "You can only work on up to 4 invoices at a time.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newId = `draft-${Date.now()}`;
-    const newDraft: InvoiceDraft = {
-      id: newId,
-      name: `Invoice ${invoiceDrafts.length + 1}`,
-      data: defaultFormValues,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    setInvoiceDrafts(prev => {
-      const updated = [...prev, newDraft];
-      saveDrafts(updated);
-      return updated;
-    });
-    
-    setActiveInvoiceId(newId);
-  };
-  
-  // Remove an invoice draft
-  const removeDraft = (draftId: string) => {
-    if (invoiceDrafts.length <= 1) {
-      toast({
-        title: "Cannot remove draft",
-        description: "You need at least one invoice draft.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setInvoiceDrafts(prev => {
-      const updated = prev.filter(draft => draft.id !== draftId);
-      saveDrafts(updated);
-      
-      // If removing the active draft, switch to another one
-      if (activeInvoiceId === draftId) {
-        setActiveInvoiceId(updated[0].id);
-      }
-      
-      return updated;
-    });
-  };
-
   // Handle product selection
   const handleProductSelection = (productId: number, index: number) => {
     const product = products.find(p => p.id === productId);
@@ -437,6 +411,7 @@ const CreateInvoice = () => {
       form.setValue(`items.${index}.productId`, product.id);
       form.setValue(`items.${index}.productName`, product.name);
       form.setValue(`items.${index}.unitPrice`, parseFloat(product.sellingPrice));
+      // The total will be calculated in the useEffect
       
       // Close this product's popover
       setOpenProductPopovers(prev => ({
@@ -444,7 +419,7 @@ const CreateInvoice = () => {
         [index]: false
       }));
       
-      // Reset the search term
+      // Reset the search term after selection
       setProductSearchTerm('');
     }
   };
@@ -508,12 +483,36 @@ const CreateInvoice = () => {
       notes: data.notes,
     };
     
-    createInvoiceMutation.mutate(invoiceData);
+    createInvoiceMutation.mutate(invoiceData, {
+      onSuccess: (data) => {
+        // After successfully creating an invoice, remove this tab from storage
+        setInvoiceTabs(prev => {
+          const updated = prev.filter(tab => tab.id !== activeTab);
+          
+          // If no more tabs, create a new empty one
+          if (updated.length === 0) {
+            const newTab = {
+              id: 'invoice-1',
+              name: 'Invoice 1',
+              formData: getDefaultFormValues(),
+            };
+            updated.push(newTab);
+          }
+          
+          localStorage.setItem('invoiceTabs', JSON.stringify(updated));
+          
+          // Switch to the first available tab
+          setActiveTab(updated[0].id);
+          
+          return updated;
+        });
+      }
+    });
   };
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Create New Invoice</h1>
           <p className="text-muted-foreground">Create a new invoice by selecting a customer and adding products</p>
@@ -529,15 +528,38 @@ const CreateInvoice = () => {
         </div>
       </div>
       
-      {/* Invoice Drafts Tabs */}
-      <div className="border rounded-md p-4 mb-6 bg-background">
+      {/* Multiple Invoice Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium">Invoices In Progress</h2>
-          {invoiceDrafts.length < 4 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={addNewDraft}
+          <TabsList>
+            {invoiceTabs.map(tab => (
+              <div key={tab.id} className="flex items-center">
+                <TabsTrigger value={tab.id} className="relative group">
+                  {tab.name}
+                  {invoiceTabs.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-5 w-5 p-0 absolute -top-2 -right-2 rounded-full opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeInvoiceTab(tab.id);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </TabsTrigger>
+              </div>
+            ))}
+          </TabsList>
+          
+          {invoiceTabs.length < 4 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={addNewInvoiceTab}
+              className="ml-4"
             >
               <Plus className="mr-2 h-4 w-4" />
               New Invoice
@@ -545,38 +567,7 @@ const CreateInvoice = () => {
           )}
         </div>
         
-        <Tabs value={activeInvoiceId} onValueChange={setActiveInvoiceId}>
-          <TabsList className="grid grid-cols-4 w-full">
-            {invoiceDrafts.map(draft => (
-              <TabsTrigger key={draft.id} value={draft.id} className="relative">
-                <span>{draft.name}</span>
-                {invoiceDrafts.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 w-5 p-0 absolute -top-2 -right-2 rounded-full opacity-70 hover:opacity-100 bg-muted"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeDraft(draft.id);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value={activeInvoiceId}>
-            {/* Tab content is actually the entire form below */}
-          </TabsContent>
-        </Tabs>
-        
-        <div className="mt-2 text-sm text-muted-foreground">
-          <p>Your invoice progress is automatically saved. You can work on up to 4 invoices at the same time.</p>
-        </div>
-      </div>
-
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Customer Section */}
         <Card>
           <CardHeader>
@@ -981,31 +972,25 @@ const CreateInvoice = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {fields.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4">
-                        No items added. Click "Add Item" to add products to this invoice.
-                      </TableCell>
-                    </TableRow>
-                  )}
+                  <TableRow>
+                    <TableCell colSpan={5}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addProductRow}
+                        className="mt-2"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Item
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
-              
-              {fields.length > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addProductRow}
-                  className="mt-4"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Another Item
-                </Button>
-              )}
             </div>
 
-            <Separator className="my-6" />
+            <Separator className="my-4" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Payment Details */}
@@ -1028,25 +1013,23 @@ const CreateInvoice = () => {
                   </Select>
                 </div>
                 
-                {form.watch('paymentStatus') !== 'unpaid' && (
-                  <div>
-                    <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <Select
-                      value={form.watch('paymentMethod') || ''}
-                      onValueChange={(value) => form.setValue('paymentMethod', value as any)}
-                    >
-                      <SelectTrigger id="paymentMethod">
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="visa">Visa</SelectItem>
-                        <SelectItem value="cheque">Cheque</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                <div>
+                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Select
+                    value={(form.watch('paymentMethod') || '') as 'cash' | 'visa' | 'cheque' | 'bank_transfer'}
+                    onValueChange={(value) => form.setValue('paymentMethod', value as 'cash' | 'visa' | 'cheque' | 'bank_transfer' | undefined)}
+                  >
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="visa">Visa</SelectItem>
+                      <SelectItem value="cheque">Cheque</SelectItem>
+                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 {(form.watch('paymentMethod') === 'cheque' || form.watch('paymentMethod') === 'bank_transfer') && (
                   <div>
@@ -1062,28 +1045,35 @@ const CreateInvoice = () => {
                         }
                       }}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {form.watch('paymentMethod') === 'cheque' 
+                        ? 'Upload a scanned copy or photo of the cheque' 
+                        : 'Upload the bank transfer receipt or confirmation'}
+                    </p>
                   </div>
                 )}
                 
                 <div>
-                  <Label htmlFor="paymentTerms">Payment Terms (Days)</Label>
+                  <Label htmlFor="paymentTerms">Payment Terms</Label>
                   <Select
-                    value={form.watch('paymentTerms')}
+                    value={form.watch('paymentTerms') || '0'}
                     onValueChange={(value) => form.setValue('paymentTerms', value)}
                   >
                     <SelectTrigger id="paymentTerms">
                       <SelectValue placeholder="Select payment terms" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Due Immediately (0 days)</SelectItem>
-                      <SelectItem value="7">Net 7 (7 days)</SelectItem>
-                      <SelectItem value="15">Net 15 (15 days)</SelectItem>
-                      <SelectItem value="30">Net 30 (30 days)</SelectItem>
-                      <SelectItem value="60">Net 60 (60 days)</SelectItem>
+                      <SelectItem value="0">Immediate Payment</SelectItem>
+                      <SelectItem value="7">7 Days</SelectItem>
+                      <SelectItem value="14">14 Days</SelectItem>
+                      <SelectItem value="30">30 Days</SelectItem>
+                      <SelectItem value="45">45 Days</SelectItem>
+                      <SelectItem value="60">60 Days</SelectItem>
+                      <SelectItem value="90">90 Days</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {form.watch('paymentStatus') === 'partial' && (
                   <div>
                     <Label htmlFor="amountPaid">Amount Paid</Label>
@@ -1096,121 +1086,261 @@ const CreateInvoice = () => {
                     />
                   </div>
                 )}
+
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Invoice notes or payment instructions"
+                    {...form.register('notes')}
+                  />
+                </div>
               </div>
-              
-              {/* Order Summary */}
-              <div>
-                <h3 className="font-medium mb-4">Order Summary</h3>
-                <div className="space-y-3 bg-muted/50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 text-sm py-2">
-                    <span>Subtotal</span>
-                    <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(form.watch('subtotal') || 0)}</span>
+
+              {/* Invoice Summary */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Invoice Summary</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(form.watch('subtotal'))}
+                    </span>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
-                    <Label htmlFor="taxRate" className="text-sm">Tax Rate (%)</Label>
-                    <div className="flex justify-end">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span>Tax:</span>
                       <Input
-                        id="taxRate"
                         type="number"
                         min="0"
                         max="100"
-                        step="0.01"
-                        className="w-20 text-right"
+                        className="w-16"
                         {...form.register('taxRate', { valueAsNumber: true })}
                       />
+                      <span>%</span>
                     </div>
+                    <span>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(form.watch('taxAmount'))}
+                    </span>
                   </div>
-                  
-                  <div className="grid grid-cols-2 text-sm py-2">
-                    <span>Tax Amount</span>
-                    <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(form.watch('taxAmount') || 0)}</span>
-                  </div>
-                  
                   <Separator />
-                  
-                  <div className="grid grid-cols-2 py-2">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-right font-bold text-lg">{new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(form.watch('grandTotal') || 0)}</span>
+                  <div className="flex justify-between font-bold">
+                    <span>Total:</span>
+                    <span>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(form.watch('grandTotal'))}
+                    </span>
                   </div>
                   
                   {form.watch('paymentStatus') === 'partial' && (
                     <>
-                      <div className="grid grid-cols-2 text-sm py-2">
-                        <span>Amount Paid</span>
-                        <span className="text-right font-medium text-green-600">{new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(form.watch('amountPaid') || 0)}</span>
+                      <div className="flex justify-between text-green-600">
+                        <span>Amount Paid:</span>
+                        <span>
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(form.watch('amountPaid'))}
+                        </span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 text-sm py-2">
-                        <span>Balance Due</span>
-                        <span className="text-right font-medium text-red-600">{new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0))}</span>
+                      <div className="flex justify-between text-red-600">
+                        <span>Balance Due:</span>
+                        <span>
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(form.watch('grandTotal') - form.watch('amountPaid'))}
+                        </span>
                       </div>
                     </>
                   )}
                 </div>
               </div>
             </div>
-            
-            {/* Notes */}
-            <div className="mt-6">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Add any additional notes or terms..."
-                className="min-h-[100px]"
-                {...form.register('notes')}
-              />
-            </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Invoice
-            </Button>
-          </CardFooter>
         </Card>
       </form>
-      
+
       {/* Invoice Preview Dialog */}
       <Dialog open={showInvoicePreview} onOpenChange={setShowInvoicePreview}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Invoice Created</DialogTitle>
+            <DialogTitle>Invoice Created Successfully</DialogTitle>
             <DialogDescription>
-              Your invoice has been created successfully.
+              Your invoice has been created and saved to the system.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p>What would you like to do next?</p>
+          
+          <div className="border rounded-lg p-6">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-blue-600">INVOICE</h2>
+                <p className="text-muted-foreground">PharmaOverseas Ltd.</p>
+                <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
+              </div>
+              <div className="text-right">
+                <p className="font-bold">Invoice #: INV-{new Date().getFullYear()}-{Math.floor(Math.random() * 10000)}</p>
+                <p>Date: {format(new Date(), 'PP')}</p>
+                <p>
+                  Payment Terms: {form.watch('paymentTerms') === '0' 
+                    ? 'Immediate Payment' 
+                    : `${form.watch('paymentTerms')} Days`
+                  }
+                </p>
+                {form.watch('paymentMethod') && (
+                  <p>
+                    Payment Method: {form.watch('paymentMethod')?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </p>
+                )}
+                <p className="mt-2">
+                  <span className={cn(
+                    "px-2 py-1 rounded-full text-xs font-semibold",
+                    form.watch('paymentStatus') === 'paid' ? "bg-green-100 text-green-800" :
+                    form.watch('paymentStatus') === 'unpaid' ? "bg-red-100 text-red-800" :
+                    "bg-yellow-100 text-yellow-800"
+                  )}>
+                    {form.watch('paymentStatus').charAt(0).toUpperCase() + form.watch('paymentStatus').slice(1)}
+                  </span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div>
+                <h3 className="font-semibold mb-2">Bill To:</h3>
+                {form.watch('customer.company') && <p className="font-medium">{form.watch('customer.company')}</p>}
+                <p>{form.watch('customer.name')}</p>
+                {form.watch('customer.position') && <p>Position: {form.watch('customer.position')}</p>}
+                {form.watch('customer.sector') && <p>Sector: {form.watch('customer.sector')}</p>}
+                {form.watch('customer.address') && <p>{form.watch('customer.address')}</p>}
+                {form.watch('customer.phone') && <p>Phone: {form.watch('customer.phone')}</p>}
+                {form.watch('customer.email') && <p>Email: {form.watch('customer.email')}</p>}
+              </div>
+            </div>
+            
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Unit Price</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {form.watch('items').map((item, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{item.productName}</TableCell>
+                    <TableCell className="text-right">{item.quantity}</TableCell>
+                    <TableCell className="text-right">
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(item.unitPrice)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(item.total)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            <div className="mt-8 flex justify-end">
+              <div className="w-72">
+                <div className="flex justify-between mb-2">
+                  <span>Subtotal:</span>
+                  <span>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(form.watch('subtotal'))}
+                  </span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Tax ({form.watch('taxRate')}%):</span>
+                  <span>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(form.watch('taxAmount'))}
+                  </span>
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between font-bold mb-2">
+                  <span>Total:</span>
+                  <span>
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(form.watch('grandTotal'))}
+                  </span>
+                </div>
+                
+                {form.watch('paymentStatus') === 'partial' && (
+                  <>
+                    <div className="flex justify-between text-green-600 mb-2">
+                      <span>Amount Paid:</span>
+                      <span>
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(form.watch('amountPaid'))}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-red-600">
+                      <span>Balance Due:</span>
+                      <span>
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(form.watch('grandTotal') - form.watch('amountPaid'))}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            {form.watch('notes') && (
+              <div className="mt-8 border-t pt-4">
+                <h3 className="font-semibold mb-2">Notes:</h3>
+                <p className="text-muted-foreground">{form.watch('notes')}</p>
+              </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => window.location.href = "/invoices"}>
-              View All Invoices
+          
+          <DialogFooter className="flex justify-between items-center">
+            <Button variant="outline" onClick={() => window.location.href = '/sales'}>
+              Go to Sales
             </Button>
-            <Button onClick={() => {
-              setShowInvoicePreview(false);
-              form.reset(defaultFormValues);
-            }}>
-              Create Another Invoice
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+              <Button variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button onClick={() => {
+                setShowInvoicePreview(false);
+                form.reset();
+              }}>
+                Create Another
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
