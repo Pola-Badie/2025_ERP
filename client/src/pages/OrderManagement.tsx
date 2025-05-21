@@ -753,7 +753,11 @@ const OrderManagement = () => {
     
     // Filter orders by warehouse type if specified
     const ordersToExport = warehouseType ? 
-      productionOrders.filter((order: any) => order.location === warehouseType) : 
+      productionOrders.filter((order: any) => {
+        // Consider both the order's stored location and the current selection
+        const orderLocation = order.location || "Warehouse 1";
+        return orderLocation === warehouseType;
+      }) : 
       productionOrders;
     
     if (ordersToExport.length === 0) {
@@ -821,7 +825,11 @@ const OrderManagement = () => {
     
     // Filter orders by warehouse type if specified
     const ordersToExport = warehouseType ? 
-      refiningOrders.filter((order: any) => order.location === warehouseType) : 
+      refiningOrders.filter((order: any) => {
+        // Consider both the order's stored location and the current selection
+        const orderLocation = order.location || "Warehouse 1";
+        return orderLocation === warehouseType;
+      }) : 
       refiningOrders;
     
     if (ordersToExport.length === 0) {
