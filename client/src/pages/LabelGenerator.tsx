@@ -943,69 +943,40 @@ const LabelGenerator: React.FC = () => {
                               )}
                             </div>
                             
-                            {/* Vertical Barcode with vertical batch number */}
-                            <div className="absolute top-0 right-0 h-full flex" style={{ width: '60px', zIndex: 20 }}>
-                              {/* Left side - Barcode */}
+                            {/* Vertical Barcode */}
+                            <div className="absolute top-0 right-0 h-full" style={{ width: '40px', overflow: 'hidden', zIndex: 10 }}>
                               <div style={{ 
                                 position: 'absolute',
                                 top: '40%',
-                                right: '28px', 
-                                height: '170px',
-                                width: '30px',
-                                transform: 'translateY(-50%)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'space-between',
-                                zIndex: 15
+                                right: '-80px',
+                                transform: 'translateY(-50%) rotate(90deg)',
+                                width: '200px',
+                                height: '40px',
+                                backgroundColor: 'white'
                               }}>
-                                {Array(15).fill(0).map((_, i) => (
-                                  <div 
-                                    key={i} 
-                                    style={{ 
-                                      height: `${(i % 3 === 0) ? 4 : 3}px`, 
-                                      width: '100%',
-                                      backgroundColor: 'black',
-                                      marginBottom: '5px'
-                                    }}
-                                  />
-                                ))}
-                              </div>
-                              
-                              {/* Right side - Batch Number */}
-                              <div style={{ 
-                                position: 'absolute',
-                                top: '40%',
-                                right: '8px',
-                                transform: 'translateY(-50%)',
-                                height: '170px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                zIndex: 25,
-                                backgroundColor: 'transparent'
-                              }}>
-                                <div style={{ 
-                                  fontWeight: 'bold', 
-                                  fontSize: '11px', 
-                                  marginBottom: '5px',
-                                  backgroundColor: 'transparent',
-                                  color: 'black'
-                                }}>B</div>
-                                {(batchNumber || '123456789').split('').map((char, i) => (
-                                  <div 
-                                    key={i}
-                                    style={{ 
-                                      fontSize: '11px',
-                                      fontWeight: 'bold',
-                                      marginBottom: '3px',
-                                      color: 'black',
-                                      backgroundColor: 'transparent'
-                                    }}
-                                  >
-                                    {char}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    height: '30px', 
+                                    width: '100%',
+                                    justifyContent: 'center'
+                                  }}>
+                                    {Array(20).fill(0).map((_, i) => (
+                                      <div 
+                                        key={i} 
+                                        style={{ 
+                                          width: `${(i % 3 === 0) ? 4 : 3}px`, 
+                                          height: '100%',
+                                          backgroundColor: 'black',
+                                          marginRight: '2px'
+                                        }}
+                                      />
+                                    ))}
                                   </div>
-                                ))}
+                                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '2px' }}>
+                                    {batchNumber || '123456789'}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
