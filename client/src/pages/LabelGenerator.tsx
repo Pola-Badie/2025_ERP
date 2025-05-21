@@ -914,7 +914,7 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Right Side - Dates */}
                           <div className="w-1/2 p-3">
-                            <div className="space-y-2 mb-2" style={{ width: '60%', marginLeft: '0' }}>
+                            <div className="space-y-2 mb-2" style={{ width: '60%', marginLeft: 'auto', marginRight: '2rem' }}>
                               {manufacturingDate && (
                                 <div className="text-right">
                                   <div className="font-semibold text-xs">Manf. Date</div>
