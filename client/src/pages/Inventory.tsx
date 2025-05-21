@@ -296,6 +296,11 @@ const Inventory: React.FC = () => {
       product.location = 'Main Floor';
     }
     
+    // Add shelf numbers if needed
+    if (!product.shelf) {
+      product.shelf = `Shelf ${product.id % 20 + 1}`;
+    }
+    
     return matchesSearch && matchesStatus && matchesCategory;
   });
   
