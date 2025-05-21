@@ -298,7 +298,9 @@ const Inventory: React.FC = () => {
     
     // Add shelf numbers if needed
     if (!product.shelf) {
-      product.shelf = `Shelf ${product.id % 20 + 1}`;
+      // Create a shelf number based on the product ID to ensure consistency
+      const shelfNumber = product.id % 20 + 1;
+      product.shelf = shelfNumber < 10 ? `Shelf 0${shelfNumber}` : `Shelf ${shelfNumber}`;
     }
     
     return matchesSearch && matchesStatus && matchesCategory;
@@ -1044,8 +1046,8 @@ const Inventory: React.FC = () => {
                   <p>{formatDate(selectedProductHistory.expiryDate)}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-500">Location</p>
-                  <p>{selectedProductHistory.location || 'N/A'}</p>
+                  <p className="text-sm font-medium text-slate-500">Warehouse</p>
+                  <p>{warehouses.find(w => w.id === selectedWarehouse)?.name || 'Main Warehouse'}</p>
                 </div>
               </div>
 
