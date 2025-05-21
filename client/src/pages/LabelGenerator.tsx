@@ -946,7 +946,7 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Hazard symbol in the center */}
                           {selectedHazard && (
-                            <div className="absolute left-[58%] transform -translate-x-1/2 top-1/3 -translate-y-1/2">
+                            <div className="absolute left-[54%] transform -translate-x-1/2 top-1/3 -translate-y-1/2">
                               <img 
                                 src={getHazardImagePath(selectedHazard)} 
                                 alt="Hazard symbol" 
