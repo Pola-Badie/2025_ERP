@@ -94,6 +94,8 @@ const OrderManagement = () => {
   const [taxPercentage, setTaxPercentage] = useState<number>(14);
   const [subtotalPrice, setSubtotalPrice] = useState('0.00');
   const [totalPrice, setTotalPrice] = useState('0.00');
+  const [transportationCost, setTransportationCost] = useState<string>('0.00');
+  const [transportationNotes, setTransportationNotes] = useState<string>('');
   
   // Refining order states
   const [refiningBatchNumber, setRefiningBatchNumber] = useState('');
@@ -106,8 +108,10 @@ const OrderManagement = () => {
   const [refiningTaxPercentage, setRefiningTaxPercentage] = useState<number>(14);
   const [refiningSubtotal, setRefiningSubtotal] = useState('0.00');
   const [refiningCost, setRefiningCost] = useState('0.00');
+  const [refiningTransportationCost, setRefiningTransportationCost] = useState<string>('0.00');
+  const [refiningTransportationNotes, setRefiningTransportationNotes] = useState<string>('');
   
-  // Calculate subtotal and total price (with tax) when raw materials, packaging items, or tax percentage change
+  // Calculate subtotal and total price (with tax) when raw materials, packaging items, tax percentage, or transportation cost change
   useEffect(() => {
     // Calculate materials cost
     const materialsCost = rawMaterials.reduce((sum, material) => {
@@ -119,23 +123,28 @@ const OrderManagement = () => {
       return sum + (item.quantity * parseFloat(item.unitPrice));
     }, 0);
     
+    // Add transportation cost
+    const transportCost = parseFloat(transportationCost) || 0;
+    
     // Calculate the total subtotal
-    const subtotal = materialsCost + packagingCost;
+    const subtotal = materialsCost + packagingCost + transportCost;
     setSubtotalPrice(subtotal.toFixed(2));
     
     // Calculate total with tax
     const taxAmount = subtotal * (taxPercentage / 100);
     const total = subtotal + taxAmount;
     setTotalPrice(total.toFixed(2));
-  }, [rawMaterials, packagingItems, taxPercentage]);
+  }, [rawMaterials, packagingItems, transportationCost, taxPercentage]);
   
-  // Calculate refining cost with tax
+  // Calculate refining cost with tax and transportation
   useEffect(() => {
     const subtotal = parseFloat(refiningSubtotal);
-    const taxAmount = subtotal * (refiningTaxPercentage / 100);
-    const total = subtotal + taxAmount;
+    const transportCost = parseFloat(refiningTransportationCost) || 0;
+    const baseSubtotal = subtotal + transportCost;
+    const taxAmount = baseSubtotal * (refiningTaxPercentage / 100);
+    const total = baseSubtotal + taxAmount;
     setRefiningCost(total.toFixed(2));
-  }, [refiningSubtotal, refiningTaxPercentage]);
+  }, [refiningSubtotal, refiningTransportationCost, refiningTaxPercentage]);
   
   // Fetch customers
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
