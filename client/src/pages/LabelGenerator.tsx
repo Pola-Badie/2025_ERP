@@ -973,7 +973,14 @@ const LabelGenerator: React.FC = () => {
                                       />
                                     ))}
                                   </div>
-                                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '2px' }}>
+                                  <div style={{ 
+                                    fontSize: '12px', 
+                                    fontWeight: 'bold', 
+                                    marginTop: '2px',
+                                    backgroundColor: '#fff',
+                                    padding: '2px 4px',
+                                    border: '1px solid #eee'
+                                  }}>
                                     {batchNumber || '123456789'}
                                   </div>
                                 </div>
