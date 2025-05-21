@@ -2,100 +2,109 @@ import { Express, Request, Response } from "express";
 import { loadFinancialData } from "./financial-seed-data";
 import { faker } from "@faker-js/faker";
 
-// Generate fake payment data
+// Generate payment data
 export function generatePayments(count = 15) {
-  const financialData = loadFinancialData();
-  const payments = [];
-  
-  for (let i = 0; i < count; i++) {
-    const paymentDate = faker.date.between({ 
-      from: '2025-01-01', 
-      to: '2025-05-17' 
-    });
+  try {
+    const payments = [];
     
-    const amount = faker.number.float({ min: 1000, max: 15000, precision: 0.01 });
-    const invoiceIds = faker.helpers.arrayElements(
-      financialData.dueInvoices.map(inv => inv.id), 
-      faker.number.int({ min: 1, max: 3 })
-    );
-    
-    // Create allocations for this payment
-    const allocations = invoiceIds.map((invoiceId) => {
-      const invoice = financialData.dueInvoices.find(inv => inv.id === invoiceId);
-      const allocationAmount = faker.number.float({ 
-        min: 100, 
-        max: Math.min(amount, invoice ? invoice.balance : 5000), 
-        precision: 0.01 
+    for (let i = 0; i < count; i++) {
+      const paymentDate = faker.date.between({ 
+        from: '2025-01-01', 
+        to: '2025-05-17' 
       });
       
-      return {
-        id: faker.string.uuid(),
-        invoiceId,
-        invoiceNumber: invoice ? `INV-${invoiceId.substring(0, 6)}` : `INV-${faker.string.alphanumeric(6).toUpperCase()}`,
-        amount: allocationAmount
-      };
-    });
-    
-    // Calculate the total allocated amount
-    const totalAllocated = allocations.reduce((sum, allocation) => sum + allocation.amount, 0);
-    
-    // If allocated amount is more than payment amount, adjust to be equal
-    if (totalAllocated > amount) {
-      const factor = amount / totalAllocated;
-      allocations.forEach(allocation => {
-        allocation.amount = Math.round(allocation.amount * factor * 100) / 100;
+      const amount = faker.number.int({ min: 1000, max: 15000 }) / 100;
+      
+      // Get invoice IDs
+      const invoiceIds = Array(faker.number.int({ min: 1, max: 3 }))
+        .fill(0)
+        .map(() => faker.string.alphanumeric(8));
+      
+      // Create allocations for this payment
+      const allocations = invoiceIds.map(() => {
+        const allocationAmount = faker.number.int({ 
+          min: 100, 
+          max: Math.min(amount * 100, 5000) 
+        }) / 100;
+        
+        return {
+          id: faker.number.int({ min: 1000, max: 9999 }),
+          paymentId: faker.number.int({ min: 1, max: 999 }),
+          invoiceId: faker.number.int({ min: 1000, max: 9999 }),
+          invoiceNumber: `INV-${faker.string.alphanumeric(6).toUpperCase()}`,
+          amount: allocationAmount
+        };
       });
+      
+      // Calculate the total allocated amount
+      const totalAllocated = allocations.reduce((sum, allocation) => sum + allocation.amount, 0);
+      
+      // If allocated amount is more than payment amount, adjust to be equal
+      if (totalAllocated > amount) {
+        const factor = amount / totalAllocated;
+        allocations.forEach(allocation => {
+          allocation.amount = Math.round(allocation.amount * factor * 100) / 100;
+        });
+      }
+      
+      const payment = {
+        id: faker.number.int({ min: 1, max: 999 }),
+        paymentNumber: `PMT-${faker.string.alphanumeric(6).toUpperCase()}`,
+        customerId: faker.number.int({ min: 1, max: 10 }),
+        customerName: faker.company.name(),
+        paymentDate: paymentDate.toISOString(),
+        amount,
+        paymentMethod: faker.helpers.arrayElement(['cash', 'creditCard', 'bankTransfer', 'cheque']),
+        reference: faker.helpers.maybe(() => faker.finance.accountNumber(), { probability: 0.7 }),
+        notes: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.5 }),
+        status: faker.helpers.arrayElement(['completed', 'pending', 'failed']),
+        allocations
+      };
+      
+      payments.push(payment);
     }
     
-    const payment = {
-      id: faker.string.uuid(),
-      paymentNumber: `PMT-${faker.string.alphanumeric(6).toUpperCase()}`,
-      customerId: faker.number.int({ min: 1, max: 10 }),
-      customerName: faker.company.name(),
-      paymentDate: paymentDate.toISOString(),
-      amount,
-      paymentMethod: faker.helpers.arrayElement(['cash', 'creditCard', 'bankTransfer', 'cheque']),
-      reference: faker.helpers.maybe(() => faker.finance.accountNumber(), { probability: 0.7 }),
-      notes: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.5 }),
-      status: faker.helpers.arrayElement(['completed', 'pending', 'failed']),
-      allocations
-    };
-    
-    payments.push(payment);
+    return payments;
+  } catch (error) {
+    console.error("Error generating payments:", error);
+    return [];
   }
-  
-  return payments;
 }
 
-// Generate fake pending invoices
+// Generate pending invoices
 export function generatePendingInvoices(count = 10) {
-  const pendingInvoices = [];
-  
-  for (let i = 0; i < count; i++) {
-    const total = faker.number.float({ min: 2000, max: 20000, precision: 0.01 });
-    const amountPaid = faker.helpers.maybe(
-      () => faker.number.float({ min: 0, max: total * 0.9, precision: 0.01 }),
-      { probability: 0.7 }
-    ) || 0;
-    const amountDue = total - amountPaid;
+  try {
+    const pendingInvoices = [];
     
-    const invoice = {
-      id: faker.number.int({ min: 100, max: 999 }),
-      invoiceNumber: `INV-${faker.string.alphanumeric(6).toUpperCase()}`,
-      customerId: faker.number.int({ min: 1, max: 10 }),
-      customerName: faker.company.name(),
-      date: faker.date.recent({ days: 30 }).toISOString(),
-      dueDate: faker.date.soon({ days: 30 }).toISOString(),
-      total,
-      amountPaid,
-      amountDue,
-      status: amountPaid > 0 ? 'partial' : faker.helpers.arrayElement(['unpaid', 'overdue'])
-    };
+    for (let i = 0; i < count; i++) {
+      const total = faker.number.int({ min: 200000, max: 2000000 }) / 100;
+      const amountPaid = faker.helpers.maybe(
+        () => faker.number.int({ min: 0, max: total * 90 }) / 100,
+        { probability: 0.7 }
+      ) || 0;
+      const amountDue = total - amountPaid;
+      
+      const invoice = {
+        id: faker.number.int({ min: 100, max: 999 }),
+        invoiceNumber: `INV-${faker.string.alphanumeric(6).toUpperCase()}`,
+        customerId: faker.number.int({ min: 1, max: 10 }),
+        customerName: faker.company.name(),
+        date: faker.date.recent({ days: 30 }).toISOString(),
+        dueDate: faker.date.soon({ days: 30 }).toISOString(),
+        total,
+        amountPaid,
+        amountDue,
+        status: amountPaid > 0 ? 'partial' : faker.helpers.arrayElement(['unpaid', 'overdue'])
+      };
+      
+      pendingInvoices.push(invoice);
+    }
     
-    pendingInvoices.push(invoice);
+    return pendingInvoices;
+  } catch (error) {
+    console.error("Error generating pending invoices:", error);
+    return [];
   }
-  
-  return pendingInvoices;
 }
 
 export function registerCustomerPaymentRoutes(app: Express) {

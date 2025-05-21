@@ -861,62 +861,9 @@ const CustomerPayments: React.FC = () => {
                   <TableRow>
                     <TableCell colSpan={8} className="p-4">
                       <div className="flex flex-col items-center justify-center gap-4">
-                        <p className="text-muted-foreground">No payments found in the system.</p>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            const samplePayments = [
-                              {
-                                id: 1,
-                                paymentNumber: "PAY-2025-001",
-                                customerId: 101,
-                                customerName: "Cairo Pharmaceuticals",
-                                paymentDate: new Date().toISOString(),
-                                paymentMethod: "bankTransfer",
-                                amount: 4850.75,
-                                status: "completed",
-                                reference: "INV-2025-0042",
-                                notes: "Received via bank transfer",
-                                allocations: [
-                                  {
-                                    id: 1001,
-                                    paymentId: 1,
-                                    invoiceId: 2001,
-                                    invoiceNumber: "INV-2025-0042",
-                                    amount: 4850.75
-                                  }
-                                ]
-                              },
-                              {
-                                id: 2,
-                                paymentNumber: "PAY-2025-002",
-                                customerId: 102,
-                                customerName: "Alexandria Medical Supplies",
-                                paymentDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-                                paymentMethod: "cash",
-                                amount: 2350.00,
-                                status: "completed",
-                                reference: "Cash receipt #A-2389",
-                                notes: "Partial payment",
-                                allocations: [
-                                  {
-                                    id: 1002,
-                                    paymentId: 2,
-                                    invoiceId: 2002,
-                                    invoiceNumber: "INV-2025-0038",
-                                    amount: 2350.00
-                                  }
-                                ]
-                              }
-                            ];
-                            
-                            setPayments(samplePayments);
-                            setFilteredPayments(samplePayments);
-                          }}
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Sample Payments
-                        </Button>
+                        <p className="text-muted-foreground">No payment history found in the system.</p>
+                        <AlertCircle className="h-12 w-12 text-muted-foreground/50" />
+                        <p className="text-sm text-muted-foreground">Payments will appear here once they are recorded.</p>
                       </div>
                     </TableCell>
                   </TableRow>
