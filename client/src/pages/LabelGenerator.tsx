@@ -951,17 +951,17 @@ const LabelGenerator: React.FC = () => {
                                 right: '-80px',
                                 transform: 'translateY(-50%) rotate(90deg)',
                                 width: '170px',
-                                height: '35px',
+                                height: '40px',
                                 backgroundColor: 'white'
                               }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <div style={{ 
                                     display: 'flex', 
-                                    height: '25px', 
+                                    height: '30px', 
                                     width: '100%',
                                     justifyContent: 'center'
                                   }}>
-                                    {Array(20).fill(0).map((_, i) => (
+                                    {Array(25).fill(0).map((_, i) => (
                                       <div 
                                         key={i} 
                                         style={{ 
