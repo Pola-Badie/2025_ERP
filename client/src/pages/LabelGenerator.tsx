@@ -948,49 +948,50 @@ const LabelGenerator: React.FC = () => {
                               <div style={{ 
                                 position: 'absolute',
                                 top: '40%',
-                                right: '-80px',
-                                transform: 'translateY(-50%) rotate(90deg)',
-                                width: '180px',
-                                height: '35px',
-                                backgroundColor: 'white'
+                                right: '-76px',
+                                width: '32px',
+                                height: '160px'
                               }}>
+                                {/* Vertical numbers along the barcode */}
                                 <div style={{ 
-                                  display: 'flex', 
-                                  flexDirection: 'row', 
+                                  position: 'absolute',
+                                  right: '16px',
+                                  top: '0',
+                                  width: '16px',
+                                  height: '100%',
+                                  display: 'flex',
+                                  flexDirection: 'column',
                                   alignItems: 'center',
-                                  justifyContent: 'center',
-                                  height: '100%'
+                                  justifyContent: 'space-around',
+                                  fontSize: '8px',
+                                  fontWeight: 'bold'
                                 }}>
-                                  {/* Numbers on left side */}
-                                  <div style={{ 
-                                    fontSize: '10px', 
-                                    fontWeight: 'bold', 
-                                    transform: 'rotate(270deg)',
-                                    marginRight: '5px',
-                                    width: '25px',
-                                    textAlign: 'center'
-                                  }}>
-                                    {batchNumber || '123456789'}
-                                  </div>
-                                  
-                                  {/* Barcode lines in the middle */}
-                                  <div style={{ 
-                                    display: 'flex', 
-                                    height: '25px', 
-                                    justifyContent: 'center'
-                                  }}>
-                                    {Array(20).fill(0).map((_, i) => (
-                                      <div 
-                                        key={i} 
-                                        style={{ 
-                                          width: `${(i % 3 === 0) ? 3 : 2}px`, 
-                                          height: '100%',
-                                          backgroundColor: 'black',
-                                          marginRight: '2px'
-                                        }}
-                                      />
-                                    ))}
-                                  </div>
+                                  {(batchNumber || '123456789').split('').map((char, i) => (
+                                    <div key={i}>{char}</div>
+                                  ))}
+                                </div>
+                                
+                                {/* Vertical barcode element */}
+                                <div style={{ 
+                                  position: 'absolute',
+                                  left: '0',
+                                  top: '0',
+                                  width: '16px',
+                                  height: '100%',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                }}>
+                                  {Array(20).fill(0).map((_, i) => (
+                                    <div 
+                                      key={i} 
+                                      style={{ 
+                                        width: '100%',
+                                        height: `${(i % 3 === 0) ? 7 : 5}px`,
+                                        backgroundColor: 'black',
+                                        marginBottom: '2px'
+                                      }}
+                                    />
+                                  ))}
                                 </div>
                               </div>
                             </div>
