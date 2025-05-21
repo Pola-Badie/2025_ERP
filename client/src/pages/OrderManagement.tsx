@@ -1160,6 +1160,39 @@ const OrderManagement = () => {
             />
           </div>
           
+          {/* Transportation Section */}
+          <div className="space-y-4 border border-gray-200 rounded-md p-4 bg-blue-50">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Transportation</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Transportation Cost</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2">$</span>
+                  <Input
+                    type="text"
+                    placeholder="0.00"
+                    className="pl-7"
+                    value={transportationCost}
+                    onChange={(e) => setTransportationCost(e.target.value)}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Enter the cost of transportation</p>
+              </div>
+              <div>
+                <Label>Transportation Notes</Label>
+                <Textarea
+                  placeholder="Enter any transportation details..."
+                  value={transportationNotes}
+                  onChange={(e) => setTransportationNotes(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -1187,7 +1220,10 @@ const OrderManagement = () => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Subtotal: ${subtotalPrice} + Tax: ${(parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2)}
+                  Materials: ${rawMaterials.reduce((sum, material) => sum + (material.quantity * parseFloat(material.unitPrice)), 0).toFixed(2)} + 
+                  Packaging: ${packagingItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.unitPrice)), 0).toFixed(2)} + 
+                  Transport: ${parseFloat(transportationCost).toFixed(2)} + 
+                  Tax: ${(parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2)}
                 </p>
               </div>
             </div>
