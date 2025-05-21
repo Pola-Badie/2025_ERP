@@ -1065,21 +1065,41 @@ const OrderManagement = () => {
 
             <div className="flex flex-col space-y-4">
               <div className="flex items-center space-x-4">
-                <Select 
-                  value={packagingToAdd || ''} 
-                  onValueChange={(value) => setPackagingToAdd(value)}
-                >
-                  <SelectTrigger className="w-[300px]">
-                    <SelectValue placeholder="Select packaging material" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {packagingMaterials?.map((item: any) => (
-                      <SelectItem key={item.id} value={item.id.toString()}>
-                        {item.name} ({item.unitOfMeasure})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      role="combobox" 
+                      className="w-[300px] justify-between"
+                    >
+                      {packagingToAdd ? 
+                        packagingMaterials?.find((item: any) => item.id.toString() === packagingToAdd)?.name || "Select packaging" 
+                        : "Search packaging materials..."}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search packaging materials..." />
+                      <CommandList className="max-h-[200px] overflow-y-auto">
+                        <CommandEmpty>No packaging materials found.</CommandEmpty>
+                        <CommandGroup>
+                          {packagingMaterials?.map((item: any) => (
+                            <CommandItem
+                              key={item.id}
+                              value={item.id.toString()}
+                              onSelect={(value) => {
+                                setPackagingToAdd(value);
+                              }}
+                            >
+                              {item.name} {item.unitOfMeasure ? `(${item.unitOfMeasure})` : ''}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
 
                 <Input
                   type="number"
@@ -1449,22 +1469,43 @@ const OrderManagement = () => {
 
             <div className="flex flex-col space-y-4">
               <div className="flex items-center space-x-4">
-                <Select value={materialToAdd} onValueChange={setMaterialToAdd}>
-                  <SelectTrigger className="w-[300px]">
-                    <SelectValue placeholder="Select material" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingMaterials ? (
-                      <SelectItem value="loading" disabled>Loading materials...</SelectItem>
-                    ) : (
-                      materials?.map((material: any) => (
-                        <SelectItem key={material.id} value={material.id.toString()}>
-                          {material.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      role="combobox" 
+                      className="w-[300px] justify-between"
+                    >
+                      {materialToAdd ? 
+                        materials?.find((material: any) => material.id.toString() === materialToAdd)?.name || "Select material" 
+                        : "Search raw materials..."}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search raw materials..." />
+                      <CommandList className="max-h-[200px] overflow-y-auto">
+                        <CommandEmpty>
+                          {isLoadingMaterials ? "Loading materials..." : "No materials found."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {materials?.map((material: any) => (
+                            <CommandItem
+                              key={material.id}
+                              value={material.id.toString()}
+                              onSelect={(value) => {
+                                setMaterialToAdd(value);
+                              }}
+                            >
+                              {material.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 
                 <Input
                   type="number"
