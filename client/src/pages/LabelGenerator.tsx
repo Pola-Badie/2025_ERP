@@ -946,12 +946,13 @@ const LabelGenerator: React.FC = () => {
                           
                           {/* Hazard symbol in the center */}
                           {selectedHazard && (
-                            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-2">
+                            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-2 flex flex-col items-center">
                               <img 
                                 src={getHazardImagePath(selectedHazard)} 
                                 alt="Hazard symbol" 
                                 className="w-16 h-16" 
                               />
+                              <div className="font-bold text-xs mt-1">ASPIRIN</div>
                             </div>
                           )}
                         </div>
