@@ -579,14 +579,6 @@ const CreateInvoice = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-medium">Invoices In Progress</h2>
           <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refreshInvoiceData}
-              title="Refresh customer and product data"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
             {invoiceDrafts.length < 4 && (
               <Button
                 variant="outline"
