@@ -950,7 +950,8 @@ const LabelGenerator: React.FC = () => {
                               <img 
                                 src={getHazardImagePath(selectedHazard)} 
                                 alt="Hazard symbol" 
-                                className="w-20 h-20" 
+                                className="w-20 object-contain" 
+                                style={{ imageRendering: 'crisp-edges' }}
                               />
                             </div>
                           )}
