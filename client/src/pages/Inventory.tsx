@@ -700,14 +700,12 @@ const Inventory: React.FC = () => {
                                     <span className="font-medium text-xs text-blue-600">
                                       {`Warehouse ${product.id % 6 + 1}`}
                                     </span>
-                                    <span className="text-xs">{product.location || '-'}</span>
                                   </>
                                 ) : (
                                   <>
                                     <span className="font-medium text-xs text-blue-600">
                                       {warehouses.find(w => w.id === selectedWarehouse)?.name}
                                     </span>
-                                    <span className="text-xs">{product.location || '-'}</span>
                                   </>
                                 )}
                               </div>
