@@ -950,14 +950,14 @@ const LabelGenerator: React.FC = () => {
                                 top: '40%',
                                 right: '-80px',
                                 transform: 'translateY(-50%) rotate(90deg)',
-                                width: '180px',
-                                height: '35px',
+                                width: '200px',
+                                height: '40px',
                                 backgroundColor: 'white'
                               }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <div style={{ 
                                     display: 'flex', 
-                                    height: '25px', 
+                                    height: '30px', 
                                     width: '100%',
                                     justifyContent: 'center'
                                   }}>
@@ -965,7 +965,7 @@ const LabelGenerator: React.FC = () => {
                                       <div 
                                         key={i} 
                                         style={{ 
-                                          width: `${(i % 3 === 0) ? 3 : 2}px`, 
+                                          width: `${(i % 3 === 0) ? 4 : 3}px`, 
                                           height: '100%',
                                           backgroundColor: 'black',
                                           marginRight: '2px'
@@ -973,7 +973,7 @@ const LabelGenerator: React.FC = () => {
                                       />
                                     ))}
                                   </div>
-                                  <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop: '2px' }}>
+                                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '2px' }}>
                                     {batchNumber || '123456789'}
                                   </div>
                                 </div>
