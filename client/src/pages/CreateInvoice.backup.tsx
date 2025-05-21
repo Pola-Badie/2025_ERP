@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -86,6 +91,46 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
+// Type definition for our invoice tabs
+interface InvoiceTab {
+  id: string;
+  name: string;
+  formData: InvoiceFormValues;
+}
+
+// Initialize default form values
+const getDefaultFormValues = (): InvoiceFormValues => ({
+  customer: {
+    id: undefined,
+    name: '',
+    company: '',
+    position: '',
+    email: '',
+    phone: '',
+    sector: '',
+    address: '',
+  },
+  items: [
+    {
+      productId: 0,
+      productName: '',
+      quantity: 1,
+      unitPrice: 0,
+      total: 0,
+    },
+  ],
+  subtotal: 0,
+  taxRate: 0,
+  taxAmount: 0,
+  grandTotal: 0,
+  paymentStatus: 'unpaid',
+  paymentMethod: undefined,
+  paymentProofFile: undefined,
+  paymentTerms: '0',
+  amountPaid: 0,
+  notes: '',
+});
+
 const CreateInvoice = () => {
   const { toast } = useToast();
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
@@ -94,6 +139,29 @@ const CreateInvoice = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
+  
+  // Multi-invoice tabs state
+  const [activeTab, setActiveTab] = useState('invoice-1');
+  const [invoiceTabs, setInvoiceTabs] = useState<InvoiceTab[]>(() => {
+    // Try to load saved invoices from localStorage
+    const savedInvoices = localStorage.getItem('invoiceTabs');
+    if (savedInvoices) {
+      try {
+        return JSON.parse(savedInvoices);
+      } catch (e) {
+        console.error('Error parsing saved invoices:', e);
+      }
+    }
+    
+    // Default to one invoice tab if nothing is saved
+    return [
+      {
+        id: 'invoice-1',
+        name: 'Invoice 1',
+        formData: getDefaultFormValues(),
+      }
+    ];
+  });
 
   // Fetch customers with optimized performance
   const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<any[]>({
@@ -460,7 +528,46 @@ const CreateInvoice = () => {
         </div>
       </div>
       
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      {/* Multiple Invoice Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList>
+            {invoiceTabs.map(tab => (
+              <div key={tab.id} className="flex items-center">
+                <TabsTrigger value={tab.id} className="relative group">
+                  {tab.name}
+                  {invoiceTabs.length > 1 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-5 w-5 p-0 absolute -top-2 -right-2 rounded-full opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        closeInvoiceTab(tab.id);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </TabsTrigger>
+              </div>
+            ))}
+          </TabsList>
+          
+          {invoiceTabs.length < 4 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={addNewInvoiceTab}
+              className="ml-4"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              New Invoice
+            </Button>
+          )}
+        </div>
+        
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Customer Section */}
         <Card>
           <CardHeader>
