@@ -146,15 +146,27 @@ const CreateInvoice = () => {
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   
   // Multi-invoice state
-  const [activeInvoiceId, setActiveInvoiceId] = useState<string>("draft-1");
+  // Store last active invoice ID in localStorage too
+  const getInitialActiveInvoiceId = () => {
+    const savedActiveId = localStorage.getItem('activeInvoiceId');
+    return savedActiveId || "draft-1";
+  };
+  
+  const [activeInvoiceId, setActiveInvoiceId] = useState<string>(getInitialActiveInvoiceId);
+  
+  // Update localStorage when active invoice changes
+  const updateActiveInvoiceId = (newId: string) => {
+    setActiveInvoiceId(newId);
+    localStorage.setItem('activeInvoiceId', newId);
+  };
+  
   const [invoiceDrafts, setInvoiceDrafts] = useState<InvoiceDraft[]>(() => {
     try {
       const savedDrafts = localStorage.getItem('invoiceDrafts');
       if (savedDrafts) {
         const parsed = JSON.parse(savedDrafts);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Ensure activeInvoiceId points to a valid draft
-          setActiveInvoiceId(parsed[0].id);
+          // Don't change activeInvoiceId here - it's already set from localStorage
           return parsed;
         }
       }
@@ -588,7 +600,7 @@ const CreateInvoice = () => {
           </div>
         </div>
         
-        <Tabs value={activeInvoiceId} onValueChange={setActiveInvoiceId}>
+        <Tabs value={activeInvoiceId} onValueChange={updateActiveInvoiceId}>
           <TabsList className="grid grid-cols-4 w-full">
             {invoiceDrafts.map(draft => (
               <TabsTrigger key={draft.id} value={draft.id} className="relative">
