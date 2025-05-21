@@ -61,6 +61,15 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@/components/ui/radio-group";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -744,7 +753,7 @@ const OrderManagement = () => {
     
     // Filter orders by warehouse type if specified
     const ordersToExport = warehouseType ? 
-      productionOrders.filter((order: any) => order.warehouseType === warehouseType) : 
+      productionOrders.filter((order: any) => order.location === warehouseType) : 
       productionOrders;
     
     if (ordersToExport.length === 0) {
@@ -762,7 +771,7 @@ const OrderManagement = () => {
       "Customer", 
       "Final Product", 
       "Total Cost",
-      "Warehouse", 
+      "Location/Warehouse", 
       "Date Created"
     ];
     
@@ -772,14 +781,14 @@ const OrderManagement = () => {
       order.customerName || order.customer?.name || "Unknown",
       order.finalProduct || "N/A",
       parseFloat(order.totalCost || 0).toFixed(2),
-      order.warehouseType || "Warehouse 1", // Default to Warehouse 1 if not specified
+      order.location || "Warehouse 1", // Use the actual location from the data
       formatDate(order.createdAt)
     ]);
     
     // Combine headers and rows
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => row.join(","))
+      ...rows.map((row: any) => row.join(","))
     ].join("\n");
     
     // Create download link
@@ -1291,15 +1300,37 @@ const OrderManagement = () => {
           <div className="mt-8 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Production Orders History</h2>
-              <Button 
-                onClick={handleExportProductionOrders} 
-                variant="outline" 
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <FileDown className="h-4 w-4" />
-                Export to CSV
-              </Button>
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Export to CSV
+                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExportProductionOrders()}>
+                      All Warehouses
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportProductionOrders("Warehouse 1")}>
+                      Warehouse 1
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportProductionOrders("Warehouse 2")}>
+                      Warehouse 2
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportProductionOrders("Main Floor")}>
+                      Main Floor
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
             
             <div className="rounded-md border overflow-hidden">
@@ -1807,15 +1838,37 @@ const OrderManagement = () => {
           <div className="mt-8 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold">Refining Orders History</h2>
-              <Button 
-                onClick={handleExportRefiningOrders} 
-                variant="outline" 
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <FileDown className="h-4 w-4" />
-                Export to CSV
-              </Button>
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Export to CSV
+                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExportRefiningOrders()}>
+                      All Warehouses
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportRefiningOrders("Warehouse 1")}>
+                      Warehouse 1
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportRefiningOrders("Warehouse 2")}>
+                      Warehouse 2
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExportRefiningOrders("Main Floor")}>
+                      Main Floor
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
             
             <div className="rounded-md border overflow-hidden">
