@@ -181,15 +181,16 @@ const CreateInvoice = () => {
     return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
   };
   
-  // Refresh the current invoice data from server
+  // Refresh only product and customer data, not invoice drafts
   const refreshInvoiceData = () => {
-    // Refresh customers and products data
+    // Refresh customers and products data without affecting invoiceDrafts state
     queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
     queryClient.invalidateQueries({ queryKey: ['/api/products'] });
     
+    // Don't reset the activeInvoiceId or invoice drafts
     toast({
       title: "Data refreshed",
-      description: "Customer and product data has been refreshed.",
+      description: "Customer and product data has been refreshed. Your invoice drafts remain unchanged.",
     });
   };
 
