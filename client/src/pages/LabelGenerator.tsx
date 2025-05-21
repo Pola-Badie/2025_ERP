@@ -1001,7 +1001,7 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Footer */}
-                        <div className="bg-blue-600 text-white text-[8px] leading-tight p-1.5 relative -mt-3.5">
+                        <div className="bg-blue-600 text-white text-[8px] leading-tight p-1.5 relative -mt-2">
                           {/* QR Code aligned perfectly with the blue rectangle corner */}
                           <div className="absolute bottom-0 left-0 mb-0 ml-0 -mt-6">
                             <img 
