@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -69,6 +69,16 @@ interface Category {
 const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initialData }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Warehouse data - would normally come from an API endpoint
+  const [warehouses] = useState([
+    { id: 1, name: 'Warehouse 1', location: 'Cairo' },
+    { id: 2, name: 'Warehouse 2', location: 'Alexandria' },
+    { id: 3, name: 'Warehouse 3', location: 'Giza' },
+    { id: 4, name: 'Warehouse 4', location: 'Aswan' },
+    { id: 5, name: 'Warehouse 5', location: 'Luxor' },
+    { id: 6, name: 'Warehouse 6', location: 'Port Said' },
+  ]);
 
   // Fetch categories for select options
   const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
@@ -399,14 +409,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Storage Location</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Warehouse A, Zone B, etc." 
-                    {...field} 
-                    value={field.value || ''}
-                  />
-                </FormControl>
+                <FormLabel>Warehouse</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || ''}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select warehouse" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {warehouses.map((warehouse) => (
+                      <SelectItem key={warehouse.id} value={warehouse.name}>
+                        {warehouse.name} - {warehouse.location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
