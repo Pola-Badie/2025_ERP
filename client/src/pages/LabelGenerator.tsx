@@ -948,50 +948,34 @@ const LabelGenerator: React.FC = () => {
                               <div style={{ 
                                 position: 'absolute',
                                 top: '40%',
-                                right: '-76px',
-                                width: '32px',
-                                height: '160px'
+                                right: '-80px',
+                                transform: 'translateY(-50%) rotate(90deg)',
+                                width: '180px',
+                                height: '35px',
+                                backgroundColor: 'white'
                               }}>
-                                {/* Vertical numbers along the barcode */}
-                                <div style={{ 
-                                  position: 'absolute',
-                                  right: '16px',
-                                  top: '0',
-                                  width: '16px',
-                                  height: '100%',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-around',
-                                  fontSize: '8px',
-                                  fontWeight: 'bold'
-                                }}>
-                                  {(batchNumber || '123456789').split('').map((char, i) => (
-                                    <div key={i}>{char}</div>
-                                  ))}
-                                </div>
-                                
-                                {/* Vertical barcode element */}
-                                <div style={{ 
-                                  position: 'absolute',
-                                  left: '0',
-                                  top: '0',
-                                  width: '16px',
-                                  height: '100%',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                }}>
-                                  {Array(20).fill(0).map((_, i) => (
-                                    <div 
-                                      key={i} 
-                                      style={{ 
-                                        width: '100%',
-                                        height: `${(i % 3 === 0) ? 7 : 5}px`,
-                                        backgroundColor: 'black',
-                                        marginBottom: '2px'
-                                      }}
-                                    />
-                                  ))}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    height: '25px', 
+                                    width: '100%',
+                                    justifyContent: 'center'
+                                  }}>
+                                    {Array(20).fill(0).map((_, i) => (
+                                      <div 
+                                        key={i} 
+                                        style={{ 
+                                          width: `${(i % 3 === 0) ? 3 : 2}px`, 
+                                          height: '100%',
+                                          backgroundColor: 'black',
+                                          marginRight: '2px'
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                  <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop: '2px' }}>
+                                    {batchNumber || '123456789'}
+                                  </div>
                                 </div>
                               </div>
                             </div>
