@@ -954,11 +954,29 @@ const LabelGenerator: React.FC = () => {
                                 height: '35px',
                                 backgroundColor: 'white'
                               }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  flexDirection: 'row', 
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  height: '100%'
+                                }}>
+                                  {/* Numbers on left side */}
+                                  <div style={{ 
+                                    fontSize: '10px', 
+                                    fontWeight: 'bold', 
+                                    transform: 'rotate(270deg)',
+                                    marginRight: '5px',
+                                    width: '25px',
+                                    textAlign: 'center'
+                                  }}>
+                                    {batchNumber || '123456789'}
+                                  </div>
+                                  
+                                  {/* Barcode lines in the middle */}
                                   <div style={{ 
                                     display: 'flex', 
                                     height: '25px', 
-                                    width: '100%',
                                     justifyContent: 'center'
                                   }}>
                                     {Array(20).fill(0).map((_, i) => (
@@ -972,9 +990,6 @@ const LabelGenerator: React.FC = () => {
                                         }}
                                       />
                                     ))}
-                                  </div>
-                                  <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop: '2px' }}>
-                                    {batchNumber || '123456789'}
                                   </div>
                                 </div>
                               </div>
