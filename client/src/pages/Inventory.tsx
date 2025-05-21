@@ -87,6 +87,19 @@ const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('inventory');
+  
+  // Warehouse management
+  const [warehouses, setWarehouses] = useState([
+    { id: 1, name: 'Warehouse 1', location: 'Cairo' },
+    { id: 2, name: 'Warehouse 2', location: 'Alexandria' },
+    { id: 3, name: 'Warehouse 3', location: 'Giza' },
+    { id: 4, name: 'Warehouse 4', location: 'Aswan' },
+    { id: 5, name: 'Warehouse 5', location: 'Luxor' },
+    { id: 6, name: 'Warehouse 6', location: 'Port Said' },
+  ]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState(1);
+  const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
+  const [warehouseToEdit, setWarehouseToEdit] = useState<any>(null);
 
   // State for product management
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
@@ -447,6 +460,66 @@ const Inventory: React.FC = () => {
           </Button>
         </div>
       </div>
+      
+      {/* Warehouse Selector */}
+      {activeTab === 'inventory' && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Warehouse Selector</h3>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsWarehouseDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Warehouse
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const warehouse = warehouses.find(w => w.id === selectedWarehouse);
+                      setWarehouseToEdit(warehouse);
+                      setIsWarehouseDialogOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit Warehouse
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2 overflow-x-auto pb-2">
+                {warehouses.map((warehouse) => (
+                  <Button 
+                    key={warehouse.id}
+                    variant={selectedWarehouse === warehouse.id ? "default" : "outline"}
+                    className="whitespace-nowrap"
+                    onClick={() => setSelectedWarehouse(warehouse.id)}
+                  >
+                    {warehouse.name}
+                  </Button>
+                ))}
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setIsWarehouseDialogOpen(true)}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                Viewing inventory for <span className="font-medium">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span> 
+                {" - "}{warehouses.find(w => w.id === selectedWarehouse)?.location}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="border-b mb-4">
@@ -979,6 +1052,97 @@ const Inventory: React.FC = () => {
               onClick={() => setIsHistoryDialogOpen(false)}
             >
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Warehouse Dialog */}
+      <Dialog open={isWarehouseDialogOpen} onOpenChange={setIsWarehouseDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{warehouseToEdit ? 'Edit Warehouse' : 'Add New Warehouse'}</DialogTitle>
+            <DialogDescription>
+              {warehouseToEdit ? 'Update the details for this warehouse' : 'Enter the details for the new warehouse'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="warehouse-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="warehouse-name"
+                value={warehouseToEdit ? warehouseToEdit.name : ''}
+                placeholder="Warehouse name"
+                className="col-span-3"
+                onChange={(e) => {
+                  if (warehouseToEdit) {
+                    setWarehouseToEdit({...warehouseToEdit, name: e.target.value});
+                  } else {
+                    setWarehouseToEdit({id: Date.now(), name: e.target.value, location: ''});
+                  }
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="warehouse-location" className="text-right">
+                Location
+              </Label>
+              <Input
+                id="warehouse-location"
+                value={warehouseToEdit ? warehouseToEdit.location : ''}
+                placeholder="Warehouse location"
+                className="col-span-3"
+                onChange={(e) => {
+                  if (warehouseToEdit) {
+                    setWarehouseToEdit({...warehouseToEdit, location: e.target.value});
+                  }
+                }}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setWarehouseToEdit(null);
+              setIsWarehouseDialogOpen(false);
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              if (warehouseToEdit) {
+                if (warehouseToEdit.id) {
+                  // Edit existing warehouse
+                  setWarehouses(warehouses.map(w => 
+                    w.id === warehouseToEdit.id ? warehouseToEdit : w
+                  ));
+                  toast({
+                    title: "Warehouse updated",
+                    description: "The warehouse details have been updated successfully."
+                  });
+                } else {
+                  // Add new warehouse
+                  const newWarehouse = {
+                    id: Date.now(),
+                    name: warehouseToEdit.name,
+                    location: warehouseToEdit.location || ''
+                  };
+                  setWarehouses([...warehouses, newWarehouse]);
+                  setSelectedWarehouse(newWarehouse.id);
+                  toast({
+                    title: "Warehouse added",
+                    description: "The new warehouse has been added successfully."
+                  });
+                }
+                setWarehouseToEdit(null);
+                setIsWarehouseDialogOpen(false);
+              }
+            }}
+            disabled={!warehouseToEdit || !warehouseToEdit.name}
+            >
+              {warehouseToEdit && warehouseToEdit.id ? 'Save Changes' : 'Add Warehouse'}
             </Button>
           </DialogFooter>
         </DialogContent>
