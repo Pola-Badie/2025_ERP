@@ -947,7 +947,7 @@ const LabelGenerator: React.FC = () => {
                             <div className="absolute top-0 right-0 h-full" style={{ width: '40px', overflow: 'hidden', zIndex: 10 }}>
                               <div style={{ 
                                 position: 'absolute',
-                                top: '50%',
+                                top: '40%',
                                 right: '-80px',
                                 transform: 'translateY(-50%) rotate(90deg)',
                                 width: '180px',
