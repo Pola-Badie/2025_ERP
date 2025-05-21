@@ -944,56 +944,63 @@ const LabelGenerator: React.FC = () => {
                             </div>
                             
                             {/* Vertical Barcode with vertical batch number */}
-                            <div className="absolute top-0 right-0 h-full" style={{ width: '60px', overflow: 'visible', zIndex: 10 }}>
-                              {/* Barcode */}
+                            <div className="absolute top-0 right-0 h-full flex" style={{ width: '60px', zIndex: 20 }}>
+                              {/* Left side - Barcode */}
                               <div style={{ 
                                 position: 'absolute',
                                 top: '40%',
-                                right: '20px', 
+                                right: '28px', 
                                 height: '170px',
                                 width: '30px',
                                 transform: 'translateY(-50%)',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',
-                                alignItems: 'center'
+                                zIndex: 15
                               }}>
                                 {Array(15).fill(0).map((_, i) => (
                                   <div 
                                     key={i} 
                                     style={{ 
-                                      height: `${(i % 3 === 0) ? 3 : 2}px`, 
+                                      height: `${(i % 3 === 0) ? 4 : 3}px`, 
                                       width: '100%',
                                       backgroundColor: 'black',
-                                      marginBottom: '4px'
+                                      marginBottom: '5px'
                                     }}
                                   />
                                 ))}
                               </div>
                               
-                              {/* Vertical Batch Number */}
+                              {/* Right side - Batch Number */}
                               <div style={{ 
                                 position: 'absolute',
                                 top: '40%',
-                                right: '3px',
+                                right: '8px',
                                 transform: 'translateY(-50%)',
                                 height: '170px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                textAlign: 'center'
+                                zIndex: 25,
+                                backgroundColor: 'transparent'
                               }}>
-                                <div style={{ fontWeight: 'bold', fontSize: '10px', marginBottom: '5px' }}>B</div>
+                                <div style={{ 
+                                  fontWeight: 'bold', 
+                                  fontSize: '11px', 
+                                  marginBottom: '5px',
+                                  backgroundColor: 'transparent',
+                                  color: 'black'
+                                }}>B</div>
                                 {(batchNumber || '123456789').split('').map((char, i) => (
                                   <div 
                                     key={i}
                                     style={{ 
-                                      fontSize: '10px',
+                                      fontSize: '11px',
                                       fontWeight: 'bold',
                                       marginBottom: '3px',
                                       color: 'black',
-                                      textShadow: '0px 0px 1px white'
+                                      backgroundColor: 'transparent'
                                     }}
                                   >
                                     {char}
