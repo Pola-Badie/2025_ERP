@@ -732,11 +732,25 @@ const OrderManagement = () => {
   };
   
   // Export production orders to CSV
-  const handleExportProductionOrders = () => {
+  const handleExportProductionOrders = (warehouseType?: string) => {
     if (!productionOrders || productionOrders.length === 0) {
       toast({
         title: "Export Failed",
         description: "No production orders available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Filter orders by warehouse type if specified
+    const ordersToExport = warehouseType ? 
+      productionOrders.filter((order: any) => order.warehouseType === warehouseType) : 
+      productionOrders;
+    
+    if (ordersToExport.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: `No orders found for ${warehouseType || "the selected filter"}`,
         variant: "destructive",
       });
       return;
@@ -747,16 +761,18 @@ const OrderManagement = () => {
       "Batch Number", 
       "Customer", 
       "Final Product", 
-      "Total Cost", 
+      "Total Cost",
+      "Warehouse", 
       "Date Created"
     ];
     
     // Prepare row data
-    const rows = productionOrders.map((order: any) => [
+    const rows = ordersToExport.map((order: any) => [
       order.batchNumber || order.orderNumber,
       order.customerName || order.customer?.name || "Unknown",
       order.finalProduct || "N/A",
       parseFloat(order.totalCost || 0).toFixed(2),
+      order.warehouseType || "Warehouse 1", // Default to Warehouse 1 if not specified
       formatDate(order.createdAt)
     ]);
     
@@ -767,27 +783,42 @@ const OrderManagement = () => {
     ].join("\n");
     
     // Create download link
+    const warehouseLabel = warehouseType ? `-${warehouseType.replace(/\s+/g, '-')}` : '';
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `production-orders-${format(new Date(), 'dd-MM-yyyy')}.csv`);
+    link.setAttribute('download', `production-orders${warehouseLabel}-${format(new Date(), 'dd-MM-yyyy')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     toast({
       title: "Export Successful",
-      description: "Production orders exported to CSV",
+      description: `${ordersToExport.length} production orders exported to CSV`,
     });
   };
   
   // Export refining orders to CSV
-  const handleExportRefiningOrders = () => {
+  const handleExportRefiningOrders = (warehouseType?: string) => {
     if (!refiningOrders || refiningOrders.length === 0) {
       toast({
         title: "Export Failed",
         description: "No refining orders available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Filter orders by warehouse type if specified
+    const ordersToExport = warehouseType ? 
+      refiningOrders.filter((order: any) => order.location === warehouseType) : 
+      refiningOrders;
+    
+    if (ordersToExport.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: `No refining orders found for ${warehouseType || "the selected filter"}`,
         variant: "destructive",
       });
       return;
@@ -799,17 +830,19 @@ const OrderManagement = () => {
       "Customer", 
       "Source Material", 
       "Expected Output", 
-      "Total Cost", 
+      "Total Cost",
+      "Location/Warehouse",
       "Date Created"
     ];
     
     // Prepare row data
-    const rows = refiningOrders.map((order: any) => [
+    const rows = ordersToExport.map((order: any) => [
       order.batchNumber || order.orderNumber,
       order.customerName || order.customer?.name || "Unknown",
       order.sourceMaterial || "N/A",
       order.expectedOutput || "N/A",
       parseFloat(order.totalCost || 0).toFixed(2),
+      order.location || "Main Floor", // Show actual location from the data
       formatDate(order.createdAt)
     ]);
     
