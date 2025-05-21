@@ -857,11 +857,13 @@ const LabelGenerator: React.FC = () => {
                     {productName ? (
                       <div 
                         ref={labelRef} 
-                        className="bg-white border border-gray-300 shadow-sm"
+                        className="bg-white border border-gray-300 shadow-sm flex flex-col"
                         style={{ 
                           width: "100%", 
                           maxWidth: "210mm", 
-                          minHeight: `${100 + Math.max(0, (labTests.length - 3) * 10)}mm` 
+                          minHeight: `${100 + Math.max(0, (labTests.length - 3) * 10)}mm`,
+                          display: "flex",
+                          flexDirection: "column"
                         }}
                       >
                         {/* Label Header */}
@@ -885,7 +887,12 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Main Content */}
-                        <div className="flex relative">
+                        <div className="flex relative" style={{ 
+                          flexGrow: 1, 
+                          minHeight: '1px',
+                          display: 'flex',
+                          flexDirection: 'row'
+                        }}>
                           {/* Left Side - Specifications */}
                           <div className="w-1/2 p-3">
                             <table className="w-full text-xs">
