@@ -1003,14 +1003,14 @@ const LabelGenerator: React.FC = () => {
                         {/* Footer */}
                         <div className="bg-blue-600 text-white text-[8px] leading-tight p-1.5 relative -mt-0.5">
                           {/* QR Code aligned perfectly with the blue rectangle corner */}
-                          <div className="absolute bottom-0 left-0 mb-0 ml-0">
+                          <div className="absolute top-0 left-0 h-full">
                             <img 
                               src="/qrcode.png"
                               alt="QR Code" 
-                              className="w-[4.5rem] h-[4.5rem] object-contain mb-0 ml-0 p-0.5"
+                              className="h-full object-contain"
                             />
                           </div>
-                          <div className="ml-16 -mt-1.5">
+                          <div className="ml-[calc(100%/5)] -mt-1.5">
                             <p className="font-semibold text-left">إنتاج شركة مرجان للصناعات الكيماوية &#x0028;العاشر من رمضان&#x0029; صنع في مصر</p>
                             <p className="font-semibold">Head Office & Factory: 3rd Industrial Zone A1, Taba Street, Tenth of Ramadan City</p>
                             <p>Tel: 055/4410890 - 055/4410891 - 055/4410255 | Mobile: 01223991290</p>
