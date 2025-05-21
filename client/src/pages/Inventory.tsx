@@ -467,6 +467,24 @@ const Inventory: React.FC = () => {
                   variant="outline"
                   size="sm"
                 />
+                {selectedProducts.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const selectedProductItems = filteredProducts.filter(p => selectedProducts.includes(p.id));
+                      toast({
+                        title: "Creating Labels",
+                        description: `Creating labels for ${selectedProducts.length} selected products`,
+                      });
+                      // Navigate to label page
+                      window.location.href = '/label';
+                    }}
+                  >
+                    <Tag className="h-4 w-4 mr-2" />
+                    Create Labels ({selectedProducts.length})
+                  </Button>
+                )}
               </div>
             </>
           )}
