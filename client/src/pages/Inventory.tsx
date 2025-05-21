@@ -668,8 +668,13 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3">
                               {product.quantity} {product.unitOfMeasure}
                             </td>
-                            <td className="px-4 py-3 text-slate-600 text-xs">
-                              {product.location || '-'}
+                            <td className="px-4 py-3 text-slate-600">
+                              <div className="flex flex-col">
+                                <span className="font-medium text-xs text-blue-600">
+                                  {warehouses.find(w => w.id === selectedWarehouse)?.name}
+                                </span>
+                                <span className="text-xs">{product.location || '-'}</span>
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-slate-600 text-xs">
                               {product.shelf || '-'}
