@@ -1007,7 +1007,7 @@ const LabelGenerator: React.FC = () => {
                             <img 
                               src="/qrcode.png"
                               alt="QR Code" 
-                              className="w-[4.5rem] h-[4.5rem] object-contain mb-0 ml-0 bg-white/90 p-0.5"
+                              className="w-[4.5rem] h-[4.5rem] object-contain mb-0 ml-0 p-0.5"
                             />
                           </div>
                           <div className="ml-16 -mt-1.5">
