@@ -1417,41 +1417,83 @@ const OrderManagement = () => {
             
             {sourceType === 'production' ? (
               <div className="pt-2">
-                <Select value={sourceProductionOrder} onValueChange={setSourceProductionOrder}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select production order" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingOrders ? (
-                      <SelectItem value="loading" disabled>Loading orders...</SelectItem>
-                    ) : (
-                      productionOrders?.map((order: any) => (
-                        <SelectItem key={order.id} value={order.id.toString()}>
-                          {order.batchNumber || order.orderNumber} - {order.finalProduct || "Unknown product"}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      role="combobox" 
+                      className="w-full justify-between"
+                    >
+                      {sourceProductionOrder ? 
+                        productionOrders?.find((order: any) => order.id.toString() === sourceProductionOrder)?.batchNumber || "Select order" 
+                        : "Search production batches..."}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search production batches..." />
+                      <CommandList className="max-h-[200px] overflow-y-auto">
+                        <CommandEmpty>
+                          {isLoadingOrders ? "Loading orders..." : "No production batches found."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {productionOrders?.map((order: any) => (
+                            <CommandItem
+                              key={order.id}
+                              value={order.id.toString()}
+                              onSelect={(value) => {
+                                setSourceProductionOrder(value);
+                              }}
+                            >
+                              {order.batchNumber || order.orderNumber} - {order.finalProduct || "Unknown product"}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             ) : (
               <div className="pt-2">
-                <Select value={sourceStockItem} onValueChange={setSourceStockItem}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select stock item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingSemiFinished ? (
-                      <SelectItem value="loading" disabled>Loading stock items...</SelectItem>
-                    ) : (
-                      semiFinishedProducts?.map((product: any) => (
-                        <SelectItem key={product.id} value={product.id.toString()}>
-                          {product.name} - {product.batchNumber || "No batch"}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      role="combobox" 
+                      className="w-full justify-between"
+                    >
+                      {sourceStockItem ? 
+                        semiFinishedProducts?.find((product: any) => product.id.toString() === sourceStockItem)?.name || "Select item" 
+                        : "Search semi-finished products..."}
+                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search semi-finished products..." />
+                      <CommandList className="max-h-[200px] overflow-y-auto">
+                        <CommandEmpty>
+                          {isLoadingSemiFinished ? "Loading products..." : "No products found."}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {semiFinishedProducts?.map((product: any) => (
+                            <CommandItem
+                              key={product.id}
+                              value={product.id.toString()}
+                              onSelect={(value) => {
+                                setSourceStockItem(value);
+                              }}
+                            >
+                              {product.name} - {product.batchNumber || "No batch"}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
           </div>
