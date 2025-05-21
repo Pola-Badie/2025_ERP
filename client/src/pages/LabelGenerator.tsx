@@ -950,14 +950,14 @@ const LabelGenerator: React.FC = () => {
                                 top: '40%',
                                 right: '-80px',
                                 transform: 'translateY(-50%) rotate(90deg)',
-                                width: '200px',
-                                height: '40px',
+                                width: '170px',
+                                height: '35px',
                                 backgroundColor: 'white'
                               }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                   <div style={{ 
                                     display: 'flex', 
-                                    height: '30px', 
+                                    height: '25px', 
                                     width: '100%',
                                     justifyContent: 'center'
                                   }}>
@@ -973,7 +973,7 @@ const LabelGenerator: React.FC = () => {
                                       />
                                     ))}
                                   </div>
-                                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginTop: '2px' }}>
+                                  <div style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '2px' }}>
                                     {batchNumber || '123456789'}
                                   </div>
                                 </div>
