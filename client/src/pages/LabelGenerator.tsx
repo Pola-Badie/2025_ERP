@@ -953,16 +953,6 @@ const LabelGenerator: React.FC = () => {
                                   {weight} Kg
                                 </div>
                               )}
-                              
-                              {barcodeURL && (
-                                <div className="mt-2 w-full text-center">
-                                  <img 
-                                    src={barcodeURL} 
-                                    alt="Barcode" 
-                                    className="max-h-[40px] inline-block"
-                                  />
-                                </div>
-                              )}
                             </div>
                           </div>
                         </div>
