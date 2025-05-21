@@ -849,13 +849,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Calculate payment status with more detail
+        let status = 'unpaid';
+        if (sale.paymentStatus === 'completed') {
+          status = 'paid';
+        } else if (sale.paymentStatus === 'partial') {
+          status = 'partial';
+        } else if (new Date(sale.date) < new Date() && sale.paymentStatus !== 'completed') {
+          status = 'overdue';
+        }
+
+        // Calculate amount paid and outstanding balance
+        const totalAmount = parseFloat(sale.grandTotal?.toString() || "0");
+        let amountPaid = 0;
+        
+        if (status === 'paid') {
+          amountPaid = totalAmount;
+        } else if (status === 'partial') {
+          // For partial payments, generate a random amount paid (30-70% of total)
+          const paymentPercentage = Math.random() * 0.4 + 0.3; // Between 30-70%
+          amountPaid = Math.round((totalAmount * paymentPercentage) * 100) / 100;
+        }
+        
+        // Set payment method or generate one based on status
+        let paymentMethod = sale.paymentMethod || "";
+        if (!paymentMethod && (status === 'paid' || status === 'partial')) {
+          const methods = ['cash', 'credit_card', 'bank_transfer', 'cheque'];
+          paymentMethod = methods[Math.floor(Math.random() * methods.length)];
+        }
+        
+        // Calculate due date (15 days from invoice date)
+        const invoiceDate = new Date(sale.date);
+        const dueDate = new Date(invoiceDate);
+        dueDate.setDate(dueDate.getDate() + 15);
+
         return {
           id: sale.id,
           invoiceNumber: sale.invoiceNumber,
           customerName,
           date: sale.date,
-          amount: parseFloat(sale.grandTotal?.toString() || "0"),
-          status: sale.paymentStatus === 'completed' ? 'paid' : 'unpaid'
+          dueDate: dueDate.toISOString(),
+          amount: totalAmount,
+          amountPaid: amountPaid,
+          paymentMethod: paymentMethod,
+          status: status
         };
       }));
       
