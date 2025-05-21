@@ -398,19 +398,17 @@ const LabelGenerator: React.FC = () => {
       let yPosition = 10;
       
       switch (selectedSize) {
-        case '1/2':
-          imgWidth = 190;
+        case '2_per_a4':
+          imgWidth = 190;  // 2 labels per A4
           break;
-        case '1/3':
-          imgWidth = 190/1.5;
+        case '3_per_a4':
+          imgWidth = 190/1.5;  // 3 labels per A4
           break;
-        case '1/6':
-          imgWidth = 190/3;
-          break;
-        case '1/24':
-          imgWidth = 190/6;
+        case '6_per_a4':
+          imgWidth = 190/3;  // 6 labels per A4
           break;
         default:
+          imgWidth = 190;  // Default to 2 labels per A4
           break;
       }
       
