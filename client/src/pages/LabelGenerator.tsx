@@ -868,7 +868,7 @@ const LabelGenerator: React.FC = () => {
                             <img 
                               src="/logo.png"
                               alt="Morgan Chemicals Logo" 
-                              className="w-24 h-24 object-contain"
+                              className="w-20 h-20 object-contain"
                             />
                           </div>
                           <div className="text-base font-bold text-center p-1.5">
