@@ -877,9 +877,9 @@ const LabelGenerator: React.FC = () => {
                         </div>
                         
                         {/* Main Content */}
-                        <div className="flex">
+                        <div className="flex relative">
                           {/* Left Side - Specifications */}
-                          <div className="w-3/5 p-3">
+                          <div className="w-1/2 p-3">
                             <table className="w-full text-xs">
                               <tbody>
                                 {formula && (
@@ -912,8 +912,8 @@ const LabelGenerator: React.FC = () => {
                             )}
                           </div>
                           
-                          {/* Right Side - Dates and Hazard */}
-                          <div className="w-2/5 p-3">
+                          {/* Right Side - Dates */}
+                          <div className="w-1/2 p-3">
                             <div className="space-y-2 mb-2 pl-4">
                               {manufacturingDate && (
                                 <div className="text-right">
@@ -935,26 +935,25 @@ const LabelGenerator: React.FC = () => {
                                   <div className="text-xs">{batchNumber}</div>
                                 </div>
                               )}
-                            </div>
-                            
-                            <div className="flex flex-col items-center mt-2">
-                              {selectedHazard && (
-                                <div className="mb-2">
-                                  <img 
-                                    src={getHazardImagePath(selectedHazard)} 
-                                    alt="Hazard symbol" 
-                                    className="w-16 h-16" 
-                                  />
-                                </div>
-                              )}
                               
                               {weight && (
-                                <div className="font-bold mt-1 text-right w-full">
+                                <div className="font-bold mt-1 text-right">
                                   {weight} Kg
                                 </div>
                               )}
                             </div>
                           </div>
+                          
+                          {/* Hazard symbol in the center */}
+                          {selectedHazard && (
+                            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-2">
+                              <img 
+                                src={getHazardImagePath(selectedHazard)} 
+                                alt="Hazard symbol" 
+                                className="w-16 h-16" 
+                              />
+                            </div>
+                          )}
                         </div>
                         
                         {/* Footer */}
