@@ -290,10 +290,10 @@ const Inventory: React.FC = () => {
     const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || product.categoryId.toString() === categoryFilter;
     
-    // Add warehouse locations to products if they don't have them
+    // Add empty warehouse locations if needed
     if (!product.location) {
       const warehouseIndex = product.id % warehouses.length;
-      product.location = `${String.fromCharCode(65 + (product.id % 8))}-${product.id % 10 + 1}`;
+      product.location = 'Main Floor';
     }
     
     return matchesSearch && matchesStatus && matchesCategory;
