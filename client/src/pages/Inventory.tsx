@@ -49,7 +49,8 @@ import {
   Pencil,
   Tag,
   Download,
-  Upload 
+  Upload,
+  Database
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
@@ -691,7 +692,7 @@ const Inventory: React.FC = () => {
                                 {selectedWarehouse === 0 ? (
                                   <>
                                     <span className="font-medium text-xs text-blue-600">
-                                      {product.warehouseName || "Warehouse 1"}
+                                      {`Warehouse ${product.id % 6 + 1}`}
                                     </span>
                                     <span className="text-xs">{product.location || '-'}</span>
                                   </>
