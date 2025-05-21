@@ -912,7 +912,7 @@ const LabelGenerator: React.FC = () => {
                             </table>
                             
                             {selectedSpecification && (
-                              <div className="mt-2 text-[10px] font-semibold">
+                              <div className="mt-1 text-[10px] font-semibold">
                                 Complies with {selectedSpecification} specifications
                               </div>
                             )}
