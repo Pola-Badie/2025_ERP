@@ -858,7 +858,11 @@ const LabelGenerator: React.FC = () => {
                       <div 
                         ref={labelRef} 
                         className="bg-white border border-gray-300 shadow-sm"
-                        style={{ width: "100%", maxWidth: "210mm", minHeight: "100mm" }}
+                        style={{ 
+                          width: "100%", 
+                          maxWidth: "210mm", 
+                          minHeight: `${100 + Math.max(0, (labTests.length - 3) * 10)}mm` 
+                        }}
                       >
                         {/* Label Header */}
                         <div className="bg-blue-600 text-white p-1.5 relative">
