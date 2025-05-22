@@ -1735,13 +1735,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get raw materials (for production orders)
-  app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
+  app.get("/api/products/raw-materials", (req: Request, res: Response) => {
     try {
-      console.log("Fetching raw materials for order management");
+      console.log("Fetching raw materials for chemical orders");
       
-      // Return sample raw materials data for chemical orders
       // Sample raw materials data for chemical orders
-      console.log("Providing sample raw materials data for chemical orders");
       const sampleRawMaterials = [
         {
           id: 101,
@@ -1781,6 +1779,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "active",
           quantity: 200,
           unitOfMeasure: "L"
+        },
+        {
+          id: 104,
+          name: "Hydrochloric Acid",
+          drugName: "HCl",
+          description: "Strong acid with applications in laboratory and industrial settings",
+          sku: "RAW-004",
+          costPrice: "110.00",
+          sellingPrice: "0.00",
+          productType: "raw",
+          status: "active",
+          quantity: 300,
+          unitOfMeasure: "L"
+        },
+        {
+          id: 105,
+          name: "Citric Acid",
+          drugName: "C6H8O7",
+          description: "Weak organic acid found in citrus fruits, used as preservative and flavoring",
+          sku: "RAW-005",
+          costPrice: "85.00",
+          sellingPrice: "0.00",
+          productType: "raw",
+          status: "active",
+          quantity: 250,
+          unitOfMeasure: "kg"
         }
       ];
       
@@ -1793,13 +1817,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get semi-finished products (for refining orders)
-  app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
+  app.get("/api/products/semi-finished", (req: Request, res: Response) => {
     try {
-      console.log("Fetching semi-finished products");
-      
-      // Directly return sample semi-finished products for order management
-      // Use the inventory-products.csv data as sample instead of the placeholder data
-      console.log("Using predefined sample data for semi-finished products");
+      console.log("Fetching semi-finished products for chemical orders");
+      // Sample data for chemical orders
+      console.log("Providing semi-finished products data");
       const sampleSemiFinishedProducts = [
         {
           id: 201,
