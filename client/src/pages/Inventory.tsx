@@ -736,14 +736,14 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
                             <td className="px-4 py-3">
                               {product.productType ? (
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                                   product.productType === 'raw' 
                                     ? 'bg-blue-100 text-blue-800'
                                     : product.productType === 'semi-raw'
                                     ? 'bg-amber-100 text-amber-800'
                                     : 'bg-green-100 text-green-800'
                                 }`}>
-                                  {product.productType.charAt(0).toUpperCase() + product.productType.slice(1)}
+                                  {product.productType === 'semi-raw' ? 'Semi-Raw' : product.productType.charAt(0).toUpperCase() + product.productType.slice(1)}
                                 </span>
                               ) : '-'}
                             </td>
