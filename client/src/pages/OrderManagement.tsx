@@ -1654,7 +1654,7 @@ const OrderManagement = () => {
                   <RadioGroup
                     value={sourceType}
                     onValueChange={(value) => setSourceType(value)}
-                    className="grid grid-cols-3 gap-4 mb-4"
+                    className="grid grid-cols-2 gap-4 mb-4"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="production" id="production" />
@@ -1664,43 +1664,7 @@ const OrderManagement = () => {
                       <RadioGroupItem value="stock" id="stock" />
                       <Label htmlFor="stock">Stock Item</Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="raw" id="raw" />
-                      <Label htmlFor="raw">Raw Materials</Label>
-                    </div>
                   </RadioGroup>
-
-                  {sourceType === 'raw' && (
-                    <div className="grid gap-4">
-                      <div>
-                        <Label>Select Raw Materials</Label>
-                        <Select
-                          value={sourceStockItem}
-                          onValueChange={setSourceStockItem}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select raw material" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {materials?.map((material: any) => (
-                              <SelectItem key={material.id} value={material.id.toString()}>
-                                {material.name} ({material.unitOfMeasure})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>Quantity</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={materialQuantity || ""}
-                          onChange={(e) => setMaterialQuantity(parseInt(e.target.value) || 0)}
-                        />
-                      </div>
-                    </div>
-                  )}
                   
                   {sourceType === 'production' ? (
                     <div>
