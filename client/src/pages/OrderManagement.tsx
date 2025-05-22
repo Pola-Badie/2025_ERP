@@ -1667,7 +1667,83 @@ const OrderManagement = () => {
                   </RadioGroup>
                   
                   {sourceType === 'production' ? (
-                    <div>
+                    <div className="grid gap-4">
+                      <div>
+                        <Label>Select Production Order</Label>
+                        <Select
+                          value={sourceProductionOrder}
+                          onValueChange={(value) => setSourceProductionOrder(value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select production order" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {productionOrders?.map((order: any) => (
+                              <SelectItem key={order.id} value={order.id.toString()}>
+                                {order.batchNumber} - {order.finalProduct || 'Production Order'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Select Raw Material</Label>
+                        <Select
+                          value={sourceStockItem}
+                          onValueChange={setSourceStockItem}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select raw material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials?.map((material: any) => (
+                              <SelectItem key={material.id} value={material.id.toString()}>
+                                {material.name} ({material.unitOfMeasure})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      <div>
+                        <Label>Select Stock Item</Label>
+                        <Select
+                          value={sourceStockItem}
+                          onValueChange={setSourceStockItem}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select stock item" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {semiFinishedProducts?.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id.toString()}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Select Raw Material</Label>
+                        <Select
+                          value={sourceStockItem + '_raw'}
+                          onValueChange={(value) => setSourceStockItem(value.replace('_raw', ''))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select raw material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials?.map((material: any) => (
+                              <SelectItem key={material.id} value={material.id.toString() + '_raw'}>
+                                {material.name} ({material.unitOfMeasure})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                       <Label>Select Production Order</Label>
                       <Select
                         value={sourceProductionOrder}
