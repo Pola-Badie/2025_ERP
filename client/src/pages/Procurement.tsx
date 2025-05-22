@@ -327,11 +327,18 @@ export default function Procurement() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="supplier">Supplier</Label>
-              <Input 
-                id="supplier" 
-                defaultValue={editingOrder?.supplier || ''} 
-                placeholder="Enter supplier name"
-              />
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.name}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="materials">Materials</Label>
