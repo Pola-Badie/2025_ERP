@@ -10,8 +10,8 @@ const pool = new Pool({
 const purchaseOrdersData = [
   {
     poNumber: 'PO-2025-001',
-    supplierId: 1, // Assuming supplier exists
-    userId: 1, // Assuming user exists
+    supplierId: 1,
+    userId: 1,
     orderDate: '2025-01-15',
     expectedDeliveryDate: '2025-01-25',
     status: 'pending',
@@ -19,8 +19,8 @@ const purchaseOrdersData = [
     notes: 'Urgent order for Q1 production requirements',
     items: [
       { productId: 1, quantity: 500, unitPrice: 12.50, total: 6250.00 },
-      { productId: 3, quantity: 300, unitPrice: 18.75, total: 5625.00 },
-      { productId: 5, quantity: 250, unitPrice: 15.50, total: 3875.00 }
+      { productId: 2, quantity: 300, unitPrice: 18.75, total: 5625.00 },
+      { productId: 3, quantity: 250, unitPrice: 15.50, total: 3875.00 }
     ]
   },
   {
@@ -33,8 +33,8 @@ const purchaseOrdersData = [
     totalAmount: 22400.00,
     notes: 'Bulk order for antibiotics production line',
     items: [
-      { productId: 2, quantity: 800, unitPrice: 22.00, total: 17600.00 },
-      { productId: 4, quantity: 400, unitPrice: 12.00, total: 4800.00 }
+      { productId: 4, quantity: 800, unitPrice: 22.00, total: 17600.00 },
+      { productId: 5, quantity: 400, unitPrice: 12.00, total: 4800.00 }
     ]
   },
   {
@@ -67,8 +67,8 @@ const purchaseOrdersData = [
   },
   {
     poNumber: 'PO-2025-005',
-    supplierId: 2,
-    userId: 3,
+    supplierId: 1,
+    userId: 1,
     orderDate: '2025-01-22',
     expectedDeliveryDate: '2025-02-10',
     status: 'draft',
@@ -82,8 +82,8 @@ const purchaseOrdersData = [
   },
   {
     poNumber: 'PO-2025-006',
-    supplierId: 4,
-    userId: 2,
+    supplierId: 1,
+    userId: 1,
     orderDate: '2025-01-23',
     expectedDeliveryDate: '2025-02-12',
     status: 'sent',
@@ -92,34 +92,6 @@ const purchaseOrdersData = [
     items: [
       { productId: 13, quantity: 150, unitPrice: 65.00, total: 9750.00 },
       { productId: 14, quantity: 250, unitPrice: 20.00, total: 5000.00 }
-    ]
-  },
-  {
-    poNumber: 'PO-2025-007',
-    supplierId: 3,
-    userId: 1,
-    orderDate: '2025-01-24',
-    expectedDeliveryDate: '2025-02-14',
-    status: 'pending',
-    totalAmount: 12300.00,
-    notes: 'Quarterly order for anti-inflammatory drugs',
-    items: [
-      { productId: 15, quantity: 300, unitPrice: 19.00, total: 5700.00 },
-      { productId: 16, quantity: 200, unitPrice: 33.00, total: 6600.00 }
-    ]
-  },
-  {
-    poNumber: 'PO-2025-008',
-    supplierId: 1,
-    userId: 2,
-    orderDate: '2025-01-25',
-    expectedDeliveryDate: '2025-02-15',
-    status: 'received',
-    totalAmount: 9875.00,
-    notes: 'Emergency stock for cough and cold preparations',
-    items: [
-      { productId: 17, quantity: 425, unitPrice: 14.50, total: 6162.50 },
-      { productId: 18, quantity: 175, unitPrice: 21.21, total: 3712.50 }
     ]
   }
 ];
