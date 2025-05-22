@@ -12,10 +12,10 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { language } = useLanguage();
-  const { currentPage, setCurrentPage } = usePagination();
+  const { currentPage, setCurrentPage, getTotalPages } = usePagination();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const totalPages = 15; // Total pages for testing
+  const [totalItems, setTotalItems] = useState(45); // Simulating multiple pages of data
 
   // Handle resize events
   useEffect(() => {
@@ -192,7 +192,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Button>
                 
                 <div className="flex items-center gap-1 mx-4">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, getTotalPages(totalItems)) }, (_, i) => {
+                    const totalPages = getTotalPages(totalItems);
                     const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                     if (pageNum > totalPages) return null;
                     
@@ -213,16 +214,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     );
                   })}
                   
-                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                  {getTotalPages(totalItems) > 5 && currentPage < getTotalPages(totalItems) - 2 && (
                     <>
                       <span className="px-2 text-muted-foreground">...</span>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(totalPages)}
+                        onClick={() => setCurrentPage(getTotalPages(totalItems))}
                         className="w-8 h-8 p-0 hover:bg-blue-50"
                       >
-                        {totalPages}
+                        {getTotalPages(totalItems)}
                       </Button>
                     </>
                   )}
@@ -231,8 +232,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(Math.min(getTotalPages(totalItems), currentPage + 1))}
+                  disabled={currentPage === getTotalPages(totalItems)}
                   className="flex items-center gap-1"
                 >
                   Next
@@ -240,7 +241,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </Button>
                 
                 <div className="text-sm text-muted-foreground ml-4">
-                  Page {currentPage} of {totalPages}
+                  Page {currentPage} of {getTotalPages(totalItems)}
                 </div>
               </div>
             </div>
