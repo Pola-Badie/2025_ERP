@@ -199,15 +199,22 @@ const Inventory: React.FC = () => {
         },
         exportButtonText: 'Export Inventory',
         importButtonText: 'Import Products',
-        onImport: handleImportProducts
+        onImport: handleImportProducts,
+        showStorageDropdown: true,
+        storageLocations: ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+        onStorageFilter: (location: string | null) => {
+          if (!location) return products; // All locations
+          return products.filter(product => product.location === location);
+        }
       });
+      setCSVData(products);
     }
     
     // Clean up CSV context when component unmounts
     return () => {
       clearCSV();
     };
-  }, []);
+  }, [products, setCSVOptions, setCSVData, clearCSV]);
 
   // Add category mutation
   const addCategoryMutation = useMutation({

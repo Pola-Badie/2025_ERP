@@ -18,6 +18,9 @@ export interface CSVOptions<T extends Record<string, any>> {
   requiredColumns?: string[];
   validateRow?: (row: Record<string, string>) => boolean | string;
   disabled?: boolean;
+  showStorageDropdown?: boolean;
+  storageLocations?: string[];
+  onStorageFilter?: (location: string | null) => T[];
 }
 
 export const CSVContext = createContext<CSVContextProps<any> | null>(null);
@@ -77,6 +80,9 @@ export const CSVProvider: React.FC<CSVProviderProps> = ({ children }) => {
             buttonText={csvOptions.exportButtonText}
             className="text-xs"
             disabled={csvOptions.disabled}
+            showStorageDropdown={csvOptions.showStorageDropdown}
+            storageLocations={csvOptions.storageLocations}
+            onStorageFilter={csvOptions.onStorageFilter}
           />,
           container
         )
