@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Download, ChevronDown, Warehouse, Building2, Database } from 'lucide-react';
+import { Download, ChevronDown, Warehouse, Building2, Database, MapPin, Package } from 'lucide-react';
 import { exportToCSV, downloadCSV } from '@/lib/csv-utils';
 import { format } from 'date-fns';
 
@@ -31,7 +31,7 @@ export const CSVExport = <T extends Record<string, any>>({
   size = 'default',
   disabled,
   showWarehouseDropdown = false,
-  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse 4', 'Warehouse 5', 'Central Storage'],
   onWarehouseFilter
 }: CSVExportProps<T>) => {
   
@@ -102,18 +102,34 @@ export const CSVExport = <T extends Record<string, any>>({
           <ChevronDown className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="w-56">
         <DropdownMenuItem onClick={() => handleExport()}>
-          <Database className="w-4 h-4 mr-2" />
-          All Warehouses
+          <Database className="w-4 h-4 mr-2 text-blue-600" />
+          <div className="flex flex-col">
+            <span className="font-medium">All Warehouses</span>
+            <span className="text-xs text-muted-foreground">Complete inventory export</span>
+          </div>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {warehouseLocations.map((location: string) => (
-          <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
-            <Warehouse className="w-4 h-4 mr-2" />
-            {location}
-          </DropdownMenuItem>
-        ))}
+        {warehouseLocations.map((location: string) => {
+          const isWarehouse = location.startsWith('Warehouse');
+          const warehouseNumber = isWarehouse ? location.split(' ')[1] : null;
+          return (
+            <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
+              {isWarehouse ? (
+                <Package className="w-4 h-4 mr-2 text-green-600" />
+              ) : (
+                <MapPin className="w-4 h-4 mr-2 text-orange-600" />
+              )}
+              <div className="flex flex-col">
+                <span className="font-medium">{location}</span>
+                <span className="text-xs text-muted-foreground">
+                  {isWarehouse ? `Storage facility ${warehouseNumber}` : 'Central distribution'}
+                </span>
+              </div>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
