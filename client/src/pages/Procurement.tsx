@@ -42,6 +42,8 @@ interface PurchaseOrder {
     quantity: number;
     unit: string;
   }>;
+  paymentMethod?: string;
+  paymentTerms?: string;
 }
 
 export default function Procurement() {
@@ -74,7 +76,9 @@ export default function Procurement() {
         { name: "Acetaminophen API", quantity: 500, unit: "kg" },
         { name: "Microcrystalline Cellulose", quantity: 200, unit: "kg" },
         { name: "Magnesium Stearate", quantity: 25, unit: "kg" }
-      ]
+      ],
+      paymentMethod: "Bank Transfer",
+      paymentTerms: "Net 30 Days"
     },
     {
       id: 2,
@@ -93,7 +97,9 @@ export default function Procurement() {
         { name: "Ibuprofen API", quantity: 300, unit: "kg" },
         { name: "Lactose Monohydrate", quantity: 150, unit: "kg" },
         { name: "Croscarmellose Sodium", quantity: 10, unit: "kg" }
-      ]
+      ],
+      paymentMethod: "Letter of Credit",
+      paymentTerms: "Net 45 Days"
     },
     {
       id: 3,
@@ -109,7 +115,9 @@ export default function Procurement() {
         { name: "Clavulanic Acid", quantity: 50, unit: "kg" },
         { name: "Sodium Starch Glycolate", quantity: 15, unit: "kg" },
         { name: "Colloidal Silicon Dioxide", quantity: 5, unit: "kg" }
-      ]
+      ],
+      paymentMethod: "Cash on Delivery",
+      paymentTerms: "Immediate Payment"
     },
     {
       id: 4,
@@ -300,6 +308,9 @@ export default function Procurement() {
                     </p>
                     <p className="text-muted-foreground mb-1">
                       <strong>Date:</strong> {new Date(order.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Payment:</strong> {(order as any).paymentMethod || 'Not specified'} | <strong>Terms:</strong> {(order as any).paymentTerms || 'Not specified'}
                     </p>
                     <div className="mb-2">
                       <strong className="text-sm text-muted-foreground">Materials Procured:</strong>
@@ -497,6 +508,14 @@ export default function Procurement() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
                   <p className="font-semibold text-green-600">${detailsOrder.totalAmount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
+                  <p className="font-semibold">{(detailsOrder as any).paymentMethod || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Payment Terms</p>
+                  <p className="font-semibold">{(detailsOrder as any).paymentTerms || 'Not specified'}</p>
                 </div>
               </div>
 
