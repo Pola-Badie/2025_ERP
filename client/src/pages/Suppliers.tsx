@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -58,6 +59,7 @@ const supplierFormSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zipCode: z.string().optional(),
+  materials: z.string().optional(),
 });
 
 type SupplierFormValues = z.infer<typeof supplierFormSchema>;
@@ -72,6 +74,7 @@ interface Supplier {
   city?: string;
   state?: string;
   zipCode?: string;
+  materials?: string;
   createdAt: string;
 }
 
@@ -385,6 +388,26 @@ const Suppliers: React.FC = () => {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={form.control}
+                      name="materials"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel>Materials Supplied</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              placeholder="List of materials this supplier provides (e.g. Raw chemicals, Packaging materials, Laboratory equipment)"
+                              className="min-h-[80px]"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter the main materials or product categories this supplier provides
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <DialogFooter>
                     <Button 
@@ -469,6 +492,7 @@ const Suppliers: React.FC = () => {
                     <TableHead>Contact Person</TableHead>
                     <TableHead>Contact Info</TableHead>
                     <TableHead>Location</TableHead>
+                    <TableHead>Materials</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
