@@ -324,7 +324,14 @@ export default function Procurement() {
               />
             </div>
             <div>
-              <Label htmlFor="amount">Total Amount</Label>
+              <Label htmlFor="materials">Materials</Label>
+              <Input 
+                id="materials" 
+                placeholder="Enter materials needed"
+              />
+            </div>
+            <div>
+              <Label htmlFor="amount">Amount</Label>
               <Input 
                 id="amount" 
                 type="number" 
