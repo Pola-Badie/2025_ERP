@@ -203,18 +203,13 @@ const Inventory: React.FC = () => {
         showStorageDropdown: true,
         storageLocations: ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
         onStorageFilter: (location: string | null) => {
-          if (!location) return products; // All locations
+          if (!location) return products;
           return products.filter(product => product.location === location);
         }
       });
       setCSVData(products);
     }
-    
-    // Clean up CSV context when component unmounts
-    return () => {
-      clearCSV();
-    };
-  }, [products, setCSVOptions, setCSVData, clearCSV]);
+  }, [products.length]); // Only depend on the length to avoid infinite loops
 
   // Add category mutation
   const addCategoryMutation = useMutation({
