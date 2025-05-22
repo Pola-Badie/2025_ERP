@@ -1668,6 +1668,24 @@ const OrderManagement = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label>Select Raw Material</Label>
+                        <Select
+                          value={materialToAdd?.toString() || ""}
+                          onValueChange={(value) => setMaterialToAdd(value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select raw material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials?.map((material) => (
+                              <SelectItem key={material.id} value={material.id.toString()}>
+                                {material.name} ({material.unitOfMeasure || 'g'})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   )}
                 </div>
