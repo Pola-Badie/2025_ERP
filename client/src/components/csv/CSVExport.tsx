@@ -31,7 +31,7 @@ export const CSVExport = <T extends Record<string, any>>({
   size = 'default',
   disabled,
   showWarehouseDropdown = false,
-  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse 4', 'Warehouse 5'],
+  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse 4', 'Warehouse 5', 'Warehouse 6', 'Central Storage'],
   onWarehouseFilter
 }: CSVExportProps<T>) => {
   
@@ -102,7 +102,7 @@ export const CSVExport = <T extends Record<string, any>>({
           <ChevronDown className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto">
+      <DropdownMenuContent className="w-56 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         <DropdownMenuItem onClick={() => handleExport()}>
           <Database className="w-4 h-4 mr-2 text-blue-600" />
           <div className="flex flex-col">
