@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,13 @@ interface PurchaseOrder {
   }>;
   paymentMethod?: string;
   paymentTerms?: string;
+  documents?: Array<{
+    id: number;
+    name: string;
+    type: string;
+    uploadDate: string;
+    size: string;
+  }>;
 }
 
 export default function Procurement() {
@@ -78,7 +85,11 @@ export default function Procurement() {
         { name: "Magnesium Stearate", quantity: 25, unit: "kg" }
       ],
       paymentMethod: "Bank Transfer",
-      paymentTerms: "Net 30 Days"
+      paymentTerms: "Net 30 Days",
+      documents: [
+        { id: 1, name: "Receipt_PO-2024-001.pdf", type: "Receipt", uploadDate: "2024-05-21", size: "2.4 MB" },
+        { id: 2, name: "Delivery_Note_001.pdf", type: "Delivery Note", uploadDate: "2024-05-21", size: "1.2 MB" }
+      ]
     },
     {
       id: 2,
@@ -546,6 +557,66 @@ export default function Procurement() {
                       </tr>
                     </tfoot>
                   </table>
+                </div>
+              </div>
+
+              {/* Documents Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold">Uploaded Documents & Receipts</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: "Document Upload",
+                        description: "Document upload functionality initiated",
+                      });
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Document
+                  </Button>
+                </div>
+                <div className="border rounded-lg p-4">
+                  {(detailsOrder as any).documents && (detailsOrder as any).documents.length > 0 ? (
+                    <div className="space-y-3">
+                      {(detailsOrder as any).documents.map((doc: any) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium text-sm">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {doc.type} • {doc.size} • Uploaded {new Date(doc.uploadDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Download Started",
+                                description: `Downloading ${doc.name}`,
+                              });
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No documents uploaded yet</p>
+                      <p className="text-sm">Upload receipts, delivery notes, or invoices</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
