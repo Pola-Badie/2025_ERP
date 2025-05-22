@@ -574,7 +574,18 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
             <DialogHeader>
               <DialogTitle>Invoice #{selectedInvoice.invoiceNumber}</DialogTitle>
               <DialogDescription>
-                {format(new Date(selectedInvoice.date), 'PPP')}
+                <div className="flex items-center justify-between">
+                  <span>{format(new Date(selectedInvoice.date), 'PPP')}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">ETA Status:</span>
+                    {getETAStatus(selectedInvoice)}
+                    {selectedInvoice.etaReference && (
+                      <span className="text-xs text-muted-foreground">
+                        Ref: {selectedInvoice.etaReference}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </DialogDescription>
             </DialogHeader>
             
