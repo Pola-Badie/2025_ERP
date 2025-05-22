@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -924,6 +924,19 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
               <Button variant="outline" onClick={downloadInvoicePDF}>
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
+              </Button>
+              <Button 
+                variant="default" 
+                onClick={() => {
+                  const phoneNumber = "+15551234567"; // Customer's phone from invoice
+                  const message = `Hello ${selectedInvoice.customerName}! Your invoice ${selectedInvoice.invoiceNumber} for $${selectedInvoice.amount.toFixed(2)} is ready. Please find the details attached. Thank you for your business!`;
+                  const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\+/g, '')}?text=${encodeURIComponent(message)}`;
+                  window.open(whatsappUrl, '_blank');
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Send to WhatsApp
               </Button>
             </DialogFooter>
           </DialogContent>
