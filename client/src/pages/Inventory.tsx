@@ -92,8 +92,9 @@ const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { getPageItems, getTotalPages, resetPage } = usePagination();
   const [activeTab, setActiveTab] = useState('inventory');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
   
   // Warehouse management
   const [warehouses, setWarehouses] = useState([
