@@ -31,7 +31,7 @@ export const CSVExport = <T extends Record<string, any>>({
   size = 'default',
   disabled,
   showWarehouseDropdown = false,
-  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse 4', 'Warehouse 5', 'Central Storage'],
+  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse 4', 'Warehouse 5'],
   onWarehouseFilter
 }: CSVExportProps<T>) => {
   
