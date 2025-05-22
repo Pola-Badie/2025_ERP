@@ -266,28 +266,29 @@ const OrderManagement = () => {
       const today = new Date();
       const dateStr = format(today, 'yyMMdd');
       
-      // Get random numbers to create a unique batch number
-      const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+      // Get random numbers to create a unique batch number (3 digits)
+      const randomNum = Math.floor(100 + Math.random() * 900);
       
-      // Generate a chemical batch number with the CHEM prefix
-      const chemPrefix = type === 'production' ? 'CHEM-' : 'CHEM-REF-';
-      const generatedBatchNumber = `${chemPrefix}${randomNum}-${dateStr}`;
-      
+      // Generate batch numbers with new format
       if (type === 'production') {
-        setBatchNumber(generatedBatchNumber);
+        // Format: BATCH-100-YYMMDD
+        const batchNumber = `BATCH-${randomNum}-${dateStr}`;
+        setBatchNumber(batchNumber);
       } else {
-        setRefiningBatchNumber(generatedBatchNumber);
+        // Format: REF-100-YYMMDD
+        const refBatchNumber = `REF-${randomNum}-${dateStr}`;
+        setRefiningBatchNumber(refBatchNumber);
       }
     } catch (error) {
       console.error('Error generating batch number:', error);
-      // Default batch numbers if API fails - include date in the fallback
+      // Default batch numbers if something fails
       const now = new Date();
-      const dateCode = `${now.getFullYear().toString().slice(2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
+      const dateCode = format(now, 'yyMMdd');
       
       if (type === 'production') {
-        setBatchNumber(`CHEM-0001-${dateCode}`);
+        setBatchNumber(`BATCH-100-${dateCode}`);
       } else {
-        setRefiningBatchNumber(`REF-0001-${dateCode}`);
+        setRefiningBatchNumber(`REF-100-${dateCode}`);
       }
     }
   };
