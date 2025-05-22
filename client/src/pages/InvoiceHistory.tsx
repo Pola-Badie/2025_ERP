@@ -214,6 +214,34 @@ const InvoiceHistory = () => {
     setIsLoading(false);
   }, []);
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files).filter(file => {
+        const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        return validTypes.includes(file.type) && file.size <= maxSize;
+      });
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   // Filter invoices based on search term and filters
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = searchTerm === '' || 
@@ -555,14 +583,53 @@ const InvoiceHistory = () => {
                       </div>
                     </div>
                     
+                    {/* Show uploaded files */}
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-white rounded border border-green-200 bg-green-50">
+                        <div className="flex items-center">
+                          <FileText className="h-5 w-5 text-green-600 mr-3" />
+                          <div>
+                            <p className="font-medium text-sm">{file.name}</p>
+                            <p className="text-xs text-slate-500">{formatFileSize(file.size)} • Just uploaded</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => removeUploadedFile(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
                     {/* Upload new document option */}
-                    <div className="flex items-center justify-center p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-slate-400 transition-colors cursor-pointer">
+                    <div 
+                      className="flex items-center justify-center p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-slate-400 transition-colors cursor-pointer"
+                      onClick={triggerFileUpload}
+                    >
                       <div className="text-center">
                         <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
                         <p className="text-sm text-slate-600">Upload additional documents</p>
                         <p className="text-xs text-slate-400">PDF, JPG, PNG up to 10MB</p>
                       </div>
                     </div>
+                    
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
                   </div>
                 </div>
               </div>
