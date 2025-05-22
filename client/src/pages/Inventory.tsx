@@ -202,9 +202,9 @@ const Inventory: React.FC = () => {
         exportButtonText: 'Export Inventory',
         importButtonText: 'Import Products',
         onImport: handleImportProducts,
-        showStorageDropdown: true,
-        storageLocations: ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
-        onStorageFilter: (location: string | null) => {
+        showWarehouseDropdown: true,
+        warehouseLocations: ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+        onWarehouseFilter: (location: string | null) => {
           if (!location) return products;
           return products.filter(product => product.location === location);
         }
