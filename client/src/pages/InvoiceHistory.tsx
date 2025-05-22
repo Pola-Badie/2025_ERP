@@ -634,18 +634,130 @@ const InvoiceHistory = () => {
                 </div>
               </div>
               
-              <div className="mt-8 flex justify-end">
-                <div className="w-72">
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-bold">
-                    <span>Total:</span>
-                    <span>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                      }).format(selectedInvoice.amount)}
-                    </span>
+              {/* Financial Summary Section */}
+              <div className="mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Payment Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold mb-3">Payment Information</h3>
+                    <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Payment Method:</span>
+                        <span className="font-medium capitalize">
+                          {selectedInvoice.paymentMethod?.replace('_', ' ') || 'Not specified'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Payment Status:</span>
+                        <span className="font-medium">
+                          {getStatusBadge(selectedInvoice.status)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Amount Paid:</span>
+                        <span className="font-medium text-green-600">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.amountPaid || 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Outstanding Balance:</span>
+                        <span className="font-medium text-red-600">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format((selectedInvoice.amount || 0) - (selectedInvoice.amountPaid || 0))}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Financial Breakdown */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold mb-3">Financial Summary</h3>
+                    <div className="bg-slate-50 p-4 rounded-lg space-y-3">
+                      {/* Calculate subtotal from items */}
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Subtotal:</span>
+                        <span className="font-medium">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0))}
+                        </span>
+                      </div>
+                      
+                      {/* Discount (if any) */}
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Discount (5%):</span>
+                        <span className="font-medium text-green-600">
+                          -{new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.05)}
+                        </span>
+                      </div>
+                      
+                      {/* Calculate after discount */}
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">After Discount:</span>
+                        <span className="font-medium">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.95)}
+                        </span>
+                      </div>
+                      
+                      {/* Tax */}
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Tax (14%):</span>
+                        <span className="font-medium">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.95 * 0.14)}
+                        </span>
+                      </div>
+                      
+                      {/* Shipping (if applicable) */}
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Shipping & Handling:</span>
+                        <span className="font-medium">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(25.00)}
+                        </span>
+                      </div>
+                      
+                      <Separator className="my-2" />
+                      
+                      {/* Final Total */}
+                      <div className="flex justify-between text-lg font-bold border-t pt-2">
+                        <span>Grand Total:</span>
+                        <span className="text-blue-600">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(selectedInvoice.amount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Notes Section */}
+                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-2">Terms & Conditions</h4>
+                  <ul className="text-sm text-yellow-700 space-y-1">
+                    <li>• Payment is due within 30 days of invoice date</li>
+                    <li>• Late payments may incur additional charges</li>
+                    <li>• All pharmaceutical products are subject to quality assurance</li>
+                    <li>• Returns accepted within 14 days with original packaging</li>
+                  </ul>
                 </div>
               </div>
             </div>
