@@ -611,7 +611,11 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
               <div className="grid grid-cols-2 gap-6 mb-8">
                 <div>
                   <h3 className="font-semibold mb-2">Bill To:</h3>
-                  <p className="font-medium">{selectedInvoice.customerName}</p>
+                  <div className="space-y-1">
+                    <p className="font-medium">{selectedInvoice.customerName}</p>
+                    <p className="text-sm text-slate-600">Mobile: +1 (555) 123-4567</p>
+                    <p className="text-sm text-slate-600">Email: {selectedInvoice.customerName.toLowerCase().replace(/\s+/g, '.')}@pharmacare.com</p>
+                  </div>
                 </div>
               </div>
               
