@@ -334,9 +334,8 @@ export default function Procurement() {
               <Label htmlFor="amount">Amount</Label>
               <Input 
                 id="amount" 
-                type="number" 
                 defaultValue={editingOrder?.totalAmount || ''} 
-                placeholder="0.00"
+                placeholder="Enter amount"
               />
             </div>
             <div>
