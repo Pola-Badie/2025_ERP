@@ -87,37 +87,34 @@ export const CSVExport = <T extends Record<string, any>>({
     downloadCSV(csvContent, finalFilename);
   };
   
-  if (showWarehouseDropdown) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant={variant}
-            size={size}
-            className={`${className} flex items-center gap-2`}
-            disabled={disabled || !data || data.length === 0}
-          >
-            <Download className="w-4 h-4" />
-            {buttonText}
-            <ChevronDown className="w-4 h-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem onClick={() => handleExport()}>
-            <Database className="w-4 h-4 mr-2" />
-            All Warehouses
+  // Always show the dropdown with warehouse options
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant={variant}
+          size={size}
+          className={`${className} flex items-center gap-2`}
+          disabled={disabled || !data || data.length === 0}
+        >
+          <Download className="w-4 h-4" />
+          {buttonText}
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => handleExport()}>
+          <Database className="w-4 h-4 mr-2" />
+          All Warehouses
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {warehouseLocations.map((location: string) => (
+          <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
+            <Warehouse className="w-4 h-4 mr-2" />
+            {location}
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {warehouseLocations.map((location: string) => (
-            <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
-              <Warehouse className="w-4 h-4 mr-2" />
-              {location}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-  
-  return null;
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
