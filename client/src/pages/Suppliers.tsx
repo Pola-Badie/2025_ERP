@@ -537,6 +537,15 @@ const Suppliers: React.FC = () => {
                           <span className="text-muted-foreground">No address provided</span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        {supplier.materials ? (
+                          <div className="text-sm max-w-[250px] truncate" title={supplier.materials}>
+                            {supplier.materials}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Not specified</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
