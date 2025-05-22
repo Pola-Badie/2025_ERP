@@ -111,6 +111,7 @@ export const suppliers = pgTable("suppliers", {
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
+  materials: text("materials"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
