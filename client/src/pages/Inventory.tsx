@@ -316,6 +316,13 @@ const Inventory: React.FC = () => {
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil((filteredProducts?.length || 0) / itemsPerPage);
+  const paginatedProducts = filteredProducts?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ) || [];
   
   // Update CSV data when filtered products change
   useEffect(() => {
@@ -710,7 +717,7 @@ const Inventory: React.FC = () => {
                                   setSelectedProducts([]);
                                 }
                               }}
-                              checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                              checked={selectedProducts.length === paginatedProducts.length && paginatedProducts.length > 0}
                             />
                             <label htmlFor="select-all" className="ml-2 cursor-pointer">All</label>
                           </div>
@@ -728,7 +735,7 @@ const Inventory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredProducts.map((product) => {
+                      {paginatedProducts.map((product) => {
                         const expiryStatus = getExpiryStatus(product.expiryDate);
                         return (
                           <tr key={product.id} className="border-b border-slate-100 hover:bg-slate-50">
@@ -849,6 +856,76 @@ const Inventory: React.FC = () => {
                       })}
                     </tbody>
                   </table>
+                </div>
+              )}
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center mt-6 p-4 bg-white rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex items-center gap-1 mx-4">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                        if (pageNum > totalPages) return null;
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === currentPage ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`w-8 h-8 p-0 ${
+                              pageNum === currentPage 
+                                ? "bg-blue-600 text-white hover:bg-blue-700" 
+                                : "hover:bg-blue-50"
+                            }`}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <>
+                          <span className="px-2 text-muted-foreground">...</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(totalPages)}
+                            className="w-8 h-8 p-0 hover:bg-blue-50"
+                          >
+                            {totalPages}
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center gap-1"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    
+                    <div className="text-sm text-muted-foreground ml-4">
+                      Page {currentPage} of {totalPages}
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
