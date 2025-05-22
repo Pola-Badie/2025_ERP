@@ -44,6 +44,7 @@ interface PurchaseOrder {
   }>;
   paymentMethod?: string;
   paymentTerms?: string;
+  paymentDueDate?: string;
   documents?: Array<{
     id: number;
     name: string;
@@ -86,6 +87,7 @@ export default function Procurement() {
       ],
       paymentMethod: "Bank Transfer",
       paymentTerms: "Net 30 Days",
+      paymentDueDate: "2024-06-20",
       documents: [
         { id: 1, name: "Receipt_PO-2024-001.pdf", type: "Receipt", uploadDate: "2024-05-21", size: "2.4 MB" },
         { id: 2, name: "Delivery_Note_001.pdf", type: "Delivery Note", uploadDate: "2024-05-21", size: "1.2 MB" }
@@ -110,7 +112,8 @@ export default function Procurement() {
         { name: "Croscarmellose Sodium", quantity: 10, unit: "kg" }
       ],
       paymentMethod: "Letter of Credit",
-      paymentTerms: "Net 45 Days"
+      paymentTerms: "Net 45 Days",
+      paymentDueDate: "2024-07-05"
     },
     {
       id: 3,
@@ -323,6 +326,11 @@ export default function Procurement() {
                     <p className="text-muted-foreground mb-1">
                       <strong>Payment:</strong> {(order as any).paymentMethod || 'Not specified'} | <strong>Terms:</strong> {(order as any).paymentTerms || 'Not specified'}
                     </p>
+                    {(order as any).paymentDueDate && (
+                      <p className="text-muted-foreground mb-1">
+                        <strong>Payment Due:</strong> <span className="text-red-600 font-medium">{new Date((order as any).paymentDueDate).toLocaleDateString()}</span>
+                      </p>
+                    )}
                     <div className="mb-2">
                       <strong className="text-sm text-muted-foreground">Materials Procured:</strong>
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -491,7 +499,7 @@ export default function Procurement() {
 
       {/* Purchase Order Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {detailsOrder ? `${detailsOrder.poNumber} - Detailed Breakdown` : 'Purchase Order Details'}
