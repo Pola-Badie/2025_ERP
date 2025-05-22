@@ -1014,6 +1014,24 @@ export class DatabaseStorage implements IStorage {
     await db.delete(orderFees).where(eq(orderFees.orderId, orderId));
     return true;
   }
+  
+  // Supplier methods
+  async getSuppliers(): Promise<Supplier[]> {
+    return db.select().from(suppliers).orderBy(asc(suppliers.name));
+  }
+  
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return supplier;
+  }
+  
+  async createSupplier(supplierData: InsertSupplier): Promise<Supplier> {
+    const [supplier] = await db.insert(suppliers).values({
+      ...supplierData,
+      createdAt: new Date()
+    }).returning();
+    return supplier;
+  }
 }
 
 export const storage = new DatabaseStorage();
