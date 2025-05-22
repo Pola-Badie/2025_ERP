@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 interface Supplier {
@@ -303,6 +305,70 @@ export default function Procurement() {
           </Card>
         )}
       </div>
+
+      {/* Edit Purchase Order Dialog */}
+      <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {editingOrder ? `Edit ${editingOrder.poNumber}` : 'New Purchase Order'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="supplier">Supplier</Label>
+              <Input 
+                id="supplier" 
+                defaultValue={editingOrder?.supplier || ''} 
+                placeholder="Enter supplier name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="amount">Total Amount</Label>
+              <Input 
+                id="amount" 
+                type="number" 
+                defaultValue={editingOrder?.totalAmount || ''} 
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select defaultValue={editingOrder?.status || 'draft'}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="received">Received</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => {
+                  toast({
+                    title: "Purchase Order Saved",
+                    description: `${editingOrder?.poNumber || 'New order'} has been saved successfully`,
+                  });
+                  setIsPurchaseOrderFormOpen(false);
+                }}
+                className="flex-1"
+              >
+                Save Changes
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsPurchaseOrderFormOpen(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
