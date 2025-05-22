@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,8 @@ export default function Procurement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [isPurchaseOrderFormOpen, setIsPurchaseOrderFormOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
 
   // Sample purchase orders data
   const samplePurchaseOrders: PurchaseOrder[] = [
@@ -113,6 +115,14 @@ export default function Procurement() {
   // Use sample data instead of API for now
   const [purchaseOrders, setPurchaseOrders] = useState(samplePurchaseOrders);
   const isLoading = false;
+
+  // Fetch suppliers from API
+  useEffect(() => {
+    fetch('/api/suppliers')
+      .then(res => res.json())
+      .then(data => setSuppliers(data))
+      .catch(err => console.error('Error fetching suppliers:', err));
+  }, []);
 
   // Handler functions for purchase order actions
   const handleEditPurchaseOrder = (order: PurchaseOrder) => {
