@@ -1673,6 +1673,101 @@ const OrderManagement = () => {
                 </div>
               </div>
               
+              {/* Raw Materials */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-4">Raw Materials</h3>
+                
+                <div className="grid md:grid-cols-4 gap-4 mb-4">
+                  <div className="md:col-span-2">
+                    <Label>Material</Label>
+                    <Select
+                      value={materialToAdd?.toString() || ""}
+                      onValueChange={(value) => setMaterialToAdd(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select material" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {materials?.map((material) => (
+                          <SelectItem key={material.id} value={material.id.toString()}>
+                            {material.name} ({material.unitOfMeasure || 'g'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={materialQuantity || ""}
+                      onChange={(e) => setMaterialQuantity(parseInt(e.target.value) || 0)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Unit Price ($)</Label>
+                    <Input
+                      type="text"
+                      value={materialUnitPrice}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.]/g, '');
+                        setMaterialUnitPrice(value);
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline"
+                  onClick={handleAddMaterial}
+                  className="mb-4"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Material
+                </Button>
+                
+                {/* Materials List */}
+                {rawMaterials.length > 0 && (
+                  <div className="rounded-md border overflow-hidden mb-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Material</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Unit Price</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead className="w-[70px]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rawMaterials.map((material, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{material.name}</TableCell>
+                            <TableCell>{material.quantity} {material.unitOfMeasure}</TableCell>
+                            <TableCell>${parseFloat(material.unitPrice).toFixed(2)}</TableCell>
+                            <TableCell>
+                              ${(material.quantity * parseFloat(material.unitPrice)).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveMaterial(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+              
               {/* Refining Steps */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-4">Refining Steps</h3>
