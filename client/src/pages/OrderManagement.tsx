@@ -453,14 +453,21 @@ const OrderManagement = () => {
     if (!validateProductionOrder()) return;
     
     try {
+      // Create a chemical order with improved data structure
       const orderData = {
         orderType: 'production',
         batchNumber,
         customerId: selectedCustomer.id,
         customerName: selectedCustomer.name,
+        company: selectedCustomer.company || '',
+        location: "Warehouse 1", // Default warehouse location
+        orderCategory: 'chemical',
+        chemicalType: 'pharmaceutical',
         materials: rawMaterials,
         packaging: packagingItems,
         finalProduct: finalProductDescription,
+        transportationCost: parseFloat(transportationCost) || 0,
+        transportationNotes: transportationNotes,
         subtotal: subtotalPrice,
         taxPercentage: taxPercentage,
         taxAmount: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
@@ -468,6 +475,7 @@ const OrderManagement = () => {
         totalAdditionalFees: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
         totalCost: totalPrice,
         status: 'pending',
+        priorityLevel: 'normal',
         createdAt: new Date().toISOString()
       };
       

@@ -1820,50 +1820,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products/semi-finished", (req: Request, res: Response) => {
     try {
       console.log("Fetching semi-finished products for chemical orders");
-      // Sample data for chemical orders
-      console.log("Providing semi-finished products data");
+      // Data for chemical intermediate products
+      console.log("Providing chemical semi-finished products data");
       const sampleSemiFinishedProducts = [
         {
           id: 201,
-          name: "Semi-Finished Panadol",
-          drugName: "SF-Paracetamol",
-          description: "Semi-finished base for pain relief tablets",
-          sku: "SF-PAN500",
-          costPrice: "180.00",
-          sellingPrice: "0.00",
-          productType: "semi-raw",
-          status: "active",
-          quantity: 120,
-          unitOfMeasure: "L",
-          batchNumber: "BATCH-1001"
-        },
-        {
-          id: 202,
-          name: "Semi-Finished Cataflam",
-          drugName: "SF-Diclofenac",
-          description: "Precursor for anti-inflammatory medications",
-          sku: "SF-CAT500",
-          costPrice: "220.00",
+          name: "Acetylsalicylic Acid Solution",
+          drugName: "C9H8O4 Solution",
+          description: "Semi-refined acetylsalicylic acid solution ready for final processing",
+          sku: "SF-001",
+          costPrice: "250.00",
           sellingPrice: "0.00",
           productType: "semi-raw",
           status: "active",
           quantity: 150,
-          unitOfMeasure: "kg",
-          batchNumber: "BATCH-1002"
+          unitOfMeasure: "L",
+          batchNumber: "CHEM-0001-250522"
         },
         {
-          id: 203,
-          name: "Semi-Finished Aspirin",
-          drugName: "SF-Acetylsalicylic",
-          description: "Base solution for aspirin production",
-          sku: "SF-ASP100",
-          costPrice: "190.00",
+          id: 202,
+          name: "Paracetamol Base",
+          drugName: "C8H9NO2 Base",
+          description: "Partially processed paracetamol base compound",
+          sku: "SF-002",
+          costPrice: "220.00",
           sellingPrice: "0.00",
           productType: "semi-raw",
           status: "active",
-          quantity: 180,
-          unitOfMeasure: "L",
-          batchNumber: "BATCH-1003"
+          quantity: 100,
+          unitOfMeasure: "kg",
+          batchNumber: "CHEM-0002-250522"
+        },
+        {
+          id: 203,
+          name: "Caffeine Isolate",
+          drugName: "C8H10N4O2 Isolate",
+          description: "Purified caffeine extract in intermediate form",
+          sku: "SF-003",
+          costPrice: "280.00",
+          sellingPrice: "0.00",
+          productType: "semi-raw",
+          status: "active",
+          quantity: 75,
+          unitOfMeasure: "kg",
+          batchNumber: "CHEM-0003-250522"
+        },
+        {
+          id: 204,
+          name: "Diclofenac Sodium Base",
+          drugName: "C14H10Cl2NNaO2 Base",
+          description: "Semi-processed diclofenac sodium for pharmaceutical applications",
+          sku: "SF-004",
+          costPrice: "310.00",
+          sellingPrice: "0.00",
+          productType: "semi-raw",
+          status: "active",
+          quantity: 60,
+          unitOfMeasure: "kg",
+          batchNumber: "CHEM-0004-250522"
+        },
+        {
+          id: 205,
+          name: "Ibuprofen Intermediate",
+          drugName: "C13H18O2 Intermediate",
+          description: "Partially refined ibuprofen for anti-inflammatory medications",
+          sku: "SF-005",
+          costPrice: "245.00",
+          sellingPrice: "0.00",
+          productType: "semi-raw",
+          status: "active",
+          quantity: 120,
+          unitOfMeasure: "kg",
+          batchNumber: "CHEM-0005-250522"
         }
       ];
       
