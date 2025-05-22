@@ -1373,35 +1373,13 @@ const OrderManagement = () => {
               <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold">Production Orders History</h2>
                 <div className="flex gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <FileDown className="h-4 w-4" />
-                        Export to CSV
-                        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleExportProductionOrders()}>
-                        All Warehouses
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExportProductionOrdersByWarehouse("Warehouse 1")}>
-                        Warehouse 1
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExportProductionOrdersByWarehouse("Warehouse 2")}>
-                        Warehouse 2
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExportProductionOrdersByWarehouse("Central Storage")}>
-                        Central Storage
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    onClick={() => handleExportProductionOrders()}
+                    className="flex items-center gap-2"
+                  >
+                    <FileDown className="h-4 w-4" />
+                    Export
+                  </Button>
                 </div>
               </div>
               
