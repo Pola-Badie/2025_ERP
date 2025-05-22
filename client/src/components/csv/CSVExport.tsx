@@ -119,16 +119,5 @@ export const CSVExport = <T extends Record<string, any>>({
     );
   }
   
-  return (
-    <Button 
-      variant={variant}
-      size={size}
-      onClick={() => handleExport()} 
-      className={className}
-      disabled={disabled || !data || data.length === 0}
-    >
-      <Download className="w-4 h-4 mr-2" />
-      {buttonText}
-    </Button>
-  );
+  return null;
 };
