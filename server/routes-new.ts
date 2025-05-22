@@ -63,6 +63,16 @@ import { registerAccountingRoutes } from "./routes-accounting";
 import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all suppliers
+  app.get("/api/suppliers", async (_req: Request, res: Response) => {
+    try {
+      const suppliersList = await db.select().from(suppliers).orderBy(suppliers.name);
+      return res.status(200).json(suppliersList);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      return res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
   // Generate sample invoices for demo purposes
   app.get("/api/sample-invoices", async (_req: Request, res: Response) => {
     try {
