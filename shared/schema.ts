@@ -477,6 +477,7 @@ export const insertSupplierSchema = createInsertSchema(suppliers).pick({
   city: true,
   state: true,
   zipCode: true,
+  materials: true,
 });
 
 export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).pick({
