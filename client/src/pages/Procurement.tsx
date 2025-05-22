@@ -78,11 +78,73 @@ const Procurement: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isPurchaseOrderFormOpen, setIsPurchaseOrderFormOpen] = useState(false);
 
-  // Fetch purchase orders
-  const { data: purchaseOrders, isLoading } = useQuery<PurchaseOrder[]>({
-    queryKey: ['/api/purchases'],
-    // Default error handling is provided by the client setup
-  });
+  // Sample purchase orders data
+  const samplePurchaseOrders: PurchaseOrder[] = [
+    {
+      id: 1,
+      poNumber: 'PO-2025-001',
+      supplier: 'PharmaSupply Ltd',
+      supplierId: 1,
+      date: '2025-01-15',
+      status: 'pending',
+      totalAmount: 15750.00,
+      items: []
+    },
+    {
+      id: 2,
+      poNumber: 'PO-2025-002',
+      supplier: 'MedChem Corp',
+      supplierId: 1,
+      date: '2025-01-18',
+      status: 'sent',
+      totalAmount: 22400.00,
+      items: []
+    },
+    {
+      id: 3,
+      poNumber: 'PO-2025-003',
+      supplier: 'ChemicalWorks Inc',
+      supplierId: 1,
+      date: '2025-01-20',
+      status: 'received',
+      totalAmount: 8950.00,
+      items: []
+    },
+    {
+      id: 4,
+      poNumber: 'PO-2025-004',
+      supplier: 'BioMaterials Co',
+      supplierId: 1,
+      date: '2025-01-22',
+      status: 'pending',
+      totalAmount: 18600.00,
+      items: []
+    },
+    {
+      id: 5,
+      poNumber: 'PO-2025-005',
+      supplier: 'GlobalPharma Supply',
+      supplierId: 1,
+      date: '2025-01-22',
+      status: 'draft',
+      totalAmount: 31200.00,
+      items: []
+    },
+    {
+      id: 6,
+      poNumber: 'PO-2025-006',
+      supplier: 'SpecialChem Ltd',
+      supplierId: 1,
+      date: '2025-01-23',
+      status: 'sent',
+      totalAmount: 14750.00,
+      items: []
+    }
+  ];
+
+  // Use sample data instead of API for now
+  const purchaseOrders = samplePurchaseOrders;
+  const isLoading = false;
 
   // Filter purchase orders based on search term and status
   const filteredPurchaseOrders = purchaseOrders?.filter(po => {
