@@ -78,47 +78,47 @@ import { useQuery } from '@tanstack/react-query';
 const OrderManagement = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'refining'>('create');
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [batchNumber, setBatchNumber] = useState('');
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   
   // Production order states
-  const [rawMaterials, setRawMaterials] = useState([]);
-  const [materialToAdd, setMaterialToAdd] = useState(null);
-  const [materialQuantity, setMaterialQuantity] = useState(0);
-  const [materialUnitPrice, setMaterialUnitPrice] = useState('0.00');
+  const [rawMaterials, setRawMaterials] = useState<any[]>([]);
+  const [materialToAdd, setMaterialToAdd] = useState<any>(null);
+  const [materialQuantity, setMaterialQuantity] = useState<number>(0);
+  const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('0.00');
   const [finalProductDescription, setFinalProductDescription] = useState('');
   
   // Packaging states
-  const [packagingItems, setPackagingItems] = useState([]);
-  const [packagingToAdd, setPackagingToAdd] = useState(null);
-  const [packagingQuantity, setPackagingQuantity] = useState(0);
-  const [packagingUnitPrice, setPackagingUnitPrice] = useState('0.00');
-  const [taxPercentage, setTaxPercentage] = useState(14);
+  const [packagingItems, setPackagingItems] = useState<any[]>([]);
+  const [packagingToAdd, setPackagingToAdd] = useState<any>(null);
+  const [packagingQuantity, setPackagingQuantity] = useState<number>(0);
+  const [packagingUnitPrice, setPackagingUnitPrice] = useState<string>('0.00');
+  const [taxPercentage, setTaxPercentage] = useState<number>(14);
   const [subtotalPrice, setSubtotalPrice] = useState('0.00');
   const [totalPrice, setTotalPrice] = useState('0.00');
-  const [transportationCost, setTransportationCost] = useState('0.00');
-  const [transportationNotes, setTransportationNotes] = useState('');
+  const [transportationCost, setTransportationCost] = useState<string>('0.00');
+  const [transportationNotes, setTransportationNotes] = useState<string>('');
   
   // Refining order states
   const [refiningBatchNumber, setRefiningBatchNumber] = useState('');
   const [sourceType, setSourceType] = useState('production');
-  const [sourceProductionOrder, setSourceProductionOrder] = useState('');
-  const [sourceStockItem, setSourceStockItem] = useState('');
-  const [refiningSteps, setRefiningSteps] = useState([]);
+  const [sourceProductionOrder, setSourceProductionOrder] = useState<string>('');
+  const [sourceStockItem, setSourceStockItem] = useState<string>('');
+  const [refiningSteps, setRefiningSteps] = useState<string[]>([]);
   const [newRefiningStep, setNewRefiningStep] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
-  const [refiningTaxPercentage, setRefiningTaxPercentage] = useState(14);
+  const [refiningTaxPercentage, setRefiningTaxPercentage] = useState<number>(14);
   const [refiningSubtotal, setRefiningSubtotal] = useState('0.00');
   const [refiningCost, setRefiningCost] = useState('0.00');
-  const [refiningTransportationCost, setRefiningTransportationCost] = useState('0.00');
-  const [refiningTransportationNotes, setRefiningTransportationNotes] = useState('');
+  const [refiningTransportationCost, setRefiningTransportationCost] = useState<string>('0.00');
+  const [refiningTransportationNotes, setRefiningTransportationNotes] = useState<string>('');
   
   // Calculate subtotal and total price (with tax) when raw materials, packaging items, tax percentage, or transportation cost change
   useEffect(() => {
@@ -193,11 +193,11 @@ const OrderManagement = () => {
   
   // Separate production and refining orders
   const productionOrders = React.useMemo(() => {
-    return allOrders?.filter((order) => order.orderType === 'production') || [];
+    return allOrders?.filter((order: any) => order.orderType === 'production') || [];
   }, [allOrders]);
   
   const refiningOrders = React.useMemo(() => {
-    return allOrders?.filter((order) => order.orderType === 'refining') || [];
+    return allOrders?.filter((order: any) => order.orderType === 'refining') || [];
   }, [allOrders]);
   
   // Fetch semi-finished products
@@ -223,7 +223,7 @@ const OrderManagement = () => {
       }
       const products = await response.json();
       // Filter for packaging items or return all products if no specific filter available
-      return products.filter((p) => 
+      return products.filter((p: any) => 
         p.name?.toLowerCase().includes('package') || 
         p.name?.toLowerCase().includes('box') || 
         p.name?.toLowerCase().includes('container') ||
@@ -240,7 +240,7 @@ const OrderManagement = () => {
   }, []);
   
   // Filter customers based on search term
-  const filteredCustomers = customers ? customers.filter((customer) => {
+  const filteredCustomers = customers ? customers.filter((customer: any) => {
     const term = customerSearchTerm.toLowerCase();
     return (
       customer.name?.toLowerCase().includes(term) ||
@@ -249,8 +249,8 @@ const OrderManagement = () => {
     );
   }) : [];
   
-  const handleTabChange = (value) => {
-    setActiveTab(value);
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'create' | 'refining');
     
     // Generate appropriate batch number when switching tabs
     if (value === 'create' && !batchNumber) {
@@ -260,7 +260,7 @@ const OrderManagement = () => {
     }
   };
   
-  const generateBatchNumber = async (type) => {
+  const generateBatchNumber = async (type: 'production' | 'refining') => {
     try {
       // Get the current date in YYMMDD format
       const today = new Date();
@@ -303,133 +303,277 @@ const OrderManagement = () => {
       return;
     }
     
-    if (!materialQuantity || materialQuantity <= 0) {
+    if (materialQuantity <= 0) {
       toast({
         title: "Invalid Quantity",
-        description: "Please enter a valid quantity",
+        description: "Quantity must be greater than 0",
         variant: "destructive",
       });
       return;
     }
     
-    const material = materials.find((m) => m.id.toString() === materialToAdd.toString());
-    if (!material) {
+    if (parseFloat(materialUnitPrice) <= 0) {
       toast({
-        title: "Material Not Found",
-        description: "The selected material could not be found",
+        title: "Invalid Price",
+        description: "Unit price must be greater than 0",
         variant: "destructive",
       });
       return;
     }
     
-    const newMaterial = {
-      id: material.id,
-      name: material.name,
-      quantity: materialQuantity,
-      unitPrice: materialUnitPrice || "0.00",
-      unitOfMeasure: material.unitOfMeasure || 'g',
-      total: (materialQuantity * parseFloat(materialUnitPrice || 0)).toFixed(2)
-    };
+    // Find material details from the materials list
+    const selectedMaterial = materials?.find((m: any) => m.id === parseInt(materialToAdd));
+    if (!selectedMaterial) return;
     
-    setRawMaterials([...rawMaterials, newMaterial]);
+    // Check if material already exists
+    const existingIndex = rawMaterials.findIndex(m => m.id === selectedMaterial.id);
+    
+    if (existingIndex >= 0) {
+      // Update existing material
+      const updatedMaterials = [...rawMaterials];
+      updatedMaterials[existingIndex].quantity += materialQuantity;
+      setRawMaterials(updatedMaterials);
+    } else {
+      // Add new material
+      setRawMaterials([...rawMaterials, {
+        id: selectedMaterial.id,
+        name: selectedMaterial.name,
+        quantity: materialQuantity,
+        unitPrice: materialUnitPrice,
+        unitOfMeasure: selectedMaterial.unitOfMeasure || 'g'
+      }]);
+    }
+    
+    // Reset form
     setMaterialToAdd(null);
     setMaterialQuantity(0);
-    setMaterialUnitPrice("0.00");
+    setMaterialUnitPrice('0.00');
   };
   
-  const handleRemoveMaterial = (index) => {
-    const newMaterials = [...rawMaterials];
-    newMaterials.splice(index, 1);
-    setRawMaterials(newMaterials);
+  const handleRemoveMaterial = (index: number) => {
+    const updatedMaterials = [...rawMaterials];
+    updatedMaterials.splice(index, 1);
+    setRawMaterials(updatedMaterials);
   };
   
   const handleAddPackaging = () => {
     if (!packagingToAdd) {
       toast({
-        title: "Missing Packaging",
-        description: "Please select a packaging item to add",
-        variant: "destructive",
+        title: "Select packaging",
+        description: "Please select a packaging item",
+        variant: "destructive"
       });
       return;
     }
     
     if (!packagingQuantity || packagingQuantity <= 0) {
       toast({
-        title: "Invalid Quantity",
+        title: "Invalid quantity",
         description: "Please enter a valid quantity",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
     
-    const packaging = packagingMaterials.find((p) => p.id.toString() === packagingToAdd.toString());
-    if (!packaging) {
+    const packagingItem = packagingMaterials?.find((p: any) => p.id.toString() === packagingToAdd);
+    if (!packagingItem) {
       toast({
-        title: "Packaging Not Found",
-        description: "The selected packaging could not be found",
-        variant: "destructive",
+        title: "Packaging not found",
+        description: "The selected packaging was not found",
+        variant: "destructive"
       });
       return;
     }
     
-    const newPackaging = {
-      id: packaging.id,
-      name: packaging.name,
+    // Add the packaging item to the list
+    const newPackagingItem = {
+      id: packagingItem.id,
+      name: packagingItem.name,
       quantity: packagingQuantity,
-      unitPrice: packagingUnitPrice || "0.00",
-      unitOfMeasure: packaging.unitOfMeasure || 'pcs',
-      total: (packagingQuantity * parseFloat(packagingUnitPrice || 0)).toFixed(2)
+      unitPrice: packagingUnitPrice || packagingItem.costPrice || '0.00',
+      unitOfMeasure: packagingItem.unitOfMeasure || 'pcs'
     };
     
-    setPackagingItems([...packagingItems, newPackaging]);
+    setPackagingItems([...packagingItems, newPackagingItem]);
+    
+    // Reset the form
     setPackagingToAdd(null);
     setPackagingQuantity(0);
-    setPackagingUnitPrice("0.00");
+    setPackagingUnitPrice('0.00');
   };
   
-  const handleRemovePackaging = (index) => {
-    const newItems = [...packagingItems];
-    newItems.splice(index, 1);
-    setPackagingItems(newItems);
+  const handleRemovePackaging = (index: number) => {
+    const updatedPackaging = [...packagingItems];
+    updatedPackaging.splice(index, 1);
+    setPackagingItems(updatedPackaging);
   };
   
   const handleAddRefiningStep = () => {
-    if (!newRefiningStep.trim()) {
-      toast({
-        title: "Empty Step",
-        description: "Please enter a refining step",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+    if (!newRefiningStep.trim()) return;
     setRefiningSteps([...refiningSteps, newRefiningStep.trim()]);
     setNewRefiningStep('');
   };
   
-  const handleRemoveRefiningStep = (index) => {
-    const newSteps = [...refiningSteps];
-    newSteps.splice(index, 1);
-    setRefiningSteps(newSteps);
+  const handleRemoveRefiningStep = (index: number) => {
+    const updatedSteps = [...refiningSteps];
+    updatedSteps.splice(index, 1);
+    setRefiningSteps(updatedSteps);
   };
   
   const handleCreateProductionOrder = async () => {
+    if (!validateProductionOrder()) return;
+    
+    try {
+      // Create a chemical order with improved data structure
+      const orderData = {
+        orderType: 'production',
+        batchNumber,
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
+        company: selectedCustomer.company || '',
+        location: "Warehouse 1", // Default warehouse location
+        orderCategory: 'chemical',
+        chemicalType: 'pharmaceutical',
+        materials: rawMaterials,
+        packaging: packagingItems,
+        finalProduct: finalProductDescription,
+        transportationCost: parseFloat(transportationCost) || 0,
+        transportationNotes: transportationNotes,
+        subtotal: subtotalPrice,
+        taxPercentage: taxPercentage,
+        taxAmount: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
+        totalMaterialCost: subtotalPrice,
+        totalAdditionalFees: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
+        totalCost: totalPrice,
+        status: 'pending',
+        priorityLevel: 'normal',
+        createdAt: new Date().toISOString()
+      };
+      
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create order: ${response.statusText}`);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Production order created successfully",
+      });
+      
+      // Reset the form
+      setSelectedCustomer(null);
+      setRawMaterials([]);
+      setPackagingItems([]);
+      setFinalProductDescription('');
+      setTransportationCost('0.00');
+      setTransportationNotes('');
+      
+      // Generate a new batch number
+      generateBatchNumber('production');
+      
+      // Refresh the orders data
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      
+    } catch (error) {
+      console.error('Error creating order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create production order",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleCreateRefiningOrder = async () => {
+    if (!validateRefiningOrder()) return;
+    
+    try {
+      // Create the refining order data
+      const refiningOrderData = {
+        orderType: 'refining',
+        batchNumber: refiningBatchNumber,
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
+        company: selectedCustomer.company || '',
+        location: "Warehouse 1", // Default warehouse location
+        orderCategory: 'chemical',
+        chemicalType: 'pharmaceutical',
+        sourceType,
+        sourceMaterial: sourceType === 'production' 
+          ? sourceProductionOrder 
+          : sourceStockItem,
+        refiningSteps: refiningSteps.join('||'), // Join steps with separator for storage
+        expectedOutput,
+        transportationCost: parseFloat(refiningTransportationCost) || 0,
+        transportationNotes: refiningTransportationNotes,
+        subtotal: refiningSubtotal,
+        taxPercentage: refiningTaxPercentage,
+        taxAmount: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
+        totalCost: refiningCost,
+        status: 'pending',
+        priorityLevel: 'normal',
+        createdAt: new Date().toISOString()
+      };
+      
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(refiningOrderData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create refining order: ${response.statusText}`);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Refining order created successfully",
+      });
+      
+      // Reset the form
+      setSelectedCustomer(null);
+      setSourceType('production');
+      setSourceProductionOrder('');
+      setSourceStockItem('');
+      setRefiningSteps([]);
+      setExpectedOutput('');
+      setRefiningSubtotal('0.00');
+      setRefiningTransportationCost('0.00');
+      setRefiningTransportationNotes('');
+      
+      // Generate a new batch number
+      generateBatchNumber('refining');
+      
+      // Refresh the orders data
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      
+    } catch (error) {
+      console.error('Error creating refining order:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create refining order",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const validateProductionOrder = () => {
     if (!selectedCustomer) {
       toast({
         title: "Missing Customer",
-        description: "Please select a customer",
+        description: "Please select a customer for this order",
         variant: "destructive",
       });
-      return;
-    }
-    
-    if (!batchNumber) {
-      toast({
-        title: "Missing Batch Number",
-        description: "Please generate a batch number",
-        variant: "destructive",
-      });
-      return;
+      return false;
     }
     
     if (rawMaterials.length === 0) {
@@ -438,83 +582,47 @@ const OrderManagement = () => {
         description: "Please add at least one raw material",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     
-    try {
-      const orderData = {
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
-        batchNumber,
-        finalProduct: finalProductDescription,
-        materials: JSON.stringify(rawMaterials),
-        packaging: JSON.stringify(packagingItems),
-        transportationCost,
-        transportationNotes,
-        subtotal: subtotalPrice,
-        taxPercentage,
-        totalCost: totalPrice,
-        orderType: 'production',
-        status: 'pending'
-      };
-      
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create production order');
-      }
-      
-      // Reset form fields
-      setBatchNumber('');
-      setRawMaterials([]);
-      setPackagingItems([]);
-      setFinalProductDescription('');
-      setTransportationCost('0.00');
-      setTransportationNotes('');
-      
-      // Generate new batch number
-      generateBatchNumber('production');
-      
-      // Refetch orders
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      
+    if (!finalProductDescription.trim()) {
       toast({
-        title: "Order Created",
-        description: "Production order created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating production order:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create production order",
+        title: "Missing Product Description",
+        description: "Please enter a description for the final product",
         variant: "destructive",
       });
+      return false;
     }
+    
+    return true;
   };
   
-  const handleCreateRefiningOrder = async () => {
+  const validateRefiningOrder = () => {
     if (!selectedCustomer) {
       toast({
         title: "Missing Customer",
-        description: "Please select a customer",
+        description: "Please select a customer for this refining order",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     
-    if (!refiningBatchNumber) {
+    if (sourceType === 'production' && !sourceProductionOrder) {
       toast({
-        title: "Missing Batch Number",
-        description: "Please generate a batch number",
+        title: "Missing Source",
+        description: "Please select a source production order",
         variant: "destructive",
       });
-      return;
+      return false;
+    }
+    
+    if (sourceType === 'stock' && !sourceStockItem) {
+      toast({
+        title: "Missing Source",
+        description: "Please select a source stock item",
+        variant: "destructive",
+      });
+      return false;
     }
     
     if (refiningSteps.length === 0) {
@@ -523,109 +631,37 @@ const OrderManagement = () => {
         description: "Please add at least one refining step",
         variant: "destructive",
       });
-      return;
+      return false;
     }
     
-    try {
-      let sourceData = {};
-      if (sourceType === 'production') {
-        if (!sourceProductionOrder) {
-          toast({
-            title: "Missing Source Order",
-            description: "Please select a source production order",
-            variant: "destructive",
-          });
-          return;
-        }
-        sourceData = {
-          sourceType: 'production',
-          sourceId: sourceProductionOrder
-        };
-      } else {
-        if (!sourceStockItem) {
-          toast({
-            title: "Missing Source Item",
-            description: "Please select a source stock item",
-            variant: "destructive",
-          });
-          return;
-        }
-        sourceData = {
-          sourceType: 'stock',
-          sourceId: sourceStockItem
-        };
-      }
-      
-      const orderData = {
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
-        batchNumber: refiningBatchNumber,
-        ...sourceData,
-        refiningSteps: JSON.stringify(refiningSteps),
-        expectedOutput,
-        transportationCost: refiningTransportationCost,
-        transportationNotes: refiningTransportationNotes,
-        subtotal: refiningSubtotal,
-        taxPercentage: refiningTaxPercentage,
-        totalCost: refiningCost,
-        orderType: 'refining',
-        status: 'pending'
-      };
-      
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create refining order');
-      }
-      
-      // Reset form fields
-      setRefiningBatchNumber('');
-      setSourceProductionOrder('');
-      setSourceStockItem('');
-      setRefiningSteps([]);
-      setExpectedOutput('');
-      setRefiningTransportationCost('0.00');
-      setRefiningTransportationNotes('');
-      setRefiningSubtotal('0.00');
-      
-      // Generate new batch number
-      generateBatchNumber('refining');
-      
-      // Refetch orders
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-      
+    if (!expectedOutput.trim()) {
       toast({
-        title: "Order Created",
-        description: "Refining order created successfully",
-      });
-    } catch (error) {
-      console.error('Error creating refining order:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create refining order",
+        title: "Missing Expected Output",
+        description: "Please enter the expected output of the refining process",
         variant: "destructive",
       });
+      return false;
     }
+    
+    if (parseFloat(refiningSubtotal) <= 0) {
+      toast({
+        title: "Invalid Cost",
+        description: "Please enter a valid cost for the refining process",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
   };
   
-  const handleViewOrder = (order) => {
+  const handleViewOrder = (order: any) => {
     setSelectedOrder(order);
     setIsViewDialogOpen(true);
   };
   
-  const confirmDeleteOrder = (orderId) => {
-    setOrderToDelete(orderId);
-    setIsDeleteDialogOpen(true);
-  };
-  
   const handleDeleteOrder = async () => {
-    if (!orderToDelete) return;
+    if (orderToDelete === null) return;
     
     try {
       const response = await fetch(`/api/orders/${orderToDelete}`, {
@@ -636,81 +672,96 @@ const OrderManagement = () => {
         throw new Error('Failed to delete order');
       }
       
-      // Refetch orders
-      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      toast({
+        title: "Success",
+        description: "Order deleted successfully",
+      });
       
+      // Close the dialog
       setIsDeleteDialogOpen(false);
       setOrderToDelete(null);
       
-      toast({
-        title: "Order Deleted",
-        description: "Order deleted successfully",
-      });
+      // Refresh the orders data
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      
     } catch (error) {
       console.error('Error deleting order:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete order",
+        description: "Failed to delete order",
         variant: "destructive",
       });
     }
   };
   
-  const handleCreateInvoice = (orderId) => {
-    // Navigate to create invoice page with order ID
-    window.location.href = `/create-invoice?orderId=${orderId}`;
+  const confirmDeleteOrder = (orderId: number) => {
+    setOrderToDelete(orderId);
+    setIsDeleteDialogOpen(true);
   };
   
-  // Export production orders to CSV
-  const handleExportProductionOrders = () => {
-    if (productionOrders.length === 0) {
-      toast({
-        title: "No Orders",
-        description: "There are no production orders to export",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleCreateInvoice = async (orderId: number) => {
     try {
+      // This could send a request to create an invoice based on the order
+      toast({
+        title: "Creating Invoice",
+        description: "Redirecting to create invoice page...",
+      });
+      
+      // Navigate to the create invoice page or open a modal
+      // This is a placeholder for navigation
+      
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create invoice",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Function to handle exporting production orders to CSV
+  const handleExportProductionOrders = () => {
+    try {
+      // Define CSV headers 
       const headers = [
         'Batch Number',
         'Customer',
         'Final Product',
         'Materials',
         'Packaging',
-        'Transportation Cost',
-        'Subtotal',
-        'Tax %',
         'Total Cost',
-        'Status',
-        'Created At'
+        'Tax Amount',
+        'Date Created',
+        'Location',
+        'Status'
       ];
       
-      const rows = productionOrders.map(order => [
-        order.batchNumber,
-        order.customerName,
+      // Format the data for CSV
+      const rows = productionOrders.map((order: any) => [
+        order.batchNumber || 'Unknown',
+        order.customerName || 'Unknown',
         order.finalProduct || 'N/A',
-        JSON.stringify(typeof order.materials === 'string' ? JSON.parse(order.materials) : order.materials || []),
-        JSON.stringify(typeof order.packaging === 'string' ? JSON.parse(order.packaging) : order.packaging || []),
-        order.transportationCost || '0.00',
-        order.subtotal || '0.00',
-        order.taxPercentage || '0',
-        order.totalCost || '0.00',
-        order.status || 'pending',
-        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'
+        formatMaterialsForCSV(order.materials),
+        formatMaterialsForCSV(order.packaging),
+        parseFloat(order.totalCost || 0).toFixed(2),
+        parseFloat(order.taxAmount || 0).toFixed(2),
+        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'Unknown',
+        order.location || 'Not specified',
+        order.status || 'Pending'
       ]);
       
-      // Create CSV content
-      let csvContent = headers.join(',') + '\n';
-      rows.forEach(row => {
-        csvContent += row.map(cell => {
-          // Handle cells with commas by wrapping in quotes
-          return typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell;
-        }).join(',') + '\n';
-      });
+      // Generate CSV content with proper escaping for quoted values
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => 
+          row.map(cell => 
+            `"${String(cell).replace(/"/g, '""')}"`
+          ).join(",")
+        )
+      ].join("\n");
       
-      // Create and download file
+      // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -719,153 +770,142 @@ const OrderManagement = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: `Successfully exported ${productionOrders.length} production orders`
+      });
     } catch (error) {
       console.error('Error exporting production orders:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export production orders",
-        variant: "destructive",
+        description: "Error exporting production orders",
+        variant: "destructive"
       });
     }
   };
   
-  // Export production orders by warehouse
-  const handleExportProductionOrdersByWarehouse = (warehouse) => {
-    if (productionOrders.length === 0) {
-      toast({
-        title: "No Orders",
-        description: "There are no production orders to export",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  // Function to handle warehouse-specific exports for production orders
+  const handleExportProductionOrdersByWarehouse = (warehouseType: string) => {
     try {
-      const filteredOrders = productionOrders.filter(order => 
-        order.warehouse === warehouse ||
-        // If no warehouse field, include in main floor export
-        (!order.warehouse && warehouse === 'Central Storage')
+      const filteredOrders = productionOrders.filter((order: any) => 
+        order.location === warehouseType || 
+        order.warehouseLocation === warehouseType
       );
       
       if (filteredOrders.length === 0) {
         toast({
-          title: "No Orders",
-          description: `There are no production orders for ${warehouse}`,
-          variant: "destructive",
+          title: "Export Failed",
+          description: `No orders found in ${warehouseType}`,
+          variant: "destructive"
         });
         return;
       }
       
+      // Define CSV headers 
       const headers = [
         'Batch Number',
         'Customer',
         'Final Product',
         'Materials',
         'Packaging',
-        'Transportation Cost',
-        'Subtotal',
-        'Tax %',
         'Total Cost',
-        'Status',
-        'Created At',
-        'Warehouse'
+        'Tax Amount',
+        'Date Created',
+        'Location',
+        'Status'
       ];
       
-      const rows = filteredOrders.map(order => [
-        order.batchNumber,
-        order.customerName,
+      // Format the data for CSV
+      const rows = filteredOrders.map((order: any) => [
+        order.batchNumber || 'Unknown',
+        order.customerName || 'Unknown',
         order.finalProduct || 'N/A',
-        JSON.stringify(typeof order.materials === 'string' ? JSON.parse(order.materials) : order.materials || []),
-        JSON.stringify(typeof order.packaging === 'string' ? JSON.parse(order.packaging) : order.packaging || []),
-        order.transportationCost || '0.00',
-        order.subtotal || '0.00',
-        order.taxPercentage || '0',
-        order.totalCost || '0.00',
-        order.status || 'pending',
-        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A',
-        warehouse
+        formatMaterialsForCSV(order.materials),
+        formatMaterialsForCSV(order.packaging),
+        parseFloat(order.totalCost || 0).toFixed(2),
+        parseFloat(order.taxAmount || 0).toFixed(2),
+        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'Unknown',
+        order.location || 'Not specified',
+        order.status || 'Pending'
       ]);
       
-      // Create CSV content
-      let csvContent = headers.join(',') + '\n';
-      rows.forEach(row => {
-        csvContent += row.map(cell => {
-          // Handle cells with commas by wrapping in quotes
-          return typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell;
-        }).join(',') + '\n';
-      });
+      // Generate CSV content with proper escaping for quoted values
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => 
+          row.map(cell => 
+            `"${String(cell).replace(/"/g, '""')}"`
+          ).join(",")
+        )
+      ].join("\n");
       
-      // Create and download file
+      // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `production-orders-${warehouse.toLowerCase().replace(/ /g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      link.setAttribute('download', `production-orders-${warehouseType.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: `Exported ${filteredOrders.length} orders from ${warehouseType}`
+      });
     } catch (error) {
-      console.error('Error exporting production orders:', error);
+      console.error('Error exporting production orders by warehouse:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export production orders",
-        variant: "destructive",
+        description: `Error exporting orders from ${warehouseType}`,
+        variant: "destructive"
       });
     }
   };
   
-  // Export refining orders to CSV
+  // Function to handle exporting refining orders to CSV
   const handleExportRefiningOrders = () => {
-    if (refiningOrders.length === 0) {
-      toast({
-        title: "No Orders",
-        description: "There are no refining orders to export",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     try {
+      // Define CSV headers 
       const headers = [
         'Batch Number',
         'Customer',
-        'Source Type',
-        'Source ID',
-        'Refining Steps',
         'Expected Output',
-        'Transportation Cost',
-        'Subtotal',
-        'Tax %',
+        'Source Type',
+        'Source Material',
         'Total Cost',
-        'Status',
-        'Created At'
+        'Tax Amount',
+        'Date Created',
+        'Location',
+        'Status'
       ];
       
-      const rows = refiningOrders.map(order => [
-        order.batchNumber,
-        order.customerName,
-        order.sourceType || 'N/A',
-        order.sourceId || 'N/A',
-        JSON.stringify(typeof order.refiningSteps === 'string' ? JSON.parse(order.refiningSteps) : order.refiningSteps || []),
+      // Format the data for CSV
+      const rows = refiningOrders.map((order: any) => [
+        order.batchNumber || 'Unknown',
+        order.customerName || 'Unknown',
         order.expectedOutput || 'N/A',
-        order.transportationCost || '0.00',
-        order.subtotal || '0.00',
-        order.taxPercentage || '0',
-        order.totalCost || '0.00',
-        order.status || 'pending',
-        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'
+        order.sourceType || 'Unknown',
+        order.sourceMaterial || 'N/A',
+        parseFloat(order.totalCost || 0).toFixed(2),
+        parseFloat(order.taxAmount || 0).toFixed(2),
+        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'Unknown',
+        order.location || 'Not specified',
+        order.status || 'Pending'
       ]);
       
-      // Create CSV content
-      let csvContent = headers.join(',') + '\n';
-      rows.forEach(row => {
-        csvContent += row.map(cell => {
-          // Handle cells with commas by wrapping in quotes
-          return typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell;
-        }).join(',') + '\n';
-      });
+      // Generate CSV content with proper escaping for quoted values
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => 
+          row.map(cell => 
+            `"${String(cell).replace(/"/g, '""')}"`
+          ).join(",")
+        )
+      ].join("\n");
       
-      // Create and download file
+      // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -874,116 +914,133 @@ const OrderManagement = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: `Successfully exported ${refiningOrders.length} refining orders`
+      });
     } catch (error) {
       console.error('Error exporting refining orders:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export refining orders",
-        variant: "destructive",
+        description: "Error exporting refining orders",
+        variant: "destructive"
       });
     }
   };
   
-  // Export refining orders by warehouse
-  const handleExportRefiningOrdersByWarehouse = (warehouse) => {
-    if (refiningOrders.length === 0) {
-      toast({
-        title: "No Orders",
-        description: "There are no refining orders to export",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  // Function to handle warehouse-specific exports for refining orders
+  const handleExportRefiningOrdersByWarehouse = (warehouseType: string) => {
     try {
-      const filteredOrders = refiningOrders.filter(order => 
-        order.warehouse === warehouse ||
-        // If no warehouse field, include in main floor export
-        (!order.warehouse && warehouse === 'Central Storage')
+      const filteredOrders = refiningOrders.filter((order: any) => 
+        order.location === warehouseType || 
+        order.warehouseLocation === warehouseType
       );
       
       if (filteredOrders.length === 0) {
         toast({
-          title: "No Orders",
-          description: `There are no refining orders for ${warehouse}`,
-          variant: "destructive",
+          title: "Export Failed",
+          description: `No orders found in ${warehouseType}`,
+          variant: "destructive"
         });
         return;
       }
       
+      // Define CSV headers 
       const headers = [
         'Batch Number',
         'Customer',
-        'Source Type',
-        'Source ID',
-        'Refining Steps',
         'Expected Output',
-        'Transportation Cost',
-        'Subtotal',
-        'Tax %',
+        'Source Type',
+        'Source Material',
         'Total Cost',
-        'Status',
-        'Created At',
-        'Warehouse'
+        'Tax Amount',
+        'Date Created',
+        'Location',
+        'Status'
       ];
       
-      const rows = filteredOrders.map(order => [
-        order.batchNumber,
-        order.customerName,
-        order.sourceType || 'N/A',
-        order.sourceId || 'N/A',
-        JSON.stringify(typeof order.refiningSteps === 'string' ? JSON.parse(order.refiningSteps) : order.refiningSteps || []),
+      // Format the data for CSV
+      const rows = filteredOrders.map((order: any) => [
+        order.batchNumber || 'Unknown',
+        order.customerName || 'Unknown',
         order.expectedOutput || 'N/A',
-        order.transportationCost || '0.00',
-        order.subtotal || '0.00',
-        order.taxPercentage || '0',
-        order.totalCost || '0.00',
-        order.status || 'pending',
-        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A',
-        warehouse
+        order.sourceType || 'Unknown',
+        order.sourceMaterial || 'N/A',
+        parseFloat(order.totalCost || 0).toFixed(2),
+        parseFloat(order.taxAmount || 0).toFixed(2),
+        order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'Unknown',
+        order.location || 'Not specified',
+        order.status || 'Pending'
       ]);
       
-      // Create CSV content
-      let csvContent = headers.join(',') + '\n';
-      rows.forEach(row => {
-        csvContent += row.map(cell => {
-          // Handle cells with commas by wrapping in quotes
-          return typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell;
-        }).join(',') + '\n';
-      });
+      // Generate CSV content with proper escaping for quoted values
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => 
+          row.map(cell => 
+            `"${String(cell).replace(/"/g, '""')}"`
+          ).join(",")
+        )
+      ].join("\n");
       
-      // Create and download file
+      // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `refining-orders-${warehouse.toLowerCase().replace(/ /g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+      link.setAttribute('download', `refining-orders-${warehouseType.replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: `Exported ${filteredOrders.length} orders from ${warehouseType}`
+      });
     } catch (error) {
-      console.error('Error exporting refining orders:', error);
+      console.error('Error exporting refining orders by warehouse:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export refining orders",
-        variant: "destructive",
+        description: `Error exporting orders from ${warehouseType}`,
+        variant: "destructive"
       });
     }
   };
   
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Order Management</h1>
-      </div>
+  // Helper function to format materials array for CSV
+  const formatMaterialsForCSV = (materials: any) => {
+    if (!materials) return 'None';
+    
+    try {
+      // If materials is a string, parse it as JSON
+      const materialsList = typeof materials === 'string' 
+        ? JSON.parse(materials) 
+        : materials;
       
-      <Tabs defaultValue="create" onValueChange={handleTabChange}>
-        <TabsList>
+      if (!Array.isArray(materialsList)) return 'None';
+      
+      return materialsList.map(m => 
+        `${m.name || 'Unknown'} (${m.quantity || 0} ${m.unitOfMeasure || ''})`
+      ).join('; ');
+    } catch (error) {
+      console.error('Error formatting materials for CSV:', error);
+      return 'Error parsing materials';
+    }
+  };
+  
+  return (
+    <div className="container py-6">
+      <h1 className="text-3xl font-bold mb-6">Order Management</h1>
+      
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Production Orders</TabsTrigger>
           <TabsTrigger value="refining">Refining Orders</TabsTrigger>
         </TabsList>
         
         <TabsContent value="create">
+          {/* Production Orders tab content */}
           <div className="space-y-6">
             <div className="bg-white rounded-md shadow-sm p-6 border">
               <h2 className="text-xl font-bold mb-4">Create Production Order</h2>
@@ -1019,7 +1076,7 @@ const OrderManagement = () => {
                         <CommandList>
                           <CommandEmpty>No customers found.</CommandEmpty>
                           <CommandGroup>
-                            {filteredCustomers.map((customer) => (
+                            {filteredCustomers.map((customer: any) => (
                               <CommandItem
                                 key={customer.id}
                                 value={customer.id.toString()}
@@ -1101,7 +1158,7 @@ const OrderManagement = () => {
                         <SelectValue placeholder="Select material" />
                       </SelectTrigger>
                       <SelectContent>
-                        {materials?.map((material) => (
+                        {materials?.map((material: any) => (
                           <SelectItem key={material.id} value={material.id.toString()}>
                             {material.name} ({material.unitOfMeasure || 'g'})
                           </SelectItem>
@@ -1196,7 +1253,7 @@ const OrderManagement = () => {
                         <SelectValue placeholder="Select packaging" />
                       </SelectTrigger>
                       <SelectContent>
-                        {packagingMaterials?.map((item) => (
+                        {packagingMaterials?.map((item: any) => (
                           <SelectItem key={item.id} value={item.id.toString()}>
                             {item.name}
                           </SelectItem>
@@ -1432,7 +1489,7 @@ const OrderManagement = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      productionOrders.map((order) => (
+                      productionOrders.map((order: any) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.batchNumber}</TableCell>
                           <TableCell>{order.customerName}</TableCell>
@@ -1522,7 +1579,7 @@ const OrderManagement = () => {
                         <CommandList>
                           <CommandEmpty>No customers found.</CommandEmpty>
                           <CommandGroup>
-                            {filteredCustomers.map((customer) => (
+                            {filteredCustomers.map((customer: any) => (
                               <CommandItem
                                 key={customer.id}
                                 value={customer.id.toString()}
@@ -1621,7 +1678,7 @@ const OrderManagement = () => {
                             <SelectValue placeholder="Select production order" />
                           </SelectTrigger>
                           <SelectContent>
-                            {productionOrders?.map((order) => (
+                            {productionOrders?.map((order: any) => (
                               <SelectItem key={order.id} value={order.id.toString()}>
                                 {order.batchNumber} - {order.finalProduct || 'Production Order'}
                               </SelectItem>
@@ -1639,7 +1696,7 @@ const OrderManagement = () => {
                             <SelectValue placeholder="Select raw material" />
                           </SelectTrigger>
                           <SelectContent>
-                            {materials?.map((material) => (
+                            {materials?.map((material: any) => (
                               <SelectItem key={material.id} value={material.id.toString()}>
                                 {material.name} ({material.unitOfMeasure})
                               </SelectItem>
@@ -1660,7 +1717,7 @@ const OrderManagement = () => {
                             <SelectValue placeholder="Select stock item" />
                           </SelectTrigger>
                           <SelectContent>
-                            {semiFinishedProducts?.map((item) => (
+                            {semiFinishedProducts?.map((item: any) => (
                               <SelectItem key={item.id} value={item.id.toString()}>
                                 {item.name}
                               </SelectItem>
@@ -1668,6 +1725,45 @@ const OrderManagement = () => {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div>
+                        <Label>Select Raw Material</Label>
+                        <Select
+                          value={sourceStockItem + '_raw'}
+                          onValueChange={(value) => setSourceStockItem(value.replace('_raw', ''))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select raw material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials?.map((material: any) => (
+                              <SelectItem key={material.id} value={material.id.toString() + '_raw'}>
+                                {material.name} ({material.unitOfMeasure})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Label>Select Stock Item</Label>
+                      <Select
+                        value={sourceStockItem}
+                        onValueChange={(value) => setSourceStockItem(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select stock item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {semiFinishedProducts?.map((item: any) => (
+                            <SelectItem key={item.id} value={item.id.toString()}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
                 </div>
@@ -1705,6 +1801,7 @@ const OrderManagement = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleRemoveRefiningStep(index)}
+                              className="h-6 w-6 p-0"
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -1722,9 +1819,9 @@ const OrderManagement = () => {
                 
                 <div className="grid gap-4">
                   <div>
-                    <Label>Output Description</Label>
+                    <Label>Expected Output Description</Label>
                     <Textarea
-                      placeholder="Describe the expected output from refining..."
+                      placeholder="Describe the expected output..."
                       value={expectedOutput}
                       onChange={(e) => setExpectedOutput(e.target.value)}
                       className="resize-none"
@@ -1734,7 +1831,7 @@ const OrderManagement = () => {
                 </div>
               </div>
               
-              {/* Transportation */}
+              {/* Transportation for Refining */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-4">Transportation</h3>
                 
@@ -1764,14 +1861,14 @@ const OrderManagement = () => {
                 </div>
               </div>
               
-              {/* Order Summary */}
+              {/* Cost and Transportation */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+                <h3 className="text-lg font-semibold mb-4">Cost and Pricing</h3>
                 
                 <div className="grid gap-4">
                   <div className="grid md:grid-cols-3 gap-4">
                     <div>
-                      <Label>Subtotal Cost ($)</Label>
+                      <Label>Refining Cost ($)</Label>
                       <Input
                         type="text"
                         value={refiningSubtotal}
@@ -1854,7 +1951,7 @@ const OrderManagement = () => {
                     <TableRow>
                       <TableHead>Batch No.</TableHead>
                       <TableHead>Customer</TableHead>
-                      <TableHead>Source Type</TableHead>
+                      <TableHead>Expected Output</TableHead>
                       <TableHead>Total Cost</TableHead>
                       <TableHead>Date Created</TableHead>
                       <TableHead>Status</TableHead>
@@ -1875,11 +1972,11 @@ const OrderManagement = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      refiningOrders.map((order) => (
+                      refiningOrders.map((order: any) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.batchNumber}</TableCell>
                           <TableCell>{order.customerName}</TableCell>
-                          <TableCell>{order.sourceType || 'N/A'}</TableCell>
+                          <TableCell>{order.expectedOutput || 'N/A'}</TableCell>
                           <TableCell>${parseFloat(order.totalCost || 0).toFixed(2)}</TableCell>
                           <TableCell>
                             {order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'}
@@ -1931,195 +2028,144 @@ const OrderManagement = () => {
       
       {/* Order View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Order Details</DialogTitle>
             <DialogDescription>
-              {selectedOrder?.orderType === 'production' ? 'Production Order' : 'Refining Order'} - 
-              {selectedOrder?.batchNumber}
+              {selectedOrder?.batchNumber} - {selectedOrder?.orderType === 'production' ? 'Production Order' : 'Refining Order'}
             </DialogDescription>
           </DialogHeader>
           
-          {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Customer</h3>
-                  <p>{selectedOrder.customerName}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Batch Number</h3>
-                  <p>{selectedOrder.batchNumber}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-1">Status</h3>
-                  <Badge variant={
-                    selectedOrder.status === 'completed' ? 'success' :
-                    selectedOrder.status === 'pending' ? 'default' :
-                    selectedOrder.status === 'cancelled' ? 'destructive' : 'secondary'
-                  }>
-                    {selectedOrder.status || 'Pending'}
-                  </Badge>
-                </div>
-              </div>
-              
-              {selectedOrder.orderType === 'production' ? (
-                // Production Order Details
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Final Product</h3>
-                    <p>{selectedOrder.finalProduct || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Materials</h3>
-                    {selectedOrder.materials ? (
-                      <div className="border rounded-md">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Material</TableHead>
-                              <TableHead>Quantity</TableHead>
-                              <TableHead>Unit Price</TableHead>
-                              <TableHead>Subtotal</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {(typeof selectedOrder.materials === 'string' 
-                              ? JSON.parse(selectedOrder.materials) 
-                              : selectedOrder.materials || []
-                            ).map((material, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{material.name}</TableCell>
-                                <TableCell>{material.quantity} {material.unitOfMeasure}</TableCell>
-                                <TableCell>${parseFloat(material.unitPrice).toFixed(2)}</TableCell>
-                                <TableCell>
-                                  ${(material.quantity * parseFloat(material.unitPrice)).toFixed(2)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    ) : (
-                      <p>No materials</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Packaging</h3>
-                    {selectedOrder.packaging && (
-                      <div className="border rounded-md">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Item</TableHead>
-                              <TableHead>Quantity</TableHead>
-                              <TableHead>Unit Price</TableHead>
-                              <TableHead>Subtotal</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {(typeof selectedOrder.packaging === 'string' 
-                              ? JSON.parse(selectedOrder.packaging) 
-                              : selectedOrder.packaging || []
-                            ).map((item, index) => (
-                              <TableRow key={index}>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell>{item.quantity} {item.unitOfMeasure}</TableCell>
-                                <TableCell>${parseFloat(item.unitPrice).toFixed(2)}</TableCell>
-                                <TableCell>
-                                  ${(item.quantity * parseFloat(item.unitPrice)).toFixed(2)}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                // Refining Order Details
-                <div className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-1">Source Type</h3>
-                      <p>{selectedOrder.sourceType || 'N/A'}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-semibold text-muted-foreground mb-1">Source ID</h3>
-                      <p>{selectedOrder.sourceId || 'N/A'}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Refining Steps</h3>
-                    {selectedOrder.refiningSteps ? (
-                      <div className="bg-muted p-4 rounded-md">
-                        <ol className="list-decimal pl-5 space-y-2">
-                          {(typeof selectedOrder.refiningSteps === 'string' 
-                            ? JSON.parse(selectedOrder.refiningSteps) 
-                            : selectedOrder.refiningSteps || []
-                          ).map((step, index) => (
-                            <li key={index}>{step}</li>
-                          ))}
-                        </ol>
-                      </div>
-                    ) : (
-                      <p>No refining steps</p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-1">Expected Output</h3>
-                    <p>{selectedOrder.expectedOutput || 'N/A'}</p>
-                  </div>
-                </div>
-              )}
-              
+          <div className="grid gap-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-semibold text-muted-foreground mb-1">Transportation</h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cost:</p>
-                    <p>${parseFloat(selectedOrder.transportationCost || 0).toFixed(2)}</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-muted-foreground">Notes:</p>
-                    <p>{selectedOrder.transportationNotes || 'N/A'}</p>
-                  </div>
-                </div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Customer</h3>
+                <p className="font-medium">{selectedOrder?.customerName || 'N/A'}</p>
+                <p className="text-sm text-muted-foreground">{selectedOrder?.company || 'N/A'}</p>
               </div>
               
               <div>
-                <h3 className="text-sm font-semibold text-muted-foreground mb-1">Order Summary</h3>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Subtotal:</p>
-                    <p>${parseFloat(selectedOrder.subtotal || 0).toFixed(2)}</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tax (%):</p>
-                    <p>{selectedOrder.taxPercentage || 0}%</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Cost:</p>
-                    <p className="font-bold">${parseFloat(selectedOrder.totalCost || 0).toFixed(2)}</p>
-                  </div>
-                </div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Status</h3>
+                <Badge variant={
+                  selectedOrder?.status === 'completed' ? 'success' :
+                  selectedOrder?.status === 'pending' ? 'default' :
+                  selectedOrder?.status === 'cancelled' ? 'destructive' : 'secondary'
+                }>
+                  {selectedOrder?.status || 'Pending'}
+                </Badge>
               </div>
             </div>
-          )}
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Created At</h3>
+                <p>{selectedOrder?.createdAt ? format(new Date(selectedOrder.createdAt), 'dd/MM/yyyy') : 'N/A'}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Location</h3>
+                <p>{selectedOrder?.location || 'Not specified'}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Priority Level</h3>
+                <p className="capitalize">{selectedOrder?.priorityLevel || 'Normal'}</p>
+              </div>
+            </div>
+            
+            {selectedOrder?.orderType === 'production' ? (
+              <>
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Final Product</h3>
+                  <p>{selectedOrder?.finalProduct || 'N/A'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Raw Materials</h3>
+                  {selectedOrder?.materials ? (
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Material</TableHead>
+                            <TableHead>Quantity</TableHead>
+                            <TableHead>Unit Price</TableHead>
+                            <TableHead>Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(typeof selectedOrder.materials === 'string' 
+                            ? JSON.parse(selectedOrder.materials)
+                            : selectedOrder.materials
+                          ).map((material: any, index: number) => (
+                            <TableRow key={index}>
+                              <TableCell>{material.name}</TableCell>
+                              <TableCell>{material.quantity} {material.unitOfMeasure || ''}</TableCell>
+                              <TableCell>${parseFloat(material.unitPrice).toFixed(2)}</TableCell>
+                              <TableCell>
+                                ${(material.quantity * parseFloat(material.unitPrice)).toFixed(2)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <p>No materials specified</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Source Material</h3>
+                  <p>{selectedOrder?.sourceMaterial || 'N/A'}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Refining Steps</h3>
+                  {selectedOrder?.refiningSteps ? (
+                    <ol className="list-decimal pl-5 space-y-1">
+                      {selectedOrder.refiningSteps.split('||').map((step: string, index: number) => (
+                        <li key={index}>{step.trim()}</li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p>No refining steps specified</p>
+                  )}
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-1">Expected Output</h3>
+                  <p>{selectedOrder?.expectedOutput || 'N/A'}</p>
+                </div>
+              </>
+            )}
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Subtotal</h3>
+                <p>${parseFloat(selectedOrder?.subtotal || 0).toFixed(2)}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Tax Amount</h3>
+                <p>${parseFloat(selectedOrder?.taxAmount || 0).toFixed(2)}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">Total Cost</h3>
+                <p className="font-bold">${parseFloat(selectedOrder?.totalCost || 0).toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            <Button onClick={() => handleCreateInvoice(selectedOrder?.id)}>
+              <FileText className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
