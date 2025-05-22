@@ -412,11 +412,24 @@ const Inventory: React.FC = () => {
   
   // Product action handlers
   const handleCreateLabel = (product: Product) => {
+    // Store the selected product in localStorage so the Label Generator can access it
+    localStorage.setItem('selectedProductForLabel', JSON.stringify({
+      id: product.id,
+      name: product.name,
+      drugName: product.drugName,
+      sku: product.sku,
+      description: product.description,
+      category: product.category,
+      unitOfMeasure: product.unitOfMeasure
+    }));
+    
     toast({
-      title: "Generate Label",
+      title: "Opening Label Generator",
       description: `Creating label for ${product.name}`,
     });
-    // In a real implementation, this would open a label generator dialog or redirect to a label page
+    
+    // Navigate to the Label Generator page
+    setLocation('/label');
   };
   
   const handleEditProduct = (product: Product) => {

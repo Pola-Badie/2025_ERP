@@ -107,6 +107,27 @@ const LabelGenerator: React.FC = () => {
     }
   }, [selectedProduct]);
 
+  // Check for pre-selected product from Inventory page
+  useEffect(() => {
+    const storedProduct = localStorage.getItem('selectedProductForLabel');
+    if (storedProduct) {
+      try {
+        const productData = JSON.parse(storedProduct);
+        setSelectedProduct(productData);
+        setAdvancedFormData(prev => ({
+          ...prev,
+          name: productData.name,
+          description: productData.description || '',
+          productName: productData.drugName || productData.name
+        }));
+        // Clear the stored data after using it
+        localStorage.removeItem('selectedProductForLabel');
+      } catch (error) {
+        console.error('Error parsing stored product data:', error);
+      }
+    }
+  }, []);
+
   // Handle product selection
   const handleSelectProduct = (product: any) => {
     setSelectedProduct(product);
