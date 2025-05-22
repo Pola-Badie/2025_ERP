@@ -39,23 +39,103 @@
   "expenses": [
     {
       "id": "6d12a963-fcac-43dc-a06e-ca4c338e1bd9",
-      "date": "2025-03-12",
+      "date": "2025-05-20",
       "accountCode": "600100",
       "accountName": "Operating Expenses",
-      "description": "Face to face executive forecast",
-      "amount": 4300.9469549999785,
-      "paymentMethod": "Cash",
-      "costCenter": "Marketing"
+      "description": "Laboratory Equipment Maintenance - pH Meters & Spectrophotometers",
+      "amount": 2850.75,
+      "paymentMethod": "Bank Transfer",
+      "costCenter": "Production"
     },
     {
       "id": "a8108ff9-436e-4c1f-bb8a-97d035b5a8fd",
-      "date": "2025-03-17",
+      "date": "2025-05-18",
       "accountCode": "600100",
       "accountName": "Operating Expenses",
-      "description": "Self-enabling national data-warehouse",
-      "amount": 1841.9960791040967,
+      "description": "Raw Material Purchase - Pharmaceutical Grade Acetone (25L)",
+      "amount": 1,275.50,
+      "paymentMethod": "Credit Card",
+      "costCenter": "Production"
+    },
+    {
+      "id": "e8f9a123-567b-89cd-ef01-23456789abcd",
+      "date": "2025-05-17",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Quality Control Testing - Microbial Analysis & Sterility Testing",
+      "amount": 3,420.00,
       "paymentMethod": "Bank Transfer",
-      "costCenter": "Admin"
+      "costCenter": "Quality Control"
+    },
+    {
+      "id": "f1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6",
+      "date": "2025-05-16",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Packaging Materials - Blister Packs & Labels (5,000 units)",
+      "amount": 875.25,
+      "paymentMethod": "Cash",
+      "costCenter": "Packaging"
+    },
+    {
+      "id": "b7c8d9e0-f1a2-b3c4-d5e6-f7g8h9i0j1k2",
+      "date": "2025-05-15",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Chemical Storage Tank Cleaning & Sanitization",
+      "amount": 1,950.00,
+      "paymentMethod": "Bank Transfer",
+      "costCenter": "Production"
+    },
+    {
+      "id": "c3d4e5f6-g7h8-i9j0-k1l2-m3n4o5p6q7r8",
+      "date": "2025-05-14",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "HVAC System Maintenance - Clean Room Environment",
+      "amount": 2,340.75,
+      "paymentMethod": "Credit Card",
+      "costCenter": "Facilities"
+    },
+    {
+      "id": "d9e0f1a2-b3c4-d5e6-f7g8-h9i0j1k2l3m4",
+      "date": "2025-05-13",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Staff Training - GMP Compliance & Safety Protocols",
+      "amount": 1,680.00,
+      "paymentMethod": "Bank Transfer",
+      "costCenter": "Human Resources"
+    },
+    {
+      "id": "e5f6g7h8-i9j0-k1l2-m3n4-o5p6q7r8s9t0",
+      "date": "2025-05-12",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Regulatory Compliance Audit - FDA Documentation Review",
+      "amount": 4,250.00,
+      "paymentMethod": "Bank Transfer",
+      "costCenter": "Regulatory Affairs"
+    },
+    {
+      "id": "f1g2h3i4-j5k6-l7m8-n9o0-p1q2r3s4t5u6",
+      "date": "2025-05-11",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Waste Management - Hazardous Chemical Disposal",
+      "amount": 1,125.50,
+      "paymentMethod": "Credit Card",
+      "costCenter": "Environmental"
+    },
+    {
+      "id": "g7h8i9j0-k1l2-m3n4-o5p6-q7r8s9t0u1v2",
+      "date": "2025-05-10",
+      "accountCode": "600100",
+      "accountName": "Operating Expenses",
+      "description": "Laboratory Consumables - Pipettes, Glassware & Test Tubes",
+      "amount": 780.25,
+      "paymentMethod": "Cash",
+      "costCenter": "Quality Control"
     },
     {
       "id": "263392e5-da53-4bf0-b6d3-198d2fb2d729",
