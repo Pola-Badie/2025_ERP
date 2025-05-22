@@ -512,11 +512,16 @@ const OrderManagement = () => {
     if (!validateRefiningOrder()) return;
     
     try {
+      // Create enhanced refining order with proper structure
       const orderData = {
         orderType: 'refining',
         batchNumber: refiningBatchNumber,
         customerId: selectedCustomer.id,
         customerName: selectedCustomer.name,
+        company: selectedCustomer.company || '',
+        location: "Warehouse 1", // Default warehouse location
+        orderCategory: 'chemical',
+        chemicalType: 'pharmaceutical-intermediate',
         sourceType,
         sourceId: sourceType === 'production' ? sourceProductionOrder : sourceStockItem,
         sourceMaterial: sourceType === 'production' 
@@ -525,6 +530,8 @@ const OrderManagement = () => {
         materials: rawMaterials,
         refiningSteps: refiningSteps.join('||'),
         expectedOutput,
+        transportationCost: parseFloat(refiningTransportationCost) || 0,
+        transportationNotes: refiningTransportationNotes,
         subtotal: refiningSubtotal,
         taxPercentage: refiningTaxPercentage,
         taxAmount: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
@@ -532,6 +539,7 @@ const OrderManagement = () => {
         totalAdditionalFees: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
         totalCost: refiningCost,
         status: 'pending',
+        priorityLevel: 'normal',
         createdAt: new Date().toISOString()
       };
       
