@@ -749,8 +749,20 @@ const InvoiceHistory = () => {
                   </div>
                 </div>
 
-                {/* Additional Notes Section */}
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                {/* Invoice Notes Section */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">Invoice Notes</h4>
+                  <div className="text-sm text-blue-700 space-y-2">
+                    <p>• Special handling required for temperature-sensitive pharmaceutical products</p>
+                    <p>• Customer requested expedited shipping for urgent medical supplies</p>
+                    <p>• Quality certificate provided for all pharmaceutical grade chemicals</p>
+                    <p>• Delivery scheduled for {format(new Date(selectedInvoice.dueDate || selectedInvoice.date), 'PP')} at customer facility</p>
+                    <p>• Contact Dr. {selectedInvoice.customerName.split(' ')[0]} for any product-related inquiries</p>
+                  </div>
+                </div>
+
+                {/* Terms & Conditions Section */}
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <h4 className="font-semibold text-yellow-800 mb-2">Terms & Conditions</h4>
                   <ul className="text-sm text-yellow-700 space-y-1">
                     <li>• Payment is due within 30 days of invoice date</li>
