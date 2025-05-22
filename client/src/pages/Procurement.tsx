@@ -1,45 +1,13 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Filter, FileDown, MoreVertical, Trash2, Edit, AlertCircle, FileCheck } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { format } from 'date-fns';
-import PurchaseOrderForm from '@/components/procurement/PurchaseOrderForm';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Plus, Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
-// Define types for Purchase Order and Supplier
 interface Supplier {
   id: number;
   name: string;
@@ -47,17 +15,6 @@ interface Supplier {
   email: string;
   phone: string;
   address: string;
-}
-
-interface PurchaseOrder {
-  id: number;
-  poNumber: string;
-  supplier: string;
-  supplierId: number;
-  date: string;
-  status: 'draft' | 'sent' | 'received' | 'cancelled';
-  totalAmount: number;
-  items: PurchaseOrderItem[];
 }
 
 interface PurchaseOrderItem {
@@ -69,73 +26,82 @@ interface PurchaseOrderItem {
   total: number;
 }
 
-const Procurement: React.FC = () => {
-  const { t } = useLanguage();
+interface PurchaseOrder {
+  id: number;
+  poNumber: string;
+  supplier: string;
+  supplierId: number;
+  date: string;
+  status: 'draft' | 'sent' | 'received' | 'cancelled' | 'pending';
+  totalAmount: number;
+  items: PurchaseOrderItem[];
+}
+
+export default function Procurement() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('purchase-orders');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isPurchaseOrderFormOpen, setIsPurchaseOrderFormOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
 
   // Sample purchase orders data
   const samplePurchaseOrders: PurchaseOrder[] = [
     {
       id: 1,
-      poNumber: 'PO-2025-001',
-      supplier: 'PharmaSupply Ltd',
+      poNumber: "PO-2024-001",
+      supplier: "MedChem Supplies Ltd",
       supplierId: 1,
-      date: '2025-01-15',
+      date: "2024-05-20",
       status: 'pending',
-      totalAmount: 15750.00,
+      totalAmount: 25420.00,
       items: []
     },
     {
       id: 2,
-      poNumber: 'PO-2025-002',
-      supplier: 'MedChem Corp',
-      supplierId: 1,
-      date: '2025-01-18',
-      status: 'sent',
-      totalAmount: 22400.00,
+      poNumber: "PO-2024-002", 
+      supplier: "PharmaCorp International",
+      supplierId: 2,
+      date: "2024-05-18",
+      status: 'received',
+      totalAmount: 18950.00,
       items: []
     },
     {
       id: 3,
-      poNumber: 'PO-2025-003',
-      supplier: 'ChemicalWorks Inc',
-      supplierId: 1,
-      date: '2025-01-20',
-      status: 'received',
-      totalAmount: 8950.00,
-      items: []
-    },
-    {
-      id: 4,
-      poNumber: 'PO-2025-004',
-      supplier: 'BioMaterials Co',
-      supplierId: 1,
-      date: '2025-01-22',
-      status: 'pending',
-      totalAmount: 18600.00,
-      items: []
-    },
-    {
-      id: 5,
-      poNumber: 'PO-2025-005',
-      supplier: 'GlobalPharma Supply',
-      supplierId: 1,
-      date: '2025-01-22',
+      poNumber: "PO-2024-003",
+      supplier: "Global Chemical Solutions",
+      supplierId: 3,
+      date: "2024-05-15",
       status: 'draft',
       totalAmount: 31200.00,
       items: []
     },
     {
+      id: 4,
+      poNumber: "PO-2024-004",
+      supplier: "BioActive Materials Inc",
+      supplierId: 4,
+      date: "2024-05-12",
+      status: 'cancelled',
+      totalAmount: 8950.00,
+      items: []
+    },
+    {
+      id: 5,
+      poNumber: "PO-2024-005",
+      supplier: "Precision Pharmaceuticals",
+      supplierId: 5,
+      date: "2024-05-10",
+      status: 'pending',
+      totalAmount: 22300.00,
+      items: []
+    },
+    {
       id: 6,
-      poNumber: 'PO-2025-006',
-      supplier: 'SpecialChem Ltd',
-      supplierId: 1,
-      date: '2025-01-23',
+      poNumber: "PO-2024-006",
+      supplier: "ChemSource Distribution",
+      supplierId: 6,
+      date: "2024-05-08",
       status: 'sent',
       totalAmount: 14750.00,
       items: []
@@ -143,8 +109,46 @@ const Procurement: React.FC = () => {
   ];
 
   // Use sample data instead of API for now
-  const purchaseOrders = samplePurchaseOrders;
+  const [purchaseOrders, setPurchaseOrders] = useState(samplePurchaseOrders);
   const isLoading = false;
+
+  // Handler functions for purchase order actions
+  const handleEditPurchaseOrder = (order: PurchaseOrder) => {
+    setEditingOrder(order);
+    setIsPurchaseOrderFormOpen(true);
+    toast({
+      title: "Edit Purchase Order",
+      description: `Opening ${order.poNumber} for editing`,
+    });
+  };
+
+  const handleChangePurchaseOrderStatus = (order: PurchaseOrder, newStatus: string) => {
+    setPurchaseOrders(prev => 
+      prev.map(po => 
+        po.id === order.id 
+          ? { ...po, status: newStatus as PurchaseOrder['status'] }
+          : po
+      )
+    );
+    toast({
+      title: "Status Updated", 
+      description: `${order.poNumber} marked as ${newStatus}`,
+    });
+  };
+
+  const handleDeletePurchaseOrder = (order: PurchaseOrder) => {
+    setPurchaseOrders(prev => prev.filter(po => po.id !== order.id));
+    toast({
+      title: "Purchase Order Deleted",
+      description: `${order.poNumber} has been deleted`,
+      variant: "destructive",
+    });
+  };
+
+  const handleCreatePurchaseOrder = () => {
+    setEditingOrder(null);
+    setIsPurchaseOrderFormOpen(true);
+  };
 
   // Filter purchase orders based on search term and status
   const filteredPurchaseOrders = purchaseOrders?.filter(po => {
@@ -168,38 +172,11 @@ const Procurement: React.FC = () => {
         return <Badge variant="outline" className="bg-green-100 text-green-700">Received</Badge>;
       case 'cancelled':
         return <Badge variant="outline" className="bg-red-100 text-red-700">Cancelled</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-700">Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
-  };
-
-  const handleCreatePurchaseOrder = () => {
-    setIsPurchaseOrderFormOpen(true);
-  };
-
-  const handleEditPurchaseOrder = (po: PurchaseOrder) => {
-    // Implementation will be added in future updates
-    toast({
-      title: "Edit Purchase Order",
-      description: `Editing PO #${po.poNumber}`,
-    });
-  };
-
-  const handleDeletePurchaseOrder = (po: PurchaseOrder) => {
-    // Implementation will be added in future updates
-    toast({
-      title: "Delete Purchase Order",
-      description: `Are you sure you want to delete PO #${po.poNumber}?`,
-      variant: "destructive",
-    });
-  };
-
-  const handleChangePurchaseOrderStatus = (po: PurchaseOrder, newStatus: string) => {
-    // Implementation will be added in future updates
-    toast({
-      title: "Status Changed",
-      description: `PO #${po.poNumber} status changed to ${newStatus}`,
-    });
   };
 
   return (
@@ -211,193 +188,121 @@ const Procurement: React.FC = () => {
             Manage purchase orders and supplier inventory
           </p>
         </div>
+        <Button onClick={handleCreatePurchaseOrder} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          New Purchase Order
+        </Button>
       </div>
 
-      <Tabs defaultValue="purchase-orders" className="space-y-4" onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="purchase-orders">Purchase Orders</TabsTrigger>
-          <TabsTrigger value="received-items">Received Items</TabsTrigger>
-          <TabsTrigger value="inventory-requests">Inventory Requests</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="purchase-orders" className="space-y-4">
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by PO number or supplier..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="sent">Sent</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="received">Received</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Purchase Orders List */}
+      <div className="grid gap-4">
+        {isLoading ? (
+          <div className="text-center py-8">Loading purchase orders...</div>
+        ) : filteredPurchaseOrders && filteredPurchaseOrders.length > 0 ? (
+          filteredPurchaseOrders.map((order) => (
+            <Card key={order.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-lg">{order.poNumber}</h3>
+                      {getStatusBadge(order.status)}
+                    </div>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Supplier:</strong> {order.supplier}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Date:</strong> {new Date(order.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-lg font-semibold text-green-600">
+                      ${order.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditPurchaseOrder(order)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'sent')}>
+                          Mark as Sent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'received')}>
+                          Mark as Received
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'cancelled')}>
+                          Mark as Cancelled
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeletePurchaseOrder(order)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
           <Card>
-            <CardHeader className="pb-3">
-              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <CardTitle>Purchase Orders</CardTitle>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search purchase orders..."
-                      className="pl-8 w-full md:w-[250px]"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={setStatusFilter}
-                  >
-                    <SelectTrigger className="w-full sm:w-[130px]">
-                      <div className="flex items-center">
-                        <Filter className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Status" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="sent">Sent</SelectItem>
-                      <SelectItem value="received">Received</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button className="w-full sm:w-auto" onClick={handleCreatePurchaseOrder}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Order
-                  </Button>
-                </div>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No purchase orders found</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Try adjusting your search or create a new purchase order
+                </p>
               </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : filteredPurchaseOrders && filteredPurchaseOrders.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>PO Number</TableHead>
-                        <TableHead>Supplier</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPurchaseOrders.map((po) => (
-                        <TableRow key={po.id}>
-                          <TableCell className="font-medium">{po.poNumber}</TableCell>
-                          <TableCell>{po.supplier}</TableCell>
-                          <TableCell>{format(new Date(po.date), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell>{getStatusBadge(po.status)}</TableCell>
-                          <TableCell className="text-right">${po.totalAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditPurchaseOrder(po)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                {po.status === 'draft' && (
-                                  <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(po, 'sent')}>
-                                    <FileCheck className="mr-2 h-4 w-4" />
-                                    Mark as Sent
-                                  </DropdownMenuItem>
-                                )}
-                                {po.status === 'sent' && (
-                                  <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(po, 'received')}>
-                                    <FileCheck className="mr-2 h-4 w-4" />
-                                    Mark as Received
-                                  </DropdownMenuItem>
-                                )}
-                                {(po.status === 'draft' || po.status === 'sent') && (
-                                  <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(po, 'cancelled')}>
-                                    <AlertCircle className="mr-2 h-4 w-4" />
-                                    Cancel
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem onClick={() => handleDeletePurchaseOrder(po)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-                    <FileDown className="h-10 w-10 text-slate-500" />
-                  </div>
-                  <h3 className="mt-4 text-lg font-semibold">No purchase orders found</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Get started by creating a new purchase order.
-                  </p>
-                  <Button className="mt-4" onClick={handleCreatePurchaseOrder}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Order
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="received-items" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Received Items</CardTitle>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <h3 className="text-lg font-semibold">Received Items Module</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    This feature will allow tracking and processing received inventory items.
-                  </p>
-                </div>
-              </CardContent>
-            </CardHeader>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="inventory-requests" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Inventory Requests</CardTitle>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <h3 className="text-lg font-semibold">Inventory Requests Module</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    This feature will allow departments to request inventory items.
-                  </p>
-                </div>
-              </CardContent>
-            </CardHeader>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog for creating a new purchase order */}
-      <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create Purchase Order</DialogTitle>
-            <DialogDescription>
-              Create a new purchase order to send to a supplier
-            </DialogDescription>
-          </DialogHeader>
-          <PurchaseOrderForm 
-            onSuccess={() => setIsPurchaseOrderFormOpen(false)} 
-          />
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   );
-};
-
-export default Procurement;
+}
