@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { language } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages] = useState(12); // Example total pages
 
   // Handle resize events
   useEffect(() => {
@@ -167,7 +171,79 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
-          {children}
+          <div className="min-h-full flex flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between mt-6 p-4 bg-white rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1 mx-4">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                    if (pageNum > totalPages) return null;
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-8 h-8 p-0 ${
+                          pageNum === currentPage 
+                            ? "bg-blue-600 text-white hover:bg-blue-700" 
+                            : "hover:bg-blue-50"
+                        }`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  
+                  {totalPages > 5 && currentPage < totalPages - 2 && (
+                    <>
+                      <span className="px-2 text-muted-foreground">...</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="w-8 h-8 p-0 hover:bg-blue-50"
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </div>
+            </div>
+          </div>
         </main>
 
         {/* Bottom Navigation (Mobile) */}
