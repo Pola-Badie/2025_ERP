@@ -356,41 +356,59 @@ const Expenses: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="px-4 py-3 text-left font-medium text-slate-500">Date</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-500">Description</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-500">Amount</th>
-                    <th className="px-4 py-3 text-left font-medium text-slate-500">Status</th>
-                    <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedExpenses.map((expense) => (
-                    <tr key={expense.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3">{formatDate(expense.date)}</td>
-                      <td className="px-4 py-3 max-w-xs truncate">{expense.description}</td>
-                      <td className="px-4 py-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {sortedExpenses.map((expense) => (
+                <Card key={expense.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-slate-900 mb-1 line-clamp-2">
+                          {expense.description}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                          {formatDate(expense.date)}
+                        </p>
+                      </div>
+                      <Button variant="ghost" size="icon" className="flex-shrink-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500">Category</span>
                         {getCategoryBadge(expense.category)}
-                      </td>
-                      <td className="px-4 py-3 font-medium">
-                        {formatCurrency(expense.amount)}
-                      </td>
-                      <td className="px-4 py-3">
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500">Amount</span>
+                        <span className="font-semibold text-lg text-slate-900">
+                          {formatCurrency(expense.amount)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500">Status</span>
                         {getStatusBadge(expense.status)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500">Payment</span>
+                        <span className="text-sm font-medium text-slate-700">
+                          {expense.paymentMethod || 'N/A'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-slate-500">Cost Center</span>
+                        <span className="text-sm font-medium text-slate-700">
+                          {expense.costCenter || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </CardContent>
