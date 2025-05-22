@@ -499,11 +499,7 @@ export default function Procurement() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <Badge variant={detailsOrder.status === 'received' ? 'default' : 
-                                 detailsOrder.status === 'pending' ? 'secondary' : 
-                                 detailsOrder.status === 'sent' ? 'outline' : 'destructive'}>
-                    {detailsOrder.status.toUpperCase()}
-                  </Badge>
+                  {getStatusBadge(detailsOrder.status)}
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
