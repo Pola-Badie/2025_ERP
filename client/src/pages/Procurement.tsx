@@ -532,6 +532,14 @@ export default function Procurement() {
                   <p className="text-sm font-medium text-muted-foreground">Payment Terms</p>
                   <p className="font-semibold">{(detailsOrder as any).paymentTerms || 'Not specified'}</p>
                 </div>
+                {(detailsOrder as any).paymentDueDate && (
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground">Payment Due Date</p>
+                    <p className="font-semibold text-red-600 text-lg">
+                      {new Date((detailsOrder as any).paymentDueDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
