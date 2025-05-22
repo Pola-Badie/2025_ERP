@@ -1129,7 +1129,6 @@ const OrderManagement = () => {
                       className="flex-1"
                       value={batchNumber}
                       onChange={(e) => setBatchNumber(e.target.value)}
-                      readOnly
                     />
                     <Button
                       variant="outline"
@@ -1633,7 +1632,6 @@ const OrderManagement = () => {
                       className="flex-1"
                       value={refiningBatchNumber}
                       onChange={(e) => setRefiningBatchNumber(e.target.value)}
-                      readOnly
                     />
                     <Button
                       variant="outline"
