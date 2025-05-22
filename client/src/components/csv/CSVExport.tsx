@@ -87,7 +87,28 @@ export const CSVExport = <T extends Record<string, any>>({
     downloadCSV(csvContent, finalFilename);
   };
   
-  // Always show the dropdown with warehouse options
+  // Check if this is likely inventory/product data that needs warehouse filtering
+  const hasWarehouseData = data.some((item: any) => 
+    item.location || item.warehouse || item.shelf
+  );
+  
+  // Only show dropdown for inventory/product data, simple button for everything else
+  if (!hasWarehouseData) {
+    return (
+      <Button 
+        variant={variant}
+        size={size}
+        className={`${className} flex items-center gap-2`}
+        disabled={disabled || !data || data.length === 0}
+        onClick={() => handleExport()}
+      >
+        <Download className="w-4 h-4" />
+        {buttonText}
+      </Button>
+    );
+  }
+  
+  // Show dropdown with warehouse options for inventory data
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
