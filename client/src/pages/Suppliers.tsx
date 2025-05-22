@@ -90,8 +90,11 @@ const Suppliers: React.FC = () => {
   const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({
     queryKey: ['/api/suppliers'], 
     queryFn: async () => {
+      console.log("Fetching suppliers from API");
       const res = await apiRequest('GET', '/api/suppliers');
-      return await res.json();
+      const data = await res.json();
+      console.log("API response for suppliers:", data);
+      return data;
     },
     staleTime: 30000, // 30 seconds
   });
