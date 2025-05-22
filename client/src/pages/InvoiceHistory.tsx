@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,8 @@ const InvoiceHistory = () => {
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use hardcoded sample data for demonstration
   const [isLoading, setIsLoading] = useState(true);
@@ -497,7 +499,7 @@ const InvoiceHistory = () => {
                 </h3>
                 
                 <div className="border rounded-lg p-4 bg-slate-50">
-                  <div className="grid gap-3">
+                  <div className="grid gap-3 max-h-80 overflow-y-auto pr-2">
                     {/* Sample documents - in real implementation, this would come from the invoice data */}
                     <div className="flex items-center justify-between p-3 bg-white rounded border">
                       <div className="flex items-center">
