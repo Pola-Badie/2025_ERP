@@ -177,7 +177,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
             
             {/* Pagination Controls */}
-            <div className="flex items-center justify-between mt-6 p-4 bg-white rounded-lg border shadow-sm">
+            <div className="flex items-center justify-center mt-6 p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -237,10 +237,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   Next
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-              </div>
-              
-              <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
+                
+                <div className="text-sm text-muted-foreground ml-4">
+                  Page {currentPage} of {totalPages}
+                </div>
               </div>
             </div>
           </div>
