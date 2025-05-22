@@ -1737,40 +1737,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get raw materials (for production orders)
   app.get("/api/products/raw-materials", async (req: Request, res: Response) => {
     try {
-      console.log("Fetching raw materials from products collection");
+      console.log("Fetching raw materials for order management");
       
-      // Get all products and transform a subset into raw materials since
-      // we're having issues with the database schema
-      try {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        
-        const products = await response.json();
-        
-        if (products && products.length > 0) {
-          console.log("Products found:", products.length);
-          
-          // Convert some products to be raw materials
-          const rawMaterials = products.slice(0, 5).map((product: any, index: number) => ({
-            ...product,
-            id: product.id || (index + 101),
-            name: product.name || `Raw Material ${index + 1}`,
-            drugName: product.drugName || `RM-${index + 1}`,
-            description: product.description || "Raw material for production",
-            productType: "raw",
-            unitOfMeasure: product.unitOfMeasure || "kg"
-          }));
-          
-          return res.json(rawMaterials);
-        }
-      } catch (error) {
-        console.error("Error transforming products to raw materials:", error);
-      }
-      
-      // If we get here, no products were found or an error occurred
-      console.log("No products found in database, using sample raw materials data");
+      // Return sample raw materials data for chemical orders
+      // Sample raw materials data for chemical orders
+      console.log("Providing sample raw materials data for chemical orders");
       const sampleRawMaterials = [
         {
           id: 101,
@@ -1824,42 +1795,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get semi-finished products (for refining orders)
   app.get("/api/products/semi-finished", async (req: Request, res: Response) => {
     try {
-      console.log("Fetching semi-finished products from products collection");
+      console.log("Fetching semi-finished products");
       
-      // Get all products and transform a subset into semi-finished products
-      try {
-        const response = await fetch('http://localhost:5000/api/products');
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        
-        const products = await response.json();
-        
-        if (products && products.length > 0) {
-          console.log("Products found for semi-finished transformation:", products.length);
-          
-          // Convert some products to be semi-finished (use different products than raw materials)
-          // Use products from the middle of the array (5-8)
-          const startIndex = Math.min(5, products.length - 1);
-          const endIndex = Math.min(startIndex + 3, products.length);
-          const semiFinishedProducts = products.slice(startIndex, endIndex).map((product: any, index: number) => ({
-            ...product,
-            id: 200 + index + 1,
-            name: `Semi-Finished ${product.name}`,
-            drugName: product.drugName || `SF-${index + 1}`,
-            description: `Semi-finished product based on ${product.name}`,
-            productType: "semi-raw",
-            unitOfMeasure: product.unitOfMeasure || "L",
-            batchNumber: `BATCH-${1000 + index}`
-          }));
-          
-          return res.json(semiFinishedProducts);
-        }
-      } catch (error) {
-        console.error("Error transforming products to semi-finished:", error);
-      }
-      
-      // If we get here, no products were found or an error occurred
+      // Directly return sample semi-finished products for order management
       // Use the inventory-products.csv data as sample instead of the placeholder data
       console.log("Using predefined sample data for semi-finished products");
       const sampleSemiFinishedProducts = [
