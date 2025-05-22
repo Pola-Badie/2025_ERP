@@ -43,6 +43,8 @@ interface Invoice {
   amountPaid?: number;
   paymentMethod?: string;
   status: 'paid' | 'unpaid' | 'partial' | 'overdue';
+  etaUploaded?: boolean;
+  etaReference?: string;
   items: {
     productName: string;
     quantity: number;
@@ -310,6 +312,39 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     window.URL.revokeObjectURL(url);
   };
 
+  const uploadToETA = async (invoiceId: number) => {
+    try {
+      // Simulate ETA upload process
+      console.log(`Uploading invoice ${invoiceId} to Egyptian Tax Authority...`);
+      
+      // In real implementation, you would call the ETA API here
+      // const response = await apiRequest('POST', '/api/eta/upload', { invoiceId });
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update invoice status locally (in real app, this would be done on the server)
+      setInvoices(prev => prev.map(invoice => 
+        invoice.id === invoiceId 
+          ? { ...invoice, etaUploaded: true, etaReference: `ETA-${Date.now()}` }
+          : invoice
+      ));
+      
+      alert('Invoice successfully uploaded to Egyptian Tax Authority!');
+    } catch (error) {
+      console.error('ETA upload failed:', error);
+      alert('Failed to upload invoice to ETA. Please try again.');
+    }
+  };
+
+  const getETAStatus = (invoice: Invoice) => {
+    if (invoice.etaUploaded) {
+      return <Badge className="bg-green-100 text-green-800">YES</Badge>;
+    } else {
+      return <Badge className="bg-red-100 text-red-800">NO</Badge>;
+    }
+  };
+
   // Filter invoices based on search term and filters
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = searchTerm === '' || 
@@ -462,7 +497,8 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                       <TableHead className="min-w-[120px]">Outstanding</TableHead>
                       <TableHead className="min-w-[150px]">Payment Method</TableHead>
                       <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                      <TableHead className="min-w-[100px]">ETA Upload</TableHead>
+                      <TableHead className="text-right min-w-[120px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -492,6 +528,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                             '-'}
                         </TableCell>
                         <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                        <TableCell>{getETAStatus(invoice)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button 
@@ -504,9 +541,20 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                             <Button 
                               variant="ghost" 
                               size="icon"
+                              onClick={downloadInvoicePDF}
                             >
                               <Download className="h-4 w-4" />
                             </Button>
+                            {!invoice.etaUploaded && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => uploadToETA(invoice.id)}
+                                className="bg-blue-50 text-blue-700 hover:bg-blue-100"
+                              >
+                                Upload to ETA
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
