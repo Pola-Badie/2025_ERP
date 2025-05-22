@@ -262,51 +262,21 @@ const OrderManagement = () => {
   
   const generateBatchNumber = async (type: 'production' | 'refining') => {
     try {
-      const response = await fetch('/api/orders/latest-batch');
-      if (!response.ok) {
-        throw new Error('Failed to fetch latest batch number');
-      }
+      // Get the current date in YYMMDD format
+      const today = new Date();
+      const dateStr = format(today, 'yyMMdd');
       
-      const data = await response.json();
+      // Get random numbers to create a unique batch number
+      const randomNum = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
       
-      // Find the latest batch number of the given type
-      const latestOrders = data.orders || [];
-      const prefix = type === 'production' ? 'CHEM' : 'REF';
-      
-      // Find orders of the current type
-      let typeOrders = latestOrders.filter((order: any) => 
-        order.orderType === type ||
-        (type === 'production' && order.batchNumber?.startsWith('CHEM')) ||
-        (type === 'refining' && order.batchNumber?.startsWith('REF'))
-      );
-      
-      let number = 1;
-      // If we have orders of this type, find the highest batch number
-      if (typeOrders.length > 0) {
-        typeOrders.forEach((order: any) => {
-          if (order.batchNumber && order.batchNumber.startsWith(prefix)) {
-            const parts = order.batchNumber.split('-');
-            if (parts.length === 2) {
-              const orderNum = parseInt(parts[1], 10);
-              if (!isNaN(orderNum) && orderNum >= number) {
-                number = orderNum + 1;
-              }
-            }
-          }
-        });
-      }
-      
-      // Generate current date code (e.g., 220525 for May 22, 2025)
-      const now = new Date();
-      const dateCode = `${now.getFullYear().toString().slice(2)}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
-      
-      // Format the new batch number with date code
-      const newBatchNumber = `${prefix}-${number.toString().padStart(4, '0')}-${dateCode}`;
+      // Generate a chemical batch number with the CHEM prefix
+      const chemPrefix = type === 'production' ? 'CHEM-' : 'CHEM-REF-';
+      const generatedBatchNumber = `${chemPrefix}${randomNum}-${dateStr}`;
       
       if (type === 'production') {
-        setBatchNumber(newBatchNumber);
+        setBatchNumber(generatedBatchNumber);
       } else {
-        setRefiningBatchNumber(newBatchNumber);
+        setRefiningBatchNumber(generatedBatchNumber);
       }
     } catch (error) {
       console.error('Error generating batch number:', error);
