@@ -53,6 +53,8 @@ import {
   Tag,
   Download,
   Upload,
+  ChevronLeft,
+  ChevronRight,
   Database
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
