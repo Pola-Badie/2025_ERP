@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Download, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Download, ChevronDown, Warehouse, Building2, Database } from 'lucide-react';
 import { exportToCSV, downloadCSV } from '@/lib/csv-utils';
+import { format } from 'date-fns';
 
 interface CSVExportProps<T extends Record<string, any>> {
   data: T[];
@@ -14,9 +15,9 @@ interface CSVExportProps<T extends Record<string, any>> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   disabled?: boolean;
-  showStorageDropdown?: boolean;
-  storageLocations?: string[];
-  onStorageFilter?: (location: string | null) => T[];
+  showWarehouseDropdown?: boolean;
+  warehouseLocations?: string[];
+  onWarehouseFilter?: (location: string | null) => T[];
 }
 
 export const CSVExport = <T extends Record<string, any>>({
@@ -29,17 +30,17 @@ export const CSVExport = <T extends Record<string, any>>({
   variant = 'outline',
   size = 'default',
   disabled,
-  showStorageDropdown = false,
-  storageLocations = ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
-  onStorageFilter
+  showWarehouseDropdown = false,
+  warehouseLocations = ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+  onWarehouseFilter
 }: CSVExportProps<T>) => {
   
-  const handleExport = (storageLocation?: string | null) => {
+  const handleExport = (warehouseLocation?: string | null) => {
     let exportData = data;
     
-    // Filter by storage location if provided
-    if (storageLocation && onStorageFilter) {
-      exportData = onStorageFilter(storageLocation);
+    // Filter by warehouse location if provided
+    if (warehouseLocation && onWarehouseFilter) {
+      exportData = onWarehouseFilter(warehouseLocation);
     }
     
     if (!exportData || exportData.length === 0) {
@@ -80,13 +81,13 @@ export const CSVExport = <T extends Record<string, any>>({
     }
     
     const csvContent = exportToCSV(exportData, exportHeaders);
-    const finalFilename = storageLocation 
-      ? filename.replace('.csv', `-${storageLocation.toLowerCase().replace(/ /g, '-')}.csv`)
+    const finalFilename = warehouseLocation 
+      ? filename.replace('.csv', `-${warehouseLocation.toLowerCase().replace(/ /g, '-')}.csv`)
       : filename;
     downloadCSV(csvContent, finalFilename);
   };
   
-  if (showStorageDropdown) {
+  if (showWarehouseDropdown) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -103,10 +104,13 @@ export const CSVExport = <T extends Record<string, any>>({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={() => handleExport()}>
-            All Locations
+            <Database className="w-4 h-4 mr-2" />
+            All Warehouses
           </DropdownMenuItem>
-          {storageLocations.map((location) => (
+          <DropdownMenuSeparator />
+          {warehouseLocations.map((location: string) => (
             <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
+              <Warehouse className="w-4 h-4 mr-2" />
               {location}
             </DropdownMenuItem>
           ))}
