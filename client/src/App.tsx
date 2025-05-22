@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { CSVProvider } from "./contexts/CSVContext";
+import { PaginationProvider } from "./contexts/PaginationContext";
 
 // Import components directly to avoid issues with wouter
 import Dashboard from "@/pages/Dashboard";
@@ -35,7 +36,8 @@ function App() {
   return (
     <LanguageProvider>
       <CSVProvider>
-        <MainLayout>
+        <PaginationProvider>
+          <MainLayout>
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/inventory" component={Inventory} />
@@ -58,7 +60,8 @@ function App() {
             <Route path="/order-management" component={OrderManagement} />
             <Route component={NotFound} />
           </Switch>
-        </MainLayout>
+          </MainLayout>
+        </PaginationProvider>
       </CSVProvider>
     </LanguageProvider>
   );

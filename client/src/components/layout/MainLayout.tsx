@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePagination } from "@/contexts/PaginationContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,10 +12,10 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { language } = useLanguage();
+  const { currentPage, setCurrentPage } = usePagination();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages] = useState(12); // Example total pages
+  const totalPages = 15; // Total pages for testing
 
   // Handle resize events
   useEffect(() => {
