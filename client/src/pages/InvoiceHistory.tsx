@@ -454,7 +454,7 @@ const InvoiceHistory = () => {
       {/* Invoice Preview Dialog */}
       {selectedInvoice && (
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Invoice #{selectedInvoice.invoiceNumber}</DialogTitle>
               <DialogDescription>
