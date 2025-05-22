@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Download, ChevronDown } from 'lucide-react';
 import { exportToCSV, downloadCSV } from '@/lib/csv-utils';
 
 interface CSVExportProps<T extends Record<string, any>> {
@@ -13,6 +14,9 @@ interface CSVExportProps<T extends Record<string, any>> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   disabled?: boolean;
+  showStorageDropdown?: boolean;
+  storageLocations?: string[];
+  onStorageFilter?: (location: string | null) => T[];
 }
 
 export const CSVExport = <T extends Record<string, any>>({
@@ -24,22 +28,31 @@ export const CSVExport = <T extends Record<string, any>>({
   className = '',
   variant = 'outline',
   size = 'default',
-  disabled
+  disabled,
+  showStorageDropdown = false,
+  storageLocations = ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+  onStorageFilter
 }: CSVExportProps<T>) => {
   
-  const handleExport = () => {
-    if (!data || data.length === 0) {
+  const handleExport = (storageLocation?: string | null) => {
+    let exportData = data;
+    
+    // Filter by storage location if provided
+    if (storageLocation && onStorageFilter) {
+      exportData = onStorageFilter(storageLocation);
+    }
+    
+    if (!exportData || exportData.length === 0) {
       console.error('No data to export');
       return;
     }
     
     let exportHeaders = headers;
-    let exportData = data;
     
     // If custom headers mapping is provided, transform the data
     if (customHeaders && !headers) {
       // Get the real headers from the first data item
-      const dataHeaders = Object.keys(data[0]);
+      const dataHeaders = Object.keys(exportData[0]);
       
       // Create a mapping of original headers to custom headers
       // and filter out any headers that don't have a custom mapping
@@ -57,7 +70,7 @@ export const CSVExport = <T extends Record<string, any>>({
       exportHeaders = validHeaders.map(header => customHeaders[header]);
       
       // Transform the data to use only the valid headers
-      exportData = data.map(item => {
+      exportData = exportData.map(item => {
         const newItem: Record<string, any> = {};
         validHeaders.forEach(header => {
           newItem[customHeaders[header]] = item[header];
@@ -67,14 +80,46 @@ export const CSVExport = <T extends Record<string, any>>({
     }
     
     const csvContent = exportToCSV(exportData, exportHeaders);
-    downloadCSV(csvContent, filename);
+    const finalFilename = storageLocation 
+      ? filename.replace('.csv', `-${storageLocation.toLowerCase().replace(/ /g, '-')}.csv`)
+      : filename;
+    downloadCSV(csvContent, finalFilename);
   };
+  
+  if (showStorageDropdown) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant={variant}
+            size={size}
+            className={`${className} flex items-center gap-2`}
+            disabled={disabled || !data || data.length === 0}
+          >
+            <Download className="w-4 h-4" />
+            {buttonText}
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onClick={() => handleExport()}>
+            All Locations
+          </DropdownMenuItem>
+          {storageLocations.map((location) => (
+            <DropdownMenuItem key={location} onClick={() => handleExport(location)}>
+              {location}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
   
   return (
     <Button 
       variant={variant}
       size={size}
-      onClick={handleExport} 
+      onClick={() => handleExport()} 
       className={className}
       disabled={disabled || !data || data.length === 0}
     >
