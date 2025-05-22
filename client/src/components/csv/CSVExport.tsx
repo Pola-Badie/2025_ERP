@@ -102,7 +102,7 @@ export const CSVExport = <T extends Record<string, any>>({
           <ChevronDown className="w-4 h-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent className="w-56 max-h-80 overflow-y-auto">
         <DropdownMenuItem onClick={() => handleExport()}>
           <Database className="w-4 h-4 mr-2 text-blue-600" />
           <div className="flex flex-col">
