@@ -37,6 +37,11 @@ interface PurchaseOrder {
   status: 'draft' | 'sent' | 'received' | 'cancelled' | 'pending';
   totalAmount: number;
   items: PurchaseOrderItem[];
+  materials?: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+  }>;
 }
 
 export default function Procurement() {
@@ -48,7 +53,7 @@ export default function Procurement() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
 
-  // Sample purchase orders data
+  // Sample purchase orders data with materials
   const samplePurchaseOrders: PurchaseOrder[] = [
     {
       id: 1,
@@ -58,7 +63,12 @@ export default function Procurement() {
       date: "2024-05-20",
       status: 'pending',
       totalAmount: 25420.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Acetaminophen API", quantity: 500, unit: "kg" },
+        { name: "Microcrystalline Cellulose", quantity: 200, unit: "kg" },
+        { name: "Magnesium Stearate", quantity: 25, unit: "kg" }
+      ]
     },
     {
       id: 2,
@@ -68,7 +78,12 @@ export default function Procurement() {
       date: "2024-05-18",
       status: 'received',
       totalAmount: 18950.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Ibuprofen API", quantity: 300, unit: "kg" },
+        { name: "Lactose Monohydrate", quantity: 150, unit: "kg" },
+        { name: "Croscarmellose Sodium", quantity: 10, unit: "kg" }
+      ]
     },
     {
       id: 3,
@@ -78,7 +93,13 @@ export default function Procurement() {
       date: "2024-05-15",
       status: 'draft',
       totalAmount: 31200.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Amoxicillin Trihydrate", quantity: 250, unit: "kg" },
+        { name: "Clavulanic Acid", quantity: 50, unit: "kg" },
+        { name: "Sodium Starch Glycolate", quantity: 15, unit: "kg" },
+        { name: "Colloidal Silicon Dioxide", quantity: 5, unit: "kg" }
+      ]
     },
     {
       id: 4,
@@ -88,7 +109,11 @@ export default function Procurement() {
       date: "2024-05-12",
       status: 'cancelled',
       totalAmount: 8950.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Aspirin API", quantity: 100, unit: "kg" },
+        { name: "Corn Starch", quantity: 75, unit: "kg" }
+      ]
     },
     {
       id: 5,
@@ -98,7 +123,12 @@ export default function Procurement() {
       date: "2024-05-10",
       status: 'pending',
       totalAmount: 22300.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Metformin HCl", quantity: 400, unit: "kg" },
+        { name: "Hydroxypropyl Methylcellulose", quantity: 50, unit: "kg" },
+        { name: "Polyethylene Glycol", quantity: 20, unit: "kg" }
+      ]
     },
     {
       id: 6,
@@ -108,7 +138,12 @@ export default function Procurement() {
       date: "2024-05-08",
       status: 'sent',
       totalAmount: 14750.00,
-      items: []
+      items: [],
+      materials: [
+        { name: "Calcium Carbonate", quantity: 300, unit: "kg" },
+        { name: "Vitamin D3", quantity: 5, unit: "kg" },
+        { name: "Talc", quantity: 25, unit: "kg" }
+      ]
     }
   ];
 
@@ -256,6 +291,23 @@ export default function Procurement() {
                     <p className="text-muted-foreground mb-1">
                       <strong>Date:</strong> {new Date(order.date).toLocaleDateString()}
                     </p>
+                    <div className="mb-2">
+                      <strong className="text-sm text-muted-foreground">Materials Procured:</strong>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {(order as any).materials && (order as any).materials.length > 0 ? (
+                          (order as any).materials.map((material: any, index: number) => (
+                            <span 
+                              key={index}
+                              className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                            >
+                              {material.name} ({material.quantity} {material.unit})
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">No materials specified</span>
+                        )}
+                      </div>
+                    </div>
                     <p className="text-lg font-semibold text-green-600">
                       ${order.totalAmount.toLocaleString()}
                     </p>
