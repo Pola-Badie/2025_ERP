@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -488,6 +488,82 @@ const InvoiceHistory = () => {
                   ))}
                 </TableBody>
               </Table>
+              
+              {/* Uploaded Documents Section */}
+              <div className="mt-8 mb-6">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Uploaded Documents
+                </h3>
+                
+                <div className="border rounded-lg p-4 bg-slate-50">
+                  <div className="grid gap-3">
+                    {/* Sample documents - in real implementation, this would come from the invoice data */}
+                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div className="flex items-center">
+                        <FileText className="h-5 w-5 text-blue-600 mr-3" />
+                        <div>
+                          <p className="font-medium text-sm">Invoice_Receipt_{selectedInvoice.invoiceNumber}.pdf</p>
+                          <p className="text-xs text-slate-500">245 KB • Uploaded 2 days ago</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div className="flex items-center">
+                        <ImageIcon className="h-5 w-5 text-green-600 mr-3" />
+                        <div>
+                          <p className="font-medium text-sm">Product_Certificate_{selectedInvoice.customerName.replace(/\s+/g, '_')}.jpg</p>
+                          <p className="text-xs text-slate-500">1.2 MB • Uploaded 5 days ago</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-white rounded border">
+                      <div className="flex items-center">
+                        <FileText className="h-5 w-5 text-purple-600 mr-3" />
+                        <div>
+                          <p className="font-medium text-sm">Shipping_Label_{selectedInvoice.invoiceNumber}.pdf</p>
+                          <p className="text-xs text-slate-500">156 KB • Uploaded 1 week ago</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Upload new document option */}
+                    <div className="flex items-center justify-center p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-slate-400 transition-colors cursor-pointer">
+                      <div className="text-center">
+                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                        <p className="text-sm text-slate-600">Upload additional documents</p>
+                        <p className="text-xs text-slate-400">PDF, JPG, PNG up to 10MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               
               <div className="mt-8 flex justify-end">
                 <div className="w-72">
