@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -924,6 +924,34 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
               <Button variant="outline" onClick={downloadInvoicePDF}>
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const customerEmail = selectedInvoice.customerName.toLowerCase().replace(/\s+/g, '.') + '@pharmacare.com';
+                  const subject = `Invoice ${selectedInvoice.invoiceNumber} - PharmaOverseas`;
+                  const body = `Dear ${selectedInvoice.customerName},
+
+Please find attached your invoice ${selectedInvoice.invoiceNumber} for $${selectedInvoice.amount.toFixed(2)}.
+
+Invoice Details:
+- Invoice Number: ${selectedInvoice.invoiceNumber}
+- Date: ${format(new Date(selectedInvoice.date), 'PP')}
+- Amount: $${selectedInvoice.amount.toFixed(2)}
+- Status: ${selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+PharmaOverseas Team`;
+                  
+                  const mailtoUrl = `mailto:${customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  window.location.href = mailtoUrl;
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Send Email
               </Button>
               <Button 
                 variant="default" 
