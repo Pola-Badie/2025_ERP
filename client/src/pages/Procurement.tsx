@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,8 @@ export default function Procurement() {
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
+  const [detailsOrder, setDetailsOrder] = useState<PurchaseOrder | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   // Sample purchase orders data with materials
   const samplePurchaseOrders: PurchaseOrder[] = [
@@ -63,7 +65,11 @@ export default function Procurement() {
       date: "2024-05-20",
       status: 'pending',
       totalAmount: 25420.00,
-      items: [],
+      items: [
+        { productId: 1, productName: "Acetaminophen API", quantity: 500, unitPrice: 42.50, total: 21250.00 },
+        { productId: 2, productName: "Microcrystalline Cellulose", quantity: 200, unitPrice: 18.50, total: 3700.00 },
+        { productId: 3, productName: "Magnesium Stearate", quantity: 25, unitPrice: 18.80, total: 470.00 }
+      ],
       materials: [
         { name: "Acetaminophen API", quantity: 500, unit: "kg" },
         { name: "Microcrystalline Cellulose", quantity: 200, unit: "kg" },
@@ -78,7 +84,11 @@ export default function Procurement() {
       date: "2024-05-18",
       status: 'received',
       totalAmount: 18950.00,
-      items: [],
+      items: [
+        { productId: 4, productName: "Ibuprofen API", quantity: 300, unitPrice: 55.00, total: 16500.00 },
+        { productId: 5, productName: "Lactose Monohydrate", quantity: 150, unitPrice: 12.50, total: 1875.00 },
+        { productId: 6, productName: "Croscarmellose Sodium", quantity: 10, unitPrice: 57.50, total: 575.00 }
+      ],
       materials: [
         { name: "Ibuprofen API", quantity: 300, unit: "kg" },
         { name: "Lactose Monohydrate", quantity: 150, unit: "kg" },
@@ -317,6 +327,18 @@ export default function Procurement() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setDetailsOrder(order);
+                        setIsDetailsDialogOpen(true);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Show Details
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleEditPurchaseOrder(order)}
                       className="flex items-center gap-2"
                     >
@@ -442,6 +464,83 @@ export default function Procurement() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Order Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {detailsOrder ? `${detailsOrder.poNumber} - Detailed Breakdown` : 'Purchase Order Details'}
+            </DialogTitle>
+          </DialogHeader>
+          {detailsOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Supplier</p>
+                  <p className="font-semibold">{detailsOrder.supplier}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Date</p>
+                  <p className="font-semibold">{new Date(detailsOrder.date).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <Badge variant={detailsOrder.status === 'received' ? 'default' : 
+                                 detailsOrder.status === 'pending' ? 'secondary' : 
+                                 detailsOrder.status === 'sent' ? 'outline' : 'destructive'}>
+                    {detailsOrder.status.toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
+                  <p className="font-semibold text-green-600">${detailsOrder.totalAmount.toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-3">Items Breakdown</h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-3 text-left text-sm font-medium">Product</th>
+                        <th className="p-3 text-right text-sm font-medium">Quantity</th>
+                        <th className="p-3 text-right text-sm font-medium">Unit Price</th>
+                        <th className="p-3 text-right text-sm font-medium">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {(detailsOrder as any).items?.map((item: any, index: number) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="p-3">
+                            <div className="font-medium">{item.productName}</div>
+                          </td>
+                          <td className="p-3 text-right">{item.quantity}</td>
+                          <td className="p-3 text-right">${item.unitPrice.toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold">${item.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50">
+                      <tr>
+                        <td className="p-3 font-semibold" colSpan={3}>Total Amount</td>
+                        <td className="p-3 text-right font-bold text-green-600">${detailsOrder.totalAmount.toFixed(2)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
