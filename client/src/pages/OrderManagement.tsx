@@ -528,6 +528,35 @@ const OrderManagement = () => {
     setIsViewDialogOpen(true);
   };
 
+  const handleGenerateSampleOrders = async () => {
+    try {
+      const response = await fetch('/api/orders/generate-sample', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count: 5 }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "Sample Orders Generated",
+          description: "5 sample pharmaceutical orders have been created successfully.",
+        });
+        refetchOrders();
+      } else {
+        throw new Error('Failed to generate sample orders');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate sample orders. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const confirmDeleteOrder = (orderId: number) => {
     setOrderToDelete(orderId);
     setIsDeleteDialogOpen(true);
@@ -1025,13 +1054,22 @@ const OrderManagement = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Production Orders History</h3>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <FileDown className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
-                  </DropdownMenuTrigger>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleGenerateSampleOrders}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Generate Sample Orders
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuLabel>Export by Warehouse</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -1046,6 +1084,7 @@ const OrderManagement = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </div>
               </div>
               
               <div className="rounded-md border">

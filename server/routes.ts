@@ -1367,6 +1367,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= Order Management Endpoints =============
 
   // Get all orders
+  app.post("/api/orders/generate-sample", async (req: Request, res: Response) => {
+    try {
+      const { count = 5 } = req.body;
+      const generatedOrders = [];
+
+      const sampleCustomers = [
+        { name: "Cairo Pharmaceuticals", company: "Cairo Pharma Ltd", sector: "Healthcare" },
+        { name: "Alexandria Medical", company: "Alex Medical Co", sector: "Medical Supplies" },
+        { name: "Giza Chemical Industries", company: "Giza Chemicals", sector: "Chemical Manufacturing" },
+        { name: "Suez Biotech", company: "Suez Biotech Solutions", sector: "Biotechnology" },
+        { name: "Luxor Research Labs", company: "Luxor Research", sector: "R&D" }
+      ];
+
+      const sampleProducts = [
+        "Acetylsalicylic Acid Tablets",
+        "Paracetamol Suspension", 
+        "Amoxicillin Capsules",
+        "Ibuprofen Tablets",
+        "Omeprazole Capsules"
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const customer = sampleCustomers[Math.floor(Math.random() * sampleCustomers.length)];
+        const product = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
+        const orderType = Math.random() > 0.5 ? 'production' : 'refining';
+        const status = ['pending', 'in_progress', 'completed'][Math.floor(Math.random() * 3)];
+        const cost = (Math.random() * 50000 + 10000).toFixed(2);
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+
+        const batchNumber = orderType === 'production' 
+          ? `PROD-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}-${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
+          : `REF-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}-${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+
+        const order = {
+          id: Date.now() + i,
+          batchNumber,
+          customerName: customer.name,
+          customerCompany: customer.company,
+          customerSector: customer.sector,
+          finalProduct: product,
+          totalCost: cost,
+          status,
+          orderType,
+          createdAt: date.toISOString(),
+          rawMaterials: [
+            { name: "Sulfuric Acid", quantity: Math.floor(Math.random() * 100) + 10, unit: "kg" },
+            { name: "Sodium Hydroxide", quantity: Math.floor(Math.random() * 50) + 5, unit: "kg" }
+          ]
+        };
+
+        generatedOrders.push(order);
+      }
+
+      res.json({ 
+        success: true, 
+        message: `Generated ${count} sample orders successfully`,
+        orders: generatedOrders 
+      });
+    } catch (error) {
+      console.error('Error generating sample orders:', error);
+      res.status(500).json({ error: 'Failed to generate sample orders' });
+    }
+  });
+
   app.get("/api/orders", async (req: Request, res: Response) => {
     try {
       const query = req.query.query as string || '';
