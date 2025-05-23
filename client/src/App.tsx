@@ -25,6 +25,7 @@ import UserManagement from "@/pages/UserManagement";
 import CustomersDemo from "@/pages/customers-demo";
 import Procurement from "@/pages/Procurement";
 import OrderManagement from "@/pages/OrderManagement";
+import Notifications from "@/pages/Notifications";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -59,6 +60,7 @@ function App() {
             <Route path="/customers-demo" component={CustomersDemo} />
             <Route path="/procurement" component={Procurement} />
             <Route path="/order-management" component={OrderManagement} />
+            <Route path="/notifications" component={Notifications} />
             <Route path="/login" component={Login} />
             <Route component={NotFound} />
           </Switch>
