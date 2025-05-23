@@ -1401,6 +1401,124 @@ PharmaOverseas Team`;
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Recycle Bin Dialog */}
+      <Dialog open={showRecycleBin} onOpenChange={setShowRecycleBin}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5" />
+              Recycle Bin
+            </DialogTitle>
+            <DialogDescription>
+              Deleted invoices are kept here for 30 days. You can restore them or permanently delete them.
+              {deletedInvoices.length > 0 && (
+                <span className="block text-sm text-blue-600 mt-1">
+                  {deletedInvoices.length} invoice(s) in recycle bin
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {deletedInvoices.length === 0 ? (
+              <div className="text-center py-8">
+                <Trash2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-muted-foreground">Recycle bin is empty</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Deleted invoices will appear here for 30 days
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-muted-foreground">
+                    Items are permanently deleted after 30 days
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={clearExpiredInvoices}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear Expired
+                  </Button>
+                </div>
+                
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Deleted</TableHead>
+                        <TableHead>Days Remaining</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {deletedInvoices.map((invoice) => {
+                        const deletedDate = new Date(invoice.deletedAt);
+                        const daysSinceDeleted = Math.floor((new Date().getTime() - deletedDate.getTime()) / (1000 * 60 * 60 * 24));
+                        const daysRemaining = Math.max(0, 30 - daysSinceDeleted);
+                        
+                        return (
+                          <TableRow key={invoice.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                            <TableCell>{invoice.customerName}</TableCell>
+                            <TableCell>
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(invoice.amount)}
+                            </TableCell>
+                            <TableCell>{format(deletedDate, 'PP')}</TableCell>
+                            <TableCell>
+                              <span className={`text-sm ${daysRemaining <= 7 ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
+                                {daysRemaining} days
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => restoreInvoice(invoice.id)}
+                                  className="bg-green-50 text-green-700 hover:bg-green-100"
+                                >
+                                  <RotateCcw className="mr-2 h-4 w-4" />
+                                  Restore
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => permanentlyDeleteInvoice(invoice.id)}
+                                  className="bg-red-50 text-red-600 hover:bg-red-100"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Forever
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRecycleBin(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
