@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown, RotateCcw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -76,6 +76,10 @@ const InvoiceHistory = () => {
   // Multi-select state
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  
+  // Recycle bin state
+  const [showRecycleBin, setShowRecycleBin] = useState(false);
+  const [deletedInvoices, setDeletedInvoices] = useState<(Invoice & { deletedAt: string })[]>([]);
 
   // Use hardcoded sample data for demonstration
   const [isLoading, setIsLoading] = useState(true);
@@ -596,7 +600,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     alert(`Exporting ${selectedInvoices.length} invoice(s) as PDFs...`);
   };
 
-  // Delete selected invoices
+  // Delete selected invoices (move to recycle bin)
   const deleteSelectedInvoices = () => {
     if (selectedInvoices.length === 0) {
       alert('Please select invoices to delete');
@@ -604,23 +608,59 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     }
 
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${selectedInvoices.length} selected invoice(s)? This action cannot be undone.`
+      `Are you sure you want to delete ${selectedInvoices.length} selected invoice(s)? They will be moved to the recycle bin for 30 days.`
     );
 
     if (confirmDelete) {
-      // Filter out selected invoices from the invoices array
-      const updatedInvoices = invoices.filter(invoice => !selectedInvoices.includes(invoice.id));
+      // Move selected invoices to recycle bin with deletion timestamp
+      const invoicesToDelete = invoices.filter(invoice => selectedInvoices.includes(invoice.id));
+      const deletedWithTimestamp = invoicesToDelete.map(invoice => ({
+        ...invoice,
+        deletedAt: new Date().toISOString()
+      }));
+      
+      setDeletedInvoices(prev => [...prev, ...deletedWithTimestamp]);
       
       // Update the invoices state (this would normally involve an API call)
-      // For now, we'll show a success message
-      alert(`Successfully deleted ${selectedInvoices.length} invoice(s)`);
+      alert(`Successfully moved ${selectedInvoices.length} invoice(s) to recycle bin`);
       
       // Clear selected invoices
       setSelectedInvoices([]);
       setSelectAll(false);
-      
-      // In a real implementation, you would call an API to delete the invoices
-      // and then refetch the data or update the local state
+    }
+  };
+
+  // Recycle bin functions
+  const restoreInvoice = (invoiceId: number) => {
+    const invoiceToRestore = deletedInvoices.find(inv => inv.id === invoiceId);
+    if (invoiceToRestore) {
+      setDeletedInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
+      alert('Invoice restored successfully');
+    }
+  };
+
+  const permanentlyDeleteInvoice = (invoiceId: number) => {
+    if (confirm('Are you sure you want to permanently delete this invoice? This action cannot be undone.')) {
+      setDeletedInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
+      alert('Invoice permanently deleted');
+    }
+  };
+
+  const clearExpiredInvoices = () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const expiredCount = deletedInvoices.filter(inv => 
+      new Date(inv.deletedAt) < thirtyDaysAgo
+    ).length;
+    
+    if (expiredCount > 0) {
+      setDeletedInvoices(prev => prev.filter(inv => 
+        new Date(inv.deletedAt) >= thirtyDaysAgo
+      ));
+      alert(`${expiredCount} expired invoice(s) permanently removed`);
+    } else {
+      alert('No expired invoices to remove');
     }
   };
 
@@ -631,10 +671,25 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
           <h1 className="text-2xl font-bold">Invoice History</h1>
           <p className="text-muted-foreground">View and manage all your invoices</p>
         </div>
-        <Button onClick={() => window.location.href = '/create-invoice'}>
-          <FileText className="mr-2 h-4 w-4" />
-          Create New Invoice
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setShowRecycleBin(true)}
+            className="bg-gray-50 text-gray-700 hover:bg-gray-100"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Recycle Bin 
+            {deletedInvoices.length > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                {deletedInvoices.length}
+              </span>
+            )}
+          </Button>
+          <Button onClick={() => window.location.href = '/create-invoice'}>
+            <FileText className="mr-2 h-4 w-4" />
+            Create New Invoice
+          </Button>
+        </div>
       </div>
 
       <Card>
