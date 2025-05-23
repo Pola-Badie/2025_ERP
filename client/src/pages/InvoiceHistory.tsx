@@ -544,10 +544,32 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
 
       <Card>
         <CardHeader>
-          <CardTitle>Invoice List</CardTitle>
-          <CardDescription>
-            Showing {filteredInvoices.length} invoices
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Invoice List</CardTitle>
+              <CardDescription>
+                Showing {filteredInvoices.length} invoices
+                {selectedInvoices.length > 0 && (
+                  <span className="ml-2 text-blue-600 font-medium">
+                    ({selectedInvoices.length} selected)
+                  </span>
+                )}
+              </CardDescription>
+            </div>
+            {selectedInvoices.length > 0 && (
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected ({selectedInvoices.length})
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -576,6 +598,13 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={selectAll}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all invoices"
+                        />
+                      </TableHead>
                       <TableHead className="min-w-[120px]">Invoice #</TableHead>
                       <TableHead className="min-w-[180px]">Customer</TableHead>
                       <TableHead className="min-w-[120px]">Date</TableHead>
@@ -590,6 +619,13 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                   <TableBody>
                     {filteredInvoices.map((invoice) => (
                       <TableRow key={invoice.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedInvoices.includes(invoice.id)}
+                            onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
+                            aria-label={`Select invoice ${invoice.invoiceNumber}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                         <TableCell>{invoice.customerName}</TableCell>
                         <TableCell>{format(new Date(invoice.date), 'PP')}</TableCell>
