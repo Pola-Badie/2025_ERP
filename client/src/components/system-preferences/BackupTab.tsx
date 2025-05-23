@@ -70,40 +70,60 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
     });
   };
 
-  const connectToGoogleDrive = () => {
-    // Real Google OAuth 2.0 implementation
-    const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    
-    if (!CLIENT_ID) {
+  const connectToGoogleDrive = async () => {
+    try {
+      // Check if Firebase is configured for Google authentication
+      const hasFirebaseConfig = 
+        import.meta.env.VITE_FIREBASE_API_KEY && 
+        import.meta.env.VITE_FIREBASE_PROJECT_ID && 
+        import.meta.env.VITE_FIREBASE_APP_ID;
+
+      if (!hasFirebaseConfig) {
+        toast({
+          title: "Google Authentication Setup Required",
+          description: "Please provide your Firebase credentials to enable Google Drive backup functionality. This will allow secure authentication with your Google account.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
-        title: "Configuration Error",
-        description: "Google Client ID not configured. Please contact your administrator.",
-        variant: "destructive",
+        title: "Connecting to Google Drive",
+        description: "Opening Google authentication window...",
       });
-      return;
+
+      // Import Firebase Google authentication
+      const { signInWithGooglePopup } = await import('@/config/firebase');
+      const result = await signInWithGooglePopup();
+
+      if (result && result.user) {
+        setIsGoogleConnected(true);
+        setUserEmail(result.user.email || 'Google User');
+        
+        // Store access token for Google Drive API
+        const token = await result.user.getIdToken();
+        setAccessToken(token);
+
+        toast({
+          title: "Successfully Connected!",
+          description: `Google Drive connected as ${result.user.displayName || result.user.email}. You can now backup your ERP data securely.`,
+        });
+      }
+    } catch (error: any) {
+      if (error.message.includes('Firebase not configured')) {
+        toast({
+          title: "Setup Required",
+          description: "Please provide your Firebase credentials to enable Google Drive integration. Contact your administrator for the required API keys.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to Google Drive. Please try again or check your internet connection.",
+          variant: "destructive",
+        });
+      }
     }
-
-    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-    const REDIRECT_URI = `${window.location.origin}/oauth/google/callback`;
-    
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${CLIENT_ID}&` +
-      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-      `scope=${encodeURIComponent(SCOPES)}&` +
-      `response_type=code&` +
-      `access_type=offline&` +
-      `prompt=consent`;
-
-    toast({
-      title: "Google Drive Connection",
-      description: "Redirecting to Google authentication...",
-    });
-
-    // Store the current page to return to after auth
-    localStorage.setItem('auth_return_url', window.location.pathname);
-    
-    // Redirect to Google OAuth
-    window.location.href = authUrl;
   };
 
   const disconnectGoogleDrive = () => {
