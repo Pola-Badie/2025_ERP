@@ -250,43 +250,44 @@ const CustomersDemo: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-6">
         <Card>
-          <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <CardTitle>Customer Records</CardTitle>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="relative w-full sm:w-auto">
+          <CardHeader className="space-y-4">
+            <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+              <CardTitle>Customer Records</CardTitle>
+              
+              {/* Search Bar - Full width on mobile, fixed width on larger screens */}
+              <div className="relative w-full lg:w-auto lg:min-w-[250px]">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search customers..."
-                  className="w-full sm:w-[200px] pl-8"
+                  className="w-full pl-8"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
-              {/* Control Buttons */}
-              <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                {/* Import/Export Buttons */}
-                <div className="flex space-x-2">
-                  <CSVImport
-                    onImport={handleImportCSV}
-                    buttonText="Import"
-                    size="sm"
-                    variant="outline"
-                    requiredColumns={["name", "position", "company", "phone", "email"]}
-                  />
-                  <CSVExport
-                    data={filteredCustomers}
-                    filename="customers_export.csv"
-                    buttonText="Export"
-                    size="sm"
-                    variant="outline"
-                  />
-                </div>
-                
-                <Button size="sm" onClick={handleAddCustomer}>
-                  <Plus className="h-4 w-4 mr-1" /> Add Customer
-                </Button>
+            </div>
+            
+            {/* Action Buttons - Separate row to prevent overlap */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2 border-t">
+              <div className="flex flex-wrap gap-2 flex-1">
+                <CSVImport
+                  onImport={handleImportCSV}
+                  buttonText="Import"
+                  size="sm"
+                  variant="outline"
+                  requiredColumns={["name", "position", "company", "phone", "email"]}
+                />
+                <CSVExport
+                  data={filteredCustomers}
+                  filename="customers_export.csv"
+                  buttonText="Export"
+                  size="sm"
+                  variant="outline"
+                />
               </div>
+              
+              <Button size="sm" onClick={handleAddCustomer} className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-1" /> Add Customer
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
