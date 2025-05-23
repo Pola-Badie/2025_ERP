@@ -62,6 +62,9 @@ const InvoiceHistory = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null);
 
   // Use hardcoded sample data for demonstration
   const [isLoading, setIsLoading] = useState(true);
@@ -345,6 +348,43 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     }
   };
 
+  // Function to handle payment fulfillment
+  const handlePaymentFulfillment = (invoice: Invoice) => {
+    const outstandingBalance = invoice.amount - (invoice.amountPaid || 0);
+    setInvoiceToUpdate(invoice);
+    setPaymentAmount(outstandingBalance.toFixed(2));
+    setShowPaymentDialog(true);
+  };
+
+  // Function to process payment and update invoice status
+  const processPayment = () => {
+    if (!invoiceToUpdate || !paymentAmount) return;
+
+    const paymentAmountNum = parseFloat(paymentAmount);
+    const currentAmountPaid = invoiceToUpdate.amountPaid || 0;
+    const newAmountPaid = currentAmountPaid + paymentAmountNum;
+    const outstandingBalance = invoiceToUpdate.amount - newAmountPaid;
+
+    // Update invoice with new payment
+    setInvoices(prev => prev.map(invoice => 
+      invoice.id === invoiceToUpdate.id 
+        ? { 
+            ...invoice, 
+            amountPaid: newAmountPaid,
+            status: outstandingBalance <= 0.01 ? 'paid' : 'partial'
+          }
+        : invoice
+    ));
+
+    // Close dialog and reset state
+    setShowPaymentDialog(false);
+    setPaymentAmount('');
+    setInvoiceToUpdate(null);
+
+    // Show success message
+    alert(`Payment of $${paymentAmountNum.toFixed(2)} processed successfully! ${outstandingBalance <= 0.01 ? 'Invoice is now fully paid.' : `Remaining balance: $${outstandingBalance.toFixed(2)}`}`);
+  };
+
   // Filter invoices based on search term and filters
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = searchTerm === '' || 
@@ -553,6 +593,16 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                                 className="bg-blue-50 text-blue-700 hover:bg-blue-100"
                               >
                                 Upload to ETA
+                              </Button>
+                            )}
+                            {(invoice.status === 'unpaid' || invoice.status === 'partial') && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handlePaymentFulfillment(invoice)}
+                                className="bg-green-50 text-green-700 hover:bg-green-100"
+                              >
+                                Pay Balance
                               </Button>
                             )}
                           </div>
@@ -970,6 +1020,71 @@ PharmaOverseas Team`;
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Process Payment</DialogTitle>
+            <DialogDescription>
+              {invoiceToUpdate && (
+                <div className="space-y-2 mt-2">
+                  <p>Invoice: <span className="font-medium">{invoiceToUpdate.invoiceNumber}</span></p>
+                  <p>Customer: <span className="font-medium">{invoiceToUpdate.customerName}</span></p>
+                  <p>Total Amount: <span className="font-medium">
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(invoiceToUpdate.amount)}
+                  </span></p>
+                  <p>Amount Paid: <span className="font-medium">
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(invoiceToUpdate.amountPaid || 0)}
+                  </span></p>
+                  <p>Outstanding Balance: <span className="font-medium text-red-600">
+                    {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(invoiceToUpdate.amount - (invoiceToUpdate.amountPaid || 0))}
+                  </span></p>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Payment Amount</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Enter payment amount"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Enter the amount being paid towards this invoice
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={processPayment}
+              disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Process Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
