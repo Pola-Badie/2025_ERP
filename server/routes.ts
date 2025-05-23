@@ -1384,85 +1384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             id: 1,
             orderType: 'production',
-            batchNumber: 'CHEM-001-250125',
-            customerId: 1,
-            customerName: 'MedPharma Solutions',
-            finalProduct: 'Acetylsalicylic Acid Tablets (Aspirin)',
-            materials: JSON.stringify([
-              {
-                id: 12,
-                name: 'Salicylic Acid',
-                quantity: 50,
-                unitPrice: '45.00',
-                unitOfMeasure: 'kg'
-              },
-              {
-                id: 13,
-                name: 'Acetic Anhydride',
-                quantity: 25,
-                unitPrice: '38.50',
-                unitOfMeasure: 'L'
-              },
-              {
-                id: 14,
-                name: 'Phosphoric Acid Catalyst',
-                quantity: 2,
-                unitPrice: '120.00',
-                unitOfMeasure: 'kg'
-              }
-            ]),
-            subtotal: '3452.50',
-            taxPercentage: 14,
-            taxAmount: '483.35',
-            totalMaterialCost: '3452.50',
-            totalAdditionalFees: '483.35',
-            totalCost: '3935.85',
-            status: 'completed',
-            createdAt: '2025-01-25T08:30:00Z'
-          },
-          {
-            id: 2,
-            orderType: 'production',
-            batchNumber: 'CHEM-002-250128',
-            customerId: 2,
-            customerName: 'Global Health Industries',
-            finalProduct: 'Paracetamol (Acetaminophen) Powder',
-            materials: JSON.stringify([
-              {
-                id: 15,
-                name: 'p-Aminophenol',
-                quantity: 75,
-                unitPrice: '62.00',
-                unitOfMeasure: 'kg'
-              },
-              {
-                id: 16,
-                name: 'Acetic Acid',
-                quantity: 40,
-                unitPrice: '28.75',
-                unitOfMeasure: 'L'
-              },
-              {
-                id: 17,
-                name: 'Sodium Acetate',
-                quantity: 15,
-                unitPrice: '45.50',
-                unitOfMeasure: 'kg'
-              }
-            ]),
-            subtotal: '6482.50',
-            taxPercentage: 14,
-            taxAmount: '907.55',
-            totalMaterialCost: '6482.50',
-            totalAdditionalFees: '907.55',
-            totalCost: '7390.05',
-            status: 'pending',
-            createdAt: '2025-01-28T10:15:00Z'
-          },
-          {
-            id: 3,
-            orderType: 'production',
-            batchNumber: 'CHEM-003-250130',
+            batchNumber: 'ADPH-001-250523',
             customerId: 3,
             customerName: 'Advanced Pharmaceuticals Ltd',
             finalProduct: 'Ibuprofen Active Ingredient',
@@ -1495,13 +1417,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalMaterialCost: '14225.00',
             totalAdditionalFees: '1991.50',
             totalCost: '16216.50',
-            status: 'in_progress',
-            createdAt: '2025-01-30T14:20:00Z'
+            status: 'completed',
+            createdAt: '2025-05-23T08:30:00Z'
           },
           {
-            id: 4,
+            id: 2,
             orderType: 'production',
-            batchNumber: 'CHEM-004-250201',
+            batchNumber: 'BTIO-002-250523',
             customerId: 4,
             customerName: 'BioTech Innovations',
             finalProduct: 'Amoxicillin Trihydrate',
@@ -1534,13 +1456,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalMaterialCost: '11665.00',
             totalAdditionalFees: '1633.10',
             totalCost: '13298.10',
-            status: 'completed',
-            createdAt: '2025-02-01T09:45:00Z'
+            status: 'in_progress',
+            createdAt: '2025-05-23T10:15:00Z'
           },
           {
-            id: 5,
+            id: 3,
             orderType: 'refining',
-            batchNumber: 'REF-001-250203',
+            batchNumber: 'PURE-003-250523',
             customerId: 5,
             customerName: 'PureChem Industries',
             finalProduct: 'Refined Caffeine Anhydrous',
@@ -1573,13 +1495,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalMaterialCost: '6962.50',
             totalAdditionalFees: '974.75',
             totalCost: '7937.25',
-            status: 'in_progress',
-            createdAt: '2025-02-03T11:30:00Z'
+            status: 'pending',
+            createdAt: '2025-05-23T11:30:00Z'
           },
           {
-            id: 6,
+            id: 4,
             orderType: 'refining',
-            batchNumber: 'REF-002-250205',
+            batchNumber: 'CHEM-004-250523',
             customerId: 6,
             customerName: 'ChemLab Solutions',
             finalProduct: 'Purified Aspirin API',
@@ -1605,8 +1527,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalMaterialCost: '6135.00',
             totalAdditionalFees: '858.90',
             totalCost: '6993.90',
+            status: 'completed',
+            createdAt: '2025-05-23T13:15:00Z'
+          },
+          {
+            id: 5,
+            orderType: 'production',
+            batchNumber: 'MEDSOL-005-250523',
+            customerId: 1,
+            customerName: 'MedPharma Solutions',
+            finalProduct: 'Acetylsalicylic Acid Tablets (Aspirin)',
+            materials: JSON.stringify([
+              {
+                id: 12,
+                name: 'Salicylic Acid',
+                quantity: 50,
+                unitPrice: '45.00',
+                unitOfMeasure: 'kg'
+              },
+              {
+                id: 13,
+                name: 'Acetic Anhydride',
+                quantity: 25,
+                unitPrice: '38.50',
+                unitOfMeasure: 'L'
+              },
+              {
+                id: 14,
+                name: 'Phosphoric Acid Catalyst',
+                quantity: 2,
+                unitPrice: '120.00',
+                unitOfMeasure: 'kg'
+              }
+            ]),
+            subtotal: '3452.50',
+            taxPercentage: 14,
+            taxAmount: '483.35',
+            totalMaterialCost: '3452.50',
+            totalAdditionalFees: '483.35',
+            totalCost: '3935.85',
             status: 'pending',
-            createdAt: '2025-02-05T13:15:00Z'
+            createdAt: '2025-05-23T14:45:00Z'
+          },
+          {
+            id: 6,
+            orderType: 'production',
+            batchNumber: 'GLOB-006-250523',
+            customerId: 2,
+            customerName: 'Global Health Industries',
+            finalProduct: 'Paracetamol (Acetaminophen) Powder',
+            materials: JSON.stringify([
+              {
+                id: 15,
+                name: 'p-Aminophenol',
+                quantity: 75,
+                unitPrice: '62.00',
+                unitOfMeasure: 'kg'
+              },
+              {
+                id: 16,
+                name: 'Acetic Acid',
+                quantity: 40,
+                unitPrice: '28.75',
+                unitOfMeasure: 'L'
+              },
+              {
+                id: 17,
+                name: 'Sodium Acetate',
+                quantity: 15,
+                unitPrice: '45.50',
+                unitOfMeasure: 'kg'
+              }
+            ]),
+            subtotal: '6482.50',
+            taxPercentage: 14,
+            taxAmount: '907.55',
+            totalMaterialCost: '6482.50',
+            totalAdditionalFees: '907.55',
+            totalCost: '7390.05',
+            status: 'in_progress',
+            createdAt: '2025-05-23T16:00:00Z'
           }
         ];
 
