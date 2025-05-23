@@ -39,7 +39,7 @@ const loginSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const GoogleLogin: React.FC<GoogleLoginProps> = ({ onLoginSuccess }) => {
+const GoogleLogin: React.FC = () => {
   const [, navigate] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -92,9 +92,7 @@ const GoogleLogin: React.FC<GoogleLoginProps> = ({ onLoginSuccess }) => {
         setSuccess(`Welcome, ${result.user.displayName}!`);
         console.log('Google login successful:', result.user);
         
-        if (onLoginSuccess) {
-          onLoginSuccess(result.user);
-        }
+        // Login successful - navigate to dashboard
         
         // Navigate to dashboard after successful login
         setTimeout(() => navigate('/'), 2000);
