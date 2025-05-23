@@ -87,6 +87,7 @@ const OrderManagement = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [isGeneratingOrders, setIsGeneratingOrders] = useState(false);
   
   // Production order states
   const [rawMaterials, setRawMaterials] = useState<any[]>([]);
@@ -529,6 +530,7 @@ const OrderManagement = () => {
   };
 
   const handleGenerateSampleOrders = async () => {
+    setIsGeneratingOrders(true);
     try {
       const response = await fetch('/api/orders/generate-sample', {
         method: 'POST',
@@ -554,6 +556,8 @@ const OrderManagement = () => {
         description: "Failed to generate sample orders. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingOrders(false);
     }
   };
 
@@ -1055,6 +1059,19 @@ const OrderManagement = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Production Orders History</h3>
                 <div className="flex gap-2">
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={handleGenerateSampleOrders}
+                    disabled={isGeneratingOrders}
+                  >
+                    {isGeneratingOrders ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4 mr-2" />
+                    )}
+                    Generate Sample Orders
+                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
