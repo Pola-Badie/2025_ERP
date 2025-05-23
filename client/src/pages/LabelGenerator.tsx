@@ -413,67 +413,68 @@ const LabelGenerator: React.FC = () => {
       });
 
       // Calculate sizing and positioning based on selected size
-      let imgWidth = 190; // default width
+      // Use full width of A4 page (210mm - minimal margins = ~200mm)
+      let imgWidth = 200; // Full width with minimal margins
       let imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       switch (selectedSize) {
         case '1_per_a4': {
-          // Single large label taking most of the A4 page
-          imgWidth = 190;
+          // Single large label using full width of A4 page
+          imgWidth = 200; // Full width edge to edge
           imgHeight = (canvas.height * imgWidth) / canvas.width;
-          const maxHeight = 250; // Leave some margin at bottom
+          const maxHeight = 270; // Use most of the page height
           if (imgHeight > maxHeight) {
             imgHeight = maxHeight;
           }
           
-          // Center the label on the page
-          const xPos = 10;
+          // Position with minimal margins
+          const xPos = 5; // Minimal left margin
           const yPos = (297 - imgHeight) / 2; // Center vertically
           pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
           break;
         }
 
         case '2_per_a4': {
-          imgWidth = 190;
+          imgWidth = 200; // Full width edge to edge
           const originalHeight = (canvas.height * imgWidth) / canvas.width;
-          const availableHeight = 297 - 20; // A4 height minus margins
-          const maxLabelHeight = (availableHeight - 10) / 2; // Space for 2 labels with gap
+          const availableHeight = 287; // A4 height minus minimal margins
+          const maxLabelHeight = (availableHeight - 5) / 2; // Space for 2 labels with small gap
           imgHeight = Math.min(originalHeight, maxLabelHeight);
           
-          // First label
-          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-          // Second label with proper spacing
-          pdf.addImage(imgData, 'PNG', 10, 10 + imgHeight + 10, imgWidth, imgHeight);
+          // First label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, imgHeight);
+          // Second label with minimal spacing
+          pdf.addImage(imgData, 'PNG', 5, 5 + imgHeight + 5, imgWidth, imgHeight);
           break;
         }
           
         case '3_per_a4': {
-          imgWidth = 190;
+          imgWidth = 200; // Full width edge to edge
           imgHeight = (canvas.height * imgWidth) / canvas.width;
-          // Add 3 labels per page - vertically stacked like in your image
-          const labelSpacing = 10;
-          const availableHeight3 = 297 - 20; // A4 height minus margins
+          // Add 3 labels per page - vertically stacked using full width
+          const labelSpacing = 5;
+          const availableHeight3 = 287; // A4 height minus minimal margins
           const labelHeight = Math.min(imgHeight, (availableHeight3 - 2 * labelSpacing) / 3);
           
-          // First label
-          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, labelHeight);
-          // Second label
-          pdf.addImage(imgData, 'PNG', 10, 10 + labelHeight + labelSpacing, imgWidth, labelHeight);
-          // Third label
-          pdf.addImage(imgData, 'PNG', 10, 10 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
+          // First label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, labelHeight);
+          // Second label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5 + labelHeight + labelSpacing, imgWidth, labelHeight);
+          // Third label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
           break;
         }
           
         case '6_per_a4': {
-          imgWidth = 90; // Smaller width for 2 columns
+          imgWidth = 97; // Half width for 2 columns with minimal gap
           imgHeight = (canvas.height * imgWidth) / canvas.width;
-          const smallLabelHeight = Math.min(imgHeight, 80);
+          const smallLabelHeight = Math.min(imgHeight, 90);
           
-          // 2 columns x 3 rows = 6 labels
+          // 2 columns x 3 rows = 6 labels using full width
           for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 2; col++) {
-              const xPos = 10 + col * (imgWidth + 10);
-              const yPos = 10 + row * (smallLabelHeight + 10);
+              const xPos = 5 + col * (imgWidth + 3); // Minimal gap between columns
+              const yPos = 5 + row * (smallLabelHeight + 5);
               pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, smallLabelHeight);
             }
           }
