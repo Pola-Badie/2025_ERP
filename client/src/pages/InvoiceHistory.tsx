@@ -79,7 +79,62 @@ const InvoiceHistory = () => {
   
   // Recycle bin state
   const [showRecycleBin, setShowRecycleBin] = useState(false);
-  const [deletedInvoices, setDeletedInvoices] = useState<(Invoice & { deletedAt: string })[]>([]);
+  const [deletedInvoices, setDeletedInvoices] = useState<(Invoice & { deletedAt: string })[]>([
+    {
+      id: 9001,
+      invoiceNumber: 'INV-2024-9001',
+      customerName: 'GlobalHealth Solutions',
+      date: '2024-01-15',
+      dueDate: '2024-02-15',
+      amount: 4500.00,
+      amountPaid: 0,
+      paymentMethod: 'bank_transfer',
+      status: 'unpaid' as const,
+      etaUploaded: false,
+      deletedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+      items: [
+        { productName: 'Paracetamol 500mg', quantity: 100, unitPrice: 25.00, total: 2500.00 },
+        { productName: 'Ibuprofen 400mg', quantity: 80, unitPrice: 25.00, total: 2000.00 }
+      ]
+    },
+    {
+      id: 9002,
+      invoiceNumber: 'INV-2024-9002',
+      customerName: 'MediCare Pharmacy',
+      date: '2024-01-10',
+      dueDate: '2024-02-10',
+      amount: 2800.75,
+      amountPaid: 1000.00,
+      paymentMethod: 'visa',
+      status: 'partial' as const,
+      etaUploaded: true,
+      etaReference: 'ETA-9002-2024',
+      deletedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago (5 days remaining)
+      items: [
+        { productName: 'Amoxicillin 250mg', quantity: 50, unitPrice: 30.00, total: 1500.00 },
+        { productName: 'Azithromycin 500mg', quantity: 25, unitPrice: 52.03, total: 1300.75 }
+      ]
+    },
+    {
+      id: 9003,
+      invoiceNumber: 'INV-2024-9003',
+      customerName: 'City General Hospital',
+      date: '2024-01-08',
+      dueDate: '2024-02-08',
+      amount: 15750.00,
+      amountPaid: 15750.00,
+      paymentMethod: 'cheque',
+      status: 'paid' as const,
+      etaUploaded: true,
+      etaReference: 'ETA-9003-2024',
+      deletedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (28 days remaining)
+      items: [
+        { productName: 'Insulin Glargine 100 IU/ml', quantity: 30, unitPrice: 125.00, total: 3750.00 },
+        { productName: 'Metformin 850mg', quantity: 200, unitPrice: 15.00, total: 3000.00 },
+        { productName: 'Lisinopril 10mg', quantity: 150, unitPrice: 60.00, total: 9000.00 }
+      ]
+    }
+  ]);
 
   // Use hardcoded sample data for demonstration
   const [isLoading, setIsLoading] = useState(true);
