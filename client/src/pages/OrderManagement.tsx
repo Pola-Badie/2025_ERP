@@ -1207,13 +1207,15 @@ const OrderManagement = () => {
                     <div>
                       <Label>Source Material</Label>
                       <RadioGroup value={sourceType} onValueChange={setSourceType}>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="production" id="production" />
-                          <Label htmlFor="production">From Production Order</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="stock" id="stock" />
-                          <Label htmlFor="stock">From Stock Item</Label>
+                        <div className="flex items-center space-x-6">
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="production" id="production" />
+                            <Label htmlFor="production">From Production Order</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="stock" id="stock" />
+                            <Label htmlFor="stock">From Stock Item</Label>
+                          </div>
                         </div>
                       </RadioGroup>
                       
@@ -1290,19 +1292,21 @@ const OrderManagement = () => {
 
                       {/* Materials List */}
                       {refiningRawMaterials.length > 0 && (
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {refiningRawMaterials.map((material, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                              <span className="font-medium">{material.name}</span>
-                              <span className="text-sm text-muted-foreground">
-                                {material.quantity} {material.unitOfMeasure} × ${material.unitPrice}
-                              </span>
+                              <div className="flex-1">
+                                <span className="font-medium text-sm">{material.name}</span>
+                                <div className="text-xs text-muted-foreground">
+                                  {material.quantity} {material.unitOfMeasure} × ${material.unitPrice}
+                                </div>
+                              </div>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => handleRemoveRefiningMaterial(index)}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-3 w-3" />
                               </Button>
                             </div>
                           ))}
