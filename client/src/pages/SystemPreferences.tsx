@@ -90,7 +90,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 md:grid-cols-7 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-4 md:grid-cols-8 border-b rounded-none h-auto">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -139,6 +139,13 @@ const SystemPreferences: React.FC = () => {
               >
                 {renderTabIcon('backup')}
                 <span className="hidden md:inline">Backup</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="eta" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
+                {renderTabIcon('eta')}
+                <span className="hidden md:inline">ETA</span>
               </TabsTrigger>
             </TabsList>
             
