@@ -120,6 +120,12 @@ const OrderManagement = () => {
   const [refiningTransportationCost, setRefiningTransportationCost] = useState<string>('0.00');
   const [refiningTransportationNotes, setRefiningTransportationNotes] = useState<string>('');
   
+  // Refining raw materials states
+  const [refiningRawMaterials, setRefiningRawMaterials] = useState<any[]>([]);
+  const [refiningMaterialToAdd, setRefiningMaterialToAdd] = useState<any>(null);
+  const [refiningMaterialQuantity, setRefiningMaterialQuantity] = useState<number>(0);
+  const [refiningMaterialUnitPrice, setRefiningMaterialUnitPrice] = useState<string>('0.00');
+  
   // Calculate subtotal and total price (with tax) when raw materials, packaging items, tax percentage, or transportation cost change
   useEffect(() => {
     // Calculate materials cost
@@ -147,14 +153,21 @@ const OrderManagement = () => {
   
   // Calculate refining cost with tax and transportation
   useEffect(() => {
-    const subtotal = parseFloat(refiningSubtotal);
+    // Calculate refining materials cost
+    const materialsCost = refiningRawMaterials.reduce((sum, material) => {
+      return sum + (material.quantity * parseFloat(material.unitPrice));
+    }, 0);
+    
+    const baseSubtotal = parseFloat(refiningSubtotal) || 0;
     const transportCost = parseFloat(refiningTransportationCost) || 0;
-    const totalSubtotal = subtotal + transportCost;
+    
+    // Calculate the total subtotal including materials
+    const totalSubtotal = baseSubtotal + materialsCost + transportCost;
     
     const taxAmount = totalSubtotal * (refiningTaxPercentage / 100);
     const total = totalSubtotal + taxAmount;
     setRefiningCost(total.toFixed(2));
-  }, [refiningSubtotal, refiningTransportationCost, refiningTaxPercentage]);
+  }, [refiningSubtotal, refiningTransportationCost, refiningTaxPercentage, refiningRawMaterials]);
 
   // Fetch all orders
   const { data: allOrders, isLoading: isLoadingOrders, refetch: refetchOrders } = useQuery({
@@ -349,6 +362,28 @@ const OrderManagement = () => {
     setRefiningSteps(updatedSteps);
   };
 
+  const handleAddRefiningMaterial = () => {
+    if (refiningMaterialToAdd && refiningMaterialQuantity > 0) {
+      const newMaterial = {
+        id: refiningMaterialToAdd.id,
+        name: refiningMaterialToAdd.name,
+        quantity: refiningMaterialQuantity,
+        unitOfMeasure: refiningMaterialToAdd.unitOfMeasure || 'kg',
+        unitPrice: refiningMaterialUnitPrice
+      };
+      
+      setRefiningRawMaterials([...refiningRawMaterials, newMaterial]);
+      setRefiningMaterialToAdd(null);
+      setRefiningMaterialQuantity(0);
+      setRefiningMaterialUnitPrice('0.00');
+    }
+  };
+
+  const handleRemoveRefiningMaterial = (index: number) => {
+    const updatedMaterials = refiningRawMaterials.filter((_, i) => i !== index);
+    setRefiningRawMaterials(updatedMaterials);
+  };
+
   const handleCreateOrder = async () => {
     try {
       if (!selectedCustomer) {
@@ -437,6 +472,7 @@ const OrderManagement = () => {
         sourceId: sourceType === 'production' ? sourceProductionOrder : sourceStockItem,
         refiningSteps: JSON.stringify(refiningSteps),
         expectedOutput: expectedOutput,
+        materials: JSON.stringify(refiningRawMaterials),
         subtotal: refiningSubtotal,
         taxPercentage: refiningTaxPercentage,
         taxAmount: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
@@ -467,6 +503,7 @@ const OrderManagement = () => {
       // Reset form
       setSelectedCustomer(null);
       setRefiningSteps([]);
+      setRefiningRawMaterials([]);
       setExpectedOutput('');
       setRefiningSubtotal('0.00');
       setRefiningTransportationCost('0.00');
@@ -1206,6 +1243,70 @@ const OrderManagement = () => {
                             ))}
                           </SelectContent>
                         </Select>
+                      )}
+                    </div>
+
+                    {/* Raw Materials Section */}
+                    <div>
+                      <Label className="text-base font-semibold">Raw Materials</Label>
+                      
+                      {/* Add Material Form */}
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        <Select value={refiningMaterialToAdd?.id?.toString()} onValueChange={(value) => {
+                          const material = rawMaterialsData?.find((m: any) => m.id.toString() === value);
+                          setRefiningMaterialToAdd(material);
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {rawMaterialsData?.map((material: any) => (
+                              <SelectItem key={material.id} value={material.id.toString()}>
+                                {material.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        <Input 
+                          type="number" 
+                          placeholder="Qty"
+                          value={refiningMaterialQuantity}
+                          onChange={(e) => setRefiningMaterialQuantity(parseInt(e.target.value) || 0)}
+                        />
+                        
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="Unit Price"
+                          value={refiningMaterialUnitPrice}
+                          onChange={(e) => setRefiningMaterialUnitPrice(e.target.value)}
+                        />
+                        
+                        <Button onClick={handleAddRefiningMaterial} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Materials List */}
+                      {refiningRawMaterials.length > 0 && (
+                        <div className="space-y-2">
+                          {refiningRawMaterials.map((material, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                              <span className="font-medium">{material.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {material.quantity} {material.unitOfMeasure} × ${material.unitPrice}
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleRemoveRefiningMaterial(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
 
