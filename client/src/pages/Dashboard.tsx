@@ -161,11 +161,27 @@ const Dashboard: React.FC = () => {
   // Settings management functions
   const handleSaveSettings = async () => {
     try {
-      // Here you would typically make an API call to save the settings
-      // For now, we'll simulate a successful save
+      // Save settings to localStorage for persistence
+      localStorage.setItem('pharmaSettings', JSON.stringify(settingsData));
+      
+      // Apply theme changes immediately
+      if (settingsData.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else if (settingsData.theme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        // Auto theme - check system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      
       toast({
-        title: "Settings Saved",
-        description: "Your preferences have been successfully updated.",
+        title: "Settings Saved Successfully!",
+        description: "Your preferences have been updated and will take effect immediately.",
       });
     } catch (error) {
       toast({
@@ -1446,9 +1462,11 @@ const Dashboard: React.FC = () => {
               <Settings className="h-6 w-6 text-blue-600" />
               <div>
                 <h2 className="text-xl font-semibold">Application Settings</h2>
-                <p className="text-sm text-gray-500">Customize your ERP experience</p>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              Customize your ERP experience with language, currency, notifications, and security preferences.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
