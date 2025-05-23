@@ -714,6 +714,17 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
               </CardDescription>
             </div>
             <div className="flex gap-2">
+              {selectedInvoices.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => deleteSelectedInvoices()}
+                  className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Selected ({selectedInvoices.length})
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -734,13 +745,6 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                   <DropdownMenuItem onClick={() => exportInvoicesToCSV(filteredInvoices)}>
                     <FileText className="mr-2 h-4 w-4" />
                     Export All as CSV
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => deleteSelectedInvoices()}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Selected
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
