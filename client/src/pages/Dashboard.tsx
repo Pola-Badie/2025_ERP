@@ -1476,58 +1476,66 @@ const Dashboard: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
+                  <Label htmlFor="language" className="flex items-center gap-2">
+                    🌐 Language
+                  </Label>
                   <select
                     id="language"
                     value={settingsData.language}
                     onChange={(e) => handleSettingsChange('language', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value="en">English</option>
-                    <option value="ar">العربية (Arabic)</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="ar">🇪🇬 العربية (Arabic)</option>
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Default Currency</Label>
+                  <Label htmlFor="currency" className="flex items-center gap-2">
+                    💰 Default Currency
+                  </Label>
                   <select
                     id="currency"
                     value={settingsData.currency}
                     onChange={(e) => handleSettingsChange('currency', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value="EGP">EGP - Egyptian Pound</option>
-                    <option value="USD">USD - US Dollar</option>
-                    <option value="EUR">EUR - Euro</option>
+                    <option value="EGP">🇪🇬 EGP - Egyptian Pound</option>
+                    <option value="USD">🇺🇸 USD - US Dollar</option>
+                    <option value="EUR">🇪🇺 EUR - Euro</option>
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="dateFormat">Date Format</Label>
+                  <Label htmlFor="dateFormat" className="flex items-center gap-2">
+                    📅 Date Format
+                  </Label>
                   <select
                     id="dateFormat"
                     value={settingsData.dateFormat}
                     onChange={(e) => handleSettingsChange('dateFormat', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2024)</option>
+                    <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2024)</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD (2024-12-31)</option>
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
+                  <Label htmlFor="timezone" className="flex items-center gap-2">
+                    🌍 Timezone
+                  </Label>
                   <select
                     id="timezone"
                     value={settingsData.timezone}
                     onChange={(e) => handleSettingsChange('timezone', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value="Africa/Cairo">Cairo (UTC+2)</option>
-                    <option value="UTC">UTC (UTC+0)</option>
-                    <option value="America/New_York">New York (UTC-5)</option>
-                    <option value="Europe/London">London (UTC+0)</option>
+                    <option value="Africa/Cairo">🇪🇬 Cairo (UTC+2)</option>
+                    <option value="UTC">🌐 UTC (UTC+0)</option>
+                    <option value="America/New_York">🇺🇸 New York (UTC-5)</option>
+                    <option value="Europe/London">🇬🇧 London (UTC+0)</option>
                   </select>
                 </div>
               </div>
@@ -1601,33 +1609,37 @@ const Dashboard: React.FC = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="autoLogout">Auto Logout (minutes)</Label>
+                  <Label htmlFor="autoLogout" className="flex items-center gap-2">
+                    🔒 Auto Logout
+                  </Label>
                   <select
                     id="autoLogout"
                     value={settingsData.autoLogout}
                     onChange={(e) => handleSettingsChange('autoLogout', parseInt(e.target.value))}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value={15}>15 minutes</option>
-                    <option value={30}>30 minutes</option>
-                    <option value={60}>1 hour</option>
-                    <option value={120}>2 hours</option>
-                    <option value={0}>Never</option>
+                    <option value={15}>⏱️ 15 minutes</option>
+                    <option value={30}>⏱️ 30 minutes</option>
+                    <option value={60}>⏱️ 1 hour</option>
+                    <option value={120}>⏱️ 2 hours</option>
+                    <option value={0}>♾️ Never</option>
                   </select>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="defaultView">Default Page</Label>
+                  <Label htmlFor="defaultView" className="flex items-center gap-2">
+                    🏠 Default Page
+                  </Label>
                   <select
                     id="defaultView"
                     value={settingsData.defaultView}
                     onChange={(e) => handleSettingsChange('defaultView', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                   >
-                    <option value="dashboard">Dashboard</option>
-                    <option value="products">Products</option>
-                    <option value="customers">Customers</option>
-                    <option value="invoices">Invoices</option>
+                    <option value="dashboard">📊 Dashboard</option>
+                    <option value="products">📦 Products</option>
+                    <option value="customers">👥 Customers</option>
+                    <option value="invoices">📄 Invoices</option>
                   </select>
                 </div>
               </div>
@@ -1638,16 +1650,18 @@ const Dashboard: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Display Preferences</h3>
               
               <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
+                <Label htmlFor="theme" className="flex items-center gap-2">
+                  🎨 Theme
+                </Label>
                 <select
                   id="theme"
                   value={settingsData.theme}
                   onChange={(e) => handleSettingsChange('theme', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 bg-white hover:border-gray-400"
                 >
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="auto">Auto (System)</option>
+                  <option value="light">☀️ Light</option>
+                  <option value="dark">🌙 Dark</option>
+                  <option value="auto">🔄 Auto (System)</option>
                 </select>
               </div>
             </div>
