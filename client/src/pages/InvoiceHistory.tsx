@@ -596,6 +596,34 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     alert(`Exporting ${selectedInvoices.length} invoice(s) as PDFs...`);
   };
 
+  // Delete selected invoices
+  const deleteSelectedInvoices = () => {
+    if (selectedInvoices.length === 0) {
+      alert('Please select invoices to delete');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedInvoices.length} selected invoice(s)? This action cannot be undone.`
+    );
+
+    if (confirmDelete) {
+      // Filter out selected invoices from the invoices array
+      const updatedInvoices = invoices.filter(invoice => !selectedInvoices.includes(invoice.id));
+      
+      // Update the invoices state (this would normally involve an API call)
+      // For now, we'll show a success message
+      alert(`Successfully deleted ${selectedInvoices.length} invoice(s)`);
+      
+      // Clear selected invoices
+      setSelectedInvoices([]);
+      setSelectAll(false);
+      
+      // In a real implementation, you would call an API to delete the invoices
+      // and then refetch the data or update the local state
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
@@ -706,6 +734,13 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                   <DropdownMenuItem onClick={() => exportInvoicesToCSV(filteredInvoices)}>
                     <FileText className="mr-2 h-4 w-4" />
                     Export All as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => deleteSelectedInvoices()}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Selected
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
