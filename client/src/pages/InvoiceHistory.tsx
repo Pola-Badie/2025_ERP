@@ -28,7 +28,13 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -571,20 +577,6 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                         <TableCell>{getETAStatus(invoice)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handlePreview(invoice)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={downloadInvoicePDF}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
                             {!invoice.etaUploaded && (
                               <Button 
                                 variant="outline" 
@@ -595,16 +587,29 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                                 Upload to ETA
                               </Button>
                             )}
-                            {(invoice.status === 'unpaid' || invoice.status === 'partial') && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handlePaymentFulfillment(invoice)}
-                                className="bg-green-50 text-green-700 hover:bg-green-100"
-                              >
-                                Pay Balance
-                              </Button>
-                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handlePreview(invoice)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Invoice
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={downloadInvoicePDF}>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Download PDF
+                                </DropdownMenuItem>
+                                {(invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') && (
+                                  <DropdownMenuItem onClick={() => handlePaymentFulfillment(invoice)}>
+                                    <CreditCard className="mr-2 h-4 w-4" />
+                                    Pay Balance
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </TableCell>
                       </TableRow>
