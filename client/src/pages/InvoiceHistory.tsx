@@ -467,6 +467,116 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     }
   };
 
+  // Export all invoices to CSV
+  const exportInvoicesToCSV = (invoicesToExport: Invoice[]) => {
+    const headers = [
+      'Invoice Number',
+      'Customer Name', 
+      'Date',
+      'Due Date',
+      'Amount',
+      'Amount Paid',
+      'Outstanding Balance',
+      'Payment Method',
+      'Status',
+      'ETA Uploaded',
+      'ETA Reference'
+    ];
+
+    const csvData = invoicesToExport.map(invoice => [
+      invoice.invoiceNumber,
+      invoice.customerName,
+      format(new Date(invoice.date), 'PP'),
+      invoice.dueDate ? format(new Date(invoice.dueDate), 'PP') : '',
+      invoice.amount.toFixed(2),
+      (invoice.amountPaid || 0).toFixed(2),
+      (invoice.amount - (invoice.amountPaid || 0)).toFixed(2),
+      invoice.paymentMethod?.replace('_', ' ') || '',
+      invoice.status,
+      invoice.etaUploaded ? 'Yes' : 'No',
+      invoice.etaReference || ''
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `invoices_export_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export individual invoice to PDF
+  const exportInvoiceToPDF = (invoice: Invoice) => {
+    // Create a printable version for PDF export
+    const printWindow = window.open('', '', 'height=600,width=800');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Invoice ${invoice.invoiceNumber}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; }
+              .invoice-details { margin: 20px 0; }
+              .items { margin-top: 30px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>INVOICE</h1>
+              <h2>PharmaOverseas Ltd.</h2>
+            </div>
+            <div class="invoice-details">
+              <p><strong>Invoice #:</strong> ${invoice.invoiceNumber}</p>
+              <p><strong>Customer:</strong> ${invoice.customerName}</p>
+              <p><strong>Date:</strong> ${format(new Date(invoice.date), 'PP')}</p>
+              <p><strong>Amount:</strong> $${invoice.amount.toFixed(2)}</p>
+              <p><strong>Outstanding:</strong> $${(invoice.amount - (invoice.amountPaid || 0)).toFixed(2)}</p>
+              <p><strong>Status:</strong> ${invoice.status}</p>
+            </div>
+            ${invoice.items && invoice.items.length > 0 ? `
+              <div class="items">
+                <h3>Items</h3>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${invoice.items.map(item => `
+                      <tr>
+                        <td>${item.productName}</td>
+                        <td>${item.quantity}</td>
+                        <td>$${item.unitPrice.toFixed(2)}</td>
+                        <td>$${item.total.toFixed(2)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
@@ -672,7 +782,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Invoice
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={downloadInvoicePDF}>
+                                <DropdownMenuItem onClick={() => exportInvoiceToPDF(invoice)}>
                                   <Download className="mr-2 h-4 w-4" />
                                   Download PDF
                                 </DropdownMenuItem>
