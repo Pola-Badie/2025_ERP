@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
@@ -27,23 +26,17 @@ import {
   EyeOffIcon,
   LoaderIcon
 } from 'lucide-react';
-import { signInWithGooglePopup, signInWithGoogleRedirect, handleGoogleRedirectResult } from '@/config/firebase';
 import { useLocation } from 'wouter';
-
-interface GoogleLoginProps {
-  onLoginSuccess?: (user: any) => void;
-}
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const GoogleLogin: React.FC = () => {
+const Login: React.FC = () => {
   const [, navigate] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [authMethod, setAuthMethod] = useState<'traditional' | 'google'>('traditional');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -55,49 +48,32 @@ const GoogleLogin: React.FC = () => {
     },
   });
 
-  // Handle redirect result on component mount
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      try {
-        const result = await handleGoogleRedirectResult();
-        if (result && result.user) {
-          setSuccess(`Welcome, ${result.user.displayName}!`);
-          // Login successful - redirect to dashboard
-          setTimeout(() => navigate('/'), 2000);
-        }
-      } catch (error: any) {
-        setError(`Google login failed: ${error.message}`);
-      }
-    };
-    checkRedirectResult();
-  }, [navigate]);
-
-  const handleGoogleLogin = async (usePopup = true) => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError(null);
-    setAuthMethod('google');
 
     try {
-      let result;
-      if (usePopup) {
-        result = await signInWithGooglePopup();
-      } else {
-        await signInWithGoogleRedirect();
-        return; // Redirect will handle the result
+      // Check if Firebase is configured
+      const hasFirebaseConfig = 
+        import.meta.env.VITE_FIREBASE_API_KEY && 
+        import.meta.env.VITE_FIREBASE_PROJECT_ID && 
+        import.meta.env.VITE_FIREBASE_APP_ID;
+
+      if (!hasFirebaseConfig) {
+        setError('Firebase not configured. Please contact administrator to set up Google login.');
+        return;
       }
+
+      // Import Firebase functions dynamically to avoid errors
+      const { signInWithGooglePopup } = await import('@/config/firebase');
+      const result = await signInWithGooglePopup();
 
       if (result && result.user) {
         setSuccess(`Welcome, ${result.user.displayName}!`);
-        console.log('Google login successful:', result.user);
-        
-        // Login successful - navigate to dashboard
-        
-        // Navigate to dashboard after successful login
         setTimeout(() => navigate('/'), 2000);
       }
     } catch (error: any) {
       setError(`Google login failed: ${error.message}`);
-      console.error('Google login error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -106,13 +82,11 @@ const GoogleLogin: React.FC = () => {
   const handleTraditionalLogin = async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     setError(null);
-    setAuthMethod('traditional');
 
     try {
-      // Simulate traditional login - replace with actual API call
+      // Simulate traditional login
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock successful login
       const mockUser = {
         displayName: values.email.split('@')[0],
         email: values.email,
@@ -120,9 +94,6 @@ const GoogleLogin: React.FC = () => {
       };
 
       setSuccess(`Welcome back, ${mockUser.displayName}!`);
-      
-      // Traditional login successful
-      
       setTimeout(() => navigate('/'), 2000);
     } catch (error: any) {
       setError(`Login failed: ${error.message}`);
@@ -177,32 +148,20 @@ const GoogleLogin: React.FC = () => {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Google Login Buttons */}
-            <div className="space-y-3">
-              <Button
-                onClick={() => handleGoogleLogin(true)}
-                disabled={isLoading}
-                className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                variant="outline"
-              >
-                {isLoading && authMethod === 'google' ? (
-                  <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <GoogleIcon />
-                )}
-                <span className="ml-2">Continue with Google</span>
-              </Button>
-
-              <Button
-                onClick={() => handleGoogleLogin(false)}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full"
-              >
+            {/* Google Login Button */}
+            <Button
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              variant="outline"
+            >
+              {isLoading ? (
+                <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
                 <GoogleIcon />
-                <span className="ml-2">Sign in with Google (Redirect)</span>
-              </Button>
-            </div>
+              )}
+              <span className="ml-2">Continue with Google</span>
+            </Button>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -276,7 +235,7 @@ const GoogleLogin: React.FC = () => {
                   className="w-full" 
                   disabled={isLoading}
                 >
-                  {isLoading && authMethod === 'traditional' ? (
+                  {isLoading ? (
                     <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <LogInIcon className="w-4 h-4 mr-2" />
@@ -306,4 +265,4 @@ const GoogleLogin: React.FC = () => {
   );
 };
 
-export default GoogleLogin;
+export default Login;
