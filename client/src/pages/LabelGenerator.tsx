@@ -417,23 +417,27 @@ const LabelGenerator: React.FC = () => {
       let imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       switch (selectedSize) {
-        case '2_per_a4':
+        case '2_per_a4': {
           imgWidth = 190;
-          imgHeight = (canvas.height * imgWidth) / canvas.width;
-          // Add 2 labels per page
-          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-          if (imgHeight * 2 + 30 < 297) { // Check if second label fits on page
-            pdf.addImage(imgData, 'PNG', 10, imgHeight + 20, imgWidth, imgHeight);
-          }
-          break;
+          const originalHeight = (canvas.height * imgWidth) / canvas.width;
+          const availableHeight = 297 - 20; // A4 height minus margins
+          const maxLabelHeight = (availableHeight - 10) / 2; // Space for 2 labels with gap
+          imgHeight = Math.min(originalHeight, maxLabelHeight);
           
-        case '3_per_a4':
+          // First label
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+          // Second label with proper spacing
+          pdf.addImage(imgData, 'PNG', 10, 10 + imgHeight + 10, imgWidth, imgHeight);
+          break;
+        }
+          
+        case '3_per_a4': {
           imgWidth = 190;
           imgHeight = (canvas.height * imgWidth) / canvas.width;
           // Add 3 labels per page - vertically stacked like in your image
           const labelSpacing = 10;
-          const availableHeight = 297 - 20; // A4 height minus margins
-          const labelHeight = Math.min(imgHeight, (availableHeight - 2 * labelSpacing) / 3);
+          const availableHeight3 = 297 - 20; // A4 height minus margins
+          const labelHeight = Math.min(imgHeight, (availableHeight3 - 2 * labelSpacing) / 3);
           
           // First label
           pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, labelHeight);
@@ -442,8 +446,9 @@ const LabelGenerator: React.FC = () => {
           // Third label
           pdf.addImage(imgData, 'PNG', 10, 10 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
           break;
+        }
           
-        case '6_per_a4':
+        case '6_per_a4': {
           imgWidth = 90; // Smaller width for 2 columns
           imgHeight = (canvas.height * imgWidth) / canvas.width;
           const smallLabelHeight = Math.min(imgHeight, 80);
@@ -457,6 +462,7 @@ const LabelGenerator: React.FC = () => {
             }
           }
           break;
+        }
           
         default:
           imgWidth = 190;
