@@ -17,7 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
-  User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2
+  User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
+  Camera, Image
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -1397,62 +1398,51 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-6 py-4">
-            {/* Profile Picture Upload Section */}
-            <div className="flex flex-col items-center space-y-4 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={picturePreview || profileData.avatar} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-semibold">
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center space-y-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+              <div className="relative group">
+                <Avatar className="h-28 w-28 shadow-lg ring-4 ring-white">
+                  <AvatarImage 
+                    src={picturePreview || profileData.avatar} 
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-bold">
                     {profileData.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
+                
+                {isEditingProfile && (
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full transition-all duration-200 flex items-center justify-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white hover:bg-white hover:bg-opacity-20"
+                      onClick={() => document.getElementById('profile-picture-input')?.click()}
+                    >
+                      <Camera className="h-6 w-6" />
+                    </Button>
+                  </div>
+                )}
+                
                 {isUploadingPicture && (
                   <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-3 border-white border-t-transparent"></div>
                   </div>
                 )}
               </div>
               
               {isEditingProfile && (
-                <div className="w-full max-w-md space-y-3">
-                  <div
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
-                    onClick={() => document.getElementById('picture-upload')?.click()}
-                  >
-                    <div className="space-y-2">
-                      <div className="mx-auto h-12 w-12 text-blue-400">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
-                        </svg>
-                      </div>
-                      <div className="text-sm">
-                        <span className="font-medium text-blue-600">Click to upload</span>
-                        <span className="text-gray-500"> or drag and drop</span>
-                      </div>
-                      <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</p>
-                    </div>
-                  </div>
-                  
-                  <input
-                    id="picture-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
-                  
+                <div className="space-y-3 w-full max-w-sm">
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => document.getElementById('picture-upload')?.click()}
+                      onClick={() => document.getElementById('profile-picture-input')?.click()}
                       disabled={isUploadingPicture}
-                      className="flex-1"
+                      className="flex-1 bg-white hover:bg-blue-50 border-blue-300 text-blue-700"
                     >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Choose File
+                      <Image className="h-4 w-4 mr-2" />
+                      {isUploadingPicture ? 'Uploading...' : 'Change Photo'}
                     </Button>
                     
                     {(picturePreview || profileData.avatar) && (
@@ -1461,13 +1451,32 @@ const Dashboard: React.FC = () => {
                         size="sm"
                         onClick={handleRemovePicture}
                         disabled={isUploadingPicture}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Remove
+                        <X className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
+                  
+                  <input
+                    id="profile-picture-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  
+                  <p className="text-xs text-center text-gray-500">
+                    Upload a photo (PNG, JPG, GIF • Max 5MB)
+                  </p>
+                </div>
+              )}
+              
+              {!isEditingProfile && (
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-900">{profileData.name}</h3>
+                  <p className="text-sm text-gray-600">{profileData.role}</p>
+                  <p className="text-xs text-gray-500 mt-1">{profileData.department}</p>
                 </div>
               )}
             </div>
