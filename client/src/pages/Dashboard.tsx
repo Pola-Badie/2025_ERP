@@ -8,15 +8,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
-  User, Settings, LogOut, ChevronDown
+  User, Settings, LogOut, ChevronDown, Edit2, Save, X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
   DropdownMenu,
@@ -84,6 +89,54 @@ const Dashboard: React.FC = () => {
   const [isExpiringProductsCollapsed, setIsExpiringProductsCollapsed] = useState(false);
   const [isLowStockProductsCollapsed, setIsLowStockProductsCollapsed] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  // Profile dialog state
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: 'Dr. Sarah Johnson',
+    email: 'sarah.johnson@pharmaerp.com',
+    role: 'System Administrator',
+    phone: '+20 123 456 7890',
+    department: 'Administration',
+    bio: 'Experienced pharmaceutical administrator with over 10 years in ERP systems management.',
+    joinDate: '2023-01-15',
+    lastLogin: new Date().toISOString(),
+    avatar: '',
+  });
+  
+  const { toast } = useToast();
+
+  // Profile management functions
+  const handleSaveProfile = async () => {
+    try {
+      // Here you would typically make an API call to save the profile
+      // For now, we'll simulate a successful save
+      setIsEditingProfile(false);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been successfully updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingProfile(false);
+    // Reset form data to original values if needed
+  };
+
+  const handleProfileChange = (field: string, value: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
   
   // Get responsive chart settings based on screen width
   const getChartSettings = () => {
@@ -281,7 +334,7 @@ const Dashboard: React.FC = () => {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsProfileDialogOpen(true)}>
                   <User className="h-4 w-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
