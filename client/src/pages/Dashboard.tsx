@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
@@ -104,6 +105,25 @@ const Dashboard: React.FC = () => {
     lastLogin: new Date().toISOString(),
     avatar: '',
   });
+
+  // Settings dialog state
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [settingsData, setSettingsData] = useState({
+    language: 'en',
+    currency: 'EGP',
+    dateFormat: 'DD/MM/YYYY',
+    timezone: 'Africa/Cairo',
+    notifications: {
+      email: true,
+      sms: false,
+      push: true,
+      lowStock: true,
+      expiration: true,
+    },
+    theme: 'light',
+    autoLogout: 30,
+    defaultView: 'dashboard',
+  });
   
   const { toast } = useToast();
 
@@ -135,6 +155,41 @@ const Dashboard: React.FC = () => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  // Settings management functions
+  const handleSaveSettings = async () => {
+    try {
+      // Here you would typically make an API call to save the settings
+      // For now, we'll simulate a successful save
+      toast({
+        title: "Settings Saved",
+        description: "Your preferences have been successfully updated.",
+      });
+    } catch (error) {
+      toast({
+        title: "Save Failed",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSettingsChange = (field: string, value: any) => {
+    setSettingsData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleNotificationChange = (field: string, value: boolean) => {
+    setSettingsData(prev => ({
+      ...prev,
+      notifications: {
+        ...prev.notifications,
+        [field]: value
+      }
     }));
   };
   
@@ -338,7 +393,7 @@ const Dashboard: React.FC = () => {
                   <User className="h-4 w-4 mr-2" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsSettingsDialogOpen(true)}>
                   <Settings className="h-4 w-4 mr-2" />
                   <span>Settings</span>
                 </DropdownMenuItem>
@@ -1379,6 +1434,240 @@ const Dashboard: React.FC = () => {
                 </Button>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Settings className="h-6 w-6 text-blue-600" />
+              <div>
+                <h2 className="text-xl font-semibold">Application Settings</h2>
+                <p className="text-sm text-gray-500">Customize your ERP experience</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* General Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">General Preferences</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <select
+                    id="language"
+                    value={settingsData.language}
+                    onChange={(e) => handleSettingsChange('language', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="en">English</option>
+                    <option value="ar">العربية (Arabic)</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Default Currency</Label>
+                  <select
+                    id="currency"
+                    value={settingsData.currency}
+                    onChange={(e) => handleSettingsChange('currency', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="EGP">EGP - Egyptian Pound</option>
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="EUR">EUR - Euro</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="dateFormat">Date Format</Label>
+                  <select
+                    id="dateFormat"
+                    value={settingsData.dateFormat}
+                    onChange={(e) => handleSettingsChange('dateFormat', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <select
+                    id="timezone"
+                    value={settingsData.timezone}
+                    onChange={(e) => handleSettingsChange('timezone', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="Africa/Cairo">Cairo (UTC+2)</option>
+                    <option value="UTC">UTC (UTC+0)</option>
+                    <option value="America/New_York">New York (UTC-5)</option>
+                    <option value="Europe/London">London (UTC+0)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Notification Preferences</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Email Notifications</Label>
+                    <p className="text-xs text-gray-500">Receive notifications via email</p>
+                  </div>
+                  <Switch
+                    checked={settingsData.notifications.email}
+                    onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">SMS Notifications</Label>
+                    <p className="text-xs text-gray-500">Receive notifications via SMS</p>
+                  </div>
+                  <Switch
+                    checked={settingsData.notifications.sms}
+                    onCheckedChange={(checked) => handleNotificationChange('sms', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Push Notifications</Label>
+                    <p className="text-xs text-gray-500">Receive browser push notifications</p>
+                  </div>
+                  <Switch
+                    checked={settingsData.notifications.push}
+                    onCheckedChange={(checked) => handleNotificationChange('push', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Low Stock Alerts</Label>
+                    <p className="text-xs text-gray-500">Get notified when products are running low</p>
+                  </div>
+                  <Switch
+                    checked={settingsData.notifications.lowStock}
+                    onCheckedChange={(checked) => handleNotificationChange('lowStock', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">Expiration Alerts</Label>
+                    <p className="text-xs text-gray-500">Get notified about expiring products</p>
+                  </div>
+                  <Switch
+                    checked={settingsData.notifications.expiration}
+                    onCheckedChange={(checked) => handleNotificationChange('expiration', checked)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Security Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Security & Privacy</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="autoLogout">Auto Logout (minutes)</Label>
+                  <select
+                    id="autoLogout"
+                    value={settingsData.autoLogout}
+                    onChange={(e) => handleSettingsChange('autoLogout', parseInt(e.target.value))}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value={15}>15 minutes</option>
+                    <option value={30}>30 minutes</option>
+                    <option value={60}>1 hour</option>
+                    <option value={120}>2 hours</option>
+                    <option value={0}>Never</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="defaultView">Default Page</Label>
+                  <select
+                    id="defaultView"
+                    value={settingsData.defaultView}
+                    onChange={(e) => handleSettingsChange('defaultView', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="dashboard">Dashboard</option>
+                    <option value="products">Products</option>
+                    <option value="customers">Customers</option>
+                    <option value="invoices">Invoices</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Display Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Display Preferences</h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="theme">Theme</Label>
+                <select
+                  id="theme"
+                  value={settingsData.theme}
+                  onChange={(e) => handleSettingsChange('theme', e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="auto">Auto (System)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 rounded-full p-2">
+                  <Settings className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-900">Advanced Settings</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    For advanced system preferences like backup schedules, user permissions, and integrations, 
+                    visit the <strong>System Preferences</strong> page from the main navigation.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-between pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsSettingsDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            
+            <Button
+              onClick={() => {
+                handleSaveSettings();
+                setIsSettingsDialogOpen(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Settings
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
