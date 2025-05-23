@@ -1079,82 +1079,94 @@ const OrderManagement = () => {
                 </div>
               </div>
               
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Batch Number</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Final Product</TableHead>
-                      <TableHead>Total Cost</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoadingOrders ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-4">
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ) : productionOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
-                          No production orders found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      productionOrders.map((order: any) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">{order.batchNumber}</TableCell>
-                          <TableCell>{order.customerName}</TableCell>
-                          <TableCell>{order.finalProduct || 'N/A'}</TableCell>
-                          <TableCell>${order.totalCost}</TableCell>
-                          <TableCell>
-                            <Badge variant={
-                              order.status === 'completed' ? 'default' :
-                              order.status === 'pending' ? 'secondary' :
-                              order.status === 'cancelled' ? 'destructive' : 'outline'
-                            }>
-                              {order.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleViewOrder(order)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleCreateInvoice(order.id)}
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="destructive" 
-                                size="sm"
-                                onClick={() => confirmDeleteOrder(order.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+              {isLoadingOrders ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : productionOrders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No production orders found</p>
+                  <p className="text-sm text-muted-foreground mt-2">Start by creating your first chemical production order</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-background z-10">
+                        <TableRow>
+                          <TableHead className="min-w-[120px]">Batch #</TableHead>
+                          <TableHead className="min-w-[180px]">Customer</TableHead>
+                          <TableHead className="min-w-[150px]">Chemical Product</TableHead>
+                          <TableHead className="min-w-[120px]">Production Cost</TableHead>
+                          <TableHead className="min-w-[100px]">Status</TableHead>
+                          <TableHead className="min-w-[120px]">Created</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Actions</TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      </TableHeader>
+                      <TableBody>
+                        {productionOrders.map((order: any) => (
+                          <TableRow key={order.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">{order.batchNumber}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-medium">{order.customerName}</span>
+                                <span className="text-sm text-muted-foreground">
+                                  {order.customerCompany} • {order.customerSector}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{order.finalProduct || 'N/A'}</TableCell>
+                            <TableCell>
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(parseFloat(order.totalCost))}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={
+                                order.status === 'completed' ? 'default' :
+                                order.status === 'pending' ? 'secondary' :
+                                order.status === 'in_progress' ? 'outline' :
+                                order.status === 'cancelled' ? 'destructive' : 'outline'
+                              }>
+                                {order.status.replace('_', ' ')}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {order.createdAt ? format(new Date(order.createdAt), 'dd/MM/yyyy') : 'N/A'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleViewOrder(order)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleCreateInvoice(order.id)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                >
+                                  Create Label
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
