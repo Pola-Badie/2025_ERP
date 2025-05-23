@@ -72,6 +72,8 @@ const InvoiceHistory = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null);
+  
+  // Multi-select state
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
 
