@@ -109,6 +109,7 @@ const Dashboard: React.FC = () => {
 
   // Settings dialog state
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
+  const [location, setLocation] = useLocation();
   const [settingsData, setSettingsData] = useState({
     language: 'en',
     currency: 'EGP',
@@ -308,7 +309,12 @@ const Dashboard: React.FC = () => {
         <div className="flex mt-4 md:mt-0 space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="relative" size="icon">
+              <Button 
+                variant="outline" 
+                className="relative" 
+                size="icon"
+                onClick={() => setLocation('/notifications')}
+              >
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">5</span>
               </Button>
