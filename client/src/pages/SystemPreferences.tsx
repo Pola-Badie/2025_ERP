@@ -22,6 +22,7 @@ import AccessControlTab from '@/components/system-preferences/AccessControlTab';
 import NotificationsTab from '@/components/system-preferences/NotificationsTab';
 import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
+import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -50,6 +51,8 @@ const SystemPreferences: React.FC = () => {
         return <BuildingIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'backup':
         return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'eta':
+        return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
         return null;
     }
@@ -177,6 +180,10 @@ const SystemPreferences: React.FC = () => {
               
               <TabsContent value="backup" className="mt-0">
                 <BackupTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="eta" className="mt-0">
+                <ETAIntegrationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
             </div>
           </Tabs>
