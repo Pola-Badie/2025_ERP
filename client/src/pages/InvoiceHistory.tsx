@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -577,6 +577,25 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     }
   };
 
+  // Export selected invoices as individual PDFs
+  const exportSelectedAsPDF = () => {
+    if (selectedInvoices.length === 0) {
+      alert('Please select invoices to export');
+      return;
+    }
+
+    const selectedInvoiceData = invoices.filter(invoice => selectedInvoices.includes(invoice.id));
+    
+    // Export each selected invoice as a separate PDF
+    selectedInvoiceData.forEach((invoice, index) => {
+      setTimeout(() => {
+        exportInvoiceToPDF(invoice);
+      }, index * 500); // Delay between each PDF to avoid browser issues
+    });
+
+    alert(`Exporting ${selectedInvoices.length} invoice(s) as PDFs...`);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center">
@@ -667,15 +686,29 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={exportInvoicesToCSV}
-                className="bg-green-50 text-green-700 hover:bg-green-100"
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                Export All to CSV
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-green-50 text-green-700 hover:bg-green-100"
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportSelectedAsPDF()}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Selected as PDFs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportInvoicesToCSV(filteredInvoices)}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export All as CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </CardHeader>
