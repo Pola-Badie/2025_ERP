@@ -1225,6 +1225,163 @@ const Dashboard: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Profile Dialog */}
+      <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={profileData.avatar} />
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                  {profileData.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h2 className="text-xl font-semibold">User Profile</h2>
+                <p className="text-sm text-gray-500">Manage your account information</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={profileData.name}
+                  onChange={(e) => handleProfileChange('name', e.target.value)}
+                  disabled={!isEditingProfile}
+                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) => handleProfileChange('email', e.target.value)}
+                  disabled={!isEditingProfile}
+                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={profileData.phone}
+                  onChange={(e) => handleProfileChange('phone', e.target.value)}
+                  disabled={!isEditingProfile}
+                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="department">Department</Label>
+                <Input
+                  id="department"
+                  value={profileData.department}
+                  onChange={(e) => handleProfileChange('department', e.target.value)}
+                  disabled={!isEditingProfile}
+                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Input
+                  id="role"
+                  value={profileData.role}
+                  disabled
+                  className="bg-gray-100 text-gray-500"
+                />
+                <p className="text-xs text-gray-400">Role cannot be changed from this interface</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="joinDate">Join Date</Label>
+                <Input
+                  id="joinDate"
+                  value={new Date(profileData.joinDate).toLocaleDateString()}
+                  disabled
+                  className="bg-gray-100 text-gray-500"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                value={profileData.bio}
+                onChange={(e) => handleProfileChange('bio', e.target.value)}
+                disabled={!isEditingProfile}
+                className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                rows={3}
+                placeholder="Tell us about yourself..."
+              />
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <h3 className="font-medium text-gray-700">Account Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Last Login:</span>
+                  <p className="font-medium">{new Date(profileData.lastLogin).toLocaleString()}</p>
+                </div>
+                <div>
+                  <span className="text-gray-500">Account Status:</span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                    Active
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-between pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setIsProfileDialogOpen(false)}
+            >
+              Close
+            </Button>
+            
+            <div className="flex gap-2">
+              {isEditingProfile ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveProfile}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
