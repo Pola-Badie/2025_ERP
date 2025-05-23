@@ -44,6 +44,8 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
   const [progress, setProgress] = useState(0);
   const [lastBackupStatus, setLastBackupStatus] = useState<'success' | 'error' | null>(null);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [accessToken, setAccessToken] = useState<string>('');
   
   // Backup data selection toggles
   const [backupSelections, setBackupSelections] = useState({
@@ -69,21 +71,39 @@ const BackupTab: React.FC<BackupTabProps> = ({ preferences, refetch }) => {
   };
 
   const connectToGoogleDrive = () => {
-    // In a real implementation, this would initiate OAuth 2.0 flow
-    // For now, we'll simulate the connection
+    // Real Google OAuth 2.0 implementation
+    const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
+    if (!CLIENT_ID) {
+      toast({
+        title: "Configuration Error",
+        description: "Google Client ID not configured. Please contact your administrator.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const REDIRECT_URI = `${window.location.origin}/oauth/google/callback`;
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `scope=${encodeURIComponent(SCOPES)}&` +
+      `response_type=code&` +
+      `access_type=offline&` +
+      `prompt=consent`;
+
     toast({
       title: "Google Drive Connection",
       description: "Redirecting to Google authentication...",
     });
+
+    // Store the current page to return to after auth
+    localStorage.setItem('auth_return_url', window.location.pathname);
     
-    // Simulate OAuth flow completion after a delay
-    setTimeout(() => {
-      setIsGoogleConnected(true);
-      toast({
-        title: "Success!",
-        description: "Connected to Google Drive successfully",
-      });
-    }, 2000);
+    // Redirect to Google OAuth
+    window.location.href = authUrl;
   };
 
   const disconnectGoogleDrive = () => {

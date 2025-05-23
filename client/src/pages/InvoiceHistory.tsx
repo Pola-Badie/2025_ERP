@@ -34,7 +34,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -71,6 +71,8 @@ const InvoiceHistory = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null);
+  const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   // Use hardcoded sample data for demonstration
   const [isLoading, setIsLoading] = useState(true);
