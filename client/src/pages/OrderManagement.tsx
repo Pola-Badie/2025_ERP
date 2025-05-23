@@ -88,6 +88,7 @@ const OrderManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   const [isGeneratingOrders, setIsGeneratingOrders] = useState(false);
+  const [hasGeneratedInitialOrders, setHasGeneratedInitialOrders] = useState(false);
   
   // Production order states
   const [rawMaterials, setRawMaterials] = useState<any[]>([]);
@@ -253,6 +254,39 @@ const OrderManagement = () => {
   useEffect(() => {
     generateBatchNumber('production');
   }, []);
+
+  // Auto-generate 5 sample production orders on component mount
+  useEffect(() => {
+    const generateInitialOrders = async () => {
+      if (!hasGeneratedInitialOrders) {
+        console.log('Generating 5 sample production orders...');
+        try {
+          const response = await fetch('/api/orders/generate-sample', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ count: 5 }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Sample orders generated successfully:', data);
+            setHasGeneratedInitialOrders(true);
+            refetchOrders();
+          } else {
+            console.error('Failed to generate sample orders');
+          }
+        } catch (error) {
+          console.error('Error generating sample orders:', error);
+        }
+      }
+    };
+
+    // Small delay to ensure all components are loaded
+    const timer = setTimeout(generateInitialOrders, 1000);
+    return () => clearTimeout(timer);
+  }, [hasGeneratedInitialOrders, refetchOrders]);
 
   // Filter customers based on search term
   const filteredCustomers = customers ? customers.filter((customer: any) => {
@@ -1059,19 +1093,6 @@ const OrderManagement = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Production Orders History</h3>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    onClick={handleGenerateSampleOrders}
-                    disabled={isGeneratingOrders}
-                  >
-                    {isGeneratingOrders ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4 mr-2" />
-                    )}
-                    Generate Sample Orders
-                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
