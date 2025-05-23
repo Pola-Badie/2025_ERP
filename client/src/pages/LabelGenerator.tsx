@@ -417,6 +417,22 @@ const LabelGenerator: React.FC = () => {
       let imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       switch (selectedSize) {
+        case '1_per_a4': {
+          // Single large label taking most of the A4 page
+          imgWidth = 190;
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          const maxHeight = 250; // Leave some margin at bottom
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+          }
+          
+          // Center the label on the page
+          const xPos = 10;
+          const yPos = (297 - imgHeight) / 2; // Center vertically
+          pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+          break;
+        }
+
         case '2_per_a4': {
           imgWidth = 190;
           const originalHeight = (canvas.height * imgWidth) / canvas.width;
@@ -1142,6 +1158,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectValue placeholder="Select size" />
                         </SelectTrigger>
                         <SelectContent sideOffset={5} className="max-h-[300px] overflow-y-auto z-[100]" position="popper" side="bottom" align="start">
+                          <SelectItem value="1_per_a4">1 PER A4</SelectItem>
                           <SelectItem value="2_per_a4">2 PER A4</SelectItem>
                           <SelectItem value="3_per_a4">3 PER A4</SelectItem>
                           <SelectItem value="6_per_a4">6 PER A4</SelectItem>
