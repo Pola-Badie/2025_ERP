@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
-  User, Settings, LogOut, ChevronDown, Edit2, Save, X
+  User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -106,6 +106,10 @@ const Dashboard: React.FC = () => {
     lastLogin: new Date().toISOString(),
     avatar: '',
   });
+
+  // Profile picture upload states
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [picturePreview, setPicturePreview] = useState<string | null>(null);
 
   // Settings dialog state
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
@@ -209,6 +213,66 @@ const Dashboard: React.FC = () => {
         [field]: value
       }
     }));
+  };
+
+  // Profile picture upload handlers
+  const handlePictureUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    setIsUploadingPicture(true);
+    
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setPicturePreview(result);
+        setProfileData(prev => ({ ...prev, avatar: result }));
+      };
+      reader.readAsDataURL(file);
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Profile picture uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading picture:', error);
+      alert('Failed to upload picture. Please try again.');
+    } finally {
+      setIsUploadingPicture(false);
+    }
+  };
+
+  const handleRemovePicture = () => {
+    setPicturePreview(null);
+    setProfileData(prev => ({ ...prev, avatar: '' }));
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handlePictureUpload(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handlePictureUpload(file);
+    }
   };
   
   // Get responsive chart settings based on screen width
@@ -1333,6 +1397,81 @@ const Dashboard: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-6 py-4">
+            {/* Profile Picture Upload Section */}
+            <div className="flex flex-col items-center space-y-4 p-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <div className="relative">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={picturePreview || profileData.avatar} />
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-2xl font-semibold">
+                    {profileData.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                {isUploadingPicture && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  </div>
+                )}
+              </div>
+              
+              {isEditingProfile && (
+                <div className="w-full max-w-md space-y-3">
+                  <div
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                    onClick={() => document.getElementById('picture-upload')?.click()}
+                  >
+                    <div className="space-y-2">
+                      <div className="mx-auto h-12 w-12 text-blue-400">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" />
+                        </svg>
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium text-blue-600">Click to upload</span>
+                        <span className="text-gray-500"> or drag and drop</span>
+                      </div>
+                      <p className="text-xs text-gray-400">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                  </div>
+                  
+                  <input
+                    id="picture-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('picture-upload')?.click()}
+                      disabled={isUploadingPicture}
+                      className="flex-1"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Choose File
+                    </Button>
+                    
+                    {(picturePreview || profileData.avatar) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRemovePicture}
+                        disabled={isUploadingPicture}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
