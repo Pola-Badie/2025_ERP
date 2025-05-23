@@ -556,19 +556,17 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                 )}
               </CardDescription>
             </div>
-            {selectedInvoices.length > 0 && (
-              <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleBulkDelete}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Selected ({selectedInvoices.length})
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportInvoicesToCSV}
+                className="bg-green-50 text-green-700 hover:bg-green-100"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Export All to CSV
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
