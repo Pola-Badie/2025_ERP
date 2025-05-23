@@ -1381,200 +1381,498 @@ const Dashboard: React.FC = () => {
 
       {/* Profile Dialog */}
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={profileData.avatar} />
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
-                  {profileData.name.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-xl font-semibold">User Profile</h2>
-                <p className="text-sm text-gray-500">Manage your account information</p>
-              </div>
-            </DialogTitle>
+            <DialogTitle className="text-xl font-semibold">User Profile</DialogTitle>
+            <p className="text-sm text-muted-foreground">Manage your account information and settings</p>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
-            {/* Profile Picture Section */}
-            <div className="flex flex-col items-center space-y-4 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-              <div className="relative group">
-                <Avatar className="h-28 w-28 shadow-lg ring-4 ring-white">
-                  <AvatarImage 
-                    src={picturePreview || profileData.avatar} 
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl font-bold">
-                    {profileData.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                
-                {isEditingProfile && (
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full transition-all duration-200 flex items-center justify-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white hover:bg-white hover:bg-opacity-20"
-                      onClick={() => document.getElementById('profile-picture-input')?.click()}
-                    >
-                      <Camera className="h-6 w-6" />
-                    </Button>
-                  </div>
-                )}
-                
-                {isUploadingPicture && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-3 border-white border-t-transparent"></div>
-                  </div>
-                )}
-              </div>
-              
-              {isEditingProfile && (
-                <div className="space-y-3 w-full max-w-sm">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => document.getElementById('profile-picture-input')?.click()}
-                      disabled={isUploadingPicture}
-                      className="flex-1 bg-white hover:bg-blue-50 border-blue-300 text-blue-700"
-                    >
-                      <Image className="h-4 w-4 mr-2" />
-                      {isUploadingPicture ? 'Uploading...' : 'Change Photo'}
-                    </Button>
+            {/* Profile Header Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <div className="relative group">
+                    <Avatar className="h-24 w-24 shadow-lg ring-2 ring-blue-100">
+                      <AvatarImage 
+                        src={picturePreview || profileData.avatar} 
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl font-bold">
+                        {profileData.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
                     
-                    {(picturePreview || profileData.avatar) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRemovePicture}
-                        disabled={isUploadingPicture}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-300"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                    {isEditingProfile && (
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full transition-all duration-200 flex items-center justify-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white hover:bg-white hover:bg-opacity-20"
+                          onClick={() => document.getElementById('profile-picture-input')?.click()}
+                        >
+                          <Camera className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {isUploadingPicture && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                      </div>
                     )}
                   </div>
                   
-                  <input
-                    id="profile-picture-input"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-2xl font-bold text-gray-900">{profileData.name}</h3>
+                    <p className="text-lg text-blue-600 font-medium">{profileData.role}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{profileData.department}</p>
+                    
+                    {isEditingProfile && (
+                      <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('profile-picture-input')?.click()}
+                          disabled={isUploadingPicture}
+                          className="flex items-center gap-2"
+                        >
+                          <Image className="h-4 w-4" />
+                          {isUploadingPicture ? 'Uploading...' : 'Change Photo'}
+                        </Button>
+                        
+                        {(picturePreview || profileData.avatar) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRemovePicture}
+                            disabled={isUploadingPicture}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Remove Photo
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    
+                    <input
+                      id="profile-picture-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
+                  </div>
                   
-                  <p className="text-xs text-center text-gray-500">
-                    Upload a photo (PNG, JPG, GIF • Max 5MB)
-                  </p>
+                  <div className="text-center">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Personal Information Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Personal Information</CardTitle>
+                <p className="text-sm text-muted-foreground">Manage your personal details and contact information</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={profileData.name}
+                      onChange={(e) => handleProfileChange('name', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => handleProfileChange('email', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Input
+                      id="role"
+                      value={profileData.role}
+                      onChange={(e) => handleProfileChange('role', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="department">Department</Label>
+                    <Input
+                      id="department"
+                      value={profileData.department}
+                      onChange={(e) => handleProfileChange('department', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      value={profileData.phone}
+                      onChange={(e) => handleProfileChange('phone', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={profileData.location}
+                      onChange={(e) => handleProfileChange('location', e.target.value)}
+                      disabled={!isEditingProfile}
+                      className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={profileData.bio}
+                    onChange={(e) => handleProfileChange('bio', e.target.value)}
+                    disabled={!isEditingProfile}
+                    className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
+                    rows={3}
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Account Activity Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Account Activity</CardTitle>
+                <p className="text-sm text-muted-foreground">Track your account usage and status information</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Member Since</p>
+                    <p className="font-semibold">{new Date(profileData.joinDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Last Login</p>
+                    <p className="font-semibold">{new Date(profileData.lastLogin).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Account Status</p>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Sessions</p>
+                    <p className="font-semibold">248</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4">
+              {isEditingProfile ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditingProfile(false);
+                      setPicturePreview(null);
+                    }}
+                    disabled={isUploadingPicture}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={isUploadingPicture}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
               )}
-              
-              {!isEditingProfile && (
-                <div className="text-center">
-                  <h3 className="font-semibold text-gray-900">{profileData.name}</h3>
-                  <p className="text-sm text-gray-600">{profileData.role}</p>
-                  <p className="text-xs text-gray-500 mt-1">{profileData.department}</p>
-                </div>
-              )}
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={profileData.name}
-                  onChange={(e) => handleProfileChange('name', e.target.value)}
-                  disabled={!isEditingProfile}
-                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => handleProfileChange('email', e.target.value)}
-                  disabled={!isEditingProfile}
-                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={profileData.phone}
-                  onChange={(e) => handleProfileChange('phone', e.target.value)}
-                  disabled={!isEditingProfile}
-                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  value={profileData.department}
-                  onChange={(e) => handleProfileChange('department', e.target.value)}
-                  disabled={!isEditingProfile}
-                  className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="role">Role</Label>
-                <Input
-                  id="role"
-                  value={profileData.role}
-                  disabled
-                  className="bg-gray-100 text-gray-500"
-                />
-                <p className="text-xs text-gray-400">Role cannot be changed from this interface</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="joinDate">Join Date</Label>
-                <Input
-                  id="joinDate"
-                  value={new Date(profileData.joinDate).toLocaleDateString()}
-                  disabled
-                  className="bg-gray-100 text-gray-500"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                value={profileData.bio}
-                onChange={(e) => handleProfileChange('bio', e.target.value)}
-                disabled={!isEditingProfile}
-                className={isEditingProfile ? 'border-blue-300 focus:border-blue-500' : 'bg-gray-50'}
-                rows={3}
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-              <h3 className="font-medium text-gray-700">Account Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Last Login:</span>
-                  <p className="font-medium">{new Date(profileData.lastLogin).toLocaleString()}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Settings</DialogTitle>
+            <p className="text-sm text-muted-foreground">Customize your application preferences</p>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* General Settings Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">General Preferences</CardTitle>
+                <p className="text-sm text-muted-foreground">Configure your basic application settings</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Language</Label>
+                    <Select
+                      value={settingsData.language}
+                      onValueChange={(value) => handleSettingsChange('language', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">🇺🇸 English</SelectItem>
+                        <SelectItem value="ar">🇸🇦 العربية</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select
+                      value={settingsData.currency}
+                      onValueChange={(value) => handleSettingsChange('currency', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">💵 USD</SelectItem>
+                        <SelectItem value="EUR">💶 EUR</SelectItem>
+                        <SelectItem value="SAR">🇸🇦 SAR</SelectItem>
+                        <SelectItem value="EGP">🇪🇬 EGP</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Time Zone</Label>
+                    <Select
+                      value={settingsData.timezone}
+                      onValueChange={(value) => handleSettingsChange('timezone', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="UTC">UTC</SelectItem>
+                        <SelectItem value="EST">Eastern Time</SelectItem>
+                        <SelectItem value="PST">Pacific Time</SelectItem>
+                        <SelectItem value="GMT+3">GMT+3 (Middle East)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="dateFormat">Date Format</Label>
+                    <Select
+                      value={settingsData.dateFormat}
+                      onValueChange={(value) => handleSettingsChange('dateFormat', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-gray-500">Account Status:</span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
-                    Active
-                  </span>
+              </CardContent>
+            </Card>
+
+            {/* Notification Settings Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Notification Preferences</CardTitle>
+                <p className="text-sm text-muted-foreground">Manage how you receive notifications</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Email Notifications</p>
+                      <p className="text-xs text-muted-foreground">Receive system updates via email</p>
+                    </div>
+                    <Switch
+                      checked={settingsData.notifications?.email}
+                      onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Push Notifications</p>
+                      <p className="text-xs text-muted-foreground">Browser push notifications</p>
+                    </div>
+                    <Switch
+                      checked={settingsData.notifications?.push}
+                      onCheckedChange={(checked) => handleNotificationChange('push', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">SMS Notifications</p>
+                      <p className="text-xs text-muted-foreground">Text message alerts</p>
+                    </div>
+                    <Switch
+                      checked={settingsData.notifications?.sms}
+                      onCheckedChange={(checked) => handleNotificationChange('sms', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Marketing Communications</p>
+                      <p className="text-xs text-muted-foreground">Promotional content and updates</p>
+                    </div>
+                    <Switch
+                      checked={settingsData.notifications?.marketing}
+                      onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Sound Notifications</p>
+                      <p className="text-xs text-muted-foreground">Play notification sounds</p>
+                    </div>
+                    <Switch
+                      checked={settingsData.notifications?.sound}
+                      onCheckedChange={(checked) => handleNotificationChange('sound', checked)}
+                    />
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Display Settings Card */}
+            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold">Display & Appearance</CardTitle>
+                <p className="text-sm text-muted-foreground">Customize your visual experience</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="theme">Theme</Label>
+                    <Select
+                      value={settingsData.theme}
+                      onValueChange={(value) => handleSettingsChange('theme', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">☀️ Light</SelectItem>
+                        <SelectItem value="dark">🌙 Dark</SelectItem>
+                        <SelectItem value="auto">🔄 Auto</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="fontSize">Font Size</Label>
+                    <Select
+                      value={settingsData.fontSize}
+                      onValueChange={(value) => handleSettingsChange('fontSize', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="small">Small</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="large">Large</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="compactMode">Compact Mode</Label>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">Enable Compact Layout</p>
+                        <p className="text-xs text-muted-foreground">Show more content with reduced spacing</p>
+                      </div>
+                      <Switch
+                        checked={settingsData.compactMode}
+                        onCheckedChange={(checked) => handleSettingsChange('compactMode', checked)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsSettingsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  handleSaveSettings();
+                  setIsSettingsDialogOpen(false);
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Save Settings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default Dashboard;
               </div>
             </div>
           </div>
