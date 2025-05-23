@@ -412,30 +412,58 @@ const LabelGenerator: React.FC = () => {
         format: 'a4',
       });
 
-      // Calculate sizing based on selected size
+      // Calculate sizing and positioning based on selected size
       let imgWidth = 190; // default width
       let imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let xPosition = 10;
-      let yPosition = 10;
       
       switch (selectedSize) {
         case '2_per_a4':
-          imgWidth = 190;  // 2 labels per A4
+          imgWidth = 190;
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          // Add 2 labels per page
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+          if (imgHeight * 2 + 30 < 297) { // Check if second label fits on page
+            pdf.addImage(imgData, 'PNG', 10, imgHeight + 20, imgWidth, imgHeight);
+          }
           break;
+          
         case '3_per_a4':
-          imgWidth = 190/1.5;  // 3 labels per A4
+          imgWidth = 190;
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          // Add 3 labels per page - vertically stacked like in your image
+          const labelSpacing = 10;
+          const availableHeight = 297 - 20; // A4 height minus margins
+          const labelHeight = Math.min(imgHeight, (availableHeight - 2 * labelSpacing) / 3);
+          
+          // First label
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, labelHeight);
+          // Second label
+          pdf.addImage(imgData, 'PNG', 10, 10 + labelHeight + labelSpacing, imgWidth, labelHeight);
+          // Third label
+          pdf.addImage(imgData, 'PNG', 10, 10 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
           break;
+          
         case '6_per_a4':
-          imgWidth = 190/3;  // 6 labels per A4
+          imgWidth = 90; // Smaller width for 2 columns
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          const smallLabelHeight = Math.min(imgHeight, 80);
+          
+          // 2 columns x 3 rows = 6 labels
+          for (let row = 0; row < 3; row++) {
+            for (let col = 0; col < 2; col++) {
+              const xPos = 10 + col * (imgWidth + 10);
+              const yPos = 10 + row * (smallLabelHeight + 10);
+              pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, smallLabelHeight);
+            }
+          }
           break;
+          
         default:
-          imgWidth = 190;  // Default to 2 labels per A4
+          imgWidth = 190;
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
           break;
       }
-      
-      imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', xPosition, yPosition, imgWidth, imgHeight);
       pdf.save(`${productName || 'Chemical-Label'}.pdf`);
 
       toast({
