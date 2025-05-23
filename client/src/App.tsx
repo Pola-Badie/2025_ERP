@@ -25,6 +25,7 @@ import UserManagement from "@/pages/UserManagement";
 import CustomersDemo from "@/pages/customers-demo";
 import Procurement from "@/pages/Procurement";
 import OrderManagement from "@/pages/OrderManagement";
+import GoogleLogin from "@/pages/GoogleLogin";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
             <Route path="/customers-demo" component={CustomersDemo} />
             <Route path="/procurement" component={Procurement} />
             <Route path="/order-management" component={OrderManagement} />
+            <Route path="/login" component={GoogleLogin} />
             <Route component={NotFound} />
           </Switch>
           </MainLayout>
