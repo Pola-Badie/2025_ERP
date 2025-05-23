@@ -10,7 +10,8 @@ import {
   ShieldIcon,
   BellIcon,
   BuildingIcon,
-  CloudIcon
+  CloudIcon,
+  FileTextIcon
 } from 'lucide-react';
 
 // Import tab components
