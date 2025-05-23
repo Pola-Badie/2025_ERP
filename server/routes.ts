@@ -1365,6 +1365,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Order Management Endpoints =============
+  
+  // In-memory storage for generated orders
+  let generatedOrdersStorage: any[] = [];
 
   // Get all orders
   app.post("/api/orders/generate-sample", async (req: Request, res: Response) => {
@@ -1388,6 +1391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "Omeprazole Capsules"
       ];
 
+      // Add the generated orders directly to the existing mock orders array
       for (let i = 0; i < count; i++) {
         const customer = sampleCustomers[Math.floor(Math.random() * sampleCustomers.length)];
         const product = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
@@ -1401,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? `PROD-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}-${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`
           : `REF-${String(Math.floor(Math.random() * 999) + 1).padStart(3, '0')}-${date.getFullYear().toString().slice(-2)}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
 
-        const order = {
+        const newOrder = {
           id: Date.now() + i,
           batchNumber,
           customerName: customer.name,
@@ -1412,13 +1416,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status,
           orderType,
           createdAt: date.toISOString(),
-          rawMaterials: [
+          rawMaterials: JSON.stringify([
             { name: "Sulfuric Acid", quantity: Math.floor(Math.random() * 100) + 10, unit: "kg" },
             { name: "Sodium Hydroxide", quantity: Math.floor(Math.random() * 50) + 5, unit: "kg" }
-          ]
+          ])
         };
 
-        generatedOrders.push(order);
+        // Store in persistent memory
+        generatedOrdersStorage.push(newOrder);
+        generatedOrders.push(newOrder);
       }
 
       res.json({ 
@@ -1440,12 +1446,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const orders = await storage.getOrders(query, orderType, status);
-        res.json(orders);
+        res.json([...orders, ...generatedOrdersStorage]);
       } catch (storageError) {
         console.error("Error fetching orders from storage:", storageError);
 
         // Enhanced chemical orders with real pharmaceutical compounds
-        const mockOrders = [
+        const mockOrders = [...generatedOrdersStorage,
           {
             id: 1,
             orderType: 'production',
