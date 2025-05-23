@@ -386,7 +386,12 @@ const Dashboard: React.FC = () => {
               </div>
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setLocation('/notifications')}
+                >
                   <Eye className="h-4 w-4 mr-2" />
                   View All Activity
                 </Button>
@@ -742,7 +747,12 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <div className="px-3 py-2 border-t border-gray-100">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setLocation('/notifications')}
+              >
                 <Eye className="h-4 w-4 mr-2" />
                 View All Activity
               </Button>
