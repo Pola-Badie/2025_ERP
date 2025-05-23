@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -406,6 +407,41 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     
     return matchesSearch && matchesStatus && matchesDate;
   });
+
+  // Checkbox selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedInvoices(filteredInvoices.map(invoice => invoice.id));
+    } else {
+      setSelectedInvoices([]);
+    }
+  };
+
+  const handleSelectInvoice = (invoiceId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedInvoices(prev => [...prev, invoiceId]);
+    } else {
+      setSelectedInvoices(prev => prev.filter(id => id !== invoiceId));
+      setSelectAll(false);
+    }
+  };
+
+  // Bulk actions
+  const handleBulkDelete = () => {
+    if (selectedInvoices.length === 0) return;
+    
+    // Show confirmation dialog
+    if (window.confirm(`Are you sure you want to delete ${selectedInvoices.length} invoice(s)? This action cannot be undone.`)) {
+      // Remove selected invoices from the list
+      setInvoices(prev => prev.filter(invoice => !selectedInvoices.includes(invoice.id)));
+      setSelectedInvoices([]);
+      setSelectAll(false);
+      
+      // Show success message
+      alert(`Successfully deleted ${selectedInvoices.length} invoice(s).`);
+    }
+  };
 
   // Handle invoice preview
   const handlePreview = (invoice: Invoice) => {
