@@ -1055,14 +1055,6 @@ const OrderManagement = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Production Orders History</h3>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleGenerateSampleOrders}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Generate Sample Orders
-                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
