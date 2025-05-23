@@ -1219,6 +1219,7 @@ const OrderManagement = () => {
                         </div>
                       </RadioGroup>
                       
+                      <div className="mt-3">
                       {sourceType === 'production' ? (
                         <Select value={sourceProductionOrder} onValueChange={setSourceProductionOrder}>
                           <SelectTrigger>
@@ -1246,6 +1247,7 @@ const OrderManagement = () => {
                           </SelectContent>
                         </Select>
                       )}
+                      </div>
                     </div>
 
                     {/* Raw Materials Section */}
