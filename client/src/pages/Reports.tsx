@@ -302,7 +302,8 @@ const ReportsPage: React.FC = () => {
         className="space-y-4"
         onValueChange={(value) => setActiveTab(value)}
       >
-        <TabsList className="grid grid-cols-6 w-full">
+        <div className="overflow-x-auto">
+          <TabsList className="grid grid-cols-6 w-full min-w-[800px]">
           <TabsTrigger value="sales" className="flex items-center space-x-2">
             <ShoppingCart className="h-4 w-4" />
             <span>Sales Reports</span>
@@ -328,6 +329,7 @@ const ReportsPage: React.FC = () => {
             <span>Customer Reports</span>
           </TabsTrigger>
         </TabsList>
+        </div>
         
         {/* Sales Reports Tab */}
         <TabsContent value="sales" className="space-y-4">
