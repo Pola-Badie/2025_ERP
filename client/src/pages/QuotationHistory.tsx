@@ -13,19 +13,27 @@ import {
   Factory,
   TestTube,
   FileText,
-  Truck
+  Truck,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Clock,
+  CheckCircle2,
+  DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { apiRequest } from '@/lib/queryClient';
 
-// Enhanced Quotation interface matching the creation system
+// Enhanced Quotation interface
 interface Quotation {
   id: number;
   quotationNumber: string;
@@ -41,7 +49,7 @@ interface Quotation {
   transportationNotes?: string;
   tax: number;
   total: number;
-  amount: number; // For backward compatibility
+  amount: number;
   status: 'draft' | 'sent' | 'pending' | 'accepted' | 'rejected' | 'expired';
   items: {
     id: string;
@@ -59,7 +67,7 @@ interface Quotation {
   }[];
 }
 
-// Helper functions for quotation types and status
+// Helper functions
 const getQuotationTypeIcon = (type: string) => {
   switch (type) {
     case 'manufacturing': return <Factory className="h-4 w-4" />;
@@ -73,32 +81,51 @@ const getQuotationTypeBadge = (type: string) => {
   switch (type) {
     case 'manufacturing':
       return (
-        <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+        <Badge className="bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100">
           <Factory className="mr-1 h-3 w-3" />
           Manufacturing
         </Badge>
       );
     case 'refining':
       return (
-        <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+        <Badge className="bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100">
           <TestTube className="mr-1 h-3 w-3" />
           Refining
         </Badge>
       );
     case 'finished':
       return (
-        <Badge className="bg-green-100 text-green-800 border-green-200">
+        <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100">
           <Package className="mr-1 h-3 w-3" />
           Finished
         </Badge>
       );
     default:
       return (
-        <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+        <Badge className="bg-gray-50 text-gray-700 border-gray-200">
           <FileText className="mr-1 h-3 w-3" />
-          Product
+          Standard
         </Badge>
       );
+  }
+};
+
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'draft':
+      return <Badge variant="outline" className="text-gray-600 border-gray-300">Draft</Badge>;
+    case 'sent':
+      return <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50">Sent</Badge>;
+    case 'pending':
+      return <Badge variant="outline" className="text-yellow-600 border-yellow-300 bg-yellow-50">Pending</Badge>;
+    case 'accepted':
+      return <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">Accepted</Badge>;
+    case 'rejected':
+      return <Badge variant="outline" className="text-red-600 border-red-300 bg-red-50">Rejected</Badge>;
+    case 'expired':
+      return <Badge variant="outline" className="text-gray-600 border-gray-300 bg-gray-50">Expired</Badge>;
+    default:
+      return <Badge variant="outline">{status}</Badge>;
   }
 };
 
@@ -110,7 +137,7 @@ const QuotationHistory = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Fetch quotations with all filters
+  // Fetch quotations
   const { data: quotations = [], isLoading } = useQuery<Quotation[]>({
     queryKey: ['/api/quotations', searchTerm, statusFilter, typeFilter, dateFilter],
     queryFn: async () => {
@@ -122,7 +149,7 @@ const QuotationHistory = () => {
     },
   });
 
-  // Filter quotations based on search term and filters
+  // Filter quotations
   const filteredQuotations = quotations.filter(quotation => {
     const matchesSearch = searchTerm === '' || 
       quotation.quotationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,10 +158,7 @@ const QuotationHistory = () => {
     const matchesStatus = statusFilter === 'all' || quotation.status === statusFilter;
     const matchesType = typeFilter === 'all' || quotation.type === typeFilter;
     
-    // Simple date filtering (in a real app, would use proper date comparison)
-    const matchesDate = dateFilter === 'all' || true;
-    
-    return matchesSearch && matchesStatus && matchesType && matchesDate;
+    return matchesSearch && matchesStatus && matchesType;
   });
 
   // Handle quotation preview
@@ -143,69 +167,116 @@ const QuotationHistory = () => {
     setShowPreview(true);
   };
 
-  // Get status badge with enhanced colors
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
-      case 'sent':
-        return <Badge className="bg-blue-100 text-blue-800">Sent</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      case 'accepted':
-        return <Badge className="bg-green-100 text-green-800">Accepted</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-      case 'expired':
-        return <Badge className="bg-gray-100 text-gray-800">Expired</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
+  // Get summary statistics
+  const totalQuotations = filteredQuotations.length;
+  const pendingQuotations = filteredQuotations.filter(q => q.status === 'pending').length;
+  const acceptedQuotations = filteredQuotations.filter(q => q.status === 'accepted').length;
+  const totalValue = filteredQuotations.reduce((sum, q) => sum + (q.total || q.amount), 0);
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <ClipboardList className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold">Quotation History</h1>
-            <p className="text-muted-foreground">View and manage all your pharmaceutical quotations</p>
-          </div>
-        </div>
-        <Button onClick={() => window.location.href = '/create-quotation'}>
-          <FilePlus className="mr-2 h-4 w-4" />
-          Create New Quotation
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Find Quotations</CardTitle>
-          <CardDescription>Search and filter through your quotation history</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by quotation number or customer..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <ClipboardList className="h-6 w-6 text-blue-600" />
             </div>
-            <div className="flex gap-4">
-              <div className="w-[180px]">
-                <Select 
-                  value={statusFilter} 
-                  onValueChange={setStatusFilter}
-                >
-                  <SelectTrigger>
-                    <div className="flex items-center">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <span>Status</span>
-                    </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Quotation History</h1>
+              <p className="text-gray-600">Manage and track all pharmaceutical quotations</p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => window.location.href = '/create-quotation'}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create New Quotation
+          </Button>
+        </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Quotations</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalQuotations}</p>
+                </div>
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <ClipboardList className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-600">{pendingQuotations}</p>
+                </div>
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Accepted</p>
+                  <p className="text-2xl font-bold text-green-600">{acceptedQuotations}</p>
+                </div>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Value</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    ${totalValue.toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search quotations by number, customer, or product..."
+                    className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[160px] border-gray-200">
+                    <Filter className="mr-2 h-4 w-4 text-gray-400" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
@@ -217,17 +288,11 @@ const QuotationHistory = () => {
                     <SelectItem value="expired">Expired</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="w-[180px]">
-                <Select 
-                  value={typeFilter} 
-                  onValueChange={setTypeFilter}
-                >
-                  <SelectTrigger>
-                    <div className="flex items-center">
-                      <Package className="mr-2 h-4 w-4" />
-                      <span>Type</span>
-                    </div>
+
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-[160px] border-gray-200">
+                    <Package className="mr-2 h-4 w-4 text-gray-400" />
+                    <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
@@ -236,17 +301,11 @@ const QuotationHistory = () => {
                     <SelectItem value="finished">Finished</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="w-[180px]">
-                <Select 
-                  value={dateFilter} 
-                  onValueChange={setDateFilter}
-                >
-                  <SelectTrigger>
-                    <div className="flex items-center">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <span>Date</span>
-                    </div>
+
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="w-[160px] border-gray-200">
+                    <Calendar className="mr-2 h-4 w-4 text-gray-400" />
+                    <SelectValue placeholder="Date" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Time</SelectItem>
@@ -258,269 +317,286 @@ const QuotationHistory = () => {
                 </Select>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quotation List</CardTitle>
-          <CardDescription>
-            Showing {filteredQuotations.length} quotations
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          ) : filteredQuotations.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No quotations found</p>
-              {searchTerm || statusFilter !== 'all' || dateFilter !== 'all' ? (
-                <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filters</p>
-              ) : (
+        {/* Quotations Table */}
+        <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Quotations ({filteredQuotations.length})
+            </CardTitle>
+            <CardDescription>
+              Comprehensive list of all pharmaceutical quotations
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : filteredQuotations.length === 0 ? (
+              <div className="text-center py-12">
+                <ClipboardList className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No quotations found</h3>
+                <p className="text-gray-600 mb-6">
+                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' 
+                    ? 'Try adjusting your search filters' 
+                    : 'Get started by creating your first quotation'}
+                </p>
                 <Button 
-                  variant="outline" 
-                  className="mt-4"
                   onClick={() => window.location.href = '/create-quotation'}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
-                  <FilePlus className="mr-2 h-4 w-4" />
-                  Create Your First Quotation
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create First Quotation
                 </Button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quotation #</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Created On</TableHead>
-                    <TableHead>Valid Until</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredQuotations.map((quotation) => (
-                    <TableRow key={quotation.id}>
-                      <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
-                      <TableCell>{getQuotationTypeBadge(quotation.type || 'manufacturing')}</TableCell>
-                      <TableCell>{quotation.customerName}</TableCell>
-                      <TableCell>{format(new Date(quotation.date), 'PP')}</TableCell>
-                      <TableCell>{format(new Date(quotation.validUntil), 'PP')}</TableCell>
-                      <TableCell>
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(quotation.total || quotation.amount)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(quotation.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            onClick={() => handlePreview(quotation)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50">
+                      <TableHead className="font-semibold text-gray-700">Quotation #</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Customer</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Date</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Valid Until</TableHead>
+                      <TableHead className="font-semibold text-gray-700 text-right">Amount</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700 text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredQuotations.map((quotation) => (
+                      <TableRow key={quotation.id} className="hover:bg-gray-50/50">
+                        <TableCell className="font-medium text-blue-600">
+                          {quotation.quotationNumber}
+                        </TableCell>
+                        <TableCell>
+                          {getQuotationTypeBadge(quotation.type)}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {quotation.customerName}
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {format(new Date(quotation.date), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {format(new Date(quotation.validUntil), 'MMM dd, yyyy')}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${(quotation.total || quotation.amount).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(quotation.status)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handlePreview(quotation)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Download className="mr-2 h-4 w-4" />
+                                  Download PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Enhanced Quotation Preview Dialog */}
-      {selectedQuotation && (
-        <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Quotation #{selectedQuotation.quotationNumber}</DialogTitle>
-              <DialogDescription>
-                Created: {format(new Date(selectedQuotation.date), 'PPP')}
-                <br />
-                Valid Until: {format(new Date(selectedQuotation.validUntil), 'PPP')}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="border rounded-lg p-6">
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-blue-600">PHARMACEUTICAL QUOTATION</h2>
-                  <p className="text-muted-foreground">PharmaOverseas Ltd.</p>
-                  <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold">Quotation #: {selectedQuotation.quotationNumber}</p>
-                  <p>Date: {format(new Date(selectedQuotation.date), 'PP')}</p>
-                  <p>Valid Until: {format(new Date(selectedQuotation.validUntil), 'PP')}</p>
-                  <div className="mt-2 flex items-center gap-2 justify-end">
-                    {getQuotationTypeIcon(selectedQuotation.type || 'manufacturing')}
-                    <span className="text-sm font-medium capitalize">{selectedQuotation.type || 'manufacturing'}</span>
-                  </div>
-                  <p className="mt-2">
-                    {getStatusBadge(selectedQuotation.status)}
-                  </p>
-                </div>
-              </div>
+        {/* Preview Dialog */}
+        {selectedQuotation && (
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">
+                  Quotation #{selectedQuotation.quotationNumber}
+                </DialogTitle>
+                <DialogDescription>
+                  Created: {format(new Date(selectedQuotation.date), 'PPPP')} • 
+                  Valid Until: {format(new Date(selectedQuotation.validUntil), 'PPPP')}
+                </DialogDescription>
+              </DialogHeader>
               
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div>
-                  <h3 className="font-semibold mb-2">Customer:</h3>
-                  <p className="font-medium">{selectedQuotation.customerName}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Quotation Type:</h3>
-                  <div className="flex items-center gap-2">
-                    {getQuotationTypeBadge(selectedQuotation.type || 'manufacturing')}
+              <div className="border rounded-lg p-6 bg-white">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-blue-600">PHARMACEUTICAL QUOTATION</h2>
+                    <p className="text-gray-600 mt-1">PharmaOverseas Ltd.</p>
+                    <p className="text-gray-600">123 Pharma Street, Lagos, Nigeria</p>
                   </div>
-                </div>
-              </div>
-              
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead className="text-center">UoM</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedQuotation.items.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{item.productName}</p>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                          )}
-                          {item.specifications && (
-                            <p className="text-xs text-muted-foreground mt-1">Specs: {item.specifications}</p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">{item.uom}</TableCell>
-                      <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
-                      <TableCell className="text-right">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(item.unitPrice)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(item.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              <div className="mt-8 flex justify-end">
-                <div className="w-80">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                      }).format(selectedQuotation.subtotal || selectedQuotation.amount)}
-                    </span>
-                  </div>
-                  {selectedQuotation.transportationFees > 0 && (
-                    <div className="flex justify-between">
-                      <span>Transportation:</span>
-                      <span>
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(selectedQuotation.transportationFees)}
-                      </span>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900">#{selectedQuotation.quotationNumber}</p>
+                    <p className="text-gray-600">Date: {format(new Date(selectedQuotation.date), 'PP')}</p>
+                    <p className="text-gray-600">Valid Until: {format(new Date(selectedQuotation.validUntil), 'PP')}</p>
+                    <div className="mt-3 flex items-center gap-2 justify-end">
+                      {getQuotationTypeBadge(selectedQuotation.type)}
+                      {getStatusBadge(selectedQuotation.status)}
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>VAT (14%):</span>
-                    <span>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                      }).format(selectedQuotation.tax || selectedQuotation.amount * 0.14)}
-                    </span>
-                  </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total:</span>
-                    <span>
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD'
-                      }).format(selectedQuotation.total || selectedQuotation.amount)}
-                    </span>
                   </div>
                 </div>
+                
+                {/* Customer Info */}
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Customer:</h3>
+                    <p className="font-medium text-gray-800">{selectedQuotation.customerName}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Quotation Type:</h3>
+                    {getQuotationTypeBadge(selectedQuotation.type)}
+                  </div>
+                </div>
+                
+                {/* Items Table */}
+                <div className="mb-8">
+                  <h3 className="font-semibold text-gray-900 mb-4">Products & Services</h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">Description</TableHead>
+                        <TableHead className="text-center font-semibold">UoM</TableHead>
+                        <TableHead className="text-right font-semibold">Qty</TableHead>
+                        <TableHead className="text-right font-semibold">Unit Price</TableHead>
+                        <TableHead className="text-right font-semibold">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedQuotation.items.map((item, i) => (
+                        <TableRow key={i}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">{item.productName}</p>
+                              {item.description && (
+                                <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                              )}
+                              {item.specifications && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  <span className="font-medium">Specs:</span> {item.specifications}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">{item.uom}</TableCell>
+                          <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">
+                            ${item.unitPrice.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            ${item.total.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {/* Totals */}
+                <div className="flex justify-end mb-8">
+                  <div className="w-80">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium">
+                          ${(selectedQuotation.subtotal || selectedQuotation.amount).toLocaleString()}
+                        </span>
+                      </div>
+                      {selectedQuotation.transportationFees > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Transportation:</span>
+                          <span className="font-medium">
+                            ${selectedQuotation.transportationFees.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">VAT (14%):</span>
+                        <span className="font-medium">
+                          ${(selectedQuotation.tax || selectedQuotation.amount * 0.14).toLocaleString()}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Total:</span>
+                        <span className="text-blue-600">
+                          ${(selectedQuotation.total || selectedQuotation.amount).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transportation Details */}
+                {selectedQuotation.transportationType && selectedQuotation.transportationType !== 'pickup' && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      Transportation & Delivery
+                    </h3>
+                    <div className="bg-gray-50 p-4 rounded-lg text-sm">
+                      <p><span className="font-medium">Method:</span> {selectedQuotation.transportationType?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                      <p><span className="font-medium">Fee:</span> ${selectedQuotation.transportationFees?.toLocaleString()}</p>
+                      {selectedQuotation.transportationNotes && (
+                        <p><span className="font-medium">Notes:</span> {selectedQuotation.transportationNotes}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedQuotation.notes && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3">Notes & Instructions</h3>
+                    <div className="bg-blue-50 p-4 rounded-lg text-sm text-gray-700">
+                      {selectedQuotation.notes}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Transportation Details */}
-              {selectedQuotation.transportationType && selectedQuotation.transportationType !== 'pickup' && (
-                <div className="mt-8">
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <Truck className="h-4 w-4" />
-                    Transportation & Delivery:
-                  </h3>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p><span className="font-medium">Method:</span> {selectedQuotation.transportationType?.charAt(0).toUpperCase()}{selectedQuotation.transportationType?.slice(1).replace('-', ' ')}</p>
-                    <p><span className="font-medium">Fee:</span> {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(selectedQuotation.transportationFees || 0)}</p>
-                    {selectedQuotation.transportationNotes && (
-                      <p><span className="font-medium">Notes:</span> {selectedQuotation.transportationNotes}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Notes */}
-              {selectedQuotation.notes && (
-                <div className="mt-8">
-                  <h3 className="font-semibold mb-2">Notes & Special Instructions:</h3>
-                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded">{selectedQuotation.notes}</p>
-                </div>
-              )}
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowPreview(false)}>
-                Close
-              </Button>
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Download PDF
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                  Close
+                </Button>
+                <Button>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
     </div>
   );
 };
