@@ -337,19 +337,39 @@ const QuotationHistory = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Schedule List Header */}
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
-                    Showing {filteredQuotations.length} quotation{filteredQuotations.length !== 1 ? 's' : ''}
+                {/* Enhanced Schedule List Header */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-gray-700 font-medium">
+                      Showing {filteredQuotations.length} quotation{filteredQuotations.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      {filteredQuotations.filter(q => q.status === 'accepted').length} Paid
+                      <div className="w-2 h-2 bg-orange-500 rounded-full ml-2"></div>
+                      {filteredQuotations.filter(q => q.status === 'pending').length} Pending
+                      <div className="w-2 h-2 bg-red-500 rounded-full ml-2"></div>
+                      {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length} Overdue
+                    </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-green-600 border-green-200 hover:bg-green-50"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Bulk Actions
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-green-600 border-green-200 hover:bg-green-50"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Export CSV
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Professional Schedule Table */}
@@ -387,7 +407,15 @@ const QuotationHistory = () => {
                             />
                           </TableCell>
                           <TableCell className="font-medium text-blue-600 px-4">
-                            {quotation.quotationNumber}
+                            <button
+                              onClick={() => {
+                                setSelectedQuotation(quotation);
+                                setShowPreview(true);
+                              }}
+                              className="hover:underline transition-all duration-200"
+                            >
+                              {quotation.quotationNumber}
+                            </button>
                           </TableCell>
                           <TableCell className="text-gray-500 px-4">
                             Not uploaded
@@ -463,13 +491,28 @@ const QuotationHistory = () => {
                             )}
                           </TableCell>
                           <TableCell className="px-4 text-center">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
-                            >
-                              N
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50 rounded-full"
+                                title="Upload to ETA"
+                              >
+                                <Upload className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 text-gray-500 hover:bg-gray-50 rounded-full"
+                                title="View details"
+                                onClick={() => {
+                                  setSelectedQuotation(quotation);
+                                  setShowPreview(true);
+                                }}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
