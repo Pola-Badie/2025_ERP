@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -594,6 +594,26 @@ const CreateInvoice = () => {
         <div className="flex items-center space-x-4">
           <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
             Cancel
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              const currentData = form.getValues();
+              // Save current invoice data to local storage as draft
+              localStorage.setItem(`invoice_draft_${activeInvoiceId}`, JSON.stringify({
+                ...currentData,
+                savedAt: new Date().toISOString(),
+                status: 'draft'
+              }));
+              toast({
+                title: "Draft Saved",
+                description: "Invoice has been saved as draft successfully",
+              });
+            }}
+            disabled={isSubmitting}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save as Draft
           </Button>
           <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
