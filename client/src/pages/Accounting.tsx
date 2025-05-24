@@ -16,6 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
 import { 
   BookOpen, 
   CreditCard, 
@@ -54,8 +64,9 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ChartOfAccounts from '@/components/accounting/ChartOfAccounts';
@@ -68,6 +79,55 @@ import AccountingPeriods from '@/components/accounting/AccountingPeriods';
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
+  const [isNewExpenseOpen, setIsNewExpenseOpen] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    date: '',
+    description: '',
+    notes: '',
+    accountType: '',
+    costCenter: '',
+    paymentMethod: '',
+    amount: ''
+  });
+
+  const handleExpenseSubmit = async () => {
+    try {
+      const expenseData = {
+        ...expenseForm,
+        amount: parseFloat(expenseForm.amount)
+      };
+
+      const response = await apiRequest('POST', '/api/expenses', expenseData);
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "New expense entry created successfully!",
+        });
+        
+        // Reset form
+        setExpenseForm({
+          date: '',
+          description: '',
+          notes: '',
+          accountType: '',
+          costCenter: '',
+          paymentMethod: '',
+          amount: ''
+        });
+        
+        setIsNewExpenseOpen(false);
+      } else {
+        throw new Error('Failed to create expense');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create expense entry. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Fetch accounting summary data
   const { data: summaryData } = useQuery({
@@ -335,9 +395,129 @@ const Accounting: React.FC = () => {
                   <Receipt className="h-5 w-5 mr-2 text-blue-600" />
                   <span>Expenses Management</span>
                 </div>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" /> New Expense
-                </Button>
+                <Dialog open={isNewExpenseOpen} onOpenChange={setIsNewExpenseOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" /> New Expense
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New Expense</DialogTitle>
+                      <DialogDescription>
+                        Create a new expense entry for your accounting records.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-date" className="text-right">
+                          Date
+                        </Label>
+                        <Input
+                          id="expense-date"
+                          type="date"
+                          value={expenseForm.date}
+                          onChange={(e) => setExpenseForm({...expenseForm, date: e.target.value})}
+                          className="col-span-3"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-description" className="text-right">
+                          Description
+                        </Label>
+                        <Input
+                          id="expense-description"
+                          value={expenseForm.description}
+                          onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
+                          className="col-span-3"
+                          placeholder="Enter expense description"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-notes" className="text-right">
+                          Notes
+                        </Label>
+                        <Textarea
+                          id="expense-notes"
+                          value={expenseForm.notes}
+                          onChange={(e) => setExpenseForm({...expenseForm, notes: e.target.value})}
+                          className="col-span-3"
+                          placeholder="Additional notes (optional)"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-account-type" className="text-right">
+                          Account Type
+                        </Label>
+                        <Select value={expenseForm.accountType} onValueChange={(value) => setExpenseForm({...expenseForm, accountType: value})}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="marketing">Marketing</SelectItem>
+                            <SelectItem value="operations">Operations</SelectItem>
+                            <SelectItem value="fixed-assets">Fixed Assets</SelectItem>
+                            <SelectItem value="projects">Projects Under Execution</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-cost-center" className="text-right">
+                          Cost Center
+                        </Label>
+                        <Select value={expenseForm.costCenter} onValueChange={(value) => setExpenseForm({...expenseForm, costCenter: value})}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select cost center" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="marketing">Marketing</SelectItem>
+                            <SelectItem value="projects">Projects</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="operations">Operations</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-payment-method" className="text-right">
+                          Payment Method
+                        </Label>
+                        <Select value={expenseForm.paymentMethod} onValueChange={(value) => setExpenseForm({...expenseForm, paymentMethod: value})}>
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select payment method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="credit-card">Credit Card</SelectItem>
+                            <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                            <SelectItem value="check">Check</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="expense-amount" className="text-right">
+                          Amount ($)
+                        </Label>
+                        <Input
+                          id="expense-amount"
+                          type="number"
+                          step="0.01"
+                          value={expenseForm.amount}
+                          onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
+                          className="col-span-3"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button type="button" variant="outline" onClick={() => setIsNewExpenseOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit" onClick={handleExpenseSubmit}>
+                        Create Expense
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
               <CardDescription>Record and track all company expenses</CardDescription>
             </CardHeader>
