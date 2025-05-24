@@ -793,10 +793,47 @@ export function registerAccountingRoutes(app: Express) {
   // Accounting Periods API
   app.get("/api/accounting-periods", async (_req: Request, res: Response) => {
     try {
-      const periods = await db
+      let periods = await db
         .select()
         .from(accountingPeriods)
         .orderBy(desc(accountingPeriods.startDate));
+      
+      // If no periods exist, create some sample periods for pharmaceutical company
+      if (periods.length === 0) {
+        const samplePeriods = [
+          {
+            periodName: "Q1 2025",
+            startDate: "2025-01-01",
+            endDate: "2025-03-31",
+            status: "closed" as const
+          },
+          {
+            periodName: "Q2 2025",
+            startDate: "2025-04-01",
+            endDate: "2025-06-30",
+            status: "open" as const
+          },
+          {
+            periodName: "Q3 2025",
+            startDate: "2025-07-01",
+            endDate: "2025-09-30",
+            status: "open" as const
+          },
+          {
+            periodName: "Q4 2025",
+            startDate: "2025-10-01",
+            endDate: "2025-12-31",
+            status: "open" as const
+          }
+        ];
+
+        await db.insert(accountingPeriods).values(samplePeriods);
+        
+        periods = await db
+          .select()
+          .from(accountingPeriods)
+          .orderBy(desc(accountingPeriods.startDate));
+      }
       
       res.json(periods);
     } catch (error) {

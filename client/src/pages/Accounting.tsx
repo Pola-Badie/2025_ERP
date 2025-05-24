@@ -151,7 +151,7 @@ const Accounting: React.FC = () => {
       </div>
 
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="overflow-x-auto flex w-full pb-2">
+        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="chart-of-accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journal-entries">Journal Entries</TabsTrigger>
