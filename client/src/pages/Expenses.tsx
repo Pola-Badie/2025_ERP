@@ -27,7 +27,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar, Settings
+  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
 // Define types for Expense and Category if they're not in schema.ts
@@ -55,6 +55,8 @@ const Expenses: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<{ id: number, name: string } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // 3x3 grid for better display
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -81,6 +83,22 @@ const Expenses: React.FC = () => {
         new Date(b.date).getTime() - new Date(a.date).getTime()
       )
     : [];
+
+  // Pagination logic
+  const totalPages = Math.ceil((sortedExpenses?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedExpenses = sortedExpenses?.slice(startIndex, endIndex) || [];
+
+  // Handle page changes and reset to page 1 on filter changes
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter]);
 
   // Helper functions
   const getCategoryBadge = (category: string) => {
@@ -357,7 +375,7 @@ const Expenses: React.FC = () => {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {sortedExpenses.map((expense) => (
+              {paginatedExpenses.map((expense) => (
                 <Card key={expense.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
@@ -409,6 +427,39 @@ const Expenses: React.FC = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
           )}
         </CardContent>
