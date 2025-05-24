@@ -269,7 +269,8 @@ const OrdersHistory: React.FC = () => {
   };
 
   const handleViewDetails = (order: OrderHistoryItem) => {
-    alert(`Order Details for ${order.orderNumber}:\n\nCustomer: ${order.customerName} (${order.customerCompany})\nProduct: ${order.targetProduct}\nBatch: ${order.batchNumber}\nType: ${order.type}\nStatus: ${order.status}\n\nFinancial Summary:\nTotal Cost: $${order.totalCost.toLocaleString()}\nRevenue: $${order.revenue.toLocaleString()}\nProfit: $${order.profit.toLocaleString()}\n\nAdditional Costs:\nTransportation: $${order.additionalCosts.transportation}\nLabor: $${order.additionalCosts.labor}\nEquipment: $${order.additionalCosts.equipment}\nQuality Control: $${order.additionalCosts.qualityControl}\nStorage: $${order.additionalCosts.storage}\n\nRaw Materials: ${order.rawMaterials.join(', ')}`);
+    setSelectedOrder(order);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleDownloadReport = (order: OrderHistoryItem) => {
@@ -618,6 +619,177 @@ const OrdersHistory: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Order Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedOrder && (
+            <>
+              <DialogHeader className="border-b pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle className="text-2xl font-bold">
+                      Order #{selectedOrder.orderNumber}
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-600 mt-1">
+                      {selectedOrder.orderDate} • Status: {getStatusBadge(selectedOrder.status)}
+                    </DialogDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-600">Batch Number</div>
+                    <div className="font-semibold text-lg">{selectedOrder.batchNumber}</div>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-6">
+                {/* Left Column - Order Information */}
+                <div className="space-y-6">
+                  {/* Customer Information */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Customer Information</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-gray-600">Customer:</span>
+                        <div className="font-medium">{selectedOrder.customerName}</div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-600">Company:</span>
+                        <div className="font-medium">{selectedOrder.customerCompany}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product Information */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-3 text-blue-800">Product Information</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-blue-600">Target Product:</span>
+                        <div className="font-medium text-blue-900">{selectedOrder.targetProduct}</div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-blue-600">Order Type:</span>
+                        <div className="font-medium text-blue-900 capitalize">{selectedOrder.type}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Timeline */}
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-3 text-green-800">Timeline</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm text-green-600">Order Date:</span>
+                        <div className="font-medium text-green-900">{selectedOrder.orderDate}</div>
+                      </div>
+                      <div>
+                        <span className="text-sm text-green-600">Completion Date:</span>
+                        <div className="font-medium text-green-900">{selectedOrder.completionDate}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Financial Summary */}
+                <div className="space-y-6">
+                  {/* Financial Summary */}
+                  <div className="bg-amber-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-4 text-amber-800">Financial Summary</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-amber-700">Total Cost:</span>
+                        <span className="font-bold text-amber-900">${selectedOrder.totalCost.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-amber-700">Revenue:</span>
+                        <span className="font-bold text-amber-900">${selectedOrder.revenue.toLocaleString()}</span>
+                      </div>
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-semibold text-amber-800">Net Profit:</span>
+                          <span className="text-xl font-bold text-green-600">${selectedOrder.profit.toLocaleString()}</span>
+                        </div>
+                        <div className="text-sm text-amber-600 text-right">
+                          Margin: {((selectedOrder.profit / selectedOrder.revenue) * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Additional Costs Breakdown */}
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-4 text-red-800">Additional Costs Breakdown</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-red-700">Transportation:</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.transportation}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-red-700">Labor:</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.labor}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-red-700">Equipment:</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.equipment}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-red-700">Quality Control:</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.qualityControl}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-red-700">Storage:</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.storage}</span>
+                      </div>
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-red-800">Total Additional:</span>
+                          <span className="text-red-900">
+                            ${Object.values(selectedOrder.additionalCosts).reduce((sum, cost) => sum + cost, 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Raw Materials Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Raw Materials Used</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {selectedOrder.rawMaterials.map((material, index) => (
+                      <div key={index} className="bg-white p-2 rounded border">
+                        <span className="text-sm font-medium text-gray-700">{index + 1}. {material}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="border-t pt-6 flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadReport(selectedOrder)}
+                  className="flex items-center space-x-2"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download Report</span>
+                </Button>
+                <Button
+                  onClick={() => handleGenerateInvoice(selectedOrder)}
+                  className="flex items-center space-x-2 bg-[#3BCEAC] hover:bg-[#2A9A7A]"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Generate Invoice</span>
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
