@@ -7,7 +7,7 @@ import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { CSVExport } from '@/components/csv/CSVExport';
@@ -36,6 +36,10 @@ const CustomersDemo: React.FC = () => {
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [customerData, setCustomerData] = useState<CustomerData[]>([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Fetch customers from API
   const { data: apiCustomers, isLoading, isError } = useQuery<ApiCustomer[]>({
