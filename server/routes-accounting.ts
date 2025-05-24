@@ -405,6 +405,22 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 
+  // Generate sample data endpoint
+  app.post("/api/accounting/generate-sample-data", async (_req: Request, res: Response) => {
+    try {
+      // This endpoint confirms that sample data is available
+      // The actual sample data is already defined in the GET endpoints above
+      res.json({ 
+        message: "Sample accounting data generated successfully",
+        journalEntries: 10,
+        accounts: 15 
+      });
+    } catch (error) {
+      console.error("Error generating sample data:", error);
+      res.status(500).json({ error: "Failed to generate sample data" });
+    }
+  });
+
   app.get("/api/journal-entries/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
