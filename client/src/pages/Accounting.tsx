@@ -197,6 +197,34 @@ const Accounting: React.FC = () => {
             />
           </div>
 
+          {/* Tax Compliance Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Performance Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <Receipt className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                  <h4 className="font-medium text-blue-800">Monthly Transactions</h4>
+                  <p className="text-sm text-blue-600 mt-1">{summaryData?.journalEntries || 0} entries</p>
+                </div>
+                
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <DollarSign className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                  <h4 className="font-medium text-green-800">Revenue Growth</h4>
+                  <p className="text-sm text-green-600 mt-1">+5% this month</p>
+                </div>
+                
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <Clock className="w-8 h-8 mx-auto mb-2 text-orange-600" />
+                  <h4 className="font-medium text-orange-800">Outstanding Invoices</h4>
+                  <p className="text-sm text-orange-600 mt-1">12 pending</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="col-span-1">
               <CardHeader>
