@@ -171,13 +171,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500">
-          <div className="min-h-full flex flex-col">
-            <div className="flex-1">
-              {children}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500">
+          <div className="min-h-full">
+            {/* Enhanced Content Container */}
+            <div className="max-w-full mx-auto p-4 md:p-6 lg:p-8">
+              <div className="relative">
+                {/* Subtle Background Pattern */}
+                <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
+                
+                {/* Content Wrapper with Glass Effect */}
+                <div className="relative backdrop-blur-sm">
+                  {children}
+                </div>
+              </div>
             </div>
-            
-
           </div>
         </main>
 
