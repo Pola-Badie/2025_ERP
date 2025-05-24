@@ -465,8 +465,183 @@ const Accounting: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="text-muted-foreground" colSpan={8}>
-                      No purchase records found. Add a new purchase to get started.
+                    <TableCell className="font-medium">PUR-2025-001</TableCell>
+                    <TableCell>2025-05-20</TableCell>
+                    <TableCell>ChemCorp Industries</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Active Pharmaceutical Ingredients</div>
+                        <div className="text-xs text-muted-foreground">Ibuprofen (500kg), Paracetamol (300kg)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$18,750.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>View Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">PUR-2025-002</TableCell>
+                    <TableCell>2025-05-22</TableCell>
+                    <TableCell>Medical Supplies Co.</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Packaging Materials</div>
+                        <div className="text-xs text-muted-foreground">Glass Vials (10,000), Aluminum Caps (15,000)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Credit</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">Partial</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$5,420.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">PUR-2025-003</TableCell>
+                    <TableCell>2025-05-25</TableCell>
+                    <TableCell>Global Pharma Solutions</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Raw Materials</div>
+                        <div className="text-xs text-muted-foreground">Microcrystalline Cellulose (200kg), Magnesium Stearate (50kg)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Cash</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$12,300.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>View Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">PUR-2025-004</TableCell>
+                    <TableCell>2025-05-27</TableCell>
+                    <TableCell>Lab Equipment Ltd.</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Packaging & Equipment</div>
+                        <div className="text-xs text-muted-foreground">Blister Packs (50,000), Labeling Machines (2 units)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell>
+                      <Badge variant="destructive">Overdue</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$24,800.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">PUR-2025-005</TableCell>
+                    <TableCell>2025-05-30</TableCell>
+                    <TableCell>Packaging Solutions Inc.</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Specialized Packaging</div>
+                        <div className="text-xs text-muted-foreground">Tamper-Evident Bottles (25,000), Safety Labels (30,000)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Credit</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">Pending</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$8,950.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-medium">PUR-2025-006</TableCell>
+                    <TableCell>2025-06-02</TableCell>
+                    <TableCell>ChemCorp Industries</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm">Chemical Materials</div>
+                        <div className="text-xs text-muted-foreground">Sodium Chloride (150kg), Lactose Monohydrate (100kg)</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">$6,780.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>View Supplier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 </TableBody>
