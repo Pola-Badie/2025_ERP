@@ -731,6 +731,234 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Expenses Endpoints =============
+  
+  // Get expenses
+  app.get("/api/expenses", async (_req: Request, res: Response) => {
+    try {
+      // Generate realistic pharmaceutical company expenses
+      const currentDate = new Date();
+      const expenses = [
+        // Utilities
+        {
+          id: 1,
+          description: "Monthly Electricity Bill - Manufacturing Plant",
+          amount: 8500.00,
+          category: "Utilities",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Manufacturing"
+        },
+        {
+          id: 2,
+          description: "Water & Sewage - Production Facility",
+          amount: 2300.00,
+          category: "Utilities",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Manufacturing"
+        },
+        {
+          id: 3,
+          description: "Natural Gas - Heating & Equipment",
+          amount: 4200.00,
+          category: "Utilities",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 10).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Facilities"
+        },
+        // Rent & Facilities
+        {
+          id: 4,
+          description: "Monthly Rent - Main Manufacturing Facility",
+          amount: 25000.00,
+          category: "Rent",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Facilities"
+        },
+        {
+          id: 5,
+          description: "Office Space Rent - Administrative Building",
+          amount: 12000.00,
+          category: "Rent",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Administration"
+        },
+        // Insurance
+        {
+          id: 6,
+          description: "Pharmaceutical Liability Insurance",
+          amount: 15000.00,
+          category: "Insurance",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Legal"
+        },
+        {
+          id: 7,
+          description: "Equipment Insurance - Manufacturing Machinery",
+          amount: 8000.00,
+          category: "Insurance",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Manufacturing"
+        },
+        // Maintenance
+        {
+          id: 8,
+          description: "HVAC System Maintenance - Clean Room",
+          amount: 3500.00,
+          category: "Maintenance",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 20).toISOString().split('T')[0],
+          paymentMethod: "Cash",
+          status: "Paid",
+          costCenter: "Manufacturing"
+        },
+        {
+          id: 9,
+          description: "Laboratory Equipment Calibration",
+          amount: 2800.00,
+          category: "Maintenance",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 22).toISOString().split('T')[0],
+          paymentMethod: "Cheque",
+          status: "Paid",
+          costCenter: "Quality Control"
+        },
+        // Professional Services
+        {
+          id: 10,
+          description: "Legal Consultation - Regulatory Compliance",
+          amount: 5500.00,
+          category: "Professional Services",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 18).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Legal"
+        },
+        {
+          id: 11,
+          description: "Accounting & Audit Services",
+          amount: 7200.00,
+          category: "Professional Services",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 25).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Pending",
+          costCenter: "Finance"
+        },
+        // IT & Communications
+        {
+          id: 12,
+          description: "Internet & Telecommunications",
+          amount: 1800.00,
+          category: "IT & Communications",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 12).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "IT"
+        },
+        {
+          id: 13,
+          description: "Software Licenses - ERP System",
+          amount: 4500.00,
+          category: "IT & Communications",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 14).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "IT"
+        },
+        // Security & Safety
+        {
+          id: 14,
+          description: "Security Services - 24/7 Monitoring",
+          amount: 3200.00,
+          category: "Security",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 16).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Security"
+        },
+        {
+          id: 15,
+          description: "Fire Safety System Inspection",
+          amount: 1500.00,
+          category: "Safety",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 28).toISOString().split('T')[0],
+          paymentMethod: "Cash",
+          status: "Pending",
+          costCenter: "Safety"
+        },
+        // Transportation
+        {
+          id: 16,
+          description: "Fleet Fuel Costs - Delivery Vehicles",
+          amount: 2100.00,
+          category: "Transportation",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 30).toISOString().split('T')[0],
+          paymentMethod: "Credit Card",
+          status: "Paid",
+          costCenter: "Logistics"
+        },
+        {
+          id: 17,
+          description: "Vehicle Maintenance - Delivery Fleet",
+          amount: 1800.00,
+          category: "Transportation",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 26).toISOString().split('T')[0],
+          paymentMethod: "Cash",
+          status: "Paid",
+          costCenter: "Logistics"
+        },
+        // Training & Development
+        {
+          id: 18,
+          description: "GMP Training Program - Manufacturing Staff",
+          amount: 4200.00,
+          category: "Training",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 19).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "HR"
+        },
+        // Marketing & Sales
+        {
+          id: 19,
+          description: "Trade Show Participation - PharmaTech Expo",
+          amount: 12000.00,
+          category: "Marketing",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 24).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Pending",
+          costCenter: "Sales"
+        },
+        // Regulatory & Compliance
+        {
+          id: 20,
+          description: "FDA Inspection Preparation Consulting",
+          amount: 8500.00,
+          category: "Regulatory",
+          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 21).toISOString().split('T')[0],
+          paymentMethod: "Bank Transfer",
+          status: "Paid",
+          costCenter: "Regulatory"
+        }
+      ];
+      
+      res.json(expenses);
+    } catch (error) {
+      console.error("Get expenses error:", error);
+      res.status(500).json({ message: "Failed to fetch expenses" });
+    }
+  });
+
   // ============= System Preferences Endpoints =============
   
   // Middleware to check admin role
