@@ -317,6 +317,18 @@ const CreateInvoice = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch orders for selection when coming from Orders History
+  const { data: ordersData = [] } = useQuery<any[]>({
+    queryKey: ['/api/orders'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/orders');
+      return await res.json();
+    },
+    enabled: showOrderSelection,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
   // Mutation for creating a customer
   const createCustomerMutation = useMutation({
     mutationFn: async (newCustomer: any) => {
@@ -1652,31 +1664,14 @@ const CreateInvoice = () => {
           
           <div className="py-4">
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {/* Sample orders - you can replace this with actual API data */}
-              {[
-                {
-                  id: "ORD-2024-001",
-                  orderNumber: "ORD-2024-001",
-                  batchNumber: "BATCH-001-240125",
-                  customerName: "Ahmed Hassan",
-                  customerCompany: "PharmaCare Ltd.",
-                  targetProduct: "Pharmaceutical Grade Acetone",
-                  orderDate: "2024-01-25",
-                  status: "completed",
-                  revenue: 1062.50
-                },
-                {
-                  id: "ORD-2024-002", 
-                  orderNumber: "ORD-2024-002",
-                  batchNumber: "REF-002-240126",
-                  customerName: "Sarah Ahmed",
-                  customerCompany: "MedSupply Co.",
-                  targetProduct: "Refined Chemical Base",
-                  orderDate: "2024-01-26",
-                  status: "completed",
-                  revenue: 2145.00
-                }
-              ].map((order) => (
+              {ordersData.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No completed orders available for invoicing.</p>
+                </div>
+              ) : (
+                ordersData
+                  .filter(order => order.status === 'completed')
+                  .map((order) => (
                 <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
                   const orderData = {
                     customer: order.customerName,
