@@ -1,38 +1,31 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus, ClipboardList, Factory, TestTube, Package, Truck } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
+import { 
+  Search, 
+  Filter, 
+  Calendar, 
+  Eye, 
+  Download, 
+  FilePlus, 
+  ClipboardList,
+  Package,
+  Factory,
+  TestTube,
+  FileText,
+  Truck
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { apiRequest } from '@/lib/queryClient';
 
+// Enhanced Quotation interface matching the creation system
 interface Quotation {
   id: number;
   quotationNumber: string;
@@ -66,7 +59,7 @@ interface Quotation {
   }[];
 }
 
-// Helper functions
+// Helper functions for quotation types and status
 const getQuotationTypeIcon = (type: string) => {
   switch (type) {
     case 'manufacturing': return <Factory className="h-4 w-4" />;
@@ -79,13 +72,33 @@ const getQuotationTypeIcon = (type: string) => {
 const getQuotationTypeBadge = (type: string) => {
   switch (type) {
     case 'manufacturing':
-      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{getQuotationTypeIcon(type)} Manufacturing</Badge>;
+      return (
+        <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+          <Factory className="mr-1 h-3 w-3" />
+          Manufacturing
+        </Badge>
+      );
     case 'refining':
-      return <Badge variant="secondary" className="bg-green-100 text-green-800">{getQuotationTypeIcon(type)} Refining</Badge>;
+      return (
+        <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+          <TestTube className="mr-1 h-3 w-3" />
+          Refining
+        </Badge>
+      );
     case 'finished':
-      return <Badge variant="secondary" className="bg-purple-100 text-purple-800">{getQuotationTypeIcon(type)} Finished</Badge>;
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200">
+          <Package className="mr-1 h-3 w-3" />
+          Finished
+        </Badge>
+      );
     default:
-      return <Badge variant="secondary">{type}</Badge>;
+      return (
+        <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+          <FileText className="mr-1 h-3 w-3" />
+          Product
+        </Badge>
+      );
   }
 };
 
@@ -97,7 +110,7 @@ const QuotationHistory = () => {
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Fetch quotations
+  // Fetch quotations with all filters
   const { data: quotations = [], isLoading } = useQuery<Quotation[]>({
     queryKey: ['/api/quotations', searchTerm, statusFilter, typeFilter, dateFilter],
     queryFn: async () => {
@@ -130,7 +143,7 @@ const QuotationHistory = () => {
     setShowPreview(true);
   };
 
-  // Get status badge color
+  // Get status badge with enhanced colors
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'draft':
@@ -157,7 +170,7 @@ const QuotationHistory = () => {
           <ClipboardList className="h-8 w-8 text-blue-600" />
           <div>
             <h1 className="text-2xl font-bold">Quotation History</h1>
-            <p className="text-muted-foreground">View and manage all your quotations</p>
+            <p className="text-muted-foreground">View and manage all your pharmaceutical quotations</p>
           </div>
         </div>
         <Button onClick={() => window.location.href = '/create-quotation'}>
@@ -333,10 +346,10 @@ const QuotationHistory = () => {
         </CardContent>
       </Card>
 
-      {/* Quotation Preview Dialog */}
+      {/* Enhanced Quotation Preview Dialog */}
       {selectedQuotation && (
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>Quotation #{selectedQuotation.quotationNumber}</DialogTitle>
               <DialogDescription>
@@ -349,7 +362,7 @@ const QuotationHistory = () => {
             <div className="border rounded-lg p-6">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-blue-600">QUOTATION</h2>
+                  <h2 className="text-2xl font-bold text-blue-600">PHARMACEUTICAL QUOTATION</h2>
                   <p className="text-muted-foreground">PharmaOverseas Ltd.</p>
                   <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
                 </div>
@@ -372,6 +385,12 @@ const QuotationHistory = () => {
                   <h3 className="font-semibold mb-2">Customer:</h3>
                   <p className="font-medium">{selectedQuotation.customerName}</p>
                 </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Quotation Type:</h3>
+                  <div className="flex items-center gap-2">
+                    {getQuotationTypeBadge(selectedQuotation.type || 'manufacturing')}
+                  </div>
+                </div>
               </div>
               
               <Table>
@@ -387,9 +406,19 @@ const QuotationHistory = () => {
                 <TableBody>
                   {selectedQuotation.items.map((item, i) => (
                     <TableRow key={i}>
-                      <TableCell>{item.productName}</TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{item.productName}</p>
+                          {item.description && (
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                          )}
+                          {item.specifications && (
+                            <p className="text-xs text-muted-foreground mt-1">Specs: {item.specifications}</p>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-center">{item.uom}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
+                      <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
                       <TableCell className="text-right">
                         {new Intl.NumberFormat('en-US', {
                           style: 'currency',
@@ -408,7 +437,7 @@ const QuotationHistory = () => {
               </Table>
               
               <div className="mt-8 flex justify-end">
-                <div className="w-72">
+                <div className="w-80">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
                     <span>
@@ -439,7 +468,7 @@ const QuotationHistory = () => {
                     </span>
                   </div>
                   <Separator className="my-2" />
-                  <div className="flex justify-between font-bold">
+                  <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
                     <span>
                       {new Intl.NumberFormat('en-US', {
@@ -475,7 +504,7 @@ const QuotationHistory = () => {
               {selectedQuotation.notes && (
                 <div className="mt-8">
                   <h3 className="font-semibold mb-2">Notes & Special Instructions:</h3>
-                  <p className="text-sm text-muted-foreground">{selectedQuotation.notes}</p>
+                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded">{selectedQuotation.notes}</p>
                 </div>
               )}
             </div>
