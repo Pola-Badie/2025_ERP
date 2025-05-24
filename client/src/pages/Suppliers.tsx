@@ -665,13 +665,6 @@ const Suppliers: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Address</label>
-                <p className="text-sm bg-gray-50 p-2 rounded border">
-                  {selectedSupplier.address ? `${selectedSupplier.address}, ${selectedSupplier.city}, ${selectedSupplier.state} ${selectedSupplier.zipCode}` : 'Not specified'}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">ETA Number (Tax Registration)</label>
                 <p className="text-sm bg-gray-50 p-2 rounded border">
                   {selectedSupplier.etaNumber ? (
@@ -679,6 +672,13 @@ const Suppliers: React.FC = () => {
                   ) : (
                     <span className="text-gray-500">Not registered with ETA</span>
                   )}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Address</label>
+                <p className="text-sm bg-gray-50 p-2 rounded border">
+                  {selectedSupplier.address ? `${selectedSupplier.address}, ${selectedSupplier.city}, ${selectedSupplier.state} ${selectedSupplier.zipCode}` : 'Not specified'}
                 </p>
               </div>
               
