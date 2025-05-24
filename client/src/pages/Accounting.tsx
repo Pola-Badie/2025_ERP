@@ -151,19 +151,21 @@ const Accounting: React.FC = () => {
       </div>
 
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="flex w-full overflow-x-auto overflow-y-hidden border-b border-gray-200 bg-white" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9CA3AF #F3F4F6' }}>
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="chart-of-accounts">Chart of Accounts</TabsTrigger>
-          <TabsTrigger value="journal-entries">Journal Entries</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          <TabsTrigger value="purchases">Purchases</TabsTrigger>
-          <TabsTrigger value="invoices-due">Invoices Due</TabsTrigger>
-          <TabsTrigger value="customer-payments">Customer Payments</TabsTrigger>
-          <TabsTrigger value="accounting-periods">Periods</TabsTrigger>
-          <TabsTrigger value="profit-loss">Profit & Loss</TabsTrigger>
-          <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
-          <TabsTrigger value="financial-reports">Financial Reports</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto">
+          <TabsList className="flex w-max min-w-full h-12 bg-white border-b border-gray-200 rounded-none p-0">
+            <TabsTrigger value="dashboard" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Dashboard</TabsTrigger>
+            <TabsTrigger value="chart-of-accounts" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Chart of Accounts</TabsTrigger>
+            <TabsTrigger value="journal-entries" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Journal Entries</TabsTrigger>
+            <TabsTrigger value="expenses" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Expenses</TabsTrigger>
+            <TabsTrigger value="purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Purchases</TabsTrigger>
+            <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
+            <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
+            <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
+            <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
+            <TabsTrigger value="balance-sheet" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Balance Sheet</TabsTrigger>
+            <TabsTrigger value="financial-reports" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Financial Reports</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="dashboard" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
