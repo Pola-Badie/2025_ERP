@@ -91,16 +91,8 @@ const AccountingPeriods: React.FC = () => {
 
   // Fetch accounting periods
   const { data: periods = [], isLoading } = useQuery({
-    queryKey: ['/api/accounting/periods'],
-    queryFn: async () => {
-      try {
-        const res = await apiRequest('GET', '/api/accounting/periods');
-        return await res.json();
-      } catch (error) {
-        console.error("Error fetching accounting periods:", error);
-        return [];
-      }
-    }
+    queryKey: ['/api/accounting-periods'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Setup form with validation
