@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
@@ -26,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/invoice-history', key: 'invoiceHistory', icon: 'receipt' },
     { path: '/quotation-history', key: 'quotationHistory', icon: 'clipboard-list' },
     { path: '/order-management', key: 'orderManagement', icon: 'factory' },
+    { path: '/orders-history', key: 'ordersHistory', icon: 'history' },
     { path: '/label', key: 'label', icon: 'file-text' },
     { path: '/reports', key: 'reports', icon: 'pie-chart' },
     { path: '/users', key: 'userManagement', icon: 'users' },
@@ -74,6 +75,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <ShoppingBag size={20} />;
       case 'factory':
         return <Factory size={20} />;
+      case 'history':
+        return <History size={20} />;
       default:
         return null;
     }
