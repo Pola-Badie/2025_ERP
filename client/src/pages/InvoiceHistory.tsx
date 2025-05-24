@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,7 @@ interface Invoice {
 }
 
 const InvoiceHistory = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
@@ -396,17 +398,32 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Generate realistic ETA reference number (format: ETA-YYYYMMDD-XXXXX)
+      const date = new Date();
+      const dateStr = date.getFullYear().toString() + 
+                     (date.getMonth() + 1).toString().padStart(2, '0') + 
+                     date.getDate().toString().padStart(2, '0');
+      const randomSuffix = Math.random().toString(36).substr(2, 5).toUpperCase();
+      const etaReference = `ETA-${dateStr}-${randomSuffix}`;
+      
       // Update invoice status locally (in real app, this would be done on the server)
       setInvoices(prev => prev.map(invoice => 
         invoice.id === invoiceId 
-          ? { ...invoice, etaUploaded: true, etaReference: `ETA-${Date.now()}` }
+          ? { ...invoice, etaUploaded: true, etaReference: etaReference }
           : invoice
       ));
       
-      alert('Invoice successfully uploaded to Egyptian Tax Authority!');
+      toast({
+        title: "ETA Upload Successful",
+        description: `Invoice uploaded to Egyptian Tax Authority. Reference: ${etaReference}`,
+      });
     } catch (error) {
       console.error('ETA upload failed:', error);
-      alert('Failed to upload invoice to ETA. Please try again.');
+      toast({
+        title: "ETA Upload Failed",
+        description: "Failed to upload invoice to ETA. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -919,7 +936,9 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                         </TableCell>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                         <TableCell className="font-medium text-blue-600">
-                          {invoice.etaReference || 'ETA-' + Math.random().toString(36).substr(2, 8).toUpperCase()}
+                          {invoice.etaReference || (
+                            <span className="text-gray-400 font-normal">Not uploaded</span>
+                          )}
                         </TableCell>
                         <TableCell>{invoice.customerName}</TableCell>
                         <TableCell>{format(new Date(invoice.date), 'PP')}</TableCell>
