@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   BookOpen, 
   CreditCard, 
@@ -28,6 +35,7 @@ import {
   LineChart,
   Download,
   FileQuestion,
+  MoreHorizontal,
   BarChart
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
@@ -49,6 +57,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import ChartOfAccounts from '@/components/accounting/ChartOfAccounts';
 import JournalEntries from '@/components/accounting/JournalEntries';
 import ProfitAndLoss from '@/components/accounting/ProfitAndLoss';
@@ -58,6 +67,7 @@ import AccountingPeriods from '@/components/accounting/AccountingPeriods';
 
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { toast } = useToast();
 
   // Fetch accounting summary data
   const { data: summaryData } = useQuery({
@@ -521,8 +531,102 @@ const Accounting: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="text-muted-foreground" colSpan={8}>
-                          No payable invoices found.
+                        <TableCell className="font-medium">PUR-2025-005</TableCell>
+                        <TableCell>ChemCorp Industries</TableCell>
+                        <TableCell>2025-05-28</TableCell>
+                        <TableCell className="text-right">$18,750.00</TableCell>
+                        <TableCell className="text-right">$0.00</TableCell>
+                        <TableCell className="text-right font-medium text-red-600">$18,750.00</TableCell>
+                        <TableCell>
+                          <Badge variant="destructive">Overdue</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">PUR-2025-009</TableCell>
+                        <TableCell>Global Pharma Solutions</TableCell>
+                        <TableCell>2025-06-08</TableCell>
+                        <TableCell className="text-right">$24,200.00</TableCell>
+                        <TableCell className="text-right">$10,000.00</TableCell>
+                        <TableCell className="text-right font-medium text-orange-600">$14,200.00</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">Due Soon</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">PUR-2025-013</TableCell>
+                        <TableCell>Lab Equipment Ltd.</TableCell>
+                        <TableCell>2025-06-12</TableCell>
+                        <TableCell className="text-right">$9,650.00</TableCell>
+                        <TableCell className="text-right">$9,650.00</TableCell>
+                        <TableCell className="text-right font-medium text-green-600">$0.00</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">PUR-2025-017</TableCell>
+                        <TableCell>Medical Supplies Co.</TableCell>
+                        <TableCell>2025-06-18</TableCell>
+                        <TableCell className="text-right">$11,480.00</TableCell>
+                        <TableCell className="text-right">$5,000.00</TableCell>
+                        <TableCell className="text-right font-medium text-blue-600">$6,480.00</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">Pending</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Make Payment</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -545,8 +649,127 @@ const Accounting: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="text-muted-foreground" colSpan={8}>
-                          No receivable invoices found.
+                        <TableCell className="font-medium">INV-2025-001</TableCell>
+                        <TableCell>Cairo Medical Center</TableCell>
+                        <TableCell>2025-05-30</TableCell>
+                        <TableCell className="text-right">$15,450.00</TableCell>
+                        <TableCell className="text-right">$10,000.00</TableCell>
+                        <TableCell className="text-right font-medium text-red-600">$5,450.00</TableCell>
+                        <TableCell>
+                          <Badge variant="destructive">Overdue</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">INV-2025-003</TableCell>
+                        <TableCell>Alexandria Pharmacy</TableCell>
+                        <TableCell>2025-06-05</TableCell>
+                        <TableCell className="text-right">$8,750.00</TableCell>
+                        <TableCell className="text-right">$0.00</TableCell>
+                        <TableCell className="text-right font-medium text-orange-600">$8,750.00</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">Due Soon</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">INV-2025-007</TableCell>
+                        <TableCell>Giza Hospital Network</TableCell>
+                        <TableCell>2025-06-10</TableCell>
+                        <TableCell className="text-right">$22,300.00</TableCell>
+                        <TableCell className="text-right">$15,000.00</TableCell>
+                        <TableCell className="text-right font-medium text-blue-600">$7,300.00</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">Pending</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">INV-2025-012</TableCell>
+                        <TableCell>Luxor Pharmaceuticals</TableCell>
+                        <TableCell>2025-06-15</TableCell>
+                        <TableCell className="text-right">$12,850.00</TableCell>
+                        <TableCell className="text-right">$12,850.00</TableCell>
+                        <TableCell className="text-right font-medium text-green-600">$0.00</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Paid</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">INV-2025-018</TableCell>
+                        <TableCell>Aswan Medical Supplies</TableCell>
+                        <TableCell>2025-06-20</TableCell>
+                        <TableCell className="text-right">$6,420.00</TableCell>
+                        <TableCell className="text-right">$3,000.00</TableCell>
+                        <TableCell className="text-right font-medium text-blue-600">$3,420.00</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">Pending</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
+                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
+                              <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     </TableBody>
