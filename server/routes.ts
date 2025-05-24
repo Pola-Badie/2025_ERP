@@ -419,6 +419,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
               qualityGrade: "WHO"
             }
           ]
+        },
+        {
+          id: 9,
+          quotationNumber: "MAN-2025-015",
+          type: "manufacturing",
+          customerName: "Global Pharma Solutions",
+          customerId: 9,
+          date: "2025-05-20",
+          validUntil: "2025-07-20",
+          status: "pending",
+          subtotal: 89500,
+          transportationFees: 2800,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited delivery for clinical trial materials",
+          tax: 12922,
+          total: 105222,
+          amount: 105222,
+          notes: "Custom synthesis of Metformin HCl for clinical trials. GMP facility required.",
+          items: [
+            {
+              id: "9",
+              type: "manufacturing",
+              productName: "Metformin Hydrochloride API",
+              description: "High-purity API for diabetes medication",
+              quantity: 500,
+              uom: "kg",
+              unitPrice: 179,
+              total: 89500,
+              specifications: "99.8% purity, USP grade, particle size 50-100 microns",
+              rawMaterials: ["Dimethylamine", "Cyanoguanidine", "Sodium methoxide"],
+              processingTime: 21,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 10,
+          quotationNumber: "REF-2025-008",
+          type: "refining",
+          customerName: "MedTech Industries",
+          customerId: 10,
+          date: "2025-05-18",
+          validUntil: "2025-06-18",
+          status: "accepted",
+          subtotal: 156000,
+          transportationFees: 5200,
+          transportationType: "ground-express",
+          transportationNotes: "Temperature-controlled transport with 24/7 monitoring",
+          tax: 22568,
+          total: 183768,
+          amount: 183768,
+          notes: "Purification and crystallization of Atorvastatin calcium for cholesterol medication.",
+          items: [
+            {
+              id: "10",
+              type: "refining",
+              productName: "Atorvastatin Calcium",
+              description: "Cholesterol-lowering medication API purification",
+              quantity: 800,
+              uom: "kg",
+              unitPrice: 195,
+              total: 156000,
+              specifications: "99.5% purity, trihydrate form, controlled particle size",
+              rawMaterials: ["Crude atorvastatin", "Calcium carbonate", "Ethanol"],
+              processingTime: 14,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 11,
+          quotationNumber: "FIN-2025-016",
+          type: "finished",
+          customerName: "African Health Network",
+          customerId: 11,
+          date: "2025-05-22",
+          validUntil: "2025-06-22",
+          status: "draft",
+          subtotal: 78500,
+          transportationFees: 3200,
+          transportationType: "sea-freight",
+          transportationNotes: "Bulk shipment for regional distribution centers",
+          tax: 11438,
+          total: 93138,
+          amount: 93138,
+          notes: "Antimalarial tablets for tropical disease prevention programs.",
+          items: [
+            {
+              id: "11",
+              type: "finished",
+              productName: "Artemether-Lumefantrine Tablets",
+              description: "Antimalarial combination therapy",
+              quantity: 500000,
+              uom: "tablets",
+              unitPrice: 0.157,
+              total: 78500,
+              specifications: "20mg/120mg strength, blister packed, WHO prequalified",
+              rawMaterials: ["Artemether", "Lumefantrine", "Microcrystalline cellulose"],
+              processingTime: 7,
+              qualityGrade: "WHO"
+            }
+          ]
+        },
+        {
+          id: 12,
+          quotationNumber: "MAN-2025-017",
+          type: "manufacturing",
+          customerName: "Precision Pharmaceuticals",
+          customerId: 12,
+          date: "2025-05-19",
+          validUntil: "2025-07-19",
+          status: "sent",
+          subtotal: 124800,
+          transportationFees: 4100,
+          transportationType: "air-freight",
+          transportationNotes: "High-value shipment with insurance and tracking",
+          tax: 18046,
+          total: 146946,
+          amount: 146946,
+          notes: "Synthesis of specialized oncology compound for rare cancer treatment.",
+          items: [
+            {
+              id: "12",
+              type: "manufacturing",
+              productName: "Imatinib Mesylate",
+              description: "Targeted cancer therapy API",
+              quantity: 200,
+              uom: "kg",
+              unitPrice: 624,
+              total: 124800,
+              specifications: "99.9% purity, crystalline form, moisture <0.5%",
+              rawMaterials: ["4-[(4-methylpiperazin-1-yl)methyl]-N-[4-methyl-3-[[4-(pyridin-3-yl)pyrimidin-2-yl]amino]phenyl]benzamide", "Methanesulfonic acid"],
+              processingTime: 28,
+              qualityGrade: "Ph.Eur"
+            }
+          ]
+        },
+        {
+          id: 13,
+          quotationNumber: "REF-2025-009",
+          type: "refining",
+          customerName: "CardioMed Corporation",
+          customerId: 13,
+          date: "2025-05-16",
+          validUntil: "2025-06-16",
+          status: "rejected",
+          subtotal: 67200,
+          transportationFees: 2400,
+          transportationType: "ground-standard",
+          transportationNotes: "Standard shipping with temperature monitoring",
+          tax: 9744,
+          total: 79344,
+          amount: 79344,
+          notes: "Purification of cardiovascular medication API with enhanced bioavailability.",
+          items: [
+            {
+              id: "13",
+              type: "refining",
+              productName: "Losartan Potassium",
+              description: "ACE inhibitor for hypertension treatment",
+              quantity: 600,
+              uom: "kg",
+              unitPrice: 112,
+              total: 67200,
+              specifications: "99.7% purity, anhydrous form, controlled polymorphic state",
+              rawMaterials: ["Crude losartan", "Potassium hydroxide", "Isopropanol"],
+              processingTime: 10,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 14,
+          quotationNumber: "FIN-2025-018",
+          type: "finished",
+          customerName: "Pediatric Care Solutions",
+          customerId: 14,
+          date: "2025-05-21",
+          validUntil: "2025-06-21",
+          status: "expired",
+          subtotal: 42800,
+          transportationFees: 1800,
+          transportationType: "cold-chain",
+          transportationNotes: "Refrigerated transport required for pediatric formulations",
+          tax: 6244,
+          total: 50844,
+          amount: 50844,
+          notes: "Pediatric suspension formulations with improved taste masking.",
+          items: [
+            {
+              id: "14",
+              type: "finished",
+              productName: "Amoxicillin Pediatric Suspension",
+              description: "Strawberry-flavored antibiotic for children",
+              quantity: 10000,
+              uom: "bottles",
+              unitPrice: 4.28,
+              total: 42800,
+              specifications: "125mg/5ml, sugar-free, natural flavoring, 14-day stability",
+              rawMaterials: ["Amoxicillin trihydrate", "Xanthan gum", "Strawberry flavor"],
+              processingTime: 5,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 15,
+          quotationNumber: "MAN-2025-019",
+          type: "manufacturing",
+          customerName: "Neurological Research Institute",
+          customerId: 15,
+          date: "2025-05-17",
+          validUntil: "2025-07-17",
+          status: "pending",
+          subtotal: 198500,
+          transportationFees: 6800,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited delivery for ongoing clinical trials",
+          tax: 28742,
+          total: 234042,
+          amount: 234042,
+          notes: "Synthesis of novel antiepileptic compound for Phase II clinical trials.",
+          items: [
+            {
+              id: "15",
+              type: "manufacturing",
+              productName: "Levetiracetam",
+              description: "Antiepileptic drug for seizure control",
+              quantity: 300,
+              uom: "kg",
+              unitPrice: 661.67,
+              total: 198500,
+              specifications: "99.8% purity, S-enantiomer, controlled crystal form",
+              rawMaterials: ["α-ethyl-2-oxo-1-pyrrolidineacetamide", "Sodium borohydride"],
+              processingTime: 35,
+              qualityGrade: "Ph.Eur"
+            }
+          ]
         }
       ];
 
