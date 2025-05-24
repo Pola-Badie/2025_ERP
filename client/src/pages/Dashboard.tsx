@@ -8,7 +8,7 @@ import {
   DialogHeader, 
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +25,7 @@ import {
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
   User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
-  Camera, Image, Edit, MoreHorizontal
+  Camera, Image, Edit, MoreHorizontal, TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -559,17 +559,25 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        <Card className="bg-[#FF9F43] text-white rounded-md border-none overflow-hidden relative">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
-          <CardHeader className="pb-0 relative z-10">
-            <CardTitle className="text-sm font-medium">COLLECTED TAX</CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Collected Tax (This Month)
+            </CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-4xl font-bold">
+          <CardContent>
+            <div className="text-2xl font-bold">
               {isLoading ? "..." : `EGP ${(dashboardData?.monthSales * 0.14 || 1750).toLocaleString()}`}
             </div>
-            <p className="text-xs mt-1">This Month (14% VAT)</p>
+            <p className="text-xs text-muted-foreground">14% VAT collected from sales</p>
           </CardContent>
+          <CardFooter className="p-2">
+            <div className="text-xs flex items-center text-green-500">
+              <TrendingUp className="mr-1 h-3 w-3" />
+              +8% from last month
+            </div>
+          </CardFooter>
         </Card>
       </div>
 
