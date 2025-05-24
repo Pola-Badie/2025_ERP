@@ -267,6 +267,14 @@ export default function Procurement() {
             Manage purchase orders and supplier inventory
           </p>
         </div>
+        <Card className="w-auto">
+          <CardContent className="pt-6">
+            <Button onClick={handleCreatePurchaseOrder} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Procurement
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
