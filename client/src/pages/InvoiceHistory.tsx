@@ -35,7 +35,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown, RotateCcw } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';

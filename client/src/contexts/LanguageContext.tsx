@@ -20,7 +20,7 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Common
     dashboard: 'Dashboard',
-    products: 'Products',
+    products: 'Inventory',
     expenses: 'Expenses',
     sales: 'Sales',
     accounting: 'Financial Accounting',
