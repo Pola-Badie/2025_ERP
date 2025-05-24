@@ -1794,6 +1794,182 @@ const Accounting: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* View Receipt Dialog */}
+      <Dialog open={isViewReceiptOpen} onOpenChange={setIsViewReceiptOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Expense Receipt</DialogTitle>
+            <DialogDescription>
+              View detailed information about this expense entry.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedExpense && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Date</Label>
+                  <div className="text-sm text-muted-foreground">{selectedExpense.date}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Amount</Label>
+                  <div className="text-sm text-muted-foreground">{selectedExpense.amount}</div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <div className="text-sm text-muted-foreground">{selectedExpense.description}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Account Type</Label>
+                  <div className="text-sm text-muted-foreground">{selectedExpense.accountType}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Cost Center</Label>
+                  <div className="text-sm text-muted-foreground">{selectedExpense.costCenter}</div>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Payment Method</Label>
+                <div className="text-sm text-muted-foreground">{selectedExpense.paymentMethod}</div>
+              </div>
+              {selectedExpense.notes && (
+                <div>
+                  <Label className="text-sm font-medium">Notes</Label>
+                  <div className="text-sm text-muted-foreground">{selectedExpense.notes}</div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" onClick={() => setIsViewReceiptOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Expense Dialog */}
+      <Dialog open={isEditExpenseOpen} onOpenChange={setIsEditExpenseOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Expense Entry</DialogTitle>
+            <DialogDescription>
+              Update the expense information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-date" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="edit-expense-date"
+                type="date"
+                value={expenseForm.date}
+                onChange={(e) => setExpenseForm({...expenseForm, date: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-description" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="edit-expense-description"
+                value={expenseForm.description}
+                onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-notes" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="edit-expense-notes"
+                value={expenseForm.notes}
+                onChange={(e) => setExpenseForm({...expenseForm, notes: e.target.value})}
+                className="col-span-3"
+                rows={2}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-account-type" className="text-right">
+                Account Type
+              </Label>
+              <Select value={expenseForm.accountType} onValueChange={(value) => setExpenseForm({...expenseForm, accountType: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseSettings.accountTypes.map((type, index) => (
+                    <SelectItem key={index} value={type.toLowerCase().replace(/\s+/g, '-')}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-cost-center" className="text-right">
+                Cost Center
+              </Label>
+              <Select value={expenseForm.costCenter} onValueChange={(value) => setExpenseForm({...expenseForm, costCenter: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select cost center" />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseSettings.costCenters.map((center, index) => (
+                    <SelectItem key={index} value={center.toLowerCase().replace(/\s+/g, '-')}>{center}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-payment-method" className="text-right">
+                Payment Method
+              </Label>
+              <Select value={expenseForm.paymentMethod} onValueChange={(value) => setExpenseForm({...expenseForm, paymentMethod: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseSettings.paymentMethods.map((method, index) => (
+                    <SelectItem key={index} value={method.toLowerCase().replace(/\s+/g, '-')}>{method}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-expense-amount" className="text-right">
+                Amount ($)
+              </Label>
+              <Input
+                id="edit-expense-amount"
+                type="number"
+                step="0.01"
+                value={expenseForm.amount}
+                onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsEditExpenseOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" onClick={() => {
+              toast({
+                title: "Success",
+                description: "Expense entry has been updated.",
+              });
+              setIsEditExpenseOpen(false);
+            }}>
+              Update Expense
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
