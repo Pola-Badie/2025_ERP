@@ -259,6 +259,70 @@ const OrdersHistory: React.FC = () => {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleViewDetails = (order: OrderHistoryItem) => {
+    alert(`Order Details for ${order.orderNumber}:\n\nCustomer: ${order.customerName} (${order.customerCompany})\nProduct: ${order.targetProduct}\nBatch: ${order.batchNumber}\nType: ${order.type}\nStatus: ${order.status}\n\nFinancial Summary:\nTotal Cost: $${order.totalCost.toLocaleString()}\nRevenue: $${order.revenue.toLocaleString()}\nProfit: $${order.profit.toLocaleString()}\n\nAdditional Costs:\nTransportation: $${order.additionalCosts.transportation}\nLabor: $${order.additionalCosts.labor}\nEquipment: $${order.additionalCosts.equipment}\nQuality Control: $${order.additionalCosts.qualityControl}\nStorage: $${order.additionalCosts.storage}\n\nRaw Materials: ${order.rawMaterials.join(', ')}`);
+  };
+
+  const handleDownloadReport = (order: OrderHistoryItem) => {
+    const reportData = {
+      orderNumber: order.orderNumber,
+      batchNumber: order.batchNumber,
+      type: order.type,
+      customer: {
+        name: order.customerName,
+        company: order.customerCompany
+      },
+      product: order.targetProduct,
+      dates: {
+        orderDate: order.orderDate,
+        completionDate: order.completionDate
+      },
+      status: order.status,
+      financial: {
+        totalCost: order.totalCost,
+        revenue: order.revenue,
+        profit: order.profit,
+        profitMargin: ((order.profit / order.revenue) * 100).toFixed(2)
+      },
+      additionalCosts: order.additionalCosts,
+      rawMaterials: order.rawMaterials
+    };
+
+    const reportContent = `ORDER REPORT\n============\n\nOrder Number: ${reportData.orderNumber}\nBatch Number: ${reportData.batchNumber}\nOrder Type: ${reportData.type.toUpperCase()}\n\nCUSTOMER INFORMATION\n==================\nName: ${reportData.customer.name}\nCompany: ${reportData.customer.company}\n\nPRODUCT INFORMATION\n==================\nTarget Product: ${reportData.product}\n\nTIMELINE\n========\nOrder Date: ${reportData.dates.orderDate}\nCompletion Date: ${reportData.dates.completionDate}\nStatus: ${reportData.status.toUpperCase()}\n\nFINANCIAL SUMMARY\n================\nTotal Cost: $${reportData.financial.totalCost.toLocaleString()}\nRevenue: $${reportData.financial.revenue.toLocaleString()}\nNet Profit: $${reportData.financial.profit.toLocaleString()}\nProfit Margin: ${reportData.financial.profitMargin}%\n\nADDITIONAL COSTS BREAKDOWN\n=========================\nTransportation: $${reportData.additionalCosts.transportation}\nLabor: $${reportData.additionalCosts.labor}\nEquipment: $${reportData.additionalCosts.equipment}\nQuality Control: $${reportData.additionalCosts.qualityControl}\nStorage: $${reportData.additionalCosts.storage}\nTotal Additional: $${Object.values(reportData.additionalCosts).reduce((sum, cost) => sum + cost, 0)}\n\nRAW MATERIALS\n=============\n${reportData.rawMaterials.map((material, index) => `${index + 1}. ${material}`).join('\n')}\n\nReport generated on: ${new Date().toLocaleString()}`;
+
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${order.orderNumber}_report.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateInvoice = (order: OrderHistoryItem) => {
+    // Navigate to create invoice page with pre-filled data from the order
+    const invoiceData = {
+      customer: order.customerName,
+      company: order.customerCompany,
+      items: [
+        {
+          product: order.targetProduct,
+          quantity: 1,
+          unitPrice: order.revenue,
+          total: order.revenue
+        }
+      ],
+      orderReference: order.orderNumber,
+      batchNumber: order.batchNumber
+    };
+    
+    // Store the invoice data in localStorage for the invoice page to use
+    localStorage.setItem('invoiceFromOrder', JSON.stringify(invoiceData));
+    
+    // Navigate to create invoice page
+    window.location.href = '/create-invoice';
+  };
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -486,15 +550,15 @@ const OrdersHistory: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(order)}>
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadReport(order)}>
                             <Download className="mr-2 h-4 w-4" />
                             Download Report
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleGenerateInvoice(order)}>
                             <FileText className="mr-2 h-4 w-4" />
                             Generate Invoice
                           </DropdownMenuItem>
