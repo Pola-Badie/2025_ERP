@@ -20,7 +20,8 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  DollarSign
+  DollarSign,
+  Upload
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

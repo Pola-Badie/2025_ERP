@@ -146,8 +146,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
-      // Comprehensive pharmaceutical quotation data with all business types
+      // Professional pharmaceutical quotation data matching invoice-style format
       const sampleQuotations = [
+        // Recent quotations with realistic pharmaceutical business scenarios
+        {
+          id: 1,
+          quotationNumber: "QUO-002501",
+          type: "finished",
+          customerName: "Ahmed Hassan Pharmaceuticals",
+          customerId: 1,
+          date: "2025-05-01",
+          validUntil: "2025-06-01",
+          status: "accepted",
+          subtotal: 1095.00,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 155.75,
+          total: 1250.75,
+          amount: 1250.75,
+          notes: "Standard pharmaceutical supply order for retail pharmacy chain.",
+          items: [
+            {
+              id: "1",
+              type: "finished",
+              productName: "Paracetamol Tablets 500mg",
+              description: "Pain relief medication, blister pack of 20 tablets",
+              quantity: 500,
+              uom: "boxes",
+              unitPrice: 2.19,
+              total: 1095.00,
+              specifications: "USP grade, 24-month shelf life",
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 2,
+          quotationNumber: "QUO-002502",
+          type: "manufacturing",
+          customerName: "Cairo Medical Supplies Ltd.",
+          customerId: 2,
+          date: "2025-05-05",
+          validUntil: "2025-06-05",
+          status: "pending",
+          subtotal: 2850.00,
+          transportationFees: 245.00,
+          transportationType: "ground-express",
+          transportationNotes: "Express delivery with temperature control",
+          tax: 433.30,
+          total: 3528.30,
+          amount: 3245.00,
+          notes: "Custom manufacturing order for hospital surgical supplies.",
+          items: [
+            {
+              id: "2",
+              type: "manufacturing",
+              productName: "Surgical Mask Manufacturing",
+              description: "Medical grade surgical masks, Type IIR certification",
+              quantity: 10000,
+              uom: "pieces",
+              unitPrice: 0.285,
+              total: 2850.00,
+              specifications: "EN 14683 certified, fluid resistant",
+              qualityGrade: "Medical"
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "QUO-002503",
+          type: "finished",
+          customerName: "Alexandria Pharma Co.",
+          customerId: 3,
+          date: "2025-05-08",
+          validUntil: "2025-06-08",
+          status: "rejected",
+          subtotal: 767.55,
+          transportationFees: 55.00,
+          transportationType: "standard-shipping",
+          transportationNotes: "Standard pharmaceutical shipping",
+          tax: 115.16,
+          total: 937.71,
+          amount: 875.50,
+          notes: "Antibiotic supply for community health center.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Amoxicillin Capsules 250mg",
+              description: "Broad spectrum antibiotic, bottle of 100 capsules",
+              quantity: 150,
+              uom: "bottles",
+              unitPrice: 5.117,
+              total: 767.55,
+              specifications: "USP grade, 36-month shelf life",
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "QUO-002504",
+          type: "refining",
+          customerName: "Modern Laboratories Inc.",
+          customerId: 4,
+          date: "2025-04-20",
+          validUntil: "2025-05-20",
+          status: "expired",
+          subtotal: 3965.00,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 555.10,
+          total: 4520.75,
+          amount: 4520.75,
+          notes: "API purification service for research laboratory.",
+          items: [
+            {
+              id: "4",
+              type: "refining",
+              productName: "Aspirin API Purification",
+              description: "High purity aspirin API for pharmaceutical use",
+              quantity: 100,
+              uom: "kg",
+              unitPrice: 39.65,
+              total: 3965.00,
+              specifications: "99.5% purity, crystalline powder",
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "QUO-002505",
+          type: "finished",
+          customerName: "Giza Chemical Solutions",
+          customerId: 5,
+          date: "2025-05-12",
+          validUntil: "2025-06-12",
+          status: "accepted",
+          subtotal: 1637.50,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 227.25,
+          total: 1864.75,
+          amount: 1865.25,
+          notes: "Vitamin supplement order for pharmaceutical retail.",
+          items: [
+            {
+              id: "5",
+              type: "finished",
+              productName: "Vitamin C Tablets 1000mg",
+              description: "High potency vitamin C supplement, bottle of 60 tablets",
+              quantity: 250,
+              uom: "bottles",
+              unitPrice: 6.55,
+              total: 1637.50,
+              specifications: "USP grade, enteric coated",
+              qualityGrade: "Nutraceutical"
+            }
+          ]
+        },
         {
           id: 1,
           quotationNumber: "MFG-2025-001",
