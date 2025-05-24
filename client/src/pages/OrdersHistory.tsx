@@ -344,22 +344,10 @@ const OrdersHistory: React.FC = () => {
             <p className="text-gray-500">Track and review all executed production and refining orders</p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            onClick={() => {
-              // Navigate to create invoice page with order selection
-              window.location.href = '/create-invoice?from=orders';
-            }}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Create Invoice from Order
-          </Button>
-          <Button onClick={exportToCSV} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-        </div>
+        <Button onClick={exportToCSV} className="bg-[#3BCEAC] hover:bg-[#2A9A7A]">
+          <Download className="h-4 w-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Summary Cards */}

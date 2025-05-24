@@ -144,8 +144,6 @@ const CreateInvoice = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
-  const [showOrderSelection, setShowOrderSelection] = useState(false);
-  const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<any>(null);
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -247,39 +245,6 @@ const CreateInvoice = () => {
     control: form.control,
   });
 
-  // Fill form with order data
-  const fillFormWithOrderData = (orderData: any) => {
-    // Find customer by name
-    const customer = customers?.find(c => c.name === orderData.customer);
-    
-    if (customer) {
-      form.setValue('customer', {
-        id: customer.id,
-        name: customer.name,
-        company: customer.company || orderData.company,
-        position: customer.position || '',
-        email: customer.email,
-        phone: customer.phone,
-        sector: customer.sector || '',
-        address: customer.address || '',
-      });
-    }
-
-    // Set items from order
-    if (orderData.items && orderData.items.length > 0) {
-      form.setValue('items', orderData.items);
-    }
-
-    // Add order reference to notes
-    const orderNotes = `Order Reference: ${orderData.orderReference}\nBatch Number: ${orderData.batchNumber}`;
-    form.setValue('notes', orderNotes);
-
-    toast({
-      title: "Order Data Loaded",
-      description: "Invoice has been pre-filled with order information.",
-    });
-  };
-
   // Watch form values for calculations
   const watchItems = form.watch('items');
   const watchTaxRate = form.watch('taxRate');
@@ -313,18 +278,6 @@ const CreateInvoice = () => {
       return [];
     },
     enabled: productSearchTerm.length > 0,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
-  });
-
-  // Fetch orders for selection when coming from Orders History
-  const { data: ordersData = [] } = useQuery<any[]>({
-    queryKey: ['/api/orders'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', '/api/orders');
-      return await res.json();
-    },
-    enabled: showOrderSelection,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -409,22 +362,6 @@ const CreateInvoice = () => {
       setIsSubmitting(false);
     },
   });
-
-  // Check URL parameters for order selection
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('from') === 'orders') {
-      setShowOrderSelection(true);
-    }
-    
-    // Check for pre-filled order data from localStorage
-    const orderData = localStorage.getItem('invoiceFromOrder');
-    if (orderData) {
-      const parsedData = JSON.parse(orderData);
-      fillFormWithOrderData(parsedData);
-      localStorage.removeItem('invoiceFromOrder');
-    }
-  }, []);
 
   // Update form when active invoice changes
   useEffect(() => {
@@ -1651,76 +1588,6 @@ const CreateInvoice = () => {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Order Selection Dialog */}
-      <Dialog open={showOrderSelection} onOpenChange={setShowOrderSelection}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Select Order for Invoice</DialogTitle>
-            <DialogDescription>
-              Choose an order from your Orders History to create an invoice from.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {ordersData?.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No completed orders available for invoicing.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {ordersData
-                    ?.filter(order => order.status === 'completed')
-                    ?.map((order) => (
-                      <Card 
-                        key={order.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow" 
-                        onClick={() => {
-                          const orderData = {
-                            customer: order.customerName,
-                            company: order.customerCompany,
-                            items: [
-                              {
-                                productId: 1,
-                                productName: order.targetProduct,
-                                quantity: 1,
-                                unitPrice: order.revenue,
-                                total: order.revenue
-                              }
-                            ],
-                            orderReference: order.orderNumber,
-                            batchNumber: order.batchNumber
-                          };
-                          form.reset(orderData);
-                          setShowOrderSelection(false);
-                        }}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
-                        <p className="text-sm text-gray-600">Batch: {order.batchNumber}</p>
-                        <p className="text-sm font-medium">{order.customerName} - {order.customerCompany}</p>
-                        <p className="text-sm text-gray-600">{order.targetProduct}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">{order.orderDate}</p>
-                        <p className="font-semibold text-green-600">${order.revenue.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowOrderSelection(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
