@@ -1664,18 +1664,22 @@ const CreateInvoice = () => {
           
           <div className="py-4">
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {ordersData.length === 0 ? (
+              {ordersData?.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No completed orders available for invoicing.</p>
                 </div>
               ) : (
-                ordersData
-                  .filter(order => order.status === 'completed')
-                  .map((order) => (
-                <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => {
-                  const orderData = {
-                    customer: order.customerName,
-                    company: order.customerCompany,
+                <div className="space-y-4">
+                  {ordersData
+                    ?.filter(order => order.status === 'completed')
+                    ?.map((order) => (
+                      <Card 
+                        key={order.id} 
+                        className="cursor-pointer hover:shadow-md transition-shadow" 
+                        onClick={() => {
+                          const orderData = {
+                            customer: order.customerName,
+                            company: order.customerCompany,
                     items: [
                       {
                         productId: 1,
