@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2 } from 'lucide-react';
+import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -83,6 +83,7 @@ const Suppliers: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
@@ -216,6 +217,11 @@ const Suppliers: React.FC = () => {
   };
 
   // Handle delete
+  const handleViewProfile = (supplier: Supplier) => {
+    setSelectedSupplier(supplier);
+    setIsViewProfileOpen(true);
+  };
+
   const handleDelete = (supplier: Supplier) => {
     setSelectedSupplier(supplier);
     setIsDeleteDialogOpen(true);
@@ -598,6 +604,10 @@ const Suppliers: React.FC = () => {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleViewProfile(supplier)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Profile
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(supplier)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
@@ -620,6 +630,78 @@ const Suppliers: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* View Profile Dialog */}
+      <Dialog open={isViewProfileOpen} onOpenChange={setIsViewProfileOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Truck className="h-5 w-5" />
+              Supplier Profile
+            </DialogTitle>
+            <DialogDescription>
+              Complete information for {selectedSupplier?.name}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSupplier && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Company Name</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.name}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Contact Person</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.contactPerson || 'Not specified'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Email</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.email || 'Not specified'}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Phone</label>
+                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.phone || 'Not specified'}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Address</label>
+                <p className="text-sm bg-gray-50 p-2 rounded border">
+                  {selectedSupplier.address ? `${selectedSupplier.address}, ${selectedSupplier.city}, ${selectedSupplier.state} ${selectedSupplier.zipCode}` : 'Not specified'}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Materials & Services</label>
+                <p className="text-sm bg-gray-50 p-2 rounded border min-h-[60px]">
+                  {selectedSupplier.materials || 'No materials specified'}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-500">
+                <div>
+                  <span className="font-medium">Created:</span> {new Date(selectedSupplier.createdAt).toLocaleDateString()}
+                </div>
+                <div>
+                  <span className="font-medium">Updated:</span> {new Date(selectedSupplier.updatedAt).toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewProfileOpen(false)}>
+              Close
+            </Button>
+            <Button onClick={() => {
+              setIsViewProfileOpen(false);
+              selectedSupplier && handleEdit(selectedSupplier);
+            }}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Supplier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
