@@ -133,10 +133,14 @@ const QuotationHistory = () => {
   // Get status badge color
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'draft':
+        return <Badge className="bg-gray-100 text-gray-800">Draft</Badge>;
+      case 'sent':
+        return <Badge className="bg-blue-100 text-blue-800">Sent</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       case 'accepted':
         return <Badge className="bg-green-100 text-green-800">Accepted</Badge>;
-      case 'pending':
-        return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
       case 'rejected':
         return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
       case 'expired':
@@ -192,10 +196,31 @@ const QuotationHistory = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="accepted">Accepted</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="expired">Expired</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-[180px]">
+                <Select 
+                  value={typeFilter} 
+                  onValueChange={setTypeFilter}
+                >
+                  <SelectTrigger>
+                    <div className="flex items-center">
+                      <Package className="mr-2 h-4 w-4" />
+                      <span>Type</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="refining">Refining</SelectItem>
+                    <SelectItem value="finished">Finished</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -258,6 +283,7 @@ const QuotationHistory = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Quotation #</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Created On</TableHead>
                     <TableHead>Valid Until</TableHead>
@@ -270,6 +296,7 @@ const QuotationHistory = () => {
                   {filteredQuotations.map((quotation) => (
                     <TableRow key={quotation.id}>
                       <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
+                      <TableCell>{getQuotationTypeBadge(quotation.type || 'manufacturing')}</TableCell>
                       <TableCell>{quotation.customerName}</TableCell>
                       <TableCell>{format(new Date(quotation.date), 'PP')}</TableCell>
                       <TableCell>{format(new Date(quotation.validUntil), 'PP')}</TableCell>
@@ -277,7 +304,7 @@ const QuotationHistory = () => {
                         {new Intl.NumberFormat('en-US', {
                           style: 'currency',
                           currency: 'USD'
-                        }).format(quotation.amount)}
+                        }).format(quotation.total || quotation.amount)}
                       </TableCell>
                       <TableCell>{getStatusBadge(quotation.status)}</TableCell>
                       <TableCell className="text-right">
@@ -330,6 +357,10 @@ const QuotationHistory = () => {
                   <p className="font-bold">Quotation #: {selectedQuotation.quotationNumber}</p>
                   <p>Date: {format(new Date(selectedQuotation.date), 'PP')}</p>
                   <p>Valid Until: {format(new Date(selectedQuotation.validUntil), 'PP')}</p>
+                  <div className="mt-2 flex items-center gap-2 justify-end">
+                    {getQuotationTypeIcon(selectedQuotation.type || 'manufacturing')}
+                    <span className="text-sm font-medium capitalize">{selectedQuotation.type || 'manufacturing'}</span>
+                  </div>
                   <p className="mt-2">
                     {getStatusBadge(selectedQuotation.status)}
                   </p>
@@ -378,6 +409,35 @@ const QuotationHistory = () => {
               
               <div className="mt-8 flex justify-end">
                 <div className="w-72">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(selectedQuotation.subtotal || selectedQuotation.amount)}
+                    </span>
+                  </div>
+                  {selectedQuotation.transportationFees > 0 && (
+                    <div className="flex justify-between">
+                      <span>Transportation:</span>
+                      <span>
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD'
+                        }).format(selectedQuotation.transportationFees)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>VAT (14%):</span>
+                    <span>
+                      {new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                      }).format(selectedQuotation.tax || selectedQuotation.amount * 0.14)}
+                    </span>
+                  </div>
                   <Separator className="my-2" />
                   <div className="flex justify-between font-bold">
                     <span>Total:</span>
@@ -385,11 +445,39 @@ const QuotationHistory = () => {
                       {new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: 'USD'
-                      }).format(selectedQuotation.amount)}
+                      }).format(selectedQuotation.total || selectedQuotation.amount)}
                     </span>
                   </div>
                 </div>
               </div>
+
+              {/* Transportation Details */}
+              {selectedQuotation.transportationType && selectedQuotation.transportationType !== 'pickup' && (
+                <div className="mt-8">
+                  <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    Transportation & Delivery:
+                  </h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p><span className="font-medium">Method:</span> {selectedQuotation.transportationType?.charAt(0).toUpperCase()}{selectedQuotation.transportationType?.slice(1).replace('-', ' ')}</p>
+                    <p><span className="font-medium">Fee:</span> {new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(selectedQuotation.transportationFees || 0)}</p>
+                    {selectedQuotation.transportationNotes && (
+                      <p><span className="font-medium">Notes:</span> {selectedQuotation.transportationNotes}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedQuotation.notes && (
+                <div className="mt-8">
+                  <h3 className="font-semibold mb-2">Notes & Special Instructions:</h3>
+                  <p className="text-sm text-muted-foreground">{selectedQuotation.notes}</p>
+                </div>
+              )}
             </div>
             
             <DialogFooter>
