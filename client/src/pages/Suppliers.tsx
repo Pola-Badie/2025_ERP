@@ -672,6 +672,17 @@ const Suppliers: React.FC = () => {
               </div>
               
               <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">ETA Number (Tax Registration)</label>
+                <p className="text-sm bg-gray-50 p-2 rounded border">
+                  {selectedSupplier.etaNumber ? (
+                    <span className="text-blue-600 font-medium">{selectedSupplier.etaNumber}</span>
+                  ) : (
+                    <span className="text-gray-500">Not registered with ETA</span>
+                  )}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Materials & Services</label>
                 <p className="text-sm bg-gray-50 p-2 rounded border min-h-[60px]">
                   {selectedSupplier.materials || 'No materials specified'}
