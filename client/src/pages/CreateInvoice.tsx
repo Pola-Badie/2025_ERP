@@ -1680,21 +1680,21 @@ const CreateInvoice = () => {
                           const orderData = {
                             customer: order.customerName,
                             company: order.customerCompany,
-                    items: [
-                      {
-                        productId: 1,
-                        productName: order.targetProduct,
-                        quantity: 1,
-                        unitPrice: order.revenue,
-                        total: order.revenue
-                      }
-                    ],
-                    orderReference: order.orderNumber,
-                    batchNumber: order.batchNumber
-                  };
-                  fillFormWithOrderData(orderData);
-                  setShowOrderSelection(false);
-                }}>
+                            items: [
+                              {
+                                productId: 1,
+                                productName: order.targetProduct,
+                                quantity: 1,
+                                unitPrice: order.revenue,
+                                total: order.revenue
+                              }
+                            ],
+                            orderReference: order.orderNumber,
+                            batchNumber: order.batchNumber
+                          };
+                          form.reset(orderData);
+                          setShowOrderSelection(false);
+                        }}>
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
                       <div>
