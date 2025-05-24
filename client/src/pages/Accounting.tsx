@@ -46,7 +46,9 @@ import {
   Download,
   FileQuestion,
   MoreHorizontal,
-  BarChart
+  BarChart,
+  Settings,
+  X
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -80,6 +82,7 @@ const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
   const [isNewExpenseOpen, setIsNewExpenseOpen] = useState(false);
+  const [isExpenseSettingsOpen, setIsExpenseSettingsOpen] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
     date: '',
     description: '',
@@ -89,6 +92,46 @@ const Accounting: React.FC = () => {
     paymentMethod: '',
     amount: ''
   });
+
+  // Configurable dropdown options
+  const [expenseSettings, setExpenseSettings] = useState({
+    accountTypes: ['Marketing', 'Operations', 'Fixed Assets', 'Projects Under Execution'],
+    costCenters: ['Marketing', 'Projects', 'Admin', 'Operations'],
+    paymentMethods: ['Cash', 'Credit Card', 'Bank Transfer', 'Check']
+  });
+
+  const [newOption, setNewOption] = useState({ type: '', value: '' });
+
+  // Settings management functions
+  const addNewOption = () => {
+    if (!newOption.type || !newOption.value.trim()) return;
+    
+    const settingKey = newOption.type + 's' as keyof typeof expenseSettings;
+    setExpenseSettings(prev => ({
+      ...prev,
+      [settingKey]: [...prev[settingKey], newOption.value.trim()]
+    }));
+    
+    setNewOption({ type: '', value: '' });
+    
+    toast({
+      title: "Success",
+      description: `Added "${newOption.value}" to ${newOption.type} options.`,
+    });
+  };
+
+  const removeOption = (type: string, option: string) => {
+    const settingKey = type + 's' as keyof typeof expenseSettings;
+    setExpenseSettings(prev => ({
+      ...prev,
+      [settingKey]: prev[settingKey].filter((item: string) => item !== option)
+    }));
+    
+    toast({
+      title: "Removed",
+      description: `Removed "${option}" from ${type} options.`,
+    });
+  };
 
   const handleExpenseSubmit = async () => {
     try {
@@ -395,6 +438,108 @@ const Accounting: React.FC = () => {
                   <Receipt className="h-5 w-5 mr-2 text-blue-600" />
                   <span>Expenses Management</span>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Dialog open={isExpenseSettingsOpen} onOpenChange={setIsExpenseSettingsOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Configure Expense Dropdown Options</DialogTitle>
+                        <DialogDescription>
+                          Manage the options available in Account Types, Cost Centers, and Payment Methods dropdowns.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-6 py-4">
+                        {/* Account Types */}
+                        <div>
+                          <h4 className="font-medium mb-3">Account Types</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.accountTypes.map((type, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {type}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('accountType', type)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New account type"
+                              value={newOption.type === 'accountType' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'accountType', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'accountType' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Cost Centers */}
+                        <div>
+                          <h4 className="font-medium mb-3">Cost Centers</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.costCenters.map((center, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {center}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('costCenter', center)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New cost center"
+                              value={newOption.type === 'costCenter' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'costCenter', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'costCenter' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Payment Methods */}
+                        <div>
+                          <h4 className="font-medium mb-3">Payment Methods</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.paymentMethods.map((method, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {method}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('paymentMethod', method)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New payment method"
+                              value={newOption.type === 'paymentMethod' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'paymentMethod', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'paymentMethod' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="button" onClick={() => setIsExpenseSettingsOpen(false)}>
+                          Done
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                  
                 <Dialog open={isNewExpenseOpen} onOpenChange={setIsNewExpenseOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -454,10 +599,9 @@ const Accounting: React.FC = () => {
                             <SelectValue placeholder="Select account type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="marketing">Marketing</SelectItem>
-                            <SelectItem value="operations">Operations</SelectItem>
-                            <SelectItem value="fixed-assets">Fixed Assets</SelectItem>
-                            <SelectItem value="projects">Projects Under Execution</SelectItem>
+                            {expenseSettings.accountTypes.map((type, index) => (
+                              <SelectItem key={index} value={type.toLowerCase().replace(/\s+/g, '-')}>{type}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
