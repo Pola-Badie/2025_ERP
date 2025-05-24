@@ -25,7 +25,7 @@ import {
   Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
   User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
-  Camera, Image
+  Camera, Image, Edit, MoreHorizontal
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -1390,94 +1390,111 @@ const Dashboard: React.FC = () => {
       <Dialog open={isProfileDialogOpen} onOpenChange={setIsProfileDialogOpen}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">User Profile</DialogTitle>
-            <p className="text-sm text-muted-foreground">Manage your account information and settings</p>
+            <DialogTitle>{profileData.name} - Profile Information</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
-            {/* Profile Header Card */}
-            <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="space-y-4">
+            {/* Profile Card - Matching Procurement CardContent structure */}
+            <Card className="hover:shadow-md transition-shadow">
               <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                  <div className="relative group">
-                    <Avatar className="h-24 w-24 shadow-lg ring-2 ring-blue-100">
-                      <AvatarImage 
-                        src={picturePreview || profileData.avatar} 
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl font-bold">
-                        {profileData.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    {isEditingProfile && (
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-full transition-all duration-200 flex items-center justify-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white hover:bg-white hover:bg-opacity-20"
-                          onClick={() => document.getElementById('profile-picture-input')?.click()}
-                        >
-                          <Camera className="h-5 w-5" />
-                        </Button>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Avatar className="h-16 w-16 shadow-lg">
+                        <AvatarImage 
+                          src={picturePreview || profileData.avatar} 
+                          className="object-cover"
+                        />
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-bold">
+                          {profileData.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg">{profileData.name}</h3>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Active
+                        </span>
                       </div>
-                    )}
-                    
-                    {isUploadingPicture && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                    </div>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Role:</strong> {profileData.role}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Department:</strong> {profileData.department}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Email:</strong> {profileData.email}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Phone:</strong> {profileData.phone}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Last Login:</strong> <span className="text-blue-600 font-medium">{new Date(profileData.lastLogin).toLocaleDateString()}</span>
+                    </p>
+                    <div className="mb-2">
+                      <strong className="text-sm text-muted-foreground">Bio:</strong>
+                      <div className="mt-1">
+                        <span className="text-xs text-muted-foreground italic">{profileData.bio || 'No bio provided'}</span>
                       </div>
-                    )}
+                    </div>
+                    <p className="text-lg font-semibold text-green-600">
+                      Member since {new Date(profileData.joinDate).toLocaleDateString()}
+                    </p>
                   </div>
                   
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-2xl font-bold text-gray-900">{profileData.name}</h3>
-                    <p className="text-lg text-blue-600 font-medium">{profileData.role}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{profileData.department}</p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('profile-picture-input')?.click()}
+                      disabled={isUploadingPicture}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {isUploadingPicture ? 'Uploading...' : 'Change Photo'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingProfile(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                      Edit Profile
+                    </Button>
                     
-                    {isEditingProfile && (
-                      <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => document.getElementById('profile-picture-input')?.click()}
-                          disabled={isUploadingPicture}
-                          className="flex items-center gap-2"
-                        >
-                          <Image className="h-4 w-4" />
-                          {isUploadingPicture ? 'Uploading...' : 'Change Photo'}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Settings className="h-4 w-4" />
                         </Button>
-                        
-                        {(picturePreview || profileData.avatar) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleRemovePicture}
-                            disabled={isUploadingPicture}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <X className="h-4 w-4 mr-2" />
-                            Remove Photo
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    
-                    <input
-                      id="profile-picture-input"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileInputChange}
-                      className="hidden"
-                    />
-                  </div>
-                  
-                  <div className="text-center">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setIsSettingsDialogOpen(true)}>
+                          Open Settings
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleSaveProfile()}>
+                          Save Changes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={handleRemovePicture}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Remove Photo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
+
+                <input
+                  id="profile-picture-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
               </CardContent>
             </Card>
 
