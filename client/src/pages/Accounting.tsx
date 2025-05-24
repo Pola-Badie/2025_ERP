@@ -378,8 +378,273 @@ const Accounting: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="text-muted-foreground" colSpan={7}>
-                      No expense records found. Add a new expense to get started.
+                    <TableCell>2025-05-15</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Monthly Electricity Bill</div>
+                        <div className="text-xs text-muted-foreground">Manufacturing facility power consumption</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$4,850.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-18</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Fuel for Company Vehicles</div>
+                        <div className="text-xs text-muted-foreground">Delivery trucks and employee vehicles</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Credit Card</TableCell>
+                    <TableCell className="text-right">$1,280.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-20</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Office Supplies & Stationery</div>
+                        <div className="text-xs text-muted-foreground">Administrative office requirements</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Marketing</TableCell>
+                    <TableCell>Admin</TableCell>
+                    <TableCell>Cash</TableCell>
+                    <TableCell className="text-right">$320.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-22</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Internet & Telecommunications</div>
+                        <div className="text-xs text-muted-foreground">Monthly communication services</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Fixed Assets</TableCell>
+                    <TableCell>Admin</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$680.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-25</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Equipment Maintenance</div>
+                        <div className="text-xs text-muted-foreground">Pharmaceutical machinery servicing</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Credit Card</TableCell>
+                    <TableCell className="text-right">$2,750.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-28</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Marketing Campaign</div>
+                        <div className="text-xs text-muted-foreground">Digital advertising and promotional materials</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Marketing</TableCell>
+                    <TableCell>Marketing</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$3,400.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-05-30</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Laboratory Testing Fees</div>
+                        <div className="text-xs text-muted-foreground">Third-party quality control testing</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Projects Under Execution</TableCell>
+                    <TableCell>Projects</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$1,950.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-06-02</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Water & Utilities</div>
+                        <div className="text-xs text-muted-foreground">Manufacturing facility water usage</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Operations</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$890.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-06-05</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Insurance Premiums</div>
+                        <div className="text-xs text-muted-foreground">Monthly business insurance coverage</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Fixed Assets</TableCell>
+                    <TableCell>Admin</TableCell>
+                    <TableCell>Bank Transfer</TableCell>
+                    <TableCell className="text-right">$2,100.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2025-06-08</TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="text-sm font-medium">Legal & Professional Services</div>
+                        <div className="text-xs text-muted-foreground">Legal consultation and compliance fees</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>Marketing</TableCell>
+                    <TableCell>Admin</TableCell>
+                    <TableCell>Credit Card</TableCell>
+                    <TableCell className="text-right">$1,650.00</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 </TableBody>
