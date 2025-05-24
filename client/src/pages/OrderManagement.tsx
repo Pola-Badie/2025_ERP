@@ -108,6 +108,12 @@ const OrderManagement = () => {
   const [transportationCost, setTransportationCost] = useState<string>('0.00');
   const [transportationNotes, setTransportationNotes] = useState<string>('');
   
+  // Additional cost states for production orders
+  const [laborCost, setLaborCost] = useState<string>('0.00');
+  const [equipmentCost, setEquipmentCost] = useState<string>('0.00');
+  const [qualityControlCost, setQualityControlCost] = useState<string>('0.00');
+  const [storageCost, setStorageCost] = useState<string>('0.00');
+  
   // Refining order states
   const [refiningBatchNumber, setRefiningBatchNumber] = useState('');
   const [sourceType, setSourceType] = useState<string>('production');
@@ -121,6 +127,13 @@ const OrderManagement = () => {
   const [refiningCost, setRefiningCost] = useState<string>('0.00');
   const [refiningTransportationCost, setRefiningTransportationCost] = useState<string>('0.00');
   const [refiningTransportationNotes, setRefiningTransportationNotes] = useState<string>('');
+  
+  // Additional cost states for refining orders
+  const [refiningLaborCost, setRefiningLaborCost] = useState<string>('0.00');
+  const [refiningEquipmentCost, setRefiningEquipmentCost] = useState<string>('0.00');
+  const [refiningQualityControlCost, setRefiningQualityControlCost] = useState<string>('0.00');
+  const [refiningStorageCost, setRefiningStorageCost] = useState<string>('0.00');
+  const [refiningProcessingCost, setRefiningProcessingCost] = useState<string>('0.00');
   
   // Refining raw materials states
   const [refiningRawMaterials, setRefiningRawMaterials] = useState<any[]>([]);
@@ -140,20 +153,24 @@ const OrderManagement = () => {
       return sum + (item.quantity * parseFloat(item.unitPrice));
     }, 0);
     
-    // Add transportation cost
+    // Add all additional costs
     const transportCost = parseFloat(transportationCost) || 0;
+    const labor = parseFloat(laborCost) || 0;
+    const equipment = parseFloat(equipmentCost) || 0;
+    const qualityControl = parseFloat(qualityControlCost) || 0;
+    const storage = parseFloat(storageCost) || 0;
     
     // Calculate the total subtotal
-    const subtotal = materialsCost + packagingCost + transportCost;
+    const subtotal = materialsCost + packagingCost + transportCost + labor + equipment + qualityControl + storage;
     setSubtotalPrice(subtotal.toFixed(2));
     
     // Calculate total with tax
     const taxAmount = subtotal * (taxPercentage / 100);
     const total = subtotal + taxAmount;
     setTotalPrice(total.toFixed(2));
-  }, [rawMaterials, packagingItems, transportationCost, taxPercentage]);
+  }, [rawMaterials, packagingItems, transportationCost, laborCost, equipmentCost, qualityControlCost, storageCost, taxPercentage]);
   
-  // Calculate refining cost with tax and transportation
+  // Calculate refining cost with tax and all additional costs
   useEffect(() => {
     // Calculate refining materials cost
     const materialsCost = refiningRawMaterials.reduce((sum, material) => {
@@ -162,14 +179,19 @@ const OrderManagement = () => {
     
     const baseSubtotal = parseFloat(refiningSubtotal) || 0;
     const transportCost = parseFloat(refiningTransportationCost) || 0;
+    const labor = parseFloat(refiningLaborCost) || 0;
+    const equipment = parseFloat(refiningEquipmentCost) || 0;
+    const qualityControl = parseFloat(refiningQualityControlCost) || 0;
+    const storage = parseFloat(refiningStorageCost) || 0;
+    const processing = parseFloat(refiningProcessingCost) || 0;
     
-    // Calculate the total subtotal including materials
-    const totalSubtotal = baseSubtotal + materialsCost + transportCost;
+    // Calculate the total subtotal including all costs
+    const totalSubtotal = baseSubtotal + materialsCost + transportCost + labor + equipment + qualityControl + storage + processing;
     
     const taxAmount = totalSubtotal * (refiningTaxPercentage / 100);
     const total = totalSubtotal + taxAmount;
     setRefiningCost(total.toFixed(2));
-  }, [refiningSubtotal, refiningTransportationCost, refiningTaxPercentage, refiningRawMaterials]);
+  }, [refiningSubtotal, refiningTransportationCost, refiningLaborCost, refiningEquipmentCost, refiningQualityControlCost, refiningStorageCost, refiningProcessingCost, refiningTaxPercentage, refiningRawMaterials]);
 
   // Fetch all orders
   const { data: allOrders, isLoading: isLoadingOrders, refetch: refetchOrders } = useQuery({
@@ -1021,26 +1043,70 @@ const OrderManagement = () => {
                       )}
                     </div>
 
-                    {/* Transportation */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Transportation Cost</Label>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          value={transportationCost}
-                          onChange={(e) => setTransportationCost(e.target.value)}
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <Label>Tax Percentage</Label>
-                        <Input 
-                          type="number" 
-                          value={taxPercentage}
-                          onChange={(e) => setTaxPercentage(parseInt(e.target.value) || 14)}
-                          placeholder="14"
-                        />
+                    {/* Additional Costs */}
+                    <div>
+                      <Label className="text-base font-semibold">Additional Costs</Label>
+                      
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                          <Label>Transportation Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={transportationCost}
+                            onChange={(e) => setTransportationCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Labor Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={laborCost}
+                            onChange={(e) => setLaborCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Equipment Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={equipmentCost}
+                            onChange={(e) => setEquipmentCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Quality Control Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={qualityControlCost}
+                            onChange={(e) => setQualityControlCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Storage Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={storageCost}
+                            onChange={(e) => setStorageCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Tax Percentage</Label>
+                          <Input 
+                            type="number" 
+                            value={taxPercentage}
+                            onChange={(e) => setTaxPercentage(parseInt(e.target.value) || 14)}
+                            placeholder="14"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1428,36 +1494,90 @@ const OrderManagement = () => {
                       />
                     </div>
 
-                    {/* Transportation */}
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <Label>Subtotal Cost</Label>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          value={refiningSubtotal}
-                          onChange={(e) => setRefiningSubtotal(e.target.value)}
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <Label>Transportation Cost</Label>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          value={refiningTransportationCost}
-                          onChange={(e) => setRefiningTransportationCost(e.target.value)}
-                          placeholder="0.00"
-                        />
-                      </div>
-                      <div>
-                        <Label>Tax Percentage</Label>
-                        <Input 
-                          type="number" 
-                          value={refiningTaxPercentage}
-                          onChange={(e) => setRefiningTaxPercentage(parseInt(e.target.value) || 14)}
-                          placeholder="14"
-                        />
+                    {/* Additional Costs */}
+                    <div>
+                      <Label className="text-base font-semibold">Additional Costs</Label>
+                      
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <div>
+                          <Label>Base Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningSubtotal}
+                            onChange={(e) => setRefiningSubtotal(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Transportation Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningTransportationCost}
+                            onChange={(e) => setRefiningTransportationCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Labor Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningLaborCost}
+                            onChange={(e) => setRefiningLaborCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Equipment Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningEquipmentCost}
+                            onChange={(e) => setRefiningEquipmentCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Quality Control Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningQualityControlCost}
+                            onChange={(e) => setRefiningQualityControlCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Storage Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningStorageCost}
+                            onChange={(e) => setRefiningStorageCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Processing Cost</Label>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            value={refiningProcessingCost}
+                            onChange={(e) => setRefiningProcessingCost(e.target.value)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div>
+                          <Label>Tax Percentage</Label>
+                          <Input 
+                            type="number" 
+                            value={refiningTaxPercentage}
+                            onChange={(e) => setRefiningTaxPercentage(parseInt(e.target.value) || 14)}
+                            placeholder="14"
+                          />
+                        </div>
                       </div>
                     </div>
 
