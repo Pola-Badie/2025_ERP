@@ -802,27 +802,27 @@ export function registerAccountingRoutes(app: Express) {
       if (periods.length === 0) {
         const samplePeriods = [
           {
-            periodName: "Q1 2025",
-            startDate: "2025-01-01",
-            endDate: "2025-03-31",
+            period_name: "Q1 2025",
+            start_date: "2025-01-01",
+            end_date: "2025-03-31",
             status: "closed" as const
           },
           {
-            periodName: "Q2 2025",
-            startDate: "2025-04-01",
-            endDate: "2025-06-30",
+            period_name: "Q2 2025",
+            start_date: "2025-04-01",
+            end_date: "2025-06-30",
             status: "open" as const
           },
           {
-            periodName: "Q3 2025",
-            startDate: "2025-07-01",
-            endDate: "2025-09-30",
+            period_name: "Q3 2025",
+            start_date: "2025-07-01",
+            end_date: "2025-09-30",
             status: "open" as const
           },
           {
-            periodName: "Q4 2025",
-            startDate: "2025-10-01",
-            endDate: "2025-12-31",
+            period_name: "Q4 2025",
+            start_date: "2025-10-01",
+            end_date: "2025-12-31",
             status: "open" as const
           }
         ];
