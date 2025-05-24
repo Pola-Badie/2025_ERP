@@ -295,52 +295,57 @@ const CustomersDemo: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
-              <div className="col-span-2 md:col-span-1">Name</div>
-              <div className="hidden md:block">Company</div>
-              <div className="hidden md:block">Sector</div>
-              <div className="hidden sm:block md:block">Phone</div>
-              <div className="col-span-1">Email</div>
-              <div className="hidden md:block">Address</div>
-              <div className="text-right md:text-center">Action</div>
-            </div>
-            
-            {/* Customer data with custom scrollbar */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400 pr-2">
-              {isLoading ? (
-                <div className="py-8 text-center text-slate-500">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                  <p className="text-lg font-medium">Loading customers...</p>
+            {/* Table container with horizontal scrolling */}
+            <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400">
+              <div className="min-w-[800px]">
+                {/* Table header */}
+                <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2 sticky top-0 bg-white z-10">
+                  <div className="col-span-2 md:col-span-1">Name</div>
+                  <div className="hidden md:block">Company</div>
+                  <div className="hidden md:block">Sector</div>
+                  <div className="hidden sm:block md:block">Phone</div>
+                  <div className="col-span-1">Email</div>
+                  <div className="hidden md:block">Address</div>
+                  <div className="text-right md:text-center">Action</div>
                 </div>
-              ) : isError ? (
-                <div className="py-8 text-center text-red-500">
-                  <p className="text-lg font-medium">Error loading customers</p>
-                  <p>Please try again later</p>
-                </div>
-              ) : filteredCustomers.length > 0 ? (
-                filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((customer: CustomerData) => (
-                  <CustomerCard 
-                    key={customer.id}
-                    customer={customer}
-                    onViewProfile={handleViewProfile}
-                    onViewOrders={handleViewOrders}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))
-              ) : (
-                <div className="py-8 text-center text-slate-500">
-                  {searchQuery ? (
-                    <>
-                      <p className="mb-2 text-lg font-medium">No matching customers found</p>
-                      <p>Try adjusting your search query or add a new customer</p>
-                    </>
+                
+                {/* Customer data with scrollbars */}
+                <div className="space-y-0">
+                  {isLoading ? (
+                    <div className="py-8 text-center text-slate-500">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                      <p className="text-lg font-medium">Loading customers...</p>
+                    </div>
+                  ) : isError ? (
+                    <div className="py-8 text-center text-red-500">
+                      <p className="text-lg font-medium">Error loading customers</p>
+                      <p>Please try again later</p>
+                    </div>
+                  ) : filteredCustomers.length > 0 ? (
+                    filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((customer: CustomerData) => (
+                      <CustomerCard 
+                        key={customer.id}
+                        customer={customer}
+                        onViewProfile={handleViewProfile}
+                        onViewOrders={handleViewOrders}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))
                   ) : (
-                    <p className="text-lg font-medium">No customers available</p>
+                    <div className="py-8 text-center text-slate-500">
+                      {searchQuery ? (
+                        <>
+                          <p className="mb-2 text-lg font-medium">No matching customers found</p>
+                          <p>Try adjusting your search query or add a new customer</p>
+                        </>
+                      ) : (
+                        <p className="text-lg font-medium">No customers available</p>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Pagination Controls - Fixed at bottom */}
