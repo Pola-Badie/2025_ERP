@@ -85,15 +85,15 @@ const CustomersDemo: React.FC = () => {
       const formattedCustomers: CustomerData[] = apiCustomers.map(customer => ({
         id: customer.id,
         name: customer.name,
-        // Assign a management position based on customer ID (for consistency)
-        position: managementPositions[customer.id % managementPositions.length],
-        company: customer.city + " Pharmaceuticals", // Using city as part of company name
-        // Assign an industry sector based on customer ID (for consistency)
-        sector: industrySectors[customer.id % industrySectors.length],
+        // Use existing data or assign management position
+        position: customer.position || managementPositions[customer.id % managementPositions.length],
+        company: customer.company || customer.city + " Pharmaceuticals", // Using city as part of company name
+        // Use existing data or assign industry sector
+        sector: customer.sector || industrySectors[customer.id % industrySectors.length],
         phone: customer.phone,
         email: customer.email,
         address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zipCode}`,
-        taxNumber: `TAX-${(customer.id * 12345).toString().padStart(6, '0')}` // Generate consistent tax numbers
+        taxNumber: customer.taxNumber || `TAX-${(customer.id * 12345).toString().padStart(6, '0')}` // Use existing or generate tax numbers
       }));
       setCustomerData(formattedCustomers);
     }
