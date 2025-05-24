@@ -510,7 +510,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <Card className="bg-[#F16F6F] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
@@ -556,6 +556,19 @@ const Dashboard: React.FC = () => {
               {isLoading ? "..." : `EGP ${dashboardData?.monthSales.toLocaleString() || "12,500"}`}
             </div>
             <p className="text-xs mt-1">Monthly</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-[#FF9F43] text-white rounded-md border-none overflow-hidden relative">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
+          <CardHeader className="pb-0 relative z-10">
+            <CardTitle className="text-sm font-medium">COLLECTED TAX</CardTitle>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-4xl font-bold">
+              {isLoading ? "..." : `EGP ${(dashboardData?.monthSales * 0.14 || 1750).toLocaleString()}`}
+            </div>
+            <p className="text-xs mt-1">This Month (14% VAT)</p>
           </CardContent>
         </Card>
       </div>
