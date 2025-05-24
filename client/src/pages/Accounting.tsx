@@ -101,6 +101,11 @@ const Accounting: React.FC = () => {
   });
 
   const [newOption, setNewOption] = useState({ type: '', value: '' });
+  
+  // State for expense actions
+  const [selectedExpense, setSelectedExpense] = useState<any>(null);
+  const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
+  const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
 
   // Settings management functions
   const addNewOption = () => {
@@ -131,6 +136,36 @@ const Accounting: React.FC = () => {
       title: "Removed",
       description: `Removed "${option}" from ${type} options.`,
     });
+  };
+
+  // Expense action functions
+  const handleViewReceipt = (expense: any) => {
+    setSelectedExpense(expense);
+    setIsViewReceiptOpen(true);
+  };
+
+  const handleEditExpense = (expense: any) => {
+    setSelectedExpense(expense);
+    setExpenseForm({
+      date: expense.date,
+      description: expense.description,
+      notes: expense.notes || '',
+      accountType: expense.accountType,
+      costCenter: expense.costCenter,
+      paymentMethod: expense.paymentMethod,
+      amount: expense.amount
+    });
+    setIsEditExpenseOpen(true);
+  };
+
+  const handleDeleteExpense = (expense: any) => {
+    if (confirm(`Are you sure you want to delete the expense "${expense.description}"?`)) {
+      toast({
+        title: "Success",
+        description: "Expense entry has been deleted.",
+      });
+      // Here you would typically make an API call to delete the expense
+    }
   };
 
   const handleExpenseSubmit = async () => {
@@ -749,9 +784,30 @@ const Accounting: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Receipt</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Entry</DropdownMenuItem>
-                          <DropdownMenuItem>Delete Entry</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewReceipt({
+                            id: 'EXP-2025-001',
+                            date: '2025-05-15',
+                            description: 'Marketing Campaign Materials',
+                            notes: 'Promotional flyers and digital advertising content',
+                            accountType: 'Marketing',
+                            costCenter: 'Marketing',
+                            paymentMethod: 'Credit Card',
+                            amount: '$1,450.00'
+                          })}>View Receipt</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditExpense({
+                            id: 'EXP-2025-001',
+                            date: '2025-05-15',
+                            description: 'Marketing Campaign Materials',
+                            notes: 'Promotional flyers and digital advertising content',
+                            accountType: 'Marketing',
+                            costCenter: 'Marketing',
+                            paymentMethod: 'Credit Card',
+                            amount: '1450.00'
+                          })}>Edit Entry</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteExpense({
+                            id: 'EXP-2025-001',
+                            description: 'Marketing Campaign Materials'
+                          })}>Delete Entry</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
