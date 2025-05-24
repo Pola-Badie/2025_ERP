@@ -92,7 +92,8 @@ const CustomersDemo: React.FC = () => {
         sector: industrySectors[customer.id % industrySectors.length],
         phone: customer.phone,
         email: customer.email,
-        address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zipCode}`
+        address: `${customer.address}, ${customer.city}, ${customer.state} ${customer.zipCode}`,
+        taxNumber: `TAX-${(customer.id * 12345).toString().padStart(6, '0')}` // Generate consistent tax numbers
       }));
       setCustomerData(formattedCustomers);
     }
@@ -162,7 +163,8 @@ const CustomersDemo: React.FC = () => {
       sector: customer.sector || '',
       phone: customer.phone || '',
       email: customer.email || '',
-      address: customer.address || ''
+      address: customer.address || '',
+      taxNumber: customer.taxNumber || `TAX-${Math.floor(Math.random() * 900000) + 100000}`
     };
     
     setCustomerData(prevData => [...prevData, newCustomer]);
