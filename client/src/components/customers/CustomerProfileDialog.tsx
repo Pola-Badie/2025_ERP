@@ -114,6 +114,19 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
                       </div>
                     </div>
                     
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-medium">Egyptian Tax Authority</h3>
+                      <div className="flex items-center text-slate-700">
+                        <FileText className="h-4 w-4 mr-2 text-slate-500" />
+                        <span className="text-blue-600 font-medium">
+                          {customer.taxNumber || 'Not registered'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Tax registration number for ETA invoice compliance
+                      </p>
+                    </div>
+                    
                     <div className="space-y-1 pt-2">
                       <h3 className="text-lg font-medium">Account Summary</h3>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

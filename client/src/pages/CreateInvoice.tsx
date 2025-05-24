@@ -891,6 +891,17 @@ const CreateInvoice = () => {
                       {...form.register('customer.address')}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="customerTaxNumber">Tax Number (ETA Registration)</Label>
+                    <Input
+                      id="customerTaxNumber"
+                      placeholder="Egyptian Tax Authority registration number"
+                      {...form.register('customer.taxNumber')}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Required for invoices to appear in customer's ETA portal
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     onClick={form.handleSubmit(handleCustomerCreation)}

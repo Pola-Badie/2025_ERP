@@ -1126,6 +1126,8 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                     <p className="font-medium">{selectedInvoice.customerName}</p>
                     <p className="text-sm text-slate-600">Mobile: +1 (555) 123-4567</p>
                     <p className="text-sm text-slate-600">Email: {selectedInvoice.customerName.toLowerCase().replace(/\s+/g, '.')}@pharmacare.com</p>
+                    <p className="text-sm text-blue-600 font-medium">Tax Number: ETA-{Math.floor(Math.random() * 100000000)}</p>
+                    <p className="text-xs text-slate-500">Egyptian Tax Authority Registration</p>
                   </div>
                 </div>
               </div>
