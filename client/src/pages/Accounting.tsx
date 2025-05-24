@@ -439,113 +439,12 @@ const Accounting: React.FC = () => {
                   <span>Expenses Management</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Dialog open={isExpenseSettingsOpen} onOpenChange={setIsExpenseSettingsOpen}>
+                  <Dialog open={isNewExpenseOpen} onOpenChange={setIsNewExpenseOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Settings className="h-4 w-4" />
+                      <Button variant="outline" size="sm">
+                        <Plus className="h-4 w-4 mr-2" /> New Expense
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[600px]">
-                      <DialogHeader>
-                        <DialogTitle>Configure Expense Dropdown Options</DialogTitle>
-                        <DialogDescription>
-                          Manage the options available in Account Types, Cost Centers, and Payment Methods dropdowns.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-6 py-4">
-                        {/* Account Types */}
-                        <div>
-                          <h4 className="font-medium mb-3">Account Types</h4>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {expenseSettings.accountTypes.map((type, index) => (
-                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                {type}
-                                <X 
-                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                  onClick={() => removeOption('accountType', type)}
-                                />
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="New account type"
-                              value={newOption.type === 'accountType' ? newOption.value : ''}
-                              onChange={(e) => setNewOption({ type: 'accountType', value: e.target.value })}
-                            />
-                            <Button onClick={addNewOption} disabled={newOption.type !== 'accountType' || !newOption.value.trim()}>
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Cost Centers */}
-                        <div>
-                          <h4 className="font-medium mb-3">Cost Centers</h4>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {expenseSettings.costCenters.map((center, index) => (
-                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                {center}
-                                <X 
-                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                  onClick={() => removeOption('costCenter', center)}
-                                />
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="New cost center"
-                              value={newOption.type === 'costCenter' ? newOption.value : ''}
-                              onChange={(e) => setNewOption({ type: 'costCenter', value: e.target.value })}
-                            />
-                            <Button onClick={addNewOption} disabled={newOption.type !== 'costCenter' || !newOption.value.trim()}>
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Payment Methods */}
-                        <div>
-                          <h4 className="font-medium mb-3">Payment Methods</h4>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {expenseSettings.paymentMethods.map((method, index) => (
-                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                                {method}
-                                <X 
-                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                                  onClick={() => removeOption('paymentMethod', method)}
-                                />
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="New payment method"
-                              value={newOption.type === 'paymentMethod' ? newOption.value : ''}
-                              onChange={(e) => setNewOption({ type: 'paymentMethod', value: e.target.value })}
-                            />
-                            <Button onClick={addNewOption} disabled={newOption.type !== 'paymentMethod' || !newOption.value.trim()}>
-                              Add
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="button" onClick={() => setIsExpenseSettingsOpen(false)}>
-                          Done
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                  
-                <Dialog open={isNewExpenseOpen} onOpenChange={setIsNewExpenseOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Plus className="h-4 w-4 mr-2" /> New Expense
-                    </Button>
-                  </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Add New Expense</DialogTitle>
@@ -660,6 +559,107 @@ const Accounting: React.FC = () => {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                  
+                  <Dialog open={isExpenseSettingsOpen} onOpenChange={setIsExpenseSettingsOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Configure Expense Dropdown Options</DialogTitle>
+                        <DialogDescription>
+                          Manage the options available in Account Types, Cost Centers, and Payment Methods dropdowns.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-6 py-4">
+                        {/* Account Types */}
+                        <div>
+                          <h4 className="font-medium mb-3">Account Types</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.accountTypes.map((type, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {type}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('accountType', type)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New account type"
+                              value={newOption.type === 'accountType' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'accountType', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'accountType' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Cost Centers */}
+                        <div>
+                          <h4 className="font-medium mb-3">Cost Centers</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.costCenters.map((center, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {center}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('costCenter', center)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New cost center"
+                              value={newOption.type === 'costCenter' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'costCenter', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'costCenter' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Payment Methods */}
+                        <div>
+                          <h4 className="font-medium mb-3">Payment Methods</h4>
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {expenseSettings.paymentMethods.map((method, index) => (
+                              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                                {method}
+                                <X 
+                                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                                  onClick={() => removeOption('paymentMethod', method)}
+                                />
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="New payment method"
+                              value={newOption.type === 'paymentMethod' ? newOption.value : ''}
+                              onChange={(e) => setNewOption({ type: 'paymentMethod', value: e.target.value })}
+                            />
+                            <Button onClick={addNewOption} disabled={newOption.type !== 'paymentMethod' || !newOption.value.trim()}>
+                              Add
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="button" onClick={() => setIsExpenseSettingsOpen(false)}>
+                          Done
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardTitle>
               <CardDescription>Record and track all company expenses</CardDescription>
             </CardHeader>
