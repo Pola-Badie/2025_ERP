@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -12,19 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import {
   Table,
   TableBody,
@@ -43,658 +32,834 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { format, addDays } from 'date-fns';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, FileText, X, Receipt } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Calendar } from '@/components/ui/calendar';
+import { 
+  Plus, 
+  Trash2, 
+  FileText, 
+  Factory, 
+  TestTube, 
+  Package,
+  Calendar,
+  User,
+  DollarSign,
+  Eye,
+  Save,
+  Send,
+  ArrowLeft,
+  Calculator,
+  Info
+} from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
-// Form validation schema
-const quotationFormSchema = z.object({
-  customer: z.object({
-    id: z.number().optional(),
-    name: z.string().min(1, 'Customer name is required'),
-    company: z.string().optional().or(z.literal('')),
-    position: z.string().optional().or(z.literal('')),
-    email: z.string().email('Invalid email').optional().or(z.literal('')),
-    phone: z.string().optional().or(z.literal('')),
-    sector: z.string().optional().or(z.literal('')),
-    address: z.string().optional().or(z.literal('')),
-  }),
-  items: z.array(z.object({
-    productId: z.number().min(1, 'Product is required'),
-    productName: z.string(),
-    quantity: z.number().min(1, 'Quantity must be at least 1'),
-    unitPrice: z.number().min(0, 'Unit price must be positive'),
-    total: z.number().min(0),
-    uom: z.string().optional(),
-  })).min(1, 'At least one item is required'),
-  subtotal: z.number(),
-  taxRate: z.number().min(0).max(100),
-  taxAmount: z.number(),
-  grandTotal: z.number(),
-  validUntil: z.date(),
-  notes: z.string().optional(),
-});
+interface QuotationItem {
+  id: string;
+  type: 'manufacturing' | 'refining' | 'finished';
+  productName: string;
+  description: string;
+  quantity: number;
+  uom: string;
+  unitPrice: number;
+  total: number;
+  specifications?: string;
+  rawMaterials?: string[];
+  processingTime?: number;
+  qualityGrade?: string;
+}
 
-type QuotationFormValues = z.infer<typeof quotationFormSchema>;
+interface Customer {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
 
 const CreateQuotation: React.FC = () => {
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(addDays(new Date(), 30));
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [openCustomerSelect, setOpenCustomerSelect] = useState(false);
-  const [openProductSelect, setOpenProductSelect] = useState(false);
-  const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [productSearchTerm, setProductSearchTerm] = useState('');
-  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
-  // Type definition for Product and Customer
-  interface Product {
-    id: number;
-    name: string;
-    drugName?: string;
-    sellingPrice: number | string;
-    [key: string]: any;
-  }
-
-  interface Customer {
-    id: number;
-    name: string;
-    companyName?: string;
-    position?: string;
-    email: string;
-    phone: string;
-    sector?: string;
-    address: string;
-    [key: string]: any;
-  }
-
-  // Fetch customers with optimized performance
-  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery<Customer[]>({
-    queryKey: ['/api/customers', customerSearchTerm],
-    queryFn: async () => {
-      if (customerSearchTerm && customerSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-        return await res.json();
-      }
-      return [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes of cache
-    enabled: customerSearchTerm.length > 0,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
-
-  // Fetch products with optimized performance
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
-    queryKey: ['/api/products', productSearchTerm],
-    queryFn: async () => {
-      // Only make API call when actively searching
-      if (productSearchTerm && productSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
-        return await res.json();
-      }
-      return [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes of cache
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
-
-  // Form setup with react-hook-form and zod validation
-  const form = useForm<QuotationFormValues>({
-    resolver: zodResolver(quotationFormSchema),
-    defaultValues: {
-      customer: {
-        id: undefined,
-        name: '',
-        company: '',
-        position: '',
-        email: '',
-        phone: '',
-        sector: '',
-        address: '',
-      },
-      items: [],
-      subtotal: 0,
-      taxRate: 0,
-      taxAmount: 0,
-      grandTotal: 0,
-      validUntil: addDays(new Date(), 30),
-      notes: '',
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'items',
-  });
-
-  // Calculate totals whenever items change - optimized with memoization
-  const calculateTotals = React.useCallback(() => {
-    const items = form.getValues('items');
-    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-    const taxRate = form.getValues('taxRate') || 0;
-    const taxAmount = (subtotal * taxRate) / 100;
-    const grandTotal = subtotal + taxAmount;
-
-    // Set all values at once to reduce renders
-    form.setValue('subtotal', subtotal);
-    form.setValue('taxAmount', taxAmount);
-    form.setValue('grandTotal', grandTotal);
-  }, [form]);
-
-  // Run the calculation with a small delay to avoid too frequent updates
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      calculateTotals();
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  }, [form.watch('items'), form.watch('taxRate'), calculateTotals]);
-
-  // Set the validUntil date when selectedDate changes
-  useEffect(() => {
-    if (selectedDate) {
-      form.setValue('validUntil', selectedDate);
-    }
-  }, [selectedDate, form]);
-
-  // Mutation for creating a quotation
-  const createQuotationMutation = useMutation({
-    mutationFn: async (data: QuotationFormValues) => {
-      const response = await apiRequest('POST', '/api/quotations', data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
-      toast({
-        title: 'Success',
-        description: 'Quotation created successfully',
-      });
-      form.reset({
-        customer: {
-          id: undefined,
-          name: '',
-          company: '',
-          position: '',
-          email: '',
-          phone: '',
-          sector: '',
-          address: '',
-        },
-        items: [],
-        subtotal: 0,
-        taxRate: 0,
-        taxAmount: 0,
-        grandTotal: 0,
-        validUntil: addDays(new Date(), 30),
-        notes: '',
-      });
-      setSelectedDate(addDays(new Date(), 30));
-    },
-    onError: (error) => {
-      console.error('Error creating quotation:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create quotation. Please try again.',
-        variant: 'destructive',
-      });
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
-  });
-
-  // Handle form submission
-  const onSubmit = (data: QuotationFormValues) => {
-    console.log('Submitting quotation:', data);
-    setIsSubmitting(true);
-    createQuotationMutation.mutate(data);
-  };
-
-  // Add item to quotation
-  const handleAddItem = (productId: number) => {
-    const product = products.find((p) => p.id === productId);
-    if (!product) return;
-
-    // If we're editing an existing item
-    if (selectedItemIndex !== null) {
-      const items = form.getValues('items');
-      items[selectedItemIndex] = {
-        productId,
-        productName: product.name,
-        quantity: 1,
-        unitPrice: parseFloat(product.sellingPrice.toString()),
-        total: parseFloat(product.sellingPrice.toString()),
-      };
-      form.setValue('items', items);
-      setSelectedItemIndex(null);
-    } else {
-      // Add new item
-      append({
-        productId,
-        productName: product.name,
-        quantity: 1,
-        unitPrice: parseFloat(product.sellingPrice.toString()),
-        total: parseFloat(product.sellingPrice.toString()),
-      });
-    }
-    setOpenProductSelect(false);
-  };
-
-  // Update item quantity and recalculate total
-  const updateItemQuantity = (index: number, quantity: number) => {
-    const items = form.getValues('items');
-    items[index].quantity = quantity;
-    items[index].total = quantity * items[index].unitPrice;
-    form.setValue('items', items);
-  };
+  const { toast } = useToast();
   
-  // Update item unit price and recalculate total
-  const updateItemUnitPrice = (index: number, unitPrice: number) => {
-    const items = form.getValues('items');
-    items[index].unitPrice = unitPrice;
-    items[index].total = items[index].quantity * unitPrice;
-    form.setValue('items', items);
+  // Form state
+  const [quotationType, setQuotationType] = useState<'manufacturing' | 'refining' | 'finished'>('manufacturing');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [quotationNumber, setQuotationNumber] = useState('');
+  const [validUntil, setValidUntil] = useState('');
+  const [notes, setNotes] = useState('');
+  const [items, setItems] = useState<QuotationItem[]>([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  // Item form for adding new items
+  const [newItem, setNewItem] = useState<Partial<QuotationItem>>({
+    type: quotationType,
+    productName: '',
+    description: '',
+    quantity: 1,
+    uom: 'kg',
+    unitPrice: 0,
+    specifications: '',
+    rawMaterials: [],
+    processingTime: 0,
+    qualityGrade: 'pharmaceutical'
+  });
+
+  // Fetch customers
+  const { data: customers = [] } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Generate quotation number on component mount
+  useEffect(() => {
+    const generateQuotationNumber = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const typePrefix = quotationType === 'manufacturing' ? 'MFG' : 
+                        quotationType === 'refining' ? 'REF' : 'FPD';
+      return `QUO-${typePrefix}-${year}${month}-${random}`;
+    };
+    
+    setQuotationNumber(generateQuotationNumber());
+  }, [quotationType]);
+
+  // Set default valid until date (30 days from now)
+  useEffect(() => {
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    setValidUntil(thirtyDaysFromNow.toISOString().split('T')[0]);
+  }, []);
+
+  // Manufacturing products
+  const manufacturingProducts = [
+    { name: 'Paracetamol Tablets 500mg', uom: 'Tablets', basePrice: 0.05 },
+    { name: 'Ibuprofen Capsules 200mg', uom: 'Capsules', basePrice: 0.08 },
+    { name: 'Amoxicillin Syrup 250mg/5ml', uom: 'Bottles', basePrice: 3.50 },
+    { name: 'Vitamin C Tablets 1000mg', uom: 'Tablets', basePrice: 0.12 },
+    { name: 'Antacid Suspension 200ml', uom: 'Bottles', basePrice: 2.75 }
+  ];
+
+  // Refining services
+  const refiningServices = [
+    { name: 'API Purification Service', uom: 'kg', basePrice: 85.00 },
+    { name: 'Solvent Recovery Process', uom: 'Liters', basePrice: 12.50 },
+    { name: 'Crystallization Service', uom: 'kg', basePrice: 65.00 },
+    { name: 'Filtration & Drying', uom: 'kg', basePrice: 45.00 },
+    { name: 'Quality Enhancement Process', uom: 'kg', basePrice: 95.00 }
+  ];
+
+  // Finished products
+  const finishedProducts = [
+    { name: 'Cough Syrup 100ml', uom: 'Bottles', basePrice: 4.25 },
+    { name: 'Pain Relief Gel 50g', uom: 'Tubes', basePrice: 3.80 },
+    { name: 'Multivitamin Tablets', uom: 'Bottles (30 tabs)', basePrice: 8.50 },
+    { name: 'Antiseptic Solution 500ml', uom: 'Bottles', basePrice: 6.20 },
+    { name: 'Wound Dressing Kit', uom: 'Kits', basePrice: 12.00 }
+  ];
+
+  const getProductList = () => {
+    switch (quotationType) {
+      case 'manufacturing': return manufacturingProducts;
+      case 'refining': return refiningServices;
+      case 'finished': return finishedProducts;
+      default: return [];
+    }
   };
 
-  // Select customer
-  const handleSelectCustomer = (customerId: number) => {
-    const customer = customers.find((c) => c.id === customerId);
-    if (customer) {
-      form.setValue('customer', {
-        id: customer.id,
-        name: customer.name,
-        company: customer.companyName || '',
-        position: customer.position || '',
-        email: customer.email,
-        phone: customer.phone,
-        sector: customer.sector || '',
-        address: customer.address,
+  const addItem = () => {
+    if (!newItem.productName || !newItem.quantity || !newItem.unitPrice) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
       });
-      setOpenCustomerSelect(false);
+      return;
+    }
+
+    const item: QuotationItem = {
+      id: Date.now().toString(),
+      type: quotationType,
+      productName: newItem.productName!,
+      description: newItem.description || '',
+      quantity: newItem.quantity!,
+      uom: newItem.uom!,
+      unitPrice: newItem.unitPrice!,
+      total: newItem.quantity! * newItem.unitPrice!,
+      specifications: newItem.specifications,
+      rawMaterials: newItem.rawMaterials,
+      processingTime: newItem.processingTime,
+      qualityGrade: newItem.qualityGrade
+    };
+
+    setItems([...items, item]);
+    setNewItem({
+      type: quotationType,
+      productName: '',
+      description: '',
+      quantity: 1,
+      uom: 'kg',
+      unitPrice: 0,
+      specifications: '',
+      rawMaterials: [],
+      processingTime: 0,
+      qualityGrade: 'pharmaceutical'
+    });
+
+    toast({
+      title: "Success",
+      description: "Item added to quotation"
+    });
+  };
+
+  const removeItem = (id: string) => {
+    setItems(items.filter(item => item.id !== id));
+    toast({
+      title: "Success",
+      description: "Item removed from quotation"
+    });
+  };
+
+  const calculateTotal = () => {
+    return items.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateTax = () => {
+    return calculateTotal() * 0.14; // 14% VAT
+  };
+
+  const calculateGrandTotal = () => {
+    return calculateTotal() + calculateTax();
+  };
+
+  const handleSubmit = async (action: 'draft' | 'send') => {
+    if (!selectedCustomer) {
+      toast({
+        title: "Error",
+        description: "Please select a customer",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please add at least one item",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const quotationData = {
+        quotationNumber,
+        type: quotationType,
+        customerId: selectedCustomer.id,
+        customerName: selectedCustomer.name,
+        validUntil,
+        notes,
+        items,
+        subtotal: calculateTotal(),
+        tax: calculateTax(),
+        total: calculateGrandTotal(),
+        status: action === 'draft' ? 'draft' : 'sent',
+        date: new Date().toISOString()
+      };
+
+      const response = await apiRequest('POST', '/api/quotations', quotationData);
+      
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: `Quotation ${action === 'draft' ? 'saved as draft' : 'sent to customer'} successfully`
+        });
+        setLocation('/quotation-history');
+      } else {
+        throw new Error('Failed to save quotation');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save quotation. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getQuotationTypeIcon = (type: string) => {
+    switch (type) {
+      case 'manufacturing': return <Factory className="h-5 w-5" />;
+      case 'refining': return <TestTube className="h-5 w-5" />;
+      case 'finished': return <Package className="h-5 w-5" />;
+      default: return <FileText className="h-5 w-5" />;
+    }
+  };
+
+  const getQuotationTypeDescription = (type: string) => {
+    switch (type) {
+      case 'manufacturing': return 'Custom manufacturing of pharmaceutical products from raw materials';
+      case 'refining': return 'API purification, solvent recovery, and quality enhancement services';
+      case 'finished': return 'Ready-to-market pharmaceutical products and medical supplies';
+      default: return '';
     }
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Create Quotation</h1>
-          <p className="text-muted-foreground">Create a new quotation for a customer</p>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => setLocation('/quotation-history')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Create Quotation</h1>
+            <p className="text-muted-foreground">Generate professional quotations for your pharmaceutical services</p>
+          </div>
         </div>
-        <Button onClick={() => setLocation('/quotation-history')}>
-          <FileText className="mr-2 h-4 w-4" />
-          View Quotation History
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsPreviewOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            Preview
+          </Button>
+          <Button variant="outline" onClick={() => handleSubmit('draft')}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Draft
+          </Button>
+          <Button onClick={() => handleSubmit('send')}>
+            <Send className="mr-2 h-4 w-4" />
+            Send Quotation
+          </Button>
+        </div>
       </div>
-      
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-2xl">Quotation Details</CardTitle>
-          <CardDescription>
-            Enter the details for this quotation
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {/* Customer Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="customer">Customer</Label>
-                <Popover open={openCustomerSelect} onOpenChange={setOpenCustomerSelect}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openCustomerSelect}
-                      className="w-full justify-between"
-                    >
-                      {form.watch('customer.name') || 'Select customer...'}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[400px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Search customers..." />
-                      <CommandEmpty>No customer found.</CommandEmpty>
-                      <CommandGroup>
-                        {customers.map((customer) => (
-                          <CommandItem
-                            key={customer.id}
-                            value={customer.name}
-                            onSelect={() => handleSelectCustomer(customer.id)}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                form.watch('customer.id') === customer.id
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                            {customer.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-              </div>
 
-              {/* Valid Until Date */}
-              <div className="space-y-2">
-                <Label htmlFor="validUntil">Valid Until</Label>
-                <div className="relative">
-                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => {
-                          setSelectedDate(date);
-                          setCalendarOpen(false);
-                        }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quotation Type Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quotation Type</CardTitle>
+              <CardDescription>Select the type of service you're quoting for</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {['manufacturing', 'refining', 'finished'].map((type) => (
+                  <Card 
+                    key={type}
+                    className={`cursor-pointer transition-all ${
+                      quotationType === type ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => {
+                      setQuotationType(type as any);
+                      setItems([]); // Clear items when changing type
+                      setNewItem({
+                        ...newItem,
+                        type: type as any,
+                        productName: '',
+                        unitPrice: 0
+                      });
+                    }}
+                  >
+                    <CardContent className="p-4 text-center">
+                      <div className="flex justify-center mb-2">
+                        {getQuotationTypeIcon(type)}
+                      </div>
+                      <h3 className="font-semibold capitalize">{type}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {getQuotationTypeDescription(type)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer & Basic Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer & Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Customer</Label>
+                  <Select 
+                    onValueChange={(value) => {
+                      const customer = customers.find((c: Customer) => c.id.toString() === value);
+                      setSelectedCustomer(customer || null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map((customer: Customer) => (
+                        <SelectItem key={customer.id} value={customer.id.toString()}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-            </div>
-
-            {/* Quotation Items */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Quotation Items</CardTitle>
-                <CardDescription>
-                  Add products to this quotation
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between mb-4">
-                  <div className="space-x-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        append({
-                          productId: 0,
-                          productName: '',
-                          quantity: 1,
-                          unitPrice: 0,
-                          total: 0,
-                          uom: 'unit',
-                        });
-                      }}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Item
-                    </Button>
+                <div>
+                  <Label>Quotation Number</Label>
+                  <Input value={quotationNumber} readOnly />
+                </div>
+                <div>
+                  <Label>Valid Until</Label>
+                  <Input 
+                    type="date" 
+                    value={validUntil}
+                    onChange={(e) => setValidUntil(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Type</Label>
+                  <div className="flex items-center gap-2 pt-2">
+                    {getQuotationTypeIcon(quotationType)}
+                    <Badge variant="secondary" className="capitalize">
+                      {quotationType}
+                    </Badge>
                   </div>
                 </div>
+              </div>
+              <div>
+                <Label>Notes & Special Instructions</Label>
+                <Textarea 
+                  placeholder="Add any special notes or instructions for this quotation..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Add Items */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Items</CardTitle>
+              <CardDescription>
+                Add {quotationType} items to your quotation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Product/Service</Label>
+                  <Select 
+                    value={newItem.productName}
+                    onValueChange={(value) => {
+                      const product = getProductList().find(p => p.name === value);
+                      setNewItem({
+                        ...newItem,
+                        productName: value,
+                        unitPrice: product?.basePrice || 0,
+                        uom: product?.uom || 'kg'
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={`Select ${quotationType} item`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getProductList().map((product) => (
+                        <SelectItem key={product.name} value={product.name}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Input 
+                    placeholder="Additional description..."
+                    value={newItem.description}
+                    onChange={(e) => setNewItem({...newItem, description: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Quantity</Label>
+                  <Input 
+                    type="number"
+                    min="1"
+                    value={newItem.quantity}
+                    onChange={(e) => setNewItem({...newItem, quantity: Number(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>Unit of Measure</Label>
+                  <Select 
+                    value={newItem.uom}
+                    onValueChange={(value) => setNewItem({...newItem, uom: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kg">Kilograms (kg)</SelectItem>
+                      <SelectItem value="liters">Liters (L)</SelectItem>
+                      <SelectItem value="tablets">Tablets</SelectItem>
+                      <SelectItem value="capsules">Capsules</SelectItem>
+                      <SelectItem value="bottles">Bottles</SelectItem>
+                      <SelectItem value="tubes">Tubes</SelectItem>
+                      <SelectItem value="kits">Kits</SelectItem>
+                      <SelectItem value="units">Units</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Unit Price ($)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={newItem.unitPrice}
+                    onChange={(e) => setNewItem({...newItem, unitPrice: Number(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>Total</Label>
+                  <Input 
+                    value={`$${((newItem.quantity || 0) * (newItem.unitPrice || 0)).toFixed(2)}`}
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              {/* Additional fields based on quotation type */}
+              {quotationType === 'manufacturing' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Processing Time (days)</Label>
+                    <Input 
+                      type="number"
+                      min="1"
+                      value={newItem.processingTime}
+                      onChange={(e) => setNewItem({...newItem, processingTime: Number(e.target.value)})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Quality Grade</Label>
+                    <Select 
+                      value={newItem.qualityGrade}
+                      onValueChange={(value) => setNewItem({...newItem, qualityGrade: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pharmaceutical">Pharmaceutical Grade</SelectItem>
+                        <SelectItem value="food">Food Grade</SelectItem>
+                        <SelectItem value="industrial">Industrial Grade</SelectItem>
+                        <SelectItem value="research">Research Grade</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {quotationType === 'refining' && (
+                <div>
+                  <Label>Specifications & Requirements</Label>
+                  <Textarea 
+                    placeholder="Specify purity requirements, processing conditions, quality standards..."
+                    value={newItem.specifications}
+                    onChange={(e) => setNewItem({...newItem, specifications: e.target.value})}
+                    rows={2}
+                  />
+                </div>
+              )}
+
+              <Button onClick={addItem} className="w-full">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Item to Quotation
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Items List */}
+          {items.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quotation Items</CardTitle>
+                <CardDescription>{items.length} items added</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[250px]">Product</TableHead>
-                        <TableHead className="w-[100px] text-center">UoM</TableHead>
-                        <TableHead className="w-[80px] text-right">Quantity</TableHead>
-                        <TableHead className="w-[120px] text-right">Unit Price</TableHead>
-                        <TableHead className="w-[120px] text-right">Total</TableHead>
-                        <TableHead className="w-[70px]"></TableHead>
+                        <TableHead>Item</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-center">Qty</TableHead>
+                        <TableHead className="text-center">UoM</TableHead>
+                        <TableHead className="text-right">Unit Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {fields.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                            No items added yet
+                      {items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.productName}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {item.description}
+                            {item.type === 'manufacturing' && item.processingTime && (
+                              <div className="text-xs mt-1">
+                                Processing: {item.processingTime} days | Grade: {item.qualityGrade}
+                              </div>
+                            )}
+                            {item.type === 'refining' && item.specifications && (
+                              <div className="text-xs mt-1">
+                                Specs: {item.specifications}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">{item.quantity}</TableCell>
+                          <TableCell className="text-center">{item.uom}</TableCell>
+                          <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">${item.total.toFixed(2)}</TableCell>
+                          <TableCell className="text-center">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => removeItem(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        fields.map((field, index) => (
-                          <TableRow key={field.id}>
-                            <TableCell>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className="w-full justify-between"
-                                  >
-                                    {form.watch(`items.${index}.productName`) || "Select a product..."}
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[300px] p-0">
-                                  <Command>
-                                    <CommandInput 
-                                      placeholder="Search products..." 
-                                      value={productSearchTerm}
-                                      onValueChange={(value) => {
-                                        setProductSearchTerm(value);
-                                        const searchTerm = value.toLowerCase();
-                                        setFilteredProducts(
-                                          products.filter(p => 
-                                            p.name.toLowerCase().includes(searchTerm) || 
-                                            (p.drugName && p.drugName.toLowerCase().includes(searchTerm))
-                                          )
-                                        );
-                                      }}
-                                      className="h-9" 
-                                    />
-                                    <CommandList>
-                                      <CommandEmpty>
-                                        <p className="py-3 text-center text-sm">No products found</p>
-                                      </CommandEmpty>
-                                      <CommandGroup heading="Products">
-                                        {(filteredProducts.length > 0 ? filteredProducts : products).map((product) => (
-                                          <CommandItem
-                                            key={product.id}
-                                            onSelect={() => {
-                                              const items = form.getValues('items');
-                                              items[index] = {
-                                                productId: product.id,
-                                                productName: product.name,
-                                                quantity: 1,
-                                                unitPrice: parseFloat(product.sellingPrice.toString()),
-                                                total: parseFloat(product.sellingPrice.toString()),
-                                                uom: product.uom || 'unit',
-                                              };
-                                              form.setValue('items', items);
-                                            }}
-                                            className="flex items-center justify-between"
-                                          >
-                                            <div>
-                                              <span className="font-medium">{product.name}</span>
-                                              <span className="ml-2 text-sm text-muted-foreground">
-                                                {new Intl.NumberFormat('en-US', {
-                                                  style: 'currency',
-                                                  currency: 'USD'
-                                                }).format(parseFloat(product.sellingPrice.toString()))}
-                                              </span>
-                                            </div>
-                                            <Check
-                                              className={cn(
-                                                "ml-auto h-4 w-4",
-                                                form.watch(`items.${index}.productId`) === product.id
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              )}
-                                            />
-                                          </CommandItem>
-                                        ))}
-                                      </CommandGroup>
-                                    </CommandList>
-                                  </Command>
-                                </PopoverContent>
-                              </Popover>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Select
-                                value={form.watch(`items.${index}.uom`) || 'unit'}
-                                onValueChange={(value) => {
-                                  const items = form.getValues('items');
-                                  items[index].uom = value;
-                                  form.setValue('items', items);
-                                }}
-                              >
-                                <SelectTrigger className="w-[150px]">
-                                  <SelectValue placeholder="Select UoM" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unit">Unit</SelectItem>
-                                  <SelectItem value="pieces">Pieces (PCS)</SelectItem>
-                                  <SelectItem value="liters">Liters (L)</SelectItem>
-                                  <SelectItem value="tons">Tons (T)</SelectItem>
-                                  <SelectItem value="kilograms">Kilograms (KG)</SelectItem>
-                                  <SelectItem value="grams">Grams (g)</SelectItem>
-                                  <SelectItem value="milligrams">Milligrams (mg)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Input
-                                type="number"
-                                min={1}
-                                value={form.watch(`items.${index}.quantity`)}
-                                onChange={(e) => {
-                                  // This approach prevents the "0" issue while keeping arrows
-                                  const value = parseInt(e.target.value);
-                                  if (isNaN(value) || value < 1) {
-                                    updateItemQuantity(index, 1);
-                                  } else {
-                                    updateItemQuantity(index, value);
-                                  }
-                                }}
-                                className="w-16 text-right ml-auto"
-                              />
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Input
-                                type="number"
-                                min={0}
-                                step={0.01}
-                                value={form.watch(`items.${index}.unitPrice`)}
-                                onChange={(e) => {
-                                  const value = parseFloat(e.target.value);
-                                  if (isNaN(value) || value < 0) {
-                                    updateItemUnitPrice(index, 0);
-                                  } else {
-                                    updateItemUnitPrice(index, value);
-                                  }
-                                }}
-                                className="w-24 text-right ml-auto"
-                              />
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(form.watch(`items.${index}.total`))}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => remove(index)}
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
               </CardContent>
             </Card>
+          )}
+        </div>
 
-            {/* Notes */}
-            <div className="mb-6">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Add notes to this quotation..."
-                className="mt-1"
-                {...form.register('notes')}
-              />
-            </div>
-
-            {/* Tax and Totals */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div>
-                <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                <Input
-                  id="taxRate"
-                  type="number"
-                  min={0}
-                  max={100}
-                  {...form.register('taxRate', { valueAsNumber: true })}
-                  className="mt-1"
-                />
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span>${form.watch('subtotal').toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax ({form.watch('taxRate')}%):</span>
-                  <span>${form.watch('taxAmount').toFixed(2)}</span>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Customer Info */}
+          {selectedCustomer && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Customer Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div>
+                  <p className="font-medium">{selectedCustomer.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
+                  <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold">
-                  <span>Total:</span>
-                  <span>${form.watch('grandTotal').toFixed(2)}</span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Address:</p>
+                  <p className="text-sm">{selectedCustomer.address}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quotation Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                Quotation Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span>Items:</span>
+                <span>{items.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>${calculateTotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>VAT (14%):</span>
+                <span>${calculateTax().toFixed(2)}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between font-bold text-lg">
+                <span>Total:</span>
+                <span>${calculateGrandTotal().toFixed(2)}</span>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-900">Quotation Type: {quotationType}</p>
+                    <p className="text-blue-700 mt-1">
+                      {getQuotationTypeDescription(quotationType)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full" onClick={() => setIsPreviewOpen(true)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Preview Quotation
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => handleSubmit('draft')}>
+                <Save className="mr-2 h-4 w-4" />
+                Save as Draft
+              </Button>
+              <Button className="w-full" onClick={() => handleSubmit('send')}>
+                <Send className="mr-2 h-4 w-4" />
+                Send to Customer
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Quotation Preview</DialogTitle>
+            <DialogDescription>
+              Review your quotation before sending
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="border rounded-lg p-6 bg-white">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-blue-600">QUOTATION</h2>
+                <p className="text-muted-foreground">PharmaOverseas Ltd.</p>
+                <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
+              </div>
+              <div className="text-right">
+                <p className="font-bold">Quotation #: {quotationNumber}</p>
+                <p>Date: {new Date().toLocaleDateString()}</p>
+                <p>Valid Until: {new Date(validUntil).toLocaleDateString()}</p>
+                <div className="mt-2 flex items-center gap-2 justify-end">
+                  {getQuotationTypeIcon(quotationType)}
+                  <Badge variant="secondary" className="capitalize">
+                    {quotationType}
+                  </Badge>
                 </div>
               </div>
             </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-end">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
+            
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div>
+                <h3 className="font-semibold mb-2">Customer:</h3>
+                {selectedCustomer ? (
+                  <div>
+                    <p className="font-medium">{selectedCustomer.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
+                    <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
+                  </div>
                 ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Create Quotation
-                  </>
+                  <p className="text-muted-foreground">No customer selected</p>
                 )}
-              </Button>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">Service Type:</h3>
+                <p className="text-sm">{getQuotationTypeDescription(quotationType)}</p>
+              </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            
+            {items.length > 0 && (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-center">Qty</TableHead>
+                      <TableHead className="text-center">UoM</TableHead>
+                      <TableHead className="text-right">Unit Price</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{item.productName}</p>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground">{item.description}</p>
+                            )}
+                            {item.type === 'manufacturing' && item.processingTime && (
+                              <p className="text-xs text-muted-foreground">
+                                Processing: {item.processingTime} days | Grade: {item.qualityGrade}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">{item.quantity}</TableCell>
+                        <TableCell className="text-center">{item.uom}</TableCell>
+                        <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">${item.total.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                <div className="mt-8 flex justify-end">
+                  <div className="w-72">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>${calculateTotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>VAT (14%):</span>
+                      <span>${calculateTax().toFixed(2)}</span>
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${calculateGrandTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {notes && (
+              <div className="mt-8">
+                <h3 className="font-semibold mb-2">Notes & Special Instructions:</h3>
+                <p className="text-sm text-muted-foreground">{notes}</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close Preview
+            </Button>
+            <Button onClick={() => {
+              setIsPreviewOpen(false);
+              handleSubmit('send');
+            }}>
+              <Send className="mr-2 h-4 w-4" />
+              Send Quotation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
