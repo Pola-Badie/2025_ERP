@@ -49,7 +49,8 @@ import {
   Send,
   ArrowLeft,
   Calculator,
-  Info
+  Info,
+  Truck
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -88,6 +89,11 @@ const CreateQuotation: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  
+  // Transportation fees state
+  const [transportationFees, setTransportationFees] = useState(0);
+  const [transportationType, setTransportationType] = useState('standard');
+  const [transportationNotes, setTransportationNotes] = useState('');
 
   // Item form for adding new items
   const [newItem, setNewItem] = useState<Partial<QuotationItem>>({
@@ -219,8 +225,12 @@ const CreateQuotation: React.FC = () => {
     });
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return items.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + transportationFees;
   };
 
   const calculateTax = () => {
@@ -259,7 +269,10 @@ const CreateQuotation: React.FC = () => {
         validUntil,
         notes,
         items,
-        subtotal: calculateTotal(),
+        subtotal: calculateSubtotal(),
+        transportationFees,
+        transportationType,
+        transportationNotes,
         tax: calculateTax(),
         total: calculateGrandTotal(),
         status: action === 'draft' ? 'draft' : 'sent',
@@ -640,6 +653,105 @@ const CreateQuotation: React.FC = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Transportation Fees */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5" />
+                Transportation & Delivery
+              </CardTitle>
+              <CardDescription>
+                Add shipping and handling costs for pharmaceutical transport
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Transportation Type</Label>
+                  <Select 
+                    value={transportationType}
+                    onValueChange={(value) => {
+                      setTransportationType(value);
+                      // Auto-set fees based on transportation type
+                      switch (value) {
+                        case 'standard':
+                          setTransportationFees(50);
+                          break;
+                        case 'express':
+                          setTransportationFees(125);
+                          break;
+                        case 'cold-chain':
+                          setTransportationFees(200);
+                          break;
+                        case 'hazmat':
+                          setTransportationFees(300);
+                          break;
+                        case 'international':
+                          setTransportationFees(450);
+                          break;
+                        default:
+                          setTransportationFees(0);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transportation method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard Delivery (3-5 days)</SelectItem>
+                      <SelectItem value="express">Express Delivery (1-2 days)</SelectItem>
+                      <SelectItem value="cold-chain">Cold Chain Transport (Temperature Controlled)</SelectItem>
+                      <SelectItem value="hazmat">Hazardous Materials Transport</SelectItem>
+                      <SelectItem value="international">International Shipping</SelectItem>
+                      <SelectItem value="pickup">Customer Pickup (No charge)</SelectItem>
+                      <SelectItem value="custom">Custom Transportation</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Transportation Fees ($)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={transportationFees}
+                    onChange={(e) => setTransportationFees(Number(e.target.value))}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <Label>Transportation Notes</Label>
+                <Textarea 
+                  placeholder="Special handling requirements, delivery instructions, insurance needs..."
+                  value={transportationNotes}
+                  onChange={(e) => setTransportationNotes(e.target.value)}
+                  rows={2}
+                />
+              </div>
+
+              {transportationType && transportationType !== 'pickup' && (
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium text-blue-900">Transportation Details:</p>
+                      <p className="text-blue-700 mt-1">
+                        {transportationType === 'standard' && 'Standard delivery with basic packaging and regular transport'}
+                        {transportationType === 'express' && 'Priority delivery with expedited processing and shipping'}
+                        {transportationType === 'cold-chain' && 'Temperature-controlled transport (2-8°C) with monitoring'}
+                        {transportationType === 'hazmat' && 'Specialized transport for hazardous pharmaceutical materials'}
+                        {transportationType === 'international' && 'International shipping with customs clearance and documentation'}
+                        {transportationType === 'custom' && 'Custom transportation arrangement as per specific requirements'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -683,7 +795,11 @@ const CreateQuotation: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>${calculateTotal().toFixed(2)}</span>
+                <span>${calculateSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Transportation:</span>
+                <span>${transportationFees.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>VAT (14%):</span>
@@ -822,7 +938,11 @@ const CreateQuotation: React.FC = () => {
                   <div className="w-72">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>${calculateTotal().toFixed(2)}</span>
+                      <span>${calculateSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Transportation:</span>
+                      <span>${transportationFees.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>VAT (14%):</span>
@@ -836,6 +956,22 @@ const CreateQuotation: React.FC = () => {
                   </div>
                 </div>
               </>
+            )}
+
+            {transportationType && transportationType !== 'pickup' && (
+              <div className="mt-8">
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Transportation & Delivery:
+                </h3>
+                <div className="text-sm text-muted-foreground space-y-1">
+                  <p><span className="font-medium">Method:</span> {transportationType.charAt(0).toUpperCase() + transportationType.slice(1).replace('-', ' ')}</p>
+                  <p><span className="font-medium">Fee:</span> ${transportationFees.toFixed(2)}</p>
+                  {transportationNotes && (
+                    <p><span className="font-medium">Notes:</span> {transportationNotes}</p>
+                  )}
+                </div>
+              </div>
             )}
 
             {notes && (
