@@ -335,23 +335,6 @@ const QuotationHistory = () => {
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
-            ) : filteredQuotations.length === 0 ? (
-              <div className="text-center py-12">
-                <ClipboardList className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No quotations found</h3>
-                <p className="text-gray-600 mb-6">
-                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' 
-                    ? 'Try adjusting your search filters' 
-                    : 'Get started by creating your first quotation'}
-                </p>
-                <Button 
-                  onClick={() => window.location.href = '/create-quotation'}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First Quotation
-                </Button>
-              </div>
             ) : (
               <div className="space-y-4">
                 {/* Schedule List Header */}
