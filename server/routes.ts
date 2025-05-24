@@ -146,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
-      // Generate comprehensive sample quotation data showcasing all enhanced features
+      // Comprehensive pharmaceutical quotation data with all business types
       const sampleQuotations = [
         {
           id: 1,
@@ -184,26 +184,399 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           id: 2,
-          quotationNumber: "REF-2025-007",
+          quotationNumber: "REF-2025-002",
           type: "refining",
-          customerName: "MedTech Industries",
+          customerName: "BioTech Industries",
           customerId: 2,
           date: "2025-05-18",
           validUntil: "2025-06-18",
           status: "accepted",
           subtotal: 28000,
-          transportationFees: 1200,
-          transportationType: "ground-shipping",
-          transportationNotes: "Standard pharmaceutical ground shipping with chain of custody documentation",
-          tax: 4088,
-          total: 33288,
-          amount: 33288,
-          notes: "Purification and recrystallization of Aspirin raw material to pharmaceutical grade.",
+          transportationFees: 1800,
+          transportationType: "ground-express",
+          transportationNotes: "Ground express with hazmat certification for chemical transport",
+          tax: 4172,
+          total: 33972,
+          amount: 33972,
+          notes: "Purification of Aspirin API to pharmaceutical grade with COA documentation.",
           items: [
             {
               id: "2",
               type: "refining",
-              productName: "Aspirin API Purification Service",
+              productName: "Aspirin API Purification",
+              description: "Refining crude aspirin to pharmaceutical grade purity",
+              quantity: 400,
+              uom: "kg",
+              unitPrice: 70,
+              total: 28000,
+              specifications: "99.7% purity, crystalline form, particle size 50-200μm",
+              rawMaterials: ["Crude Aspirin", "Recrystallization solvents"],
+              processingTime: 7,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "FIN-2025-003",
+          type: "finished",
+          customerName: "MedExport Corporation",
+          customerId: 3,
+          date: "2025-05-17",
+          validUntil: "2025-06-17",
+          status: "sent",
+          subtotal: 15000,
+          transportationFees: 1200,
+          transportationType: "sea-freight",
+          transportationNotes: "Sea freight container shipping with temperature monitoring",
+          tax: 2268,
+          total: 18468,
+          amount: 18468,
+          notes: "Paracetamol tablets 500mg for export to African markets. WHO-GMP certified.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Paracetamol Tablets 500mg",
+              description: "WHO-GMP certified paracetamol tablets for pain relief",
+              quantity: 100000,
+              uom: "tablets",
+              unitPrice: 0.15,
+              total: 15000,
+              specifications: "500mg tablets, blister pack, 2-year shelf life",
+              rawMaterials: ["Paracetamol API", "Microcrystalline cellulose", "Magnesium stearate"],
+              processingTime: 5,
+              qualityGrade: "WHO-GMP"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "MFG-2025-004",
+          type: "manufacturing",
+          customerName: "PharmaVisions Ltd",
+          customerId: 4,
+          date: "2025-05-15",
+          validUntil: "2025-06-15",
+          status: "draft",
+          subtotal: 72000,
+          transportationFees: 3500,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited air freight with cold chain management required",
+          tax: 10570,
+          total: 86070,
+          amount: 86070,
+          notes: "Novel compound synthesis for clinical trial Phase II. Strict GMP requirements.",
+          items: [
+            {
+              id: "4",
+              type: "manufacturing",
+              productName: "Novel Compound PV-2025 (Research Grade)",
+              description: "Custom synthesis of proprietary pharmaceutical compound",
+              quantity: 200,
+              uom: "kg",
+              unitPrice: 360,
+              total: 72000,
+              specifications: "≥98% purity, analytical grade, sterile packaging",
+              rawMaterials: ["Proprietary precursors", "Specialized catalysts"],
+              processingTime: 21,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "REF-2025-005",
+          type: "refining",
+          customerName: "CleanChem Solutions",
+          customerId: 5,
+          date: "2025-05-14",
+          validUntil: "2025-06-14",
+          status: "rejected",
+          subtotal: 18500,
+          transportationFees: 950,
+          transportationType: "ground-standard",
+          transportationNotes: "Standard ground shipping with chemical handling protocols",
+          tax: 2723,
+          total: 22173,
+          amount: 22173,
+          notes: "Ciprofloxacin purification service with impurity removal to EP standards.",
+          items: [
+            {
+              id: "5",
+              type: "refining",
+              productName: "Ciprofloxacin HCl Purification",
+              description: "Purification of ciprofloxacin to European Pharmacopoeia standards",
+              quantity: 250,
+              uom: "kg",
+              unitPrice: 74,
+              total: 18500,
+              specifications: "≥99.5% purity, EP grade, low water content",
+              rawMaterials: ["Crude Ciprofloxacin", "Purification reagents"],
+              processingTime: 10,
+              qualityGrade: "EP"
+            }
+          ]
+        },
+        {
+          id: 6,
+          quotationNumber: "FIN-2025-006",
+          type: "finished",
+          customerName: "HealthCare Distributors",
+          customerId: 6,
+          date: "2025-05-12",
+          validUntil: "2025-06-12",
+          status: "accepted",
+          subtotal: 24000,
+          transportationFees: 1600,
+          transportationType: "ground-express",
+          transportationNotes: "Express delivery with temperature-controlled transport",
+          tax: 3584,
+          total: 29184,
+          amount: 29184,
+          notes: "Amoxicillin capsules for domestic distribution. GMP compliance verified.",
+          items: [
+            {
+              id: "6",
+              type: "finished",
+              productName: "Amoxicillin Capsules 250mg",
+              description: "Broad-spectrum antibiotic capsules for bacterial infections",
+              quantity: 80000,
+              uom: "capsules",
+              unitPrice: 0.30,
+              total: 24000,
+              specifications: "250mg capsules, HDPE bottles, 3-year shelf life",
+              rawMaterials: ["Amoxicillin trihydrate", "Capsule shells", "Excipients"],
+              processingTime: 7,
+              qualityGrade: "GMP"
+            }
+          ]
+        },
+        {
+          id: 7,
+          quotationNumber: "MFG-2025-007",
+          type: "manufacturing",
+          customerName: "Advanced Therapeutics",
+          customerId: 7,
+          date: "2025-05-10",
+          validUntil: "2025-06-10",
+          status: "expired",
+          subtotal: 95000,
+          transportationFees: 4200,
+          transportationType: "air-freight",
+          transportationNotes: "Priority air freight with specialized handling for oncology compounds",
+          tax: 13888,
+          total: 113088,
+          amount: 113088,
+          notes: "Oncology compound synthesis for clinical research. Highest purity requirements.",
+          items: [
+            {
+              id: "7",
+              type: "manufacturing",
+              productName: "Oncology Compound AT-2025",
+              description: "Specialized synthesis for cancer research applications",
+              quantity: 150,
+              uom: "kg",
+              unitPrice: 633.33,
+              total: 95000,
+              specifications: "≥99.8% purity, analytical grade, sterile conditions",
+              rawMaterials: ["Advanced precursors", "Platinum catalysts"],
+              processingTime: 28,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 8,
+          quotationNumber: "FIN-2025-008",
+          type: "finished",
+          customerName: "Global Health Initiative",
+          customerId: 8,
+          date: "2025-05-08",
+          validUntil: "2025-06-08",
+          status: "pending",
+          subtotal: 35000,
+          transportationFees: 2800,
+          transportationType: "sea-freight",
+          transportationNotes: "Bulk sea freight for humanitarian distribution programs",
+          tax: 5292,
+          total: 43092,
+          amount: 43092,
+          notes: "Oral rehydration salts for humanitarian aid programs. WHO prequalified.",
+          items: [
+            {
+              id: "8",
+              type: "finished",
+              productName: "Oral Rehydration Salts (ORS)",
+              description: "WHO-approved oral rehydration therapy sachets",
+              quantity: 1000000,
+              uom: "sachets",
+              unitPrice: 0.035,
+              total: 35000,
+              specifications: "20.5g sachets, WHO formula, 3-year shelf life",
+              rawMaterials: ["Sodium chloride", "Potassium chloride", "Glucose"],
+              processingTime: 3,
+              qualityGrade: "WHO"
+            }
+          ]
+        }
+      ];
+
+      // Apply query filters from frontend
+      const { query, status, type, date } = req.query;
+      let filteredQuotations = [...sampleQuotations];
+
+      // Filter by search query
+      if (query && query !== '') {
+        const searchTerm = (query as string).toLowerCase();
+        filteredQuotations = filteredQuotations.filter(quotation =>
+          quotation.quotationNumber.toLowerCase().includes(searchTerm) ||
+          quotation.customerName.toLowerCase().includes(searchTerm) ||
+          quotation.items.some(item => 
+            item.productName.toLowerCase().includes(searchTerm)
+          )
+        );
+      }
+
+      // Filter by status
+      if (status && status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.status === status);
+      }
+
+      // Filter by type
+      if (type && type !== 'all') {
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.type === type);
+      }
+
+      // Filter by date
+      if (date !== 'all') {
+        const now = new Date();
+        filteredQuotations = filteredQuotations.filter(q => {
+          const quotationDate = new Date(q.date);
+          switch (date) {
+            case 'today':
+              return quotationDate.toDateString() === now.toDateString();
+            case 'week':
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return quotationDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+              return quotationDate >= monthAgo;
+            case 'year':
+              const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+              return quotationDate >= yearAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      res.json(filteredQuotations);
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+
+  // Get quotation by ID
+  app.get("/api/quotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const quotation = await storage.getQuotation(id);
+
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Get quotation items
+      const items = await storage.getQuotationItems(id);
+
+      res.json({
+        ...quotation,
+        items
+      });
+    } catch (error) {
+      console.error("Error fetching quotation:", error);
+      res.status(500).json({ message: "Failed to fetch quotation" });
+    }
+  });
+
+  // Create new quotation
+  app.post("/api/quotations", async (req: Request, res: Response) => {
+    try {
+      // Validate quotation data
+      const validatedQuotation = insertQuotationSchema.parse(req.body);
+
+      // Create quotation
+      const quotation = await storage.createQuotation(validatedQuotation);
+
+      // Process quotation items
+      if (req.body.items && req.body.items.length > 0) {
+        for (const item of req.body.items) {
+          const itemData = {
+            quotationId: quotation.id,
+            productId: item.productId,
+            quantity: item.quantity.toString(),
+            unitPrice: item.unitPrice.toString(),
+            total: item.total.toString()
+          };
+
+          const validatedItem = insertQuotationItemSchema.parse(itemData);
+          await storage.createQuotationItem(validatedItem);
+        }
+      }
+
+      res.status(201).json(quotation);
+    } catch (error) {
+      console.error("Error creating quotation:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quotation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create quotation" });
+    }
+  });
+
+  // Update quotation status
+  app.patch("/api/quotations/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+
+      if (!['draft', 'sent', 'pending', 'accepted', 'rejected', 'expired'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+
+      const quotation = await storage.updateQuotation(id, { status });
+
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      res.json(quotation);
+    } catch (error) {
+      console.error("Error updating quotation status:", error);
+      res.status(500).json({ message: "Failed to update quotation status" });
+    }
+  });
+
+  // Delete quotation
+  app.delete("/api/quotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteQuotation(id);
+
+      if (!success) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting quotation:", error);
+      res.status(500).json({ message: "Failed to delete quotation" });
+    }
+  });
+
+  // ============= Products Endpoints =============
               description: "Comprehensive purification service for Aspirin raw material",
               quantity: 1000,
               uom: "kg",
