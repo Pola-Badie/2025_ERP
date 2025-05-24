@@ -341,6 +341,25 @@ const Suppliers: React.FC = () => {
                     />
                     <FormField
                       control={form.control}
+                      name="etaNumber"
+                      render={({ field }) => (
+                        <FormItem className="col-span-2">
+                          <FormLabel>ETA Number (Egyptian Tax Authority)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="Enter Egyptian Tax Authority registration number"
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Tax registration number for Egyptian Tax Authority compliance
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="address"
                       render={({ field }) => (
                         <FormItem className="col-span-2">
@@ -494,6 +513,7 @@ const Suppliers: React.FC = () => {
                     <TableHead className="w-[200px]">Supplier Name</TableHead>
                     <TableHead>Contact Person</TableHead>
                     <TableHead>Contact Info</TableHead>
+                    <TableHead>ETA Number</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Materials</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -527,6 +547,15 @@ const Suppliers: React.FC = () => {
                             </div>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {supplier.etaNumber ? (
+                          <span className="text-blue-600 font-medium">
+                            {supplier.etaNumber}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">Not registered</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {supplier.city && supplier.state ? (
