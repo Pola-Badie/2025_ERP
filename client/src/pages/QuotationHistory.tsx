@@ -489,7 +489,7 @@ const QuotationHistory = () => {
         {/* Preview Dialog */}
         {selectedQuotation && (
           <Dialog open={showPreview} onOpenChange={setShowPreview}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">
                   Quotation #{selectedQuotation.quotationNumber}
@@ -500,7 +500,8 @@ const QuotationHistory = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="border rounded-lg p-6 bg-white">
+              <div className="flex-1 overflow-y-auto">
+                <div className="border rounded-lg p-6 bg-white">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-8">
                   <div>
@@ -635,6 +636,7 @@ const QuotationHistory = () => {
                     </div>
                   </div>
                 )}
+                </div>
               </div>
               
               <DialogFooter>
