@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save, FileText, Calendar, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -584,43 +584,125 @@ const CreateInvoice = () => {
     createInvoiceMutation.mutate(invoiceData);
   };
 
+  const [mainTab, setMainTab] = useState("create");
+  const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
+
+  // Load saved drafts from localStorage
+  useEffect(() => {
+    const loadSavedDrafts = () => {
+      const drafts = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('invoice_draft_')) {
+          try {
+            const draft = JSON.parse(localStorage.getItem(key) || '{}');
+            if (draft.status === 'draft') {
+              drafts.push({
+                id: key.replace('invoice_draft_', ''),
+                key: key,
+                ...draft
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing draft:', e);
+          }
+        }
+      }
+      setSavedDrafts(drafts.sort((a: any, b: any) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()));
+    };
+
+    loadSavedDrafts();
+    // Refresh drafts when tab changes
+    const interval = setInterval(loadSavedDrafts, 1000);
+    return () => clearInterval(interval);
+  }, [mainTab]);
+
+  const loadDraft = (draftKey: string) => {
+    try {
+      const draft = JSON.parse(localStorage.getItem(draftKey) || '{}');
+      form.reset(draft);
+      setMainTab("create");
+      toast({
+        title: "Draft Loaded",
+        description: "Invoice draft has been loaded successfully",
+      });
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to load draft",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteDraft = (draftKey: string) => {
+    localStorage.removeItem(draftKey);
+    setSavedDrafts(prev => prev.filter((draft: any) => draft.key !== draftKey));
+    toast({
+      title: "Draft Deleted",
+      description: "Invoice draft has been deleted",
+    });
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Create New Invoice</h1>
-          <p className="text-muted-foreground">Create a new invoice by selecting a customer and adding products</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              const currentData = form.getValues();
-              // Save current invoice data to local storage as draft
-              localStorage.setItem(`invoice_draft_${activeInvoiceId}`, JSON.stringify({
-                ...currentData,
-                savedAt: new Date().toISOString(),
-                status: 'draft'
-              }));
-              toast({
-                title: "Draft Saved",
-                description: "Invoice has been saved as draft successfully",
-              });
-            }}
-            disabled={isSubmitting}
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Save as Draft
-          </Button>
-          <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Invoice
-          </Button>
+          <h1 className="text-2xl font-bold">Invoice Management</h1>
+          <p className="text-muted-foreground">Create new invoices and manage your drafts</p>
         </div>
       </div>
+
+      {/* Main Tab Navigation */}
+      <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create" className="flex items-center space-x-2">
+            <Plus className="w-4 h-4" />
+            <span>Create Invoice</span>
+          </TabsTrigger>
+          <TabsTrigger value="drafts" className="flex items-center space-x-2">
+            <FileText className="w-4 h-4" />
+            <span>Draft Invoices ({savedDrafts.length})</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Create Invoice Tab */}
+        <TabsContent value="create" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Create New Invoice</h2>
+              <p className="text-muted-foreground">Create a new invoice by selecting a customer and adding products</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  const currentData = form.getValues();
+                  // Save current invoice data to local storage as draft
+                  localStorage.setItem(`invoice_draft_${activeInvoiceId}`, JSON.stringify({
+                    ...currentData,
+                    savedAt: new Date().toISOString(),
+                    status: 'draft'
+                  }));
+                  toast({
+                    title: "Draft Saved",
+                    description: "Invoice has been saved as draft successfully",
+                  });
+                }}
+                disabled={isSubmitting}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save as Draft
+              </Button>
+              <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Invoice
+              </Button>
+            </div>
+          </div>
       
       {/* Invoice Drafts Tabs */}
       <div className="border rounded-md p-4 mb-6 bg-background">
@@ -1388,6 +1470,124 @@ const CreateInvoice = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        {/* Draft Invoices Tab */}
+        <TabsContent value="drafts" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Draft Invoices</h2>
+              <p className="text-muted-foreground">Manage your saved invoice drafts</p>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Clear all drafts
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                  const key = localStorage.key(i);
+                  if (key && key.startsWith('invoice_draft_')) {
+                    keysToRemove.push(key);
+                  }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                setSavedDrafts([]);
+                toast({
+                  title: "All Drafts Cleared",
+                  description: "All invoice drafts have been deleted",
+                });
+              }}
+              disabled={savedDrafts.length === 0}
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              Clear All Drafts
+            </Button>
+          </div>
+
+          {savedDrafts.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Draft Invoices</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  You haven't saved any invoice drafts yet. Create an invoice and use "Save as Draft" to see them here.
+                </p>
+                <Button onClick={() => setMainTab("create")} variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create New Invoice
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {savedDrafts.map((draft) => (
+                <Card key={draft.key} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <h3 className="font-medium">
+                            {draft.customer?.name ? `Invoice for ${draft.customer.name}` : 'Untitled Invoice Draft'}
+                          </h3>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            Draft
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-2">
+                            <User className="w-4 h-4" />
+                            <span>{draft.customer?.company || draft.customer?.name || 'No customer selected'}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-4 h-4" />
+                            <span>Saved {new Date(draft.savedAt).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-4 h-4" />
+                            <span>{draft.items?.length || 0} items</span>
+                          </div>
+                        </div>
+                        
+                        {draft.items && draft.items.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-sm font-medium text-green-600">
+                              Total: {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(draft.grandTotal || 0)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => loadDraft(draft.key)}
+                        >
+                          <Printer className="mr-2 h-4 w-4" />
+                          Load Draft
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteDraft(draft.key)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
