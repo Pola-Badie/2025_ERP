@@ -246,15 +246,15 @@ const CustomersDemo: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <div className="mb-8">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 mb-6 px-4 pt-6">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Data</h1>
         <p className="text-slate-600">Information about our customers and their business details</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader className="space-y-4">
+      <div className="flex-1 flex flex-col overflow-hidden px-4 pb-6">
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardHeader className="flex-shrink-0 space-y-4">
             <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
               <CardTitle>Customer Records</CardTitle>
               
@@ -294,7 +294,7 @@ const CustomersDemo: React.FC = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col overflow-hidden">
             {/* Table header */}
             <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2">
               <div className="col-span-2 md:col-span-1">Name</div>
@@ -306,8 +306,8 @@ const CustomersDemo: React.FC = () => {
               <div className="text-right md:text-center">Action</div>
             </div>
             
-            {/* Customer data with pagination */}
-            <div className="max-h-[500px] overflow-y-auto">
+            {/* Customer data with custom scrollbar */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400 pr-2">
               {isLoading ? (
                 <div className="py-8 text-center text-slate-500">
                   <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
@@ -343,9 +343,9 @@ const CustomersDemo: React.FC = () => {
               )}
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination Controls - Fixed at bottom */}
             {filteredCustomers.length > itemsPerPage && (
-              <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+              <div className="flex-shrink-0 flex justify-center items-center gap-4 mt-4 pt-4 border-t bg-white">
                 <Button
                   variant="outline"
                   size="sm"
