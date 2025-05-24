@@ -28,11 +28,13 @@ import {
   Calendar,
   Clock,
   Download,
+  Factory,
   File,
   FileText,
   Filter,
   Printer,
   RefreshCw,
+  Settings,
   ShoppingCart,
   TrendingUp
 } from 'lucide-react';
@@ -300,7 +302,7 @@ const ReportsPage: React.FC = () => {
         className="space-y-4"
         onValueChange={(value) => setActiveTab(value)}
       >
-        <TabsList className="grid grid-cols-4 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="sales" className="flex items-center space-x-2">
             <ShoppingCart className="h-4 w-4" />
             <span>Sales Reports</span>
@@ -308,6 +310,14 @@ const ReportsPage: React.FC = () => {
           <TabsTrigger value="financial" className="flex items-center space-x-2">
             <TrendingUp className="h-4 w-4" />
             <span>Financial Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="production" className="flex items-center space-x-2">
+            <Factory className="h-4 w-4" />
+            <span>Production Reports</span>
+          </TabsTrigger>
+          <TabsTrigger value="refining" className="flex items-center space-x-2">
+            <Settings className="h-4 w-4" />
+            <span>Refining Reports</span>
           </TabsTrigger>
           <TabsTrigger value="inventory" className="flex items-center space-x-2">
             <Clock className="h-4 w-4" />
@@ -721,6 +731,475 @@ const ReportsPage: React.FC = () => {
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                           Partial
                         </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Production Reports Tab */}
+        <TabsContent value="production" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Production Orders</CardTitle>
+                <CardDescription>Current Period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">127</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 15%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Production Revenue</CardTitle>
+                <CardDescription>Total Value</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$452,890</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 18%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Manufacturing Costs</CardTitle>
+                <CardDescription>Total Expenses</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$298,450</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 8%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Net Profit Margin</CardTitle>
+                <CardDescription>Production Efficiency</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">34.2%</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 2.8%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Production Cost Breakdown</CardTitle>
+                <CardDescription>
+                  Detailed analysis of production expenses by category
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Raw Materials', value: 45, fill: '#0088FE' },
+                        { name: 'Labor Costs', value: 25, fill: '#00C49F' },
+                        { name: 'Equipment', value: 15, fill: '#FFBB28' },
+                        { name: 'Transportation', value: 8, fill: '#FF8042' },
+                        { name: 'Quality Control', value: 4, fill: '#8884D8' },
+                        { name: 'Storage', value: 3, fill: '#82CA9D' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Production Trends</CardTitle>
+                <CardDescription>
+                  Production volume and revenue trends over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={[
+                      { month: 'Jan', orders: 95, revenue: 380000, costs: 250000 },
+                      { month: 'Feb', orders: 102, revenue: 420000, costs: 275000 },
+                      { month: 'Mar', orders: 118, revenue: 485000, costs: 315000 },
+                      { month: 'Apr', orders: 127, revenue: 525000, costs: 340000 },
+                      { month: 'May', orders: 134, revenue: 560000, costs: 365000 },
+                      { month: 'Jun', orders: 141, revenue: 595000, costs: 385000 }
+                    ]}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="revenue" stroke="#0088FE" name="Revenue ($)" />
+                    <Line type="monotone" dataKey="costs" stroke="#FF8042" name="Costs ($)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Production Orders by Revenue</CardTitle>
+              <CardDescription>
+                Highest value production orders with detailed cost breakdown
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Batch Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Target Product
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Manufacturing Cost
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Transportation
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Revenue
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Profit Margin
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        BATCH-001-241205
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Paracetamol 500mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        MedSupply Egypt
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $18,450
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $2,100
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $28,750
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">28.6%</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        BATCH-002-241204
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Amoxicillin 250mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Cairo Pharmaceuticals
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $22,800
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,950
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $35,200
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">29.7%</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        BATCH-003-241203
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Ibuprofen 400mg
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Alexandria Medical
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $16,200
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,800
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $25,900
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">30.5%</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Refining Reports Tab */}
+        <TabsContent value="refining" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Refining Orders</CardTitle>
+                <CardDescription>Current Period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">89</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 12%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Refining Revenue</CardTitle>
+                <CardDescription>Total Value</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$298,750</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 22%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Processing Costs</CardTitle>
+                <CardDescription>Total Expenses</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">$185,420</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 6%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Refining Efficiency</CardTitle>
+                <CardDescription>Profit Margin</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">37.9%</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 4.2%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Refining Cost Distribution</CardTitle>
+                <CardDescription>
+                  Breakdown of refining expenses by operational category
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Base Processing', value: 35, fill: '#0088FE' },
+                        { name: 'Raw Materials', value: 28, fill: '#00C49F' },
+                        { name: 'Labor Costs', value: 18, fill: '#FFBB28' },
+                        { name: 'Equipment', value: 12, fill: '#FF8042' },
+                        { name: 'Transportation', value: 4, fill: '#8884D8' },
+                        { name: 'Quality Control', value: 2, fill: '#82CA9D' },
+                        { name: 'Storage', value: 1, fill: '#FFC658' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Refining Performance</CardTitle>
+                <CardDescription>
+                  Refining orders and revenue trends over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { month: 'Jan', orders: 72, revenue: 245000, costs: 155000 },
+                      { month: 'Feb', orders: 78, revenue: 268000, costs: 168000 },
+                      { month: 'Mar', orders: 85, revenue: 295000, costs: 185000 },
+                      { month: 'Apr', orders: 89, revenue: 315000, costs: 195000 },
+                      { month: 'May', orders: 94, revenue: 335000, costs: 208000 },
+                      { month: 'Jun', orders: 97, revenue: 358000, costs: 220000 }
+                    ]}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="revenue" fill="#0088FE" name="Revenue ($)" />
+                    <Bar dataKey="costs" fill="#FF8042" name="Costs ($)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Refining Orders by Profitability</CardTitle>
+              <CardDescription>
+                Most profitable refining orders with comprehensive cost analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reference Number
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product Type
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Processing Cost
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Transportation
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Revenue
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Profit Margin
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        REF-001-241205
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Active Pharmaceutical Ingredient
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Global Pharma Solutions
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $12,850
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,200
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $21,500
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">35.3%</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        REF-002-241204
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Chemical Intermediate
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Chemtech Industries
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $15,600
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,450
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $26,800
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">36.4%</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        REF-003-241203
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Purified Compound
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Precision Chemicals
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $18,950
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $1,750
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        $32,400
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="text-green-600 font-semibold">36.1%</span>
                       </td>
                     </tr>
                   </tbody>
