@@ -362,15 +362,7 @@ export default function Procurement() {
                       <Eye className="h-4 w-4" />
                       Show Details
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditPurchaseOrder(order)}
-                      className="flex items-center gap-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </Button>
+
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
