@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 
 // ETA API Configuration
-const ETA_API_BASE_URL = "https://sdk.invoicing.eta.gov.eg/ereceiptapi";
+const ETA_API_BASE_URL = "https://sdk.invoicing.eta.gov.eg/api";
 
 interface ETACredentials {
   clientId: string;

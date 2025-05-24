@@ -286,7 +286,7 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
                   )}
                   
                   <Button type="button" variant="outline" asChild>
-                    <a href="https://sdk.invoicing.eta.gov.eg/ereceiptapi/" target="_blank" rel="noopener noreferrer">
+                    <a href="https://sdk.invoicing.eta.gov.eg/api/" target="_blank" rel="noopener noreferrer">
                       <ExternalLinkIcon className="w-4 h-4 mr-2" />
                       ETA API Docs
                     </a>
