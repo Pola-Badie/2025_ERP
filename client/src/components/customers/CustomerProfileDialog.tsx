@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, Mail, MapPin, Phone, Building } from 'lucide-react';
+import { CalendarIcon, Mail, MapPin, Phone, Building, FileText } from 'lucide-react';
 
 interface CustomerProfileDialogProps {
   open: boolean;
