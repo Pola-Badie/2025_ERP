@@ -353,81 +353,151 @@ const QuotationHistory = () => {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50/50">
-                      <TableHead className="font-semibold text-gray-700">Quotation #</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Type</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Customer</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Date</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Valid Until</TableHead>
-                      <TableHead className="font-semibold text-gray-700 text-right">Amount</TableHead>
-                      <TableHead className="font-semibold text-gray-700">Status</TableHead>
-                      <TableHead className="font-semibold text-gray-700 text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredQuotations.map((quotation) => (
-                      <TableRow key={quotation.id} className="hover:bg-gray-50/50">
-                        <TableCell className="font-medium text-blue-600">
-                          {quotation.quotationNumber}
-                        </TableCell>
-                        <TableCell>
-                          {getQuotationTypeBadge(quotation.type)}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {quotation.customerName}
-                        </TableCell>
-                        <TableCell className="text-gray-600">
-                          {format(new Date(quotation.date), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell className="text-gray-600">
-                          {format(new Date(quotation.validUntil), 'MMM dd, yyyy')}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${(quotation.total || quotation.amount).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(quotation.status)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
+              <div className="space-y-4">
+                {/* Schedule List Header */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Showing {filteredQuotations.length} quotation{filteredQuotations.length !== 1 ? 's' : ''}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-green-600 border-green-200 hover:bg-green-50"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                </div>
+
+                {/* Professional Schedule Table */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 border-b border-gray-200">
+                        <TableHead className="w-12 px-4">
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">Quotation #</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">ETA #</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">Customer</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">Date</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4 text-right">Amount</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4 text-right">Outstanding</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">Payment Method</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4 text-center">ETA Upload</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredQuotations.map((quotation, index) => (
+                        <TableRow 
+                          key={quotation.id} 
+                          className="hover:bg-gray-50/70 border-b border-gray-100 transition-colors"
+                        >
+                          <TableCell className="px-4">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-blue-600 px-4">
+                            {quotation.quotationNumber}
+                          </TableCell>
+                          <TableCell className="text-gray-500 px-4">
+                            Not uploaded
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900 px-4">
+                            <div>
+                              <div>{quotation.customerName}</div>
+                              {quotation.type === 'manufacturing' && (
+                                <div className="text-xs text-gray-500">Manufacturing Services</div>
+                              )}
+                              {quotation.type === 'refining' && (
+                                <div className="text-xs text-gray-500">API Purification</div>
+                              )}
+                              {quotation.type === 'finished' && (
+                                <div className="text-xs text-gray-500">Finished Products</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-600 px-4">
+                            {format(new Date(quotation.date), 'MMM d, yyyy')}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold px-4 text-gray-900">
+                            ${(quotation.total || quotation.amount).toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right px-4">
+                            {quotation.status === 'accepted' ? (
+                              <span className="text-gray-900 font-medium">$0.00</span>
+                            ) : quotation.status === 'pending' ? (
+                              <span className="text-orange-600 font-medium">
+                                ${(quotation.total || quotation.amount).toLocaleString()}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-4">
+                            {quotation.transportationType === 'air-freight' && 'Air freight'}
+                            {quotation.transportationType === 'sea-freight' && 'Sea freight'}
+                            {quotation.transportationType === 'ground-express' && 'Ground express'}
+                            {quotation.transportationType === 'ground-standard' && 'Ground standard'}
+                            {!quotation.transportationType && 'Credit card'}
+                          </TableCell>
+                          <TableCell className="px-4">
+                            {quotation.status === 'accepted' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Paid
+                              </span>
+                            )}
+                            {quotation.status === 'pending' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                Partial
+                              </span>
+                            )}
+                            {quotation.status === 'rejected' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Unpaid
+                              </span>
+                            )}
+                            {quotation.status === 'expired' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Overdue
+                              </span>
+                            )}
+                            {quotation.status === 'draft' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                Draft
+                              </span>
+                            )}
+                            {quotation.status === 'sent' && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Sent
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-4 text-center">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handlePreview(quotation)}
-                              className="h-8 w-8 p-0"
+                              className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
                             >
-                              <Eye className="h-4 w-4" />
+                              N
                             </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Download PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination Footer */}
+                <div className="flex items-center justify-center text-sm text-gray-600 pt-4">
+                  Showing 1 to {filteredQuotations.length} of {filteredQuotations.length} quotations
+                </div>
               </div>
             )}
           </CardContent>
