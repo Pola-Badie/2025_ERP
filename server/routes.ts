@@ -577,14 +577,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Products Endpoints =============
-              description: "Comprehensive purification service for Aspirin raw material",
-              quantity: 1000,
-              uom: "kg",
-              unitPrice: 28,
-              total: 28000,
-              specifications: "99.0% min purity, pharmaceutical grade",
-              processingTime: 7,
-              qualityGrade: "Pharmaceutical"
             }
           ]
         },
