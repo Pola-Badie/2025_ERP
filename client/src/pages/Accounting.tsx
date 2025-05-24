@@ -127,10 +127,10 @@ const Accounting: React.FC = () => {
 
   return (
     <div className="container py-4 mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <Landmark className="h-8 w-8 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">FINANCIAL ACCOUNTING</h1>
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <Landmark className="h-8 w-8 text-blue-600 flex-shrink-0" />
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 truncate">FINANCIAL ACCOUNTING</h1>
         </div>
         <div className="space-x-2">
           <Button 
@@ -151,7 +151,7 @@ const Accounting: React.FC = () => {
       </div>
 
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+        <TabsList className="flex w-full overflow-x-auto overflow-y-hidden border-b border-gray-200 bg-white" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9CA3AF #F3F4F6' }}>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="chart-of-accounts">Chart of Accounts</TabsTrigger>
           <TabsTrigger value="journal-entries">Journal Entries</TabsTrigger>
