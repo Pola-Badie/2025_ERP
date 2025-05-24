@@ -267,15 +267,6 @@ export default function Procurement() {
             Manage purchase orders and supplier inventory
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCreatePurchaseOrder}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          New Procurement
-        </Button>
       </div>
 
       {/* Filters */}
