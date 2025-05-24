@@ -146,12 +146,399 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
+      // Generate comprehensive sample quotation data showcasing all enhanced features
+      const sampleQuotations = [
+        {
+          id: 1,
+          quotationNumber: "MFG-2025-001",
+          type: "manufacturing",
+          customerName: "Global Pharma Solutions",
+          customerId: 1,
+          date: "2025-05-20",
+          validUntil: "2025-06-20",
+          status: "pending",
+          subtotal: 45000,
+          transportationFees: 2500,
+          transportationType: "air-freight",
+          transportationNotes: "Temperature-controlled air freight required for API stability",
+          tax: 6650,
+          total: 54150,
+          amount: 54150,
+          notes: "Custom synthesis of Ibuprofen API with 99.5% purity specification. GMP compliance required.",
+          items: [
+            {
+              id: "1",
+              type: "manufacturing",
+              productName: "Ibuprofen API (Custom Synthesis)",
+              description: "High-purity Ibuprofen API manufactured to pharmaceutical standards",
+              quantity: 500,
+              uom: "kg",
+              unitPrice: 90,
+              total: 45000,
+              specifications: "99.5% purity, USP grade, white crystalline powder",
+              rawMaterials: ["Isobutylbenzene", "Acetic anhydride", "Aluminum chloride"],
+              processingTime: 14,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 2,
+          quotationNumber: "REF-2025-007",
+          type: "refining",
+          customerName: "MedTech Industries",
+          customerId: 2,
+          date: "2025-05-18",
+          validUntil: "2025-06-18",
+          status: "accepted",
+          subtotal: 28000,
+          transportationFees: 1200,
+          transportationType: "ground-shipping",
+          transportationNotes: "Standard pharmaceutical ground shipping with chain of custody documentation",
+          tax: 4088,
+          total: 33288,
+          amount: 33288,
+          notes: "Purification and recrystallization of Aspirin raw material to pharmaceutical grade.",
+          items: [
+            {
+              id: "2",
+              type: "refining",
+              productName: "Aspirin API Purification Service",
+              description: "Comprehensive purification service for Aspirin raw material",
+              quantity: 1000,
+              uom: "kg",
+              unitPrice: 28,
+              total: 28000,
+              specifications: "99.0% min purity, pharmaceutical grade",
+              processingTime: 7,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "FIN-2025-012",
+          type: "finished",
+          customerName: "HealthCare Distributors Ltd",
+          customerId: 3,
+          date: "2025-05-15",
+          validUntil: "2025-06-15",
+          status: "sent",
+          subtotal: 125000,
+          transportationFees: 4500,
+          transportationType: "cold-chain",
+          transportationNotes: "Refrigerated transport at 2-8°C with continuous temperature monitoring",
+          tax: 18130,
+          total: 147630,
+          amount: 147630,
+          notes: "Complete batch of finished Amoxicillin tablets, 500mg strength, blister packed.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Amoxicillin 500mg Tablets",
+              description: "Film-coated tablets in blister packaging",
+              quantity: 50000,
+              uom: "tablets",
+              unitPrice: 2.5,
+              total: 125000,
+              specifications: "500mg strength, USP standard, 24-month shelf life",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "MFG-2025-003",
+          type: "manufacturing",
+          customerName: "International Pharma Corp",
+          customerId: 4,
+          date: "2025-05-22",
+          validUntil: "2025-06-22",
+          status: "draft",
+          subtotal: 75000,
+          transportationFees: 3200,
+          transportationType: "air-freight",
+          transportationNotes: "Express air freight with hazmat certification for controlled substances",
+          tax: 10948,
+          total: 89148,
+          amount: 89148,
+          notes: "Manufacturing of Metformin HCl with extended release coating technology.",
+          items: [
+            {
+              id: "4",
+              type: "manufacturing",
+              productName: "Metformin HCl API (Extended Release)",
+              description: "Extended release formulation with polymer coating",
+              quantity: 800,
+              uom: "kg",
+              unitPrice: 93.75,
+              total: 75000,
+              specifications: "98.5% min purity, extended release profile",
+              rawMaterials: ["Dimethylamine hydrochloride", "Dicyandiamide", "Sodium methoxide"],
+              processingTime: 21,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "REF-2025-009",
+          type: "refining",
+          customerName: "BioPharm Research",
+          customerId: 5,
+          date: "2025-05-10",
+          validUntil: "2025-06-10",
+          status: "expired",
+          subtotal: 32000,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 4480,
+          total: 36480,
+          amount: 36480,
+          notes: "Chromatographic purification of Paracetamol impurities removal service.",
+          items: [
+            {
+              id: "5",
+              type: "refining",
+              productName: "Paracetamol Purification Service",
+              description: "HPLC purification to remove process impurities",
+              quantity: 1200,
+              uom: "kg",
+              unitPrice: 26.67,
+              total: 32000,
+              specifications: "99.2% min purity, low impurity profile",
+              processingTime: 5,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 6,
+          quotationNumber: "FIN-2025-018",
+          type: "finished",
+          customerName: "Regional Medical Supply",
+          customerId: 6,
+          date: "2025-05-19",
+          validUntil: "2025-06-19",
+          status: "rejected",
+          subtotal: 67500,
+          transportationFees: 2800,
+          transportationType: "standard-shipping",
+          transportationNotes: "Standard pharmaceutical shipping with signature confirmation",
+          tax: 9842,
+          total: 80142,
+          amount: 80142,
+          notes: "Cephalexin capsules 250mg with custom packaging and labeling requirements.",
+          items: [
+            {
+              id: "6",
+              type: "finished",
+              productName: "Cephalexin 250mg Capsules",
+              description: "Hard gelatin capsules with custom labeling",
+              quantity: 25000,
+              uom: "capsules",
+              unitPrice: 2.7,
+              total: 67500,
+              specifications: "250mg strength, hard gelatin capsules",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 7,
+          quotationNumber: "MFG-2025-005",
+          type: "manufacturing",
+          customerName: "Advanced Therapeutics Inc",
+          customerId: 7,
+          date: "2025-05-21",
+          validUntil: "2025-06-21",
+          status: "pending",
+          subtotal: 98000,
+          transportationFees: 5200,
+          transportationType: "specialized-transport",
+          transportationNotes: "Specialized pharmaceutical transport with nitrogen blanketing for oxygen-sensitive compounds",
+          tax: 14448,
+          total: 117648,
+          amount: 117648,
+          notes: "Custom synthesis of novel API compound with proprietary catalyst system. Research grade purity required.",
+          items: [
+            {
+              id: "7",
+              type: "manufacturing",
+              productName: "Novel API Compound (Research Grade)",
+              description: "Proprietary compound for clinical trials",
+              quantity: 100,
+              uom: "kg",
+              unitPrice: 980,
+              total: 98000,
+              specifications: "99.8% purity, research grade, special handling required",
+              rawMaterials: ["Proprietary starting materials", "Specialized catalysts"],
+              processingTime: 28,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 8,
+          quotationNumber: "REF-2025-011",
+          type: "refining",
+          customerName: "Pharmaceutical Excellence Ltd",
+          customerId: 8,
+          date: "2025-05-17",
+          validUntil: "2025-06-17",
+          status: "accepted",
+          subtotal: 41000,
+          transportationFees: 1800,
+          transportationType: "ground-shipping",
+          transportationNotes: "Temperature-controlled ground transport with real-time tracking",
+          tax: 5992,
+          total: 48792,
+          amount: 48792,
+          notes: "Recrystallization and particle size optimization of Ciprofloxacin raw material.",
+          items: [
+            {
+              id: "8",
+              type: "refining",
+              productName: "Ciprofloxacin Optimization Service",
+              description: "Particle size control and crystalline form optimization",
+              quantity: 750,
+              uom: "kg",
+              unitPrice: 54.67,
+              total: 41000,
+              specifications: "Optimized particle size distribution, stable polymorph",
+              processingTime: 10,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 9,
+          quotationNumber: "FIN-2025-023",
+          type: "finished",
+          customerName: "Metro Healthcare Network",
+          customerId: 9,
+          date: "2025-05-23",
+          validUntil: "2025-06-23",
+          status: "sent",
+          subtotal: 156000,
+          transportationFees: 6800,
+          transportationType: "cold-chain",
+          transportationNotes: "Multi-temperature cold chain delivery with separate compartments for different stability requirements",
+          tax: 22792,
+          total: 185592,
+          amount: 185592,
+          notes: "Mixed batch of finished dosage forms including tablets and oral suspensions with different storage requirements.",
+          items: [
+            {
+              id: "9a",
+              type: "finished",
+              productName: "Azithromycin 250mg Tablets",
+              description: "Film-coated tablets for respiratory infections",
+              quantity: 30000,
+              uom: "tablets",
+              unitPrice: 3.2,
+              total: 96000,
+              specifications: "250mg strength, film-coated, room temperature stable",
+              qualityGrade: "Commercial"
+            },
+            {
+              id: "9b",
+              type: "finished",
+              productName: "Amoxicillin Oral Suspension 125mg/5ml",
+              description: "Pediatric oral suspension with fruit flavor",
+              quantity: 2000,
+              uom: "bottles",
+              unitPrice: 30,
+              total: 60000,
+              specifications: "125mg/5ml concentration, 100ml bottles, refrigerated storage",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 10,
+          quotationNumber: "MFG-2025-008",
+          type: "manufacturing",
+          customerName: "Specialty Pharma Solutions",
+          customerId: 10,
+          date: "2025-05-16",
+          validUntil: "2025-06-16",
+          status: "pending",
+          subtotal: 84500,
+          transportationFees: 3800,
+          transportationType: "air-freight",
+          transportationNotes: "Priority air freight with controlled atmosphere packaging for moisture-sensitive materials",
+          tax: 12362,
+          total: 100662,
+          amount: 100662,
+          notes: "Manufacturing of Omeprazole delayed-release pellets with enteric coating for gastric stability.",
+          items: [
+            {
+              id: "10",
+              type: "manufacturing",
+              productName: "Omeprazole DR Pellets (Enteric Coated)",
+              description: "Delayed-release pellets with gastric resistance",
+              quantity: 600,
+              uom: "kg",
+              unitPrice: 140.83,
+              total: 84500,
+              specifications: "Enteric coating, gastric resistant, delayed release profile",
+              rawMaterials: ["Omeprazole base", "Enteric coating polymers", "Core pellets"],
+              processingTime: 18,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        }
+      ];
+
+      // Apply filters
       const query = req.query.query as string || '';
       const status = req.query.status as string || 'all';
+      const type = req.query.type as string || 'all';
       const date = req.query.date as string || 'all';
 
-      const quotations = await storage.getQuotations(query, status, date);
-      res.json(quotations);
+      let filteredQuotations = sampleQuotations;
+
+      if (query && query.trim() !== '') {
+        filteredQuotations = filteredQuotations.filter(q => 
+          q.quotationNumber.toLowerCase().includes(query.toLowerCase()) ||
+          q.customerName.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+
+      if (status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.status === status);
+      }
+
+      if (type !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.type === type);
+      }
+
+      if (date !== 'all') {
+        const now = new Date();
+        filteredQuotations = filteredQuotations.filter(q => {
+          const quotationDate = new Date(q.date);
+          switch (date) {
+            case 'today':
+              return quotationDate.toDateString() === now.toDateString();
+            case 'week':
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return quotationDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+              return quotationDate >= monthAgo;
+            case 'year':
+              const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+              return quotationDate >= yearAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      res.json(filteredQuotations);
     } catch (error) {
       console.error("Error fetching quotations:", error);
       res.status(500).json({ message: "Failed to fetch quotations" });
