@@ -64,15 +64,30 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
     setConnectionStatus('connecting');
     
     try {
-      // Simulate API call to ETA
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setIsConnected(true);
-      setConnectionStatus('connected');
-      setLastSync(new Date().toLocaleString());
-      
-      // Show success message
-      console.log('Connected to ETA successfully');
+      // Call real ETA authentication API
+      const response = await fetch('/api/eta/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: values.clientId,
+          clientSecret: values.clientSecret,
+          username: values.username,
+          pin: values.password, // Using password field as PIN
+          apiKey: 'YOUR_ETA_API_KEY', // This should be provided by user
+          environment: 'production'
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsConnected(true);
+        setConnectionStatus('connected');
+        setLastSync(new Date().toLocaleString());
+        console.log('Connected to ETA successfully');
+      } else {
+        throw new Error(data.message || 'Authentication failed');
+      }
     } catch (error) {
       setConnectionStatus('error');
       setIsConnected(false);
@@ -271,9 +286,9 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
                   )}
                   
                   <Button type="button" variant="outline" asChild>
-                    <a href="https://invoicing.eta.gov.eg" target="_blank" rel="noopener noreferrer">
+                    <a href="https://sdk.invoicing.eta.gov.eg/ereceiptapi/" target="_blank" rel="noopener noreferrer">
                       <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                      ETA Portal
+                      ETA API Docs
                     </a>
                   </Button>
                 </div>

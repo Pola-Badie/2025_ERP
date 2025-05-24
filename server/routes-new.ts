@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "./db";
 import { z } from "zod";
 import { registerChemicalRoutes } from "./routes-chemical";
+import { registerETARoutes } from "./routes-eta";
 import { 
   users, products, productCategories, customers, suppliers, sales, 
   saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings,
@@ -66,6 +67,9 @@ import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register chemical-specific routes
   registerChemicalRoutes(app);
+  
+  // Register ETA routes for Egyptian Tax Authority integration
+  registerETARoutes(app);
   // Get all suppliers
   app.get("/api/suppliers", async (_req: Request, res: Response) => {
     try {
