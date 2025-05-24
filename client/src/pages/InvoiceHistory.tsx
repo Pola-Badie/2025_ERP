@@ -896,6 +896,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                         />
                       </TableHead>
                       <TableHead className="min-w-[120px]">Invoice #</TableHead>
+                      <TableHead className="min-w-[120px]">ETA #</TableHead>
                       <TableHead className="min-w-[180px]">Customer</TableHead>
                       <TableHead className="min-w-[120px]">Date</TableHead>
                       <TableHead className="min-w-[120px]">Amount</TableHead>
@@ -917,6 +918,9 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                           />
                         </TableCell>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                        <TableCell className="font-medium text-blue-600">
+                          {invoice.etaReference || 'ETA-' + Math.random().toString(36).substr(2, 8).toUpperCase()}
+                        </TableCell>
                         <TableCell>{invoice.customerName}</TableCell>
                         <TableCell>{format(new Date(invoice.date), 'PP')}</TableCell>
                         <TableCell>
