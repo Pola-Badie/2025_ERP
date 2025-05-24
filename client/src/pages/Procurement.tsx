@@ -267,39 +267,7 @@ export default function Procurement() {
             Manage purchase orders and supplier inventory
           </p>
         </div>
-        <Card className="hover:shadow-md transition-shadow w-auto">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-lg">Create New Order</h3>
-                  <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                    Ready
-                  </span>
-                </div>
-                <p className="text-muted-foreground mb-1">
-                  <strong>Action:</strong> Start new procurement process
-                </p>
-                <p className="text-muted-foreground mb-1">
-                  <strong>Type:</strong> Purchase Order Creation
-                </p>
-                <p className="text-lg font-semibold text-green-600">
-                  Click to Begin
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={handleCreatePurchaseOrder}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  New Procurement
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Filters */}
