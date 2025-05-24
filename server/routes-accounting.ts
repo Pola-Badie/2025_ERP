@@ -54,11 +54,176 @@ export function registerAccountingRoutes(app: Express) {
   // Chart of Accounts API
   app.get("/api/accounts", async (_req: Request, res: Response) => {
     try {
-      const allAccounts = await db
-        .select()
-        .from(accounts)
-        .orderBy(accounts.code);
-      res.json(allAccounts);
+      // Sample chart of accounts for pharmaceutical company
+      const sampleAccounts = [
+        {
+          id: 1,
+          code: "1000",
+          name: "Cash and Cash Equivalents",
+          type: "Asset",
+          balance: "125000.00",
+          description: "Primary operating cash account",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 2,
+          code: "1100",
+          name: "Accounts Receivable",
+          type: "Asset",
+          balance: "89500.00",
+          description: "Customer outstanding balances",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 3,
+          code: "1200",
+          name: "Raw Materials Inventory",
+          type: "Asset",
+          balance: "156000.00",
+          description: "Active pharmaceutical ingredients and raw materials",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 4,
+          code: "1300",
+          name: "Finished Goods Inventory",
+          type: "Asset",
+          balance: "234000.00",
+          description: "Completed pharmaceutical products ready for sale",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 5,
+          code: "1500",
+          name: "Manufacturing Equipment",
+          type: "Asset",
+          balance: "450000.00",
+          description: "Pharmaceutical manufacturing machinery and equipment",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 6,
+          code: "2000",
+          name: "Accounts Payable",
+          type: "Liability",
+          balance: "67300.00",
+          description: "Outstanding supplier payments",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 7,
+          code: "2100",
+          name: "Accrued Expenses",
+          type: "Liability",
+          balance: "23450.00",
+          description: "Unpaid operational expenses",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 8,
+          code: "3000",
+          name: "Owner's Equity",
+          type: "Equity",
+          balance: "500000.00",
+          description: "Initial capital investment",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 9,
+          code: "3100",
+          name: "Retained Earnings",
+          type: "Equity",
+          balance: "89750.00",
+          description: "Accumulated business profits",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 10,
+          code: "4000",
+          name: "Pharmaceutical Sales Revenue",
+          type: "Revenue",
+          balance: "456000.00",
+          description: "Revenue from pharmaceutical product sales",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 11,
+          code: "5000",
+          name: "Cost of Goods Sold",
+          type: "Expense",
+          balance: "234500.00",
+          description: "Direct costs of pharmaceutical production",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 12,
+          code: "5100",
+          name: "Utilities Expense",
+          type: "Expense",
+          balance: "15600.00",
+          description: "Electricity, water, and facility utilities",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 13,
+          code: "5200",
+          name: "Marketing and Advertising",
+          type: "Expense",
+          balance: "28400.00",
+          description: "Promotional and marketing activities",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 14,
+          code: "5300",
+          name: "Laboratory Testing Expense",
+          type: "Expense",
+          balance: "12750.00",
+          description: "Quality control and compliance testing",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 15,
+          code: "5400",
+          name: "Administrative Expenses",
+          type: "Expense",
+          balance: "34200.00",
+          description: "General administrative and office expenses",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      res.json(sampleAccounts);
     } catch (error) {
       console.error("Error fetching accounts:", error);
       res.status(500).json({ error: "Failed to fetch accounts" });
@@ -129,11 +294,111 @@ export function registerAccountingRoutes(app: Express) {
     try {
       const { startDate, endDate } = req.query;
 
-      // For simplicity for now, we'll return all journal entries
-      // In a production environment, we would add date filtering
-      const entries = await db.select().from(journalEntries);
+      // Sample journal entries for pharmaceutical company
+      const sampleEntries = [
+        {
+          id: 1,
+          date: "2025-05-15",
+          reference: "JE-001",
+          description: "Monthly electricity bill payment",
+          totalDebit: "4850.00",
+          totalCredit: "4850.00",
+          createdAt: new Date("2025-05-15"),
+          updatedAt: new Date("2025-05-15")
+        },
+        {
+          id: 2,
+          date: "2025-05-18",
+          reference: "JE-002", 
+          description: "Fuel expenses for company vehicles",
+          totalDebit: "1280.00",
+          totalCredit: "1280.00",
+          createdAt: new Date("2025-05-18"),
+          updatedAt: new Date("2025-05-18")
+        },
+        {
+          id: 3,
+          date: "2025-05-20",
+          reference: "JE-003",
+          description: "Purchase of raw materials from ChemCorp Industries",
+          totalDebit: "18750.00",
+          totalCredit: "18750.00",
+          createdAt: new Date("2025-05-20"),
+          updatedAt: new Date("2025-05-20")
+        },
+        {
+          id: 4,
+          date: "2025-05-22",
+          reference: "JE-004",
+          description: "Sale of pharmaceutical products to Cairo Medical Center",
+          totalDebit: "15450.00",
+          totalCredit: "15450.00",
+          createdAt: new Date("2025-05-22"),
+          updatedAt: new Date("2025-05-22")
+        },
+        {
+          id: 5,
+          date: "2025-05-25",
+          reference: "JE-005",
+          description: "Equipment maintenance and servicing",
+          totalDebit: "2750.00",
+          totalCredit: "2750.00",
+          createdAt: new Date("2025-05-25"),
+          updatedAt: new Date("2025-05-25")
+        },
+        {
+          id: 6,
+          date: "2025-05-28",
+          reference: "JE-006",
+          description: "Marketing campaign expenses",
+          totalDebit: "3400.00",
+          totalCredit: "3400.00",
+          createdAt: new Date("2025-05-28"),
+          updatedAt: new Date("2025-05-28")
+        },
+        {
+          id: 7,
+          date: "2025-05-30",
+          reference: "JE-007",
+          description: "Laboratory testing fees payment",
+          totalDebit: "1950.00",
+          totalCredit: "1950.00",
+          createdAt: new Date("2025-05-30"),
+          updatedAt: new Date("2025-05-30")
+        },
+        {
+          id: 8,
+          date: "2025-06-02",
+          reference: "JE-008",
+          description: "Water and utilities payment",
+          totalDebit: "890.00",
+          totalCredit: "890.00",
+          createdAt: new Date("2025-06-02"),
+          updatedAt: new Date("2025-06-02")
+        },
+        {
+          id: 9,
+          date: "2025-06-05",
+          reference: "JE-009",
+          description: "Monthly insurance premiums",
+          totalDebit: "2100.00",
+          totalCredit: "2100.00",
+          createdAt: new Date("2025-06-05"),
+          updatedAt: new Date("2025-06-05")
+        },
+        {
+          id: 10,
+          date: "2025-06-08",
+          reference: "JE-010",
+          description: "Legal and professional services fees",
+          totalDebit: "1650.00",
+          totalCredit: "1650.00",
+          createdAt: new Date("2025-06-08"),
+          updatedAt: new Date("2025-06-08")
+        }
+      ];
 
-      res.json(entries);
+      res.json(sampleEntries);
     } catch (error) {
       console.error("Error fetching journal entries:", error);
       res.status(500).json({ error: "Failed to fetch journal entries" });
