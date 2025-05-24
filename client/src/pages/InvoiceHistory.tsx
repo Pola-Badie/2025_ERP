@@ -79,6 +79,10 @@ const InvoiceHistory = () => {
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   // Recycle bin state
   const [showRecycleBin, setShowRecycleBin] = useState(false);
   const [deletedInvoices, setDeletedInvoices] = useState<(Invoice & { deletedAt: string })[]>([
@@ -485,6 +489,17 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     
     return matchesSearch && matchesStatus && matchesDate;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateFilter]);
 
   // Checkbox selection handlers
   const handleSelectAll = (checked: boolean) => {
@@ -925,7 +940,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredInvoices.map((invoice) => (
+                    {paginatedInvoices.map((invoice) => (
                       <TableRow key={invoice.id} className="hover:bg-gray-50">
                         <TableCell>
                           <Checkbox
@@ -1010,6 +1025,58 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="flex items-center"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className={`min-w-[40px] ${
+                  currentPage === page 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="flex items-center"
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
+
+      {/* Pagination Info */}
+      {filteredInvoices.length > 0 && (
+        <div className="text-center text-sm text-muted-foreground">
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredInvoices.length)} of {filteredInvoices.length} invoices
+        </div>
+      )}
 
       {/* Invoice Preview Dialog */}
       {selectedInvoice && (
