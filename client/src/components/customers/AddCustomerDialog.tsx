@@ -169,6 +169,20 @@ const AddCustomerDialog: React.FC<AddCustomerDialogProps> = ({
           </div>
           
           <div className="grid gap-2">
+            <Label htmlFor="taxNumber">Tax Number (ETA Registration)</Label>
+            <Input
+              id="taxNumber"
+              name="taxNumber"
+              placeholder="Enter Egyptian Tax Authority registration number"
+              value={customer.taxNumber || ''}
+              onChange={handleInputChange}
+            />
+            <p className="text-xs text-muted-foreground">
+              Required for invoices to appear in customer's ETA portal
+            </p>
+          </div>
+          
+          <div className="grid gap-2">
             <Label htmlFor="address">Address</Label>
             <Textarea
               id="address"

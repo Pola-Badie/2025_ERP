@@ -26,6 +26,7 @@ export interface CustomerData {
   phone: string;
   email: string;
   address: string;
+  taxNumber: string; // Egyptian Tax Authority registration number
 }
 
 interface CustomerCardProps {

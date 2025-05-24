@@ -68,6 +68,10 @@ export const customers = pgTable("customers", {
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
+  company: text("company"),
+  position: text("position"),
+  sector: text("sector"),
+  taxNumber: text("tax_number"), // Egyptian Tax Authority registration number
   totalPurchases: numeric("total_purchases").default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

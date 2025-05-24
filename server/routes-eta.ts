@@ -160,7 +160,7 @@ export function registerETARoutes(app: Express) {
         },
         receiver: {
           name: invoiceData.customerName,
-          id: invoiceData.customerTaxId || "000000000"
+          id: invoiceData.customerTaxNumber || "000000000"
         },
         documentType: "I", // Invoice
         documentTypeVersion: "1.0",
