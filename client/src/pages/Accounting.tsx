@@ -614,10 +614,9 @@ const Accounting: React.FC = () => {
                             <SelectValue placeholder="Select cost center" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="marketing">Marketing</SelectItem>
-                            <SelectItem value="projects">Projects</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="operations">Operations</SelectItem>
+                            {expenseSettings.costCenters.map((center, index) => (
+                              <SelectItem key={index} value={center.toLowerCase().replace(/\s+/g, '-')}>{center}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -630,10 +629,9 @@ const Accounting: React.FC = () => {
                             <SelectValue placeholder="Select payment method" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="credit-card">Credit Card</SelectItem>
-                            <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                            <SelectItem value="check">Check</SelectItem>
+                            {expenseSettings.paymentMethods.map((method, index) => (
+                              <SelectItem key={index} value={method.toLowerCase().replace(/\s+/g, '-')}>{method}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
