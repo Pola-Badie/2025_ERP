@@ -1477,16 +1477,7 @@ PharmaOverseas Team`;
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Send to WhatsApp
               </Button>
-              {!selectedInvoice.etaUploaded && (
-                <Button 
-                  variant="default" 
-                  onClick={() => uploadToETA(selectedInvoice.id)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Send to Customer's ETA System
-                </Button>
-              )}
+
             </DialogFooter>
           </DialogContent>
         </Dialog>
