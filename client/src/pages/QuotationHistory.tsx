@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus, ClipboardList } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, FilePlus, ClipboardList, Factory, TestTube, Package, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
@@ -36,34 +36,74 @@ import { format } from 'date-fns';
 interface Quotation {
   id: number;
   quotationNumber: string;
+  type: 'manufacturing' | 'refining' | 'finished';
   customerName: string;
+  customerId: number;
   date: string;
   validUntil: string;
-  amount: number;
-  status: 'pending' | 'accepted' | 'rejected' | 'expired';
+  notes?: string;
+  subtotal: number;
+  transportationFees: number;
+  transportationType?: string;
+  transportationNotes?: string;
+  tax: number;
+  total: number;
+  amount: number; // For backward compatibility
+  status: 'draft' | 'sent' | 'pending' | 'accepted' | 'rejected' | 'expired';
   items: {
+    id: string;
+    type: 'manufacturing' | 'refining' | 'finished';
     productName: string;
+    description: string;
     quantity: number;
-    unitPrice: number;
     uom: string;
+    unitPrice: number;
     total: number;
+    specifications?: string;
+    rawMaterials?: string[];
+    processingTime?: number;
+    qualityGrade?: string;
   }[];
 }
+
+// Helper functions
+const getQuotationTypeIcon = (type: string) => {
+  switch (type) {
+    case 'manufacturing': return <Factory className="h-4 w-4" />;
+    case 'refining': return <TestTube className="h-4 w-4" />;
+    case 'finished': return <Package className="h-4 w-4" />;
+    default: return <FileText className="h-4 w-4" />;
+  }
+};
+
+const getQuotationTypeBadge = (type: string) => {
+  switch (type) {
+    case 'manufacturing':
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{getQuotationTypeIcon(type)} Manufacturing</Badge>;
+    case 'refining':
+      return <Badge variant="secondary" className="bg-green-100 text-green-800">{getQuotationTypeIcon(type)} Refining</Badge>;
+    case 'finished':
+      return <Badge variant="secondary" className="bg-purple-100 text-purple-800">{getQuotationTypeIcon(type)} Finished</Badge>;
+    default:
+      return <Badge variant="secondary">{type}</Badge>;
+  }
+};
 
 const QuotationHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
   // Fetch quotations
   const { data: quotations = [], isLoading } = useQuery<Quotation[]>({
-    queryKey: ['/api/quotations', searchTerm, statusFilter, dateFilter],
+    queryKey: ['/api/quotations', searchTerm, statusFilter, typeFilter, dateFilter],
     queryFn: async () => {
       const res = await apiRequest(
         'GET', 
-        `/api/quotations?query=${encodeURIComponent(searchTerm)}&status=${statusFilter}&date=${dateFilter}`
+        `/api/quotations?query=${encodeURIComponent(searchTerm)}&status=${statusFilter}&type=${typeFilter}&date=${dateFilter}`
       );
       return await res.json();
     },
@@ -76,11 +116,12 @@ const QuotationHistory = () => {
       quotation.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || quotation.status === statusFilter;
+    const matchesType = typeFilter === 'all' || quotation.type === typeFilter;
     
     // Simple date filtering (in a real app, would use proper date comparison)
     const matchesDate = dateFilter === 'all' || true;
     
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
   // Handle quotation preview
