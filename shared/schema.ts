@@ -231,6 +231,23 @@ export const loginLogs = pgTable("login_logs", {
   success: boolean("success").notNull(),
 });
 
+// Expenses
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  category: text("category").notNull(),
+  date: text("date").notNull(), // ISO date string
+  paymentMethod: text("payment_method").notNull(),
+  status: text("status").notNull().default("Paid"), // Paid, Pending, Cancelled
+  costCenter: text("cost_center"),
+  notes: text("notes"),
+  userId: integer("user_id").references(() => users.id),
+  receiptPath: text("receipt_path"), // File path for receipt
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // System backups
 export const backups = pgTable("backups", {
   id: serial("id").primaryKey(),
@@ -853,3 +870,26 @@ export type OrderItem = typeof orderItems.$inferSelect;
 
 export type InsertOrderFee = z.infer<typeof insertOrderFeeSchema>;
 export type OrderFee = typeof orderFees.$inferSelect;
+
+// Expense schema and types
+export const insertExpenseSchema = createInsertSchema(expenses).pick({
+  description: true,
+  amount: true,
+  category: true,
+  date: true,
+  paymentMethod: true,
+  status: true,
+  costCenter: true,
+  notes: true,
+  userId: true,
+  receiptPath: true,
+});
+
+export const updateExpenseStatusSchema = z.object({
+  status: z.string(),
+  updatedAt: z.date().optional(),
+});
+
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type Expense = typeof expenses.$inferSelect;
+export type UpdateExpenseStatus = z.infer<typeof updateExpenseStatusSchema>;
