@@ -260,30 +260,10 @@ const JournalEntries = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-[calc(100vh-200px)] overflow-y-auto">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Journal Entries</h3>
         <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/accounting/generate-sample-data', {
-                  method: 'POST',
-                });
-                
-                if (response.ok) {
-                  queryClient.invalidateQueries({ queryKey: ["/api/journal-entries"] });
-                  queryClient.invalidateQueries({ queryKey: ["/api/accounts"] });
-                }
-              } catch (error) {
-                console.error('Failed to generate sample data:', error);
-              }
-            }}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Generate Sample Data
-          </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
