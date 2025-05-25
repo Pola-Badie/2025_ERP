@@ -52,7 +52,8 @@ import {
   Edit,
   Upload,
   Paperclip,
-  Trash2
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -105,6 +106,7 @@ const Accounting: React.FC = () => {
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -206,11 +208,26 @@ const Accounting: React.FC = () => {
   };
 
   const downloadReceipt = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsDownloadDialogOpen(true);
+  };
+
+  const handleDownloadPDF = (format: string) => {
     toast({
-      title: "Receipt Downloaded",
-      description: `Receipt for ${invoice.id} has been downloaded successfully.`,
+      title: "Download Started",
+      description: `${format} for ${selectedInvoice?.id} is being prepared for download.`,
       variant: "default"
     });
+    setIsDownloadDialogOpen(false);
+    
+    // Simulate download progress
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${format} has been downloaded successfully.`,
+        variant: "default"
+      });
+    }, 2000);
   };
 
   const viewSupplier = (invoice: any) => {
@@ -2658,6 +2675,111 @@ const Accounting: React.FC = () => {
             <Button onClick={sendReminder}>
               <BellRing className="h-4 w-4 mr-2" />
               Send Reminder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Professional PDF Download Dialog */}
+      <Dialog open={isDownloadDialogOpen} onOpenChange={setIsDownloadDialogOpen}>
+        <DialogContent className="sm:max-w-[500px] bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Download className="h-6 w-6 text-blue-600" />
+              </div>
+              Download Documents
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Choose the document format for invoice {selectedInvoice?.id}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-6">
+            {/* Invoice Details Card */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-800">{selectedInvoice?.id}</h4>
+                  <p className="text-sm text-gray-600">{selectedInvoice?.supplier || selectedInvoice?.customer}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg text-gray-800">{selectedInvoice?.total}</p>
+                  <p className="text-xs text-blue-600 font-medium">ETA: {selectedInvoice?.eta}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Download Options */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => handleDownloadPDF("Invoice PDF")}
+                className="h-auto p-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <FileText className="h-8 w-8" />
+                  <span className="font-medium">Invoice PDF</span>
+                  <span className="text-xs opacity-90">Complete invoice</span>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleDownloadPDF("Receipt PDF")}
+                className="h-auto p-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Receipt className="h-8 w-8" />
+                  <span className="font-medium">Receipt PDF</span>
+                  <span className="text-xs opacity-90">Payment receipt</span>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleDownloadPDF("Statement PDF")}
+                className="h-auto p-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <BarChart className="h-8 w-8" />
+                  <span className="font-medium">Statement</span>
+                  <span className="text-xs opacity-90">Account summary</span>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleDownloadPDF("Tax Report PDF")}
+                className="h-auto p-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <FileQuestion className="h-8 w-8" />
+                  <span className="font-medium">Tax Report</span>
+                  <span className="text-xs opacity-90">ETA compliance</span>
+                </div>
+              </Button>
+            </div>
+
+            {/* ETA Compliance Note */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-blue-100 rounded-full">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-900">Egyptian Tax Authority Compliance</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    All downloaded documents include valid ETA numbers for tax compliance.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDownloadDialogOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
