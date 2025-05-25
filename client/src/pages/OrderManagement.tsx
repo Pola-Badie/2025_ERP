@@ -89,14 +89,15 @@ const OrderManagement = () => {
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   const [isGeneratingOrders, setIsGeneratingOrders] = useState(false);
   const [hasGeneratedInitialOrders, setHasGeneratedInitialOrders] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   // Production order states
   const [rawMaterials, setRawMaterials] = useState<any[]>([]);
   const [materialToAdd, setMaterialToAdd] = useState<any>(null);
   const [materialQuantity, setMaterialQuantity] = useState<number>(0);
   const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('0.00');
   const [finalProductDescription, setFinalProductDescription] = useState('');
-  
+
   // Packaging states
   const [packagingItems, setPackagingItems] = useState<any[]>([]);
   const [packagingToAdd, setPackagingToAdd] = useState<any>(null);
@@ -107,13 +108,13 @@ const OrderManagement = () => {
   const [totalPrice, setTotalPrice] = useState<string>('0.00');
   const [transportationCost, setTransportationCost] = useState<string>('0.00');
   const [transportationNotes, setTransportationNotes] = useState<string>('');
-  
+
   // Additional cost states for production orders
   const [laborCost, setLaborCost] = useState<string>('0.00');
   const [equipmentCost, setEquipmentCost] = useState<string>('0.00');
   const [qualityControlCost, setQualityControlCost] = useState<string>('0.00');
   const [storageCost, setStorageCost] = useState<string>('0.00');
-  
+
   // Refining order states
   const [refiningBatchNumber, setRefiningBatchNumber] = useState('');
   const [sourceType, setSourceType] = useState<string>('production');
@@ -127,56 +128,56 @@ const OrderManagement = () => {
   const [refiningCost, setRefiningCost] = useState<string>('0.00');
   const [refiningTransportationCost, setRefiningTransportationCost] = useState<string>('0.00');
   const [refiningTransportationNotes, setRefiningTransportationNotes] = useState<string>('');
-  
+
   // Additional cost states for refining orders
   const [refiningLaborCost, setRefiningLaborCost] = useState<string>('0.00');
   const [refiningEquipmentCost, setRefiningEquipmentCost] = useState<string>('0.00');
   const [refiningQualityControlCost, setRefiningQualityControlCost] = useState<string>('0.00');
   const [refiningStorageCost, setRefiningStorageCost] = useState<string>('0.00');
   const [refiningProcessingCost, setRefiningProcessingCost] = useState<string>('0.00');
-  
+
   // Refining raw materials states
   const [refiningRawMaterials, setRefiningRawMaterials] = useState<any[]>([]);
   const [refiningMaterialToAdd, setRefiningMaterialToAdd] = useState<any>(null);
   const [refiningMaterialQuantity, setRefiningMaterialQuantity] = useState<number>(0);
   const [refiningMaterialUnitPrice, setRefiningMaterialUnitPrice] = useState<string>('0.00');
-  
+
   // Calculate subtotal and total price (with tax) when raw materials, packaging items, tax percentage, or transportation cost change
   useEffect(() => {
     // Calculate materials cost
     const materialsCost = rawMaterials.reduce((sum, material) => {
       return sum + (material.quantity * parseFloat(material.unitPrice));
     }, 0);
-    
+
     // Calculate packaging cost
     const packagingCost = packagingItems.reduce((sum, item) => {
       return sum + (item.quantity * parseFloat(item.unitPrice));
     }, 0);
-    
+
     // Add all additional costs
     const transportCost = parseFloat(transportationCost) || 0;
     const labor = parseFloat(laborCost) || 0;
     const equipment = parseFloat(equipmentCost) || 0;
     const qualityControl = parseFloat(qualityControlCost) || 0;
     const storage = parseFloat(storageCost) || 0;
-    
+
     // Calculate the total subtotal
     const subtotal = materialsCost + packagingCost + transportCost + labor + equipment + qualityControl + storage;
     setSubtotalPrice(subtotal.toFixed(2));
-    
+
     // Calculate total with tax
     const taxAmount = subtotal * (taxPercentage / 100);
     const total = subtotal + taxAmount;
     setTotalPrice(total.toFixed(2));
   }, [rawMaterials, packagingItems, transportationCost, laborCost, equipmentCost, qualityControlCost, storageCost, taxPercentage]);
-  
+
   // Calculate refining cost with tax and all additional costs
   useEffect(() => {
     // Calculate refining materials cost
     const materialsCost = refiningRawMaterials.reduce((sum, material) => {
       return sum + (material.quantity * parseFloat(material.unitPrice));
     }, 0);
-    
+
     const baseSubtotal = parseFloat(refiningSubtotal) || 0;
     const transportCost = parseFloat(refiningTransportationCost) || 0;
     const labor = parseFloat(refiningLaborCost) || 0;
@@ -184,10 +185,10 @@ const OrderManagement = () => {
     const qualityControl = parseFloat(refiningQualityControlCost) || 0;
     const storage = parseFloat(refiningStorageCost) || 0;
     const processing = parseFloat(refiningProcessingCost) || 0;
-    
+
     // Calculate the total subtotal including all costs
     const totalSubtotal = baseSubtotal + materialsCost + transportCost + labor + equipment + qualityControl + storage + processing;
-    
+
     const taxAmount = totalSubtotal * (refiningTaxPercentage / 100);
     const total = totalSubtotal + taxAmount;
     setRefiningCost(total.toFixed(2));
@@ -322,7 +323,7 @@ const OrderManagement = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'create' | 'refining');
-    
+
     // Generate appropriate batch number when switching tabs
     if (value === 'create' && !batchNumber) {
       generateBatchNumber('production');
@@ -336,10 +337,10 @@ const OrderManagement = () => {
       // Get the current date in YYMMDD format
       const today = new Date();
       const dateStr = format(today, 'yyMMdd');
-      
+
       // Get random numbers to create a unique batch number (3 digits)
       const randomNum = Math.floor(100 + Math.random() * 900);
-      
+
       // Generate batch numbers with new format
       if (type === 'production') {
         // Format: BATCH-100-YYMMDD
@@ -352,7 +353,7 @@ const OrderManagement = () => {
       }
     } catch (error) {
       console.error('Error generating batch number:', error);
-      
+
       // Fallback to simple format
       const randomNum = Math.floor(1000 + Math.random() * 9000);
       if (type === 'production') {
@@ -372,7 +373,7 @@ const OrderManagement = () => {
         unitOfMeasure: materialToAdd.unitOfMeasure || 'kg',
         unitPrice: materialUnitPrice
       };
-      
+
       setRawMaterials([...rawMaterials, newMaterial]);
       setMaterialToAdd(null);
       setMaterialQuantity(0);
@@ -394,7 +395,7 @@ const OrderManagement = () => {
         unitOfMeasure: packagingToAdd.unitOfMeasure || 'units',
         unitPrice: packagingUnitPrice
       };
-      
+
       setPackagingItems([...packagingItems, newPackagingItem]);
       setPackagingToAdd(null);
       setPackagingQuantity(0);
@@ -428,7 +429,7 @@ const OrderManagement = () => {
         unitOfMeasure: refiningMaterialToAdd.unitOfMeasure || 'kg',
         unitPrice: refiningMaterialUnitPrice
       };
-      
+
       setRefiningRawMaterials([...refiningRawMaterials, newMaterial]);
       setRefiningMaterialToAdd(null);
       setRefiningMaterialQuantity(0);
@@ -442,6 +443,7 @@ const OrderManagement = () => {
   };
 
   const handleCreateOrder = async () => {
+    setIsLoading(true);
     try {
       if (!selectedCustomer) {
         toast({
@@ -495,7 +497,7 @@ const OrderManagement = () => {
       setTransportationCost('0.00');
       setTransportationNotes('');
       generateBatchNumber('production');
-      
+
       // Refetch orders
       refetchOrders();
 
@@ -506,6 +508,8 @@ const OrderManagement = () => {
         description: "Failed to create order",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -566,7 +570,7 @@ const OrderManagement = () => {
       setRefiningTransportationCost('0.00');
       setRefiningTransportationNotes('');
       generateBatchNumber('refining');
-      
+
       // Refetch orders
       refetchOrders();
 
@@ -665,7 +669,7 @@ const OrderManagement = () => {
     try {
       // Filter orders based on warehouse type
       const filteredOrders = productionOrders;
-      
+
       if (filteredOrders.length === 0) {
         toast({
           title: "No Data",
@@ -674,14 +678,14 @@ const OrderManagement = () => {
         });
         return;
       }
-      
+
       // Define CSV headers
       const headers = [
         'Batch Number', 'Customer', 'Final Product', 'Raw Materials', 
         'Packaging', 'Subtotal ($)', 'Tax Amount ($)', 'Date Created', 
         'Location', 'Status'
       ];
-      
+
       // Map orders to CSV rows
       const rows = filteredOrders.map((order: any) => [
         order.batchNumber || 'Unknown',
@@ -695,7 +699,7 @@ const OrderManagement = () => {
         order.location || 'Not specified',
         order.status || 'Pending'
       ]);
-      
+
       // Generate CSV content with proper escaping for quoted values
       const csvContent = [
         headers.join(","),
@@ -705,7 +709,7 @@ const OrderManagement = () => {
           ).join(",")
         )
       ].join("\n");
-      
+
       // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -715,7 +719,7 @@ const OrderManagement = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: "Export Successful",
         description: `Exported ${filteredOrders.length} orders from ${warehouseType}`
@@ -734,7 +738,7 @@ const OrderManagement = () => {
     try {
       // Filter orders based on warehouse type
       const filteredOrders = refiningOrders;
-      
+
       if (filteredOrders.length === 0) {
         toast({
           title: "No Data",
@@ -743,14 +747,14 @@ const OrderManagement = () => {
         });
         return;
       }
-      
+
       // Define CSV headers
       const headers = [
         'Batch Number', 'Customer', 'Source Type', 'Refining Steps', 
         'Expected Output', 'Subtotal ($)', 'Tax Amount ($)', 'Date Created', 
         'Location', 'Status'
       ];
-      
+
       // Map orders to CSV rows
       const rows = filteredOrders.map((order: any) => [
         order.batchNumber || 'Unknown',
@@ -764,7 +768,7 @@ const OrderManagement = () => {
         order.location || 'Not specified',
         order.status || 'Pending'
       ]);
-      
+
       // Generate CSV content with proper escaping for quoted values
       const csvContent = [
         headers.join(","),
@@ -774,7 +778,7 @@ const OrderManagement = () => {
           ).join(",")
         )
       ].join("\n");
-      
+
       // Create a download link and trigger the download
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -784,7 +788,7 @@ const OrderManagement = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast({
         title: "Export Successful",
         description: `Exported ${filteredOrders.length} orders from ${warehouseType}`
@@ -798,19 +802,19 @@ const OrderManagement = () => {
       });
     }
   };
-  
+
   // Helper function to format materials array for CSV
   const formatMaterialsForCSV = (materials: any) => {
     if (!materials) return 'None';
-    
+
     try {
       // If materials is a string, parse it as JSON
       const materialsList = typeof materials === 'string' 
         ? JSON.parse(materials) 
         : materials;
-      
+
       if (!Array.isArray(materialsList)) return 'None';
-      
+
       return materialsList.map(m => 
         `${m.name || 'Unknown'} (${m.quantity || 0} ${m.unitOfMeasure || ''})`
       ).join('; ');
@@ -819,11 +823,11 @@ const OrderManagement = () => {
       return 'Error parsing materials';
     }
   };
-  
+
   return (
     <div className="container py-6">
       <h1 className="text-3xl font-bold mb-6">Order Management</h1>
-      
+
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Production Orders</TabsTrigger>
@@ -837,7 +841,7 @@ const OrderManagement = () => {
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-xl font-semibold mb-4">Create Production Order</h2>
-                  
+
                   {/* Customer Selection */}
                   <div className="space-y-4">
                     <div>
@@ -886,7 +890,7 @@ const OrderManagement = () => {
                           </Command>
                         </PopoverContent>
                       </Popover>
-                      
+
                       {selectedCustomer && (
                         <div className="mt-2 p-3 bg-muted rounded-md">
                           <p className="font-medium">{selectedCustomer.name}</p>
@@ -918,7 +922,7 @@ const OrderManagement = () => {
                     {/* Raw Materials Section */}
                     <div>
                       <Label className="text-base font-semibold">Raw Materials</Label>
-                      
+
                       {/* Add Material Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
                         <Select value={materialToAdd?.id?.toString()} onValueChange={(value) => {
@@ -936,14 +940,14 @@ const OrderManagement = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        
+
                         <Input 
                           type="number" 
                           placeholder="Qty"
                           value={materialQuantity}
                           onChange={(e) => setMaterialQuantity(parseInt(e.target.value) || 0)}
                         />
-                        
+
                         <Input 
                           type="number" 
                           step="0.01"
@@ -951,7 +955,7 @@ const OrderManagement = () => {
                           value={materialUnitPrice}
                           onChange={(e) => setMaterialUnitPrice(e.target.value)}
                         />
-                        
+
                         <Button onClick={handleAddMaterial} size="sm">
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -982,7 +986,7 @@ const OrderManagement = () => {
                     {/* Packaging Section */}
                     <div>
                       <Label className="text-base font-semibold">Packaging</Label>
-                      
+
                       {/* Add Packaging Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
                         <Select value={packagingToAdd?.id?.toString()} onValueChange={(value) => {
@@ -1000,14 +1004,14 @@ const OrderManagement = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        
+
                         <Input 
                           type="number" 
                           placeholder="Qty"
                           value={packagingQuantity}
                           onChange={(e) => setPackagingQuantity(parseInt(e.target.value) || 0)}
                         />
-                        
+
                         <Input 
                           type="number" 
                           step="0.01"
@@ -1015,7 +1019,7 @@ const OrderManagement = () => {
                           value={packagingUnitPrice}
                           onChange={(e) => setPackagingUnitPrice(e.target.value)}
                         />
-                        
+
                         <Button onClick={handleAddPackaging} size="sm">
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -1046,7 +1050,7 @@ const OrderManagement = () => {
                     {/* Additional Costs */}
                     <div>
                       <Label className="text-base font-semibold">Additional Costs</Label>
-                      
+
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <div>
                           <Label>Transportation Cost</Label>
@@ -1119,10 +1123,17 @@ const OrderManagement = () => {
                       />
                     </div>
 
-                    <Button onClick={handleCreateOrder} className="w-full">
-                      <Save className="mr-2 h-4 w-4" />
-                      Create Production Order
-                    </Button>
+                    
+<Button 
+  onClick={handleCreateOrder} 
+  className="w-full"
+  type="button"
+  disabled={!selectedCustomer || isLoading}
+>
+  <Save className="mr-2 h-4 w-4" />
+  {isLoading ? 'Creating...' : 'Create Production Order'}
+</Button>
+
                   </div>
                 </CardContent>
               </Card>
@@ -1133,7 +1144,7 @@ const OrderManagement = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-                  
+
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
@@ -1182,7 +1193,7 @@ const OrderManagement = () => {
                 </DropdownMenu>
                 </div>
               </div>
-              
+
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -1270,7 +1281,7 @@ const OrderManagement = () => {
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-xl font-semibold mb-4">Create Refining Order</h2>
-                  
+
                   <div className="space-y-4">
                     {/* Customer Selection */}
                     <div>
@@ -1319,7 +1330,7 @@ const OrderManagement = () => {
                           </Command>
                         </PopoverContent>
                       </Popover>
-                      
+
                       {selectedCustomer && (
                         <div className="mt-2 p-3 bg-muted rounded-md">
                           <p className="font-medium">{selectedCustomer.name}</p>
@@ -1353,7 +1364,7 @@ const OrderManagement = () => {
                           </div>
                         </div>
                       </RadioGroup>
-                      
+
                       <div className="mt-3">
                       {sourceType === 'production' ? (
                         <Select value={sourceProductionOrder} onValueChange={setSourceProductionOrder}>
@@ -1388,7 +1399,7 @@ const OrderManagement = () => {
                     {/* Raw Materials Section */}
                     <div>
                       <Label className="text-base font-semibold">Raw Materials</Label>
-                      
+
                       {/* Add Material Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
                         <Select value={refiningMaterialToAdd?.id?.toString()} onValueChange={(value) => {
@@ -1406,14 +1417,14 @@ const OrderManagement = () => {
                             ))}
                           </SelectContent>
                         </Select>
-                        
+
                         <Input 
                           type="number" 
                           placeholder="Qty"
                           value={refiningMaterialQuantity}
                           onChange={(e) => setRefiningMaterialQuantity(parseInt(e.target.value) || 0)}
                         />
-                        
+
                         <Input 
                           type="number" 
                           step="0.01"
@@ -1421,7 +1432,7 @@ const OrderManagement = () => {
                           value={refiningMaterialUnitPrice}
                           onChange={(e) => setRefiningMaterialUnitPrice(e.target.value)}
                         />
-                        
+
                         <Button onClick={handleAddRefiningMaterial} size="sm">
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -1454,7 +1465,7 @@ const OrderManagement = () => {
                     {/* Refining Steps */}
                     <div>
                       <Label className="text-base font-semibold">Refining Steps</Label>
-                      
+
                       <div className="flex gap-2 mb-3">
                         <Input 
                           value={newRefiningStep}
@@ -1497,7 +1508,7 @@ const OrderManagement = () => {
                     {/* Additional Costs */}
                     <div>
                       <Label className="text-base font-semibold">Additional Costs</Label>
-                      
+
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <div>
                           <Label>Base Cost</Label>
@@ -1604,7 +1615,7 @@ const OrderManagement = () => {
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Refining Order Summary</h3>
-                  
+
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
@@ -1655,7 +1666,7 @@ const OrderManagement = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              
+
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -1736,7 +1747,7 @@ const OrderManagement = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Order View Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-3xl">
@@ -1746,7 +1757,7 @@ const OrderManagement = () => {
               {selectedOrder?.batchNumber} - {selectedOrder?.orderType === 'production' ? 'Production Order' : 'Refining Order'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-6 max-h-[60vh] overflow-y-auto pr-2">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -1754,7 +1765,7 @@ const OrderManagement = () => {
                 <p className="font-medium">{selectedOrder?.customerName || 'N/A'}</p>
                 <p className="text-sm text-muted-foreground">{selectedOrder?.company || 'N/A'}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Status</h3>
                 <Badge variant={
@@ -1766,31 +1777,31 @@ const OrderManagement = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Created At</h3>
                 <p>{selectedOrder?.createdAt ? format(new Date(selectedOrder.createdAt), 'dd/MM/yyyy') : 'N/A'}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Location</h3>
                 <p>{selectedOrder?.location || 'Not specified'}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Priority Level</h3>
                 <p className="capitalize">{selectedOrder?.priorityLevel || 'Normal'}</p>
               </div>
             </div>
-            
+
             {selectedOrder?.orderType === 'production' ? (
               <>
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">Final Product</h3>
                   <p>{selectedOrder?.finalProduct || 'N/A'}</p>
                 </div>
-               
+
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">Raw Materials</h3>
                   {selectedOrder?.materials ? (
@@ -1874,7 +1885,7 @@ const OrderManagement = () => {
                       {(typeof selectedOrder.refiningSteps === 'string' 
                         ? JSON.parse(selectedOrder.refiningSteps)
                         : selectedOrder.refiningSteps
-                      ).map((step: any, index: number) => (
+                        ).map((step: any, index: number) => (
                         <div key={index} className="p-2 bg-muted rounded text-sm">
                           {index + 1}. {step}
                         </div>
@@ -1905,12 +1916,12 @@ const OrderManagement = () => {
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Subtotal</h3>
                 <p className="font-semibold">${selectedOrder?.subtotal || '0.00'}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Tax ({selectedOrder?.taxPercentage || 14}%)</h3>
                 <p className="font-semibold">${selectedOrder?.taxAmount || '0.00'}</p>
               </div>
-              
+
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Total Cost</h3>
                 <p className="text-lg font-bold text-primary">${selectedOrder?.totalCost || '0.00'}</p>
