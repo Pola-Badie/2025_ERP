@@ -323,14 +323,6 @@ const QuotationHistory = () => {
 
         {/* Quotations Table */}
         <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">
-              Quotations ({filteredQuotations.length})
-            </CardTitle>
-            <CardDescription>
-              Comprehensive list of all pharmaceutical quotations
-            </CardDescription>
-          </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex justify-center py-12">
