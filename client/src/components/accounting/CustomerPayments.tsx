@@ -997,9 +997,16 @@ const CustomerPayments: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <h4 className="text-sm font-medium">ETA Number</h4>
+                  <p className="text-green-600 font-medium">ETA{new Date(selectedPayment.paymentDate).getFullYear().toString().slice(-2)}{String(new Date(selectedPayment.paymentDate).getMonth() + 1).padStart(2, '0')}{String(new Date(selectedPayment.paymentDate).getDate()).padStart(2, '0')}{String(selectedPayment.id).padStart(3, '0')}</p>
+                </div>
+                <div>
                   <h4 className="text-sm font-medium">Reference</h4>
                   <p>{selectedPayment.reference || '-'}</p>
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h4 className="text-sm font-medium">Status</h4>
                   <Badge 
@@ -1012,6 +1019,7 @@ const CustomerPayments: React.FC = () => {
                     {selectedPayment.status.charAt(0).toUpperCase() + selectedPayment.status.slice(1)}
                   </Badge>
                 </div>
+                <div></div>
               </div>
               
               {selectedPayment.notes && (
