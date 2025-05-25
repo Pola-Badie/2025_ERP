@@ -255,25 +255,43 @@ const Accounting: React.FC = () => {
     doc.text('Phone: +20 2 9876 5432', 20, 119);
     doc.text('Tax ID: 123-456-789', 20, 126);
     
-    // Items Table
-    const tableData = [
-      ['Item Description', 'Quantity', 'Unit Price', 'Total'],
-      ['Pharmaceutical Raw Materials', '500kg', '$25.00', '$12,500.00'],
-      ['Packaging Materials', '1000 units', '$3.50', '$3,500.00'],
-      ['Quality Control Reagents', '50 bottles', '$45.00', '$2,250.00']
-    ];
+    // Items Table Header
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(40, 116, 166);
+    doc.rect(20, 140, 170, 8, 'F');
+    doc.text('Item Description', 25, 146);
+    doc.text('Quantity', 90, 146);
+    doc.text('Unit Price', 120, 146);
+    doc.text('Total', 160, 146);
     
-    (doc as any).autoTable({
-      startY: 140,
-      head: [tableData[0]],
-      body: tableData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [40, 116, 166] },
-      styles: { fontSize: 9 }
-    });
+    // Items Table Rows
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    
+    // Row 1
+    doc.rect(20, 148, 170, 8, 'F');
+    doc.text('Pharmaceutical Raw Materials', 25, 154);
+    doc.text('500kg', 90, 154);
+    doc.text('$25.00', 120, 154);
+    doc.text('$12,500.00', 160, 154);
+    
+    // Row 2
+    doc.rect(20, 156, 170, 8);
+    doc.text('Packaging Materials', 25, 162);
+    doc.text('1000 units', 90, 162);
+    doc.text('$3.50', 120, 162);
+    doc.text('$3,500.00', 160, 162);
+    
+    // Row 3
+    doc.rect(20, 164, 170, 8, 'F');
+    doc.text('Quality Control Reagents', 25, 170);
+    doc.text('50 bottles', 90, 170);
+    doc.text('$45.00', 120, 170);
+    doc.text('$2,250.00', 160, 170);
     
     // Totals
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    const finalY = 185;
     doc.text('Subtotal: $18,250.00', 140, finalY);
     doc.text('VAT (14%): $2,555.00', 140, finalY + 7);
     doc.setFontSize(12);
@@ -335,22 +353,33 @@ const Accounting: React.FC = () => {
     doc.text(`Statement for: ${invoice?.supplier || 'N/A'}`, 20, 40);
     doc.text(`Period: ${new Date().toLocaleDateString()} - ${new Date().toLocaleDateString()}`, 20, 47);
     
-    // Summary Table
-    const summaryData = [
-      ['Description', 'Amount'],
-      ['Opening Balance', '$0.00'],
-      ['Total Purchases', invoice?.total || '$0.00'],
-      ['Total Payments', invoice?.total || '$0.00'],
-      ['Closing Balance', '$0.00']
-    ];
+    // Summary Table Header
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(128, 0, 128);
+    doc.rect(20, 60, 120, 8, 'F');
+    doc.text('Description', 25, 66);
+    doc.text('Amount', 100, 66);
     
-    (doc as any).autoTable({
-      startY: 60,
-      head: [summaryData[0]],
-      body: summaryData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [128, 0, 128] }
-    });
+    // Summary Table Rows
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    
+    doc.rect(20, 68, 120, 8, 'F');
+    doc.text('Opening Balance', 25, 74);
+    doc.text('$0.00', 100, 74);
+    
+    doc.rect(20, 76, 120, 8);
+    doc.text('Total Purchases', 25, 82);
+    doc.text(invoice?.total || '$0.00', 100, 82);
+    
+    doc.rect(20, 84, 120, 8, 'F');
+    doc.text('Total Payments', 25, 90);
+    doc.text(invoice?.total || '$0.00', 100, 90);
+    
+    doc.rect(20, 92, 120, 8);
+    doc.text('Closing Balance', 25, 98);
+    doc.text('$0.00', 100, 98);
     
     return doc;
   };
@@ -373,20 +402,30 @@ const Accounting: React.FC = () => {
     doc.text(`Invoice Reference: ${invoice?.id || 'N/A'}`, 20, 65);
     doc.text(`Tax Period: ${new Date().toLocaleDateString()}`, 20, 75);
     
-    // Tax Breakdown
-    const taxData = [
-      ['Tax Type', 'Base Amount', 'Rate', 'Tax Amount'],
-      ['VAT', '$18,250.00', '14%', '$2,555.00'],
-      ['Total Tax', '', '', '$2,555.00']
-    ];
+    // Tax Breakdown Table Header
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFillColor(255, 140, 0);
+    doc.rect(20, 90, 150, 8, 'F');
+    doc.text('Tax Type', 25, 96);
+    doc.text('Base Amount', 70, 96);
+    doc.text('Rate', 120, 96);
+    doc.text('Tax Amount', 140, 96);
     
-    (doc as any).autoTable({
-      startY: 90,
-      head: [taxData[0]],
-      body: taxData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [255, 140, 0] }
-    });
+    // Tax Breakdown Rows
+    doc.setTextColor(0, 0, 0);
+    doc.setFillColor(245, 245, 245);
+    
+    doc.rect(20, 98, 150, 8, 'F');
+    doc.text('VAT', 25, 104);
+    doc.text('$18,250.00', 70, 104);
+    doc.text('14%', 120, 104);
+    doc.text('$2,555.00', 140, 104);
+    
+    doc.rect(20, 106, 150, 8);
+    doc.setFontSize(11);
+    doc.text('Total Tax', 25, 112);
+    doc.text('$2,555.00', 140, 112);
     
     return doc;
   };
