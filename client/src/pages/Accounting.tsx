@@ -2655,7 +2655,7 @@ const Accounting: React.FC = () => {
 
       {/* Professional View Invoice Dialog */}
       <Dialog open={isInvoiceViewOpen} onOpenChange={setIsInvoiceViewOpen}>
-        <DialogContent className="sm:max-w-[700px] bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-2xl">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
               <div className="p-2 bg-blue-100 rounded-lg">
