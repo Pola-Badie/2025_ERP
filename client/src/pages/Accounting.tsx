@@ -1367,6 +1367,15 @@ const Accounting: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-002', supplier: 'Medical Supplies Co.', total: '$5,420.00', due: '$5,420.00', eta: 'ETA240522002'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
                           onClick={() => handleMakePayment({id: 'PUR-2025-002', supplier: 'Medical Supplies Co.', total: '$5,420.00', due: '$5,420.00', eta: 'ETA240522002'})}
                           className="h-8 px-2 text-xs"
                         >
@@ -1403,6 +1412,15 @@ const Accounting: React.FC = () => {
                     <TableCell className="text-right">$12,300.00</TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-003', supplier: 'Global Pharma Solutions', total: '$12,300.00', status: 'Paid', eta: 'ETA240525003'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
@@ -1445,6 +1463,15 @@ const Accounting: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-004', supplier: 'Lab Equipment Ltd.', total: '$24,800.00', due: '$24,800.00', eta: 'ETA240527004'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
                           onClick={() => handleMakePayment({id: 'PUR-2025-004', supplier: 'Lab Equipment Ltd.', total: '$24,800.00', due: '$24,800.00', eta: 'ETA240527004'})}
                           className="h-8 px-2 text-xs"
                         >
@@ -1484,6 +1511,15 @@ const Accounting: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-005', supplier: 'Packaging Solutions Inc.', total: '$8,950.00', due: '$8,950.00', eta: 'ETA240530005'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
                           onClick={() => handleMakePayment({id: 'PUR-2025-005', supplier: 'Packaging Solutions Inc.', total: '$8,950.00', due: '$8,950.00', eta: 'ETA240530005'})}
                           className="h-8 px-2 text-xs"
                         >
@@ -1520,6 +1556,15 @@ const Accounting: React.FC = () => {
                     <TableCell className="text-right">$6,780.00</TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-006', supplier: 'ChemCorp Industries', total: '$6,780.00', status: 'Paid', eta: 'ETA240602006'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
                         <Button 
                           size="sm" 
                           variant="outline" 
@@ -1622,6 +1667,9 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditInvoice({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
+                                Edit Invoice
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleMakePayment({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
                                 Make Payment
                               </DropdownMenuItem>
@@ -1654,6 +1702,9 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEditInvoice({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
+                                Edit Invoice
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleMakePayment({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
                                 Make Payment
                               </DropdownMenuItem>
