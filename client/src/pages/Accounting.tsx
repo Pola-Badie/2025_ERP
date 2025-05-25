@@ -1469,9 +1469,15 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>Make Payment</DropdownMenuItem>
-                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleMakePayment({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
+                                Make Payment
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewInvoice({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
+                                View Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleContactSupplier({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
+                                Contact Supplier
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
