@@ -1281,6 +1281,7 @@ const Accounting: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Invoice No</TableHead>
+                    <TableHead>ETA No.</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Supplier</TableHead>
                     <TableHead>Items</TableHead>
@@ -1293,6 +1294,7 @@ const Accounting: React.FC = () => {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-001</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240520001</TableCell>
                     <TableCell>2025-05-20</TableCell>
                     <TableCell>ChemCorp Industries</TableCell>
                     <TableCell>
@@ -1331,6 +1333,7 @@ const Accounting: React.FC = () => {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-002</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240522002</TableCell>
                     <TableCell>2025-05-22</TableCell>
                     <TableCell>Medical Supplies Co.</TableCell>
                     <TableCell>
@@ -1369,6 +1372,7 @@ const Accounting: React.FC = () => {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-003</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240525003</TableCell>
                     <TableCell>2025-05-25</TableCell>
                     <TableCell>Global Pharma Solutions</TableCell>
                     <TableCell>
@@ -1399,6 +1403,7 @@ const Accounting: React.FC = () => {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-004</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240527004</TableCell>
                     <TableCell>2025-05-27</TableCell>
                     <TableCell>Lab Equipment Ltd.</TableCell>
                     <TableCell>
@@ -1429,6 +1434,7 @@ const Accounting: React.FC = () => {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-005</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240530005</TableCell>
                     <TableCell>2025-05-30</TableCell>
                     <TableCell>Packaging Solutions Inc.</TableCell>
                     <TableCell>
@@ -1459,6 +1465,7 @@ const Accounting: React.FC = () => {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">PUR-2025-006</TableCell>
+                    <TableCell className="text-blue-600 font-medium">ETA240602006</TableCell>
                     <TableCell>2025-06-02</TableCell>
                     <TableCell>ChemCorp Industries</TableCell>
                     <TableCell>
