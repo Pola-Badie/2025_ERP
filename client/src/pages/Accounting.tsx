@@ -1530,6 +1530,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-003</TableCell>
+                        <TableCell className="text-green-600 font-medium">ETA240605102</TableCell>
                         <TableCell>Alexandria Pharmacy</TableCell>
                         <TableCell>2025-06-05</TableCell>
                         <TableCell className="text-right">$8,750.00</TableCell>
@@ -1555,6 +1556,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-007</TableCell>
+                        <TableCell className="text-green-600 font-medium">ETA240610103</TableCell>
                         <TableCell>Giza Hospital Network</TableCell>
                         <TableCell>2025-06-10</TableCell>
                         <TableCell className="text-right">$22,300.00</TableCell>
@@ -1580,6 +1582,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-012</TableCell>
+                        <TableCell className="text-green-600 font-medium">ETA240615104</TableCell>
                         <TableCell>Luxor Pharmaceuticals</TableCell>
                         <TableCell>2025-06-15</TableCell>
                         <TableCell className="text-right">$12,850.00</TableCell>
@@ -1604,6 +1607,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-018</TableCell>
+                        <TableCell className="text-green-600 font-medium">ETA240620105</TableCell>
                         <TableCell>Aswan Medical Supplies</TableCell>
                         <TableCell>2025-06-20</TableCell>
                         <TableCell className="text-right">$6,420.00</TableCell>
