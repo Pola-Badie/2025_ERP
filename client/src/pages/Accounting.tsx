@@ -1386,18 +1386,26 @@ const Accounting: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">$12,300.00</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
-                          <DropdownMenuItem>View Supplier</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleViewInvoice({id: 'PUR-2025-003', supplier: 'Global Pharma Solutions', total: '$12,300.00', status: 'Paid', eta: 'ETA240525003'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => downloadReceipt({id: 'PUR-2025-003', supplier: 'Global Pharma Solutions', total: '$12,300.00', status: 'Paid', eta: 'ETA240525003'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Receipt
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -1417,18 +1425,26 @@ const Accounting: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">$24,800.00</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Make Payment</DropdownMenuItem>
-                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                          <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleMakePayment({id: 'PUR-2025-004', supplier: 'Lab Equipment Ltd.', total: '$24,800.00', due: '$24,800.00', eta: 'ETA240527004'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <DollarSign className="h-3 w-3 mr-1" />
+                          Pay
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleViewInvoice({id: 'PUR-2025-004', supplier: 'Lab Equipment Ltd.', total: '$24,800.00', due: '$24,800.00', eta: 'ETA240527004'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -1448,18 +1464,26 @@ const Accounting: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">$8,950.00</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Make Payment</DropdownMenuItem>
-                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                          <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleMakePayment({id: 'PUR-2025-005', supplier: 'Packaging Solutions Inc.', total: '$8,950.00', due: '$8,950.00', eta: 'ETA240530005'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <DollarSign className="h-3 w-3 mr-1" />
+                          Pay
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleViewInvoice({id: 'PUR-2025-005', supplier: 'Packaging Solutions Inc.', total: '$8,950.00', due: '$8,950.00', eta: 'ETA240530005'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                   <TableRow>
@@ -1479,18 +1503,26 @@ const Accounting: React.FC = () => {
                     </TableCell>
                     <TableCell className="text-right">$6,780.00</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                          <DropdownMenuItem>Download Receipt</DropdownMenuItem>
-                          <DropdownMenuItem>View Supplier</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleViewInvoice({id: 'PUR-2025-006', supplier: 'ChemCorp Industries', total: '$6,780.00', status: 'Paid', eta: 'ETA240602006'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => downloadReceipt({id: 'PUR-2025-006', supplier: 'ChemCorp Industries', total: '$6,780.00', status: 'Paid', eta: 'ETA240602006'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Receipt
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 </TableBody>
