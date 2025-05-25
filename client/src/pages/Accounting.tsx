@@ -2418,6 +2418,137 @@ const Accounting: React.FC = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit Invoice Dialog */}
+      <Dialog open={isEditInvoiceOpen} onOpenChange={setIsEditInvoiceOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+            <DialogDescription>
+              Modify invoice details for {selectedInvoice?.id}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-invoice-id">Invoice ID</Label>
+                  <input
+                    id="edit-invoice-id"
+                    type="text"
+                    defaultValue={selectedInvoice.id}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-eta-number">ETA Number</Label>
+                  <input
+                    id="edit-eta-number"
+                    type="text"
+                    defaultValue={selectedInvoice.eta}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-supplier">Supplier/Customer</Label>
+                  <input
+                    id="edit-supplier"
+                    type="text"
+                    defaultValue={selectedInvoice.supplier || selectedInvoice.customer}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-date">Date</Label>
+                  <input
+                    id="edit-date"
+                    type="date"
+                    defaultValue="2025-05-25"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit-total">Total Amount</Label>
+                  <input
+                    id="edit-total"
+                    type="text"
+                    defaultValue={selectedInvoice.total}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select defaultValue={selectedInvoice.status || 'pending'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-payment-method">Payment Method</Label>
+                <Select defaultValue="bank-transfer">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="check">Check</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-items">Items Description</Label>
+                <Textarea
+                  id="edit-items"
+                  placeholder="Describe the items or services..."
+                  defaultValue="Active Pharmaceutical Ingredients - Ibuprofen (500kg), Paracetamol (300kg)"
+                  rows={3}
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900">ETA Compliance Note</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  Ensure ETA number is valid and registered with Egyptian Tax Authority for proper compliance.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditInvoiceOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              toast({
+                title: "Invoice Updated",
+                description: `Invoice ${selectedInvoice?.id} has been successfully updated.`,
+                variant: "default"
+              });
+              setIsEditInvoiceOpen(false);
+            }}>
+              <Edit className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Send Reminder Dialog */}
       <Dialog open={isReminderDialogOpen} onOpenChange={setIsReminderDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
