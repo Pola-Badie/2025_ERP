@@ -261,6 +261,13 @@ const Accounting: React.FC = () => {
   const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
   const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
 
+  const handleViewReceipt = (expense: any) => {
+    setSelectedExpense(expense);
+    setIsViewReceiptOpen(true);
+  };
+
+
+
   // Settings management functions
   const addNewOption = () => {
     if (!newOption.type || !newOption.value.trim()) return;
@@ -312,15 +319,7 @@ const Accounting: React.FC = () => {
     setIsEditExpenseOpen(true);
   };
 
-  const handleDeleteExpense = (expense: any) => {
-    if (confirm(`Are you sure you want to delete the expense "${expense.description}"?`)) {
-      toast({
-        title: "Success",
-        description: "Expense entry has been deleted.",
-      });
-      // Here you would typically make an API call to delete the expense
-    }
-  };
+
 
   const handleExpenseSubmit = async () => {
     try {
