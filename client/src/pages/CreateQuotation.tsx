@@ -346,6 +346,15 @@ const CreateQuotation: React.FC = () => {
         </div>
       </div>
 
+      {/* Tabs for Draft Management */}
+      <Tabs defaultValue="create" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create">Create New</TabsTrigger>
+          <TabsTrigger value="drafts">Draft Quotations</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="create" className="space-y-6">
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
@@ -980,6 +989,177 @@ const CreateQuotation: React.FC = () => {
                 <p className="text-sm text-muted-foreground">{notes}</p>
               </div>
             )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+              Close Preview
+            </Button>
+            <Button onClick={() => {
+              setIsPreviewOpen(false);
+              handleSubmit('send');
+            }}>
+              <Send className="mr-2 h-4 w-4" />
+              Send Quotation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+        </TabsContent>
+
+        {/* Draft Quotations Tab */}
+        <TabsContent value="drafts" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Draft Quotations
+              </CardTitle>
+              <CardDescription>
+                Manage and continue working on your saved draft quotations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Sample Draft Quotations */}
+                <div className="grid gap-4">
+                  <Card className="border-dashed">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">QUOTE-MFG-2025-001</h4>
+                            <p className="text-sm text-muted-foreground">Manufacturing - Cairo Medical Center</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Last modified: 2 hours ago • 3 items • $12,450.00
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Preview
+                          </Button>
+                          <Button size="sm">
+                            <Send className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-dashed">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <FileText className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">QUOTE-REF-2025-002</h4>
+                            <p className="text-sm text-muted-foreground">Refining - Alexandria Pharma</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Last modified: 1 day ago • 2 items • $8,750.00
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Preview
+                          </Button>
+                          <Button size="sm">
+                            <Send className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-dashed">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <FileText className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">QUOTE-FIN-2025-003</h4>
+                            <p className="text-sm text-muted-foreground">Finished Products - Giza Medical Supply</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Last modified: 3 days ago • 5 items • $15,200.00
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Preview
+                          </Button>
+                          <Button size="sm">
+                            <Send className="h-3 w-3 mr-1" />
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* No drafts state */}
+                {/* Uncomment this when there are no drafts */}
+                {/*
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Draft Quotations</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Start creating quotations and save them as drafts to see them here.
+                  </p>
+                  <Button onClick={() => setActiveTab('create')}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Quotation
+                  </Button>
+                </div>
+                */}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Quotation Preview</DialogTitle>
+            <DialogDescription>
+              Review your quotation before sending
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Quotation content would go here */}
+            <div className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">Quotation preview content will be displayed here</p>
+            </div>
           </div>
           
           <DialogFooter>

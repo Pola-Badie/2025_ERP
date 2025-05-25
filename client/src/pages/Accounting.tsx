@@ -1312,6 +1312,15 @@ const Accounting: React.FC = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
+                          onClick={() => handleEditInvoice({id: 'PUR-2025-001', supplier: 'ChemCorp Industries', total: '$18,750.00', status: 'Paid', eta: 'ETA240520001'})}
+                          className="h-8 px-2 text-xs"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
                           onClick={() => handleViewInvoice({id: 'PUR-2025-001', supplier: 'ChemCorp Industries', total: '$18,750.00', status: 'Paid', eta: 'ETA240520001'})}
                           className="h-8 px-2 text-xs"
                         >
