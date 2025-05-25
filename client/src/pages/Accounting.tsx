@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { 
   Card, 
   CardContent, 
@@ -212,22 +214,225 @@ const Accounting: React.FC = () => {
     setIsDownloadDialogOpen(true);
   };
 
+  const generateInvoicePDF = () => {
+    const doc = new jsPDF();
+    const invoice = selectedInvoice;
+    
+    // Company Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 116, 166);
+    doc.text('PHARMA SOLUTIONS ERP', 20, 25);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Complete Pharmaceutical Management System', 20, 35);
+    doc.text('Cairo, Egypt | +20 2 1234 5678 | contact@pharmasolutions.eg', 20, 42);
+    
+    // Invoice Title
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('PURCHASE INVOICE', 20, 60);
+    
+    // Invoice Details Box
+    doc.setDrawColor(40, 116, 166);
+    doc.setLineWidth(0.5);
+    doc.rect(120, 50, 70, 30);
+    
+    doc.setFontSize(10);
+    doc.text(`Invoice: ${invoice?.id || 'N/A'}`, 125, 60);
+    doc.text(`ETA Number: ${invoice?.eta || 'N/A'}`, 125, 67);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 125, 74);
+    
+    // Supplier Information
+    doc.setFontSize(12);
+    doc.setTextColor(40, 116, 166);
+    doc.text('SUPPLIER DETAILS', 20, 95);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Company: ${invoice?.supplier || 'N/A'}`, 20, 105);
+    doc.text('Address: Industrial Zone, New Cairo, Egypt', 20, 112);
+    doc.text('Phone: +20 2 9876 5432', 20, 119);
+    doc.text('Tax ID: 123-456-789', 20, 126);
+    
+    // Items Table
+    const tableData = [
+      ['Item Description', 'Quantity', 'Unit Price', 'Total'],
+      ['Pharmaceutical Raw Materials', '500kg', '$25.00', '$12,500.00'],
+      ['Packaging Materials', '1000 units', '$3.50', '$3,500.00'],
+      ['Quality Control Reagents', '50 bottles', '$45.00', '$2,250.00']
+    ];
+    
+    (doc as any).autoTable({
+      startY: 140,
+      head: [tableData[0]],
+      body: tableData.slice(1),
+      theme: 'grid',
+      headStyles: { fillColor: [40, 116, 166] },
+      styles: { fontSize: 9 }
+    });
+    
+    // Totals
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.text('Subtotal: $18,250.00', 140, finalY);
+    doc.text('VAT (14%): $2,555.00', 140, finalY + 7);
+    doc.setFontSize(12);
+    doc.text(`Total: ${invoice?.total || '$20,805.00'}`, 140, finalY + 17);
+    
+    // ETA Compliance Note
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('This document complies with Egyptian Tax Authority regulations.', 20, finalY + 30);
+    doc.text(`ETA Reference: ${invoice?.eta || 'N/A'}`, 20, finalY + 37);
+    
+    return doc;
+  };
+
+  const generateReceiptPDF = () => {
+    const doc = new jsPDF();
+    const invoice = selectedInvoice;
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(34, 139, 34);
+    doc.text('PAYMENT RECEIPT', 20, 25);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Pharma Solutions ERP - Payment Confirmation', 20, 35);
+    
+    // Receipt Details
+    doc.setDrawColor(34, 139, 34);
+    doc.rect(20, 45, 170, 60);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Receipt for Invoice: ${invoice?.id || 'N/A'}`, 25, 60);
+    doc.text(`Supplier: ${invoice?.supplier || 'N/A'}`, 25, 70);
+    doc.text(`Amount Paid: ${invoice?.total || 'N/A'}`, 25, 80);
+    doc.text(`Payment Date: ${new Date().toLocaleDateString()}`, 25, 90);
+    doc.text(`ETA Number: ${invoice?.eta || 'N/A'}`, 25, 100);
+    
+    // Payment Method
+    doc.setFontSize(10);
+    doc.text('Payment Method: Bank Transfer', 25, 115);
+    doc.text('Reference: TXN-2025-' + Math.random().toString(36).substr(2, 9).toUpperCase(), 25, 122);
+    doc.text('Status: PAID', 25, 129);
+    
+    return doc;
+  };
+
+  const generateStatementPDF = () => {
+    const doc = new jsPDF();
+    const invoice = selectedInvoice;
+    
+    // Header
+    doc.setFontSize(16);
+    doc.setTextColor(128, 0, 128);
+    doc.text('ACCOUNT STATEMENT', 20, 25);
+    
+    doc.setFontSize(10);
+    doc.text(`Statement for: ${invoice?.supplier || 'N/A'}`, 20, 40);
+    doc.text(`Period: ${new Date().toLocaleDateString()} - ${new Date().toLocaleDateString()}`, 20, 47);
+    
+    // Summary Table
+    const summaryData = [
+      ['Description', 'Amount'],
+      ['Opening Balance', '$0.00'],
+      ['Total Purchases', invoice?.total || '$0.00'],
+      ['Total Payments', invoice?.total || '$0.00'],
+      ['Closing Balance', '$0.00']
+    ];
+    
+    (doc as any).autoTable({
+      startY: 60,
+      head: [summaryData[0]],
+      body: summaryData.slice(1),
+      theme: 'grid',
+      headStyles: { fillColor: [128, 0, 128] }
+    });
+    
+    return doc;
+  };
+
+  const generateTaxReportPDF = () => {
+    const doc = new jsPDF();
+    const invoice = selectedInvoice;
+    
+    // Header
+    doc.setFontSize(16);
+    doc.setTextColor(255, 140, 0);
+    doc.text('ETA TAX COMPLIANCE REPORT', 20, 25);
+    
+    doc.setFontSize(10);
+    doc.text('Egyptian Tax Authority Compliance Document', 20, 35);
+    
+    // ETA Details
+    doc.setFontSize(12);
+    doc.text(`ETA Number: ${invoice?.eta || 'N/A'}`, 20, 55);
+    doc.text(`Invoice Reference: ${invoice?.id || 'N/A'}`, 20, 65);
+    doc.text(`Tax Period: ${new Date().toLocaleDateString()}`, 20, 75);
+    
+    // Tax Breakdown
+    const taxData = [
+      ['Tax Type', 'Base Amount', 'Rate', 'Tax Amount'],
+      ['VAT', '$18,250.00', '14%', '$2,555.00'],
+      ['Total Tax', '', '', '$2,555.00']
+    ];
+    
+    (doc as any).autoTable({
+      startY: 90,
+      head: [taxData[0]],
+      body: taxData.slice(1),
+      theme: 'grid',
+      headStyles: { fillColor: [255, 140, 0] }
+    });
+    
+    return doc;
+  };
+
   const handleDownloadPDF = (format: string) => {
     toast({
-      title: "Download Started",
-      description: `${format} for ${selectedInvoice?.id} is being prepared for download.`,
+      title: "Generating PDF",
+      description: `Preparing ${format} for download...`,
       variant: "default"
     });
+    
+    let doc;
+    let filename;
+    
+    switch(format) {
+      case "Invoice PDF":
+        doc = generateInvoicePDF();
+        filename = `invoice-${selectedInvoice?.id || 'unknown'}.pdf`;
+        break;
+      case "Receipt PDF":
+        doc = generateReceiptPDF();
+        filename = `receipt-${selectedInvoice?.id || 'unknown'}.pdf`;
+        break;
+      case "Statement PDF":
+        doc = generateStatementPDF();
+        filename = `statement-${selectedInvoice?.supplier?.replace(/\s+/g, '-') || 'unknown'}.pdf`;
+        break;
+      case "Tax Report PDF":
+        doc = generateTaxReportPDF();
+        filename = `tax-report-${selectedInvoice?.eta || 'unknown'}.pdf`;
+        break;
+      default:
+        doc = generateInvoicePDF();
+        filename = `document-${Date.now()}.pdf`;
+    }
+    
+    // Download the PDF
+    doc.save(filename);
+    
     setIsDownloadDialogOpen(false);
     
-    // Simulate download progress
-    setTimeout(() => {
-      toast({
-        title: "Download Complete",
-        description: `${format} has been downloaded successfully.`,
-        variant: "default"
-      });
-    }, 2000);
+    toast({
+      title: "Download Complete",
+      description: `${format} has been downloaded successfully as ${filename}`,
+      variant: "default"
+    });
   };
 
   const viewSupplier = (invoice: any) => {
