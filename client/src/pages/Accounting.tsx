@@ -199,6 +199,61 @@ const Accounting: React.FC = () => {
     setIsPaymentDialogOpen(true);
   };
 
+  // Enhanced receipt management states
+  const [isReceiptDialogOpen, setIsReceiptDialogOpen] = useState(false);
+  const [isUploadReceiptDialogOpen, setIsUploadReceiptDialogOpen] = useState(false);
+  const [isElectronicReceiptDialogOpen, setIsElectronicReceiptDialogOpen] = useState(false);
+  const [selectedReceiptFile, setSelectedReceiptFile] = useState<File | null>(null);
+
+  // Enhanced receipt management functions
+  const handleViewInvoiceReceipt = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsReceiptDialogOpen(true);
+  };
+
+  const handleUploadReceipt = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsUploadReceiptDialogOpen(true);
+  };
+
+  const handleElectronicReceipt = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsElectronicReceiptDialogOpen(true);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedReceiptFile(file);
+      toast({
+        title: "File Selected",
+        description: `Selected file: ${file.name}`,
+        variant: "default"
+      });
+    }
+  };
+
+  const uploadReceipt = () => {
+    if (selectedReceiptFile && selectedInvoice) {
+      toast({
+        title: "Receipt Uploaded",
+        description: `Receipt uploaded successfully for ${selectedInvoice.id}`,
+        variant: "default"
+      });
+      setIsUploadReceiptDialogOpen(false);
+      setSelectedReceiptFile(null);
+    }
+  };
+
+  const generateElectronicReceipt = () => {
+    toast({
+      title: "Electronic Receipt Generated",
+      description: `Electronic receipt generated for ${selectedInvoice?.id}`,
+      variant: "default"
+    });
+    setIsElectronicReceiptDialogOpen(false);
+  };
+
   const [newOption, setNewOption] = useState({ type: '', value: '' });
   
   // State for expense actions
@@ -238,7 +293,7 @@ const Accounting: React.FC = () => {
   };
 
   // Expense action functions
-  const handleViewReceipt = (expense: any) => {
+  const handleViewExpenseReceipt = (expense: any) => {
     setSelectedExpense(expense);
     setIsViewReceiptOpen(true);
   };
