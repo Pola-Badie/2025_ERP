@@ -93,12 +93,83 @@ const Accounting: React.FC = () => {
     amount: ''
   });
 
+  // Invoice action dialogs state
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isInvoiceViewOpen, setIsInvoiceViewOpen] = useState(false);
+  const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  
+  // Payment form state
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMethod: '',
+    reference: '',
+    notes: ''
+  });
+
   // Configurable dropdown options
   const [expenseSettings, setExpenseSettings] = useState({
     accountTypes: ['Marketing', 'Operations', 'Fixed Assets', 'Projects Under Execution'],
     costCenters: ['Marketing', 'Projects', 'Admin', 'Operations'],
     paymentMethods: ['Cash', 'Credit Card', 'Bank Transfer', 'Check']
   });
+
+  // Invoice action handlers
+  const handleMakePayment = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setPaymentForm({
+      amount: '',
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: '',
+      reference: '',
+      notes: ''
+    });
+    setIsPaymentDialogOpen(true);
+  };
+
+  const handleViewInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsInvoiceViewOpen(true);
+  };
+
+  const handleSendReminder = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsReminderDialogOpen(true);
+  };
+
+  const handleContactSupplier = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsContactDialogOpen(true);
+  };
+
+  const processPayment = () => {
+    if (!paymentForm.amount || !paymentForm.paymentMethod) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required payment fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Payment Processed",
+      description: `Payment of $${paymentForm.amount} has been recorded for ${selectedInvoice?.invoiceId || selectedInvoice?.id}.`,
+      variant: "default"
+    });
+    setIsPaymentDialogOpen(false);
+  };
+
+  const sendReminder = () => {
+    toast({
+      title: "Reminder Sent",
+      description: `Payment reminder has been sent for invoice ${selectedInvoice?.invoiceId || selectedInvoice?.id}.`,
+      variant: "default"
+    });
+    setIsReminderDialogOpen(false);
+  };
 
   const [newOption, setNewOption] = useState({ type: '', value: '' });
   
@@ -1977,6 +2048,219 @@ const Accounting: React.FC = () => {
               setIsEditExpenseOpen(false);
             }}>
               Update Expense
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Make Payment Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Record Payment</DialogTitle>
+            <DialogDescription>
+              Record a payment for invoice {selectedInvoice?.id}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="payment-amount">Payment Amount ($)</Label>
+                <Input
+                  id="payment-amount"
+                  type="number"
+                  step="0.01"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="payment-date">Payment Date</Label>
+                <Input
+                  id="payment-date"
+                  type="date"
+                  value={paymentForm.paymentDate}
+                  onChange={(e) => setPaymentForm({...paymentForm, paymentDate: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="payment-method">Payment Method</Label>
+              <Select value={paymentForm.paymentMethod} onValueChange={(value) => setPaymentForm({...paymentForm, paymentMethod: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="check">Check</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="credit-card">Credit Card</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="payment-reference">Reference Number</Label>
+              <Input
+                id="payment-reference"
+                value={paymentForm.reference}
+                onChange={(e) => setPaymentForm({...paymentForm, reference: e.target.value})}
+                placeholder="Transaction/Check number"
+              />
+            </div>
+            <div>
+              <Label htmlFor="payment-notes">Notes</Label>
+              <Textarea
+                id="payment-notes"
+                value={paymentForm.notes}
+                onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                placeholder="Additional payment notes..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={processPayment}>
+              <DollarSign className="h-4 w-4 mr-2" />
+              Process Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Invoice Dialog */}
+      <Dialog open={isInvoiceViewOpen} onOpenChange={setIsInvoiceViewOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogDescription>
+              Detailed information for invoice {selectedInvoice?.id}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInvoice && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Invoice ID</Label>
+                  <div className="text-sm text-muted-foreground">{selectedInvoice.id}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">ETA Number</Label>
+                  <div className="text-sm text-blue-600 font-medium">{selectedInvoice.eta}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Supplier/Customer</Label>
+                  <div className="text-sm text-muted-foreground">{selectedInvoice.supplier || selectedInvoice.customer}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Total Amount</Label>
+                  <div className="text-sm text-muted-foreground">{selectedInvoice.total}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Amount Due</Label>
+                  <div className="text-sm text-muted-foreground">{selectedInvoice.due || selectedInvoice.remaining}</div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <div className="text-sm text-muted-foreground">
+                    <Badge variant={selectedInvoice.status === 'Overdue' ? 'destructive' : 'outline'}>
+                      {selectedInvoice.status || 'Pending'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setIsInvoiceViewOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Reminder Dialog */}
+      <Dialog open={isReminderDialogOpen} onOpenChange={setIsReminderDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Send Payment Reminder</DialogTitle>
+            <DialogDescription>
+              Send a payment reminder for invoice {selectedInvoice?.id}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900">Reminder Details</h4>
+              <p className="text-sm text-blue-700 mt-1">
+                A payment reminder will be sent via email to the customer for the outstanding amount.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="reminder-message">Custom Message (Optional)</Label>
+              <Textarea
+                id="reminder-message"
+                placeholder="Add a custom message to the reminder..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReminderDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={sendReminder}>
+              <BellRing className="h-4 w-4 mr-2" />
+              Send Reminder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Supplier Dialog */}
+      <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Contact Supplier</DialogTitle>
+            <DialogDescription>
+              Send a message to {selectedInvoice?.supplier}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="contact-subject">Subject</Label>
+              <Input
+                id="contact-subject"
+                placeholder="Enter message subject"
+                defaultValue={`Regarding Invoice ${selectedInvoice?.id}`}
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact-message">Message</Label>
+              <Textarea
+                id="contact-message"
+                placeholder="Type your message here..."
+                rows={6}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsContactDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              toast({
+                title: "Message Sent",
+                description: `Your message has been sent to ${selectedInvoice?.supplier}.`,
+                variant: "default"
+              });
+              setIsContactDialogOpen(false);
+            }}>
+              Send Message
             </Button>
           </DialogFooter>
         </DialogContent>
