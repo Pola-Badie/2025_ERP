@@ -48,7 +48,8 @@ import {
   MoreHorizontal,
   BarChart,
   Settings,
-  X
+  X,
+  Edit
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -97,6 +98,7 @@ const Accounting: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isInvoiceViewOpen, setIsInvoiceViewOpen] = useState(false);
+  const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   
@@ -132,6 +134,11 @@ const Accounting: React.FC = () => {
   const handleViewInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setIsInvoiceViewOpen(true);
+  };
+
+  const handleEditInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsEditInvoiceOpen(true);
   };
 
   const handleSendReminder = (invoice: any) => {
