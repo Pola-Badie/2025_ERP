@@ -757,6 +757,7 @@ const CustomerPayments: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Invoice #</TableHead>
+                  <TableHead>ETA Number</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Due Date</TableHead>
                   <TableHead className="text-right">Total</TableHead>
@@ -769,11 +770,11 @@ const CustomerPayments: React.FC = () => {
               <TableBody>
                 {isLoadingInvoices ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center">Loading...</TableCell>
+                    <TableCell colSpan={9} className="text-center">Loading...</TableCell>
                   </TableRow>
                 ) : pendingInvoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center">No pending invoices found.</TableCell>
+                    <TableCell colSpan={9} className="text-center">No pending invoices found.</TableCell>
                   </TableRow>
                 ) : (
                   (() => {
@@ -791,16 +792,19 @@ const CustomerPayments: React.FC = () => {
                     if (filteredInvoices.length === 0) {
                       return (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center">
+                          <TableCell colSpan={9} className="text-center">
                             No invoices match the selected filters.
                           </TableCell>
                         </TableRow>
                       );
                     }
                     
-                    return filteredInvoices.map((invoice: Invoice) => (
+                    return filteredInvoices.map((invoice: Invoice, index: number) => (
                       <TableRow key={invoice.id}>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                        <TableCell className="text-green-600 font-medium">
+                          ETA{new Date(invoice.dueDate).getFullYear().toString().slice(-2)}{(new Date(invoice.dueDate).getMonth() + 1).toString().padStart(2, '0')}{new Date(invoice.dueDate).getDate().toString().padStart(2, '0')}{(100 + index).toString()}
+                        </TableCell>
                         <TableCell>{invoice.customerName}</TableCell>
                         <TableCell>{format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</TableCell>
                         <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
@@ -844,6 +848,7 @@ const CustomerPayments: React.FC = () => {
                 <TableRow>
                   <TableHead></TableHead>
                   <TableHead>Payment #</TableHead>
+                  <TableHead>ETA Number</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Method</TableHead>
@@ -855,11 +860,11 @@ const CustomerPayments: React.FC = () => {
               <TableBody>
                 {isLoadingPayments ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center">Loading...</TableCell>
+                    <TableCell colSpan={9} className="text-center">Loading...</TableCell>
                   </TableRow>
                 ) : payments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="p-4">
+                    <TableCell colSpan={9} className="p-4">
                       <div className="flex flex-col items-center justify-center gap-4">
                         <p className="text-muted-foreground">No payments found in the system.</p>
                         <PlusCircle className="h-12 w-12 text-muted-foreground/50" />
@@ -868,7 +873,7 @@ const CustomerPayments: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  payments.map((payment: Payment) => (
+                  payments.map((payment: Payment, index: number) => (
                     <React.Fragment key={payment.id}>
                       <TableRow>
                         <TableCell>
@@ -885,6 +890,9 @@ const CustomerPayments: React.FC = () => {
                           </Button>
                         </TableCell>
                         <TableCell className="font-medium">{payment.paymentNumber}</TableCell>
+                        <TableCell className="text-blue-600 font-medium">
+                          ETA{new Date(payment.paymentDate).getFullYear().toString().slice(-2)}{(new Date(payment.paymentDate).getMonth() + 1).toString().padStart(2, '0')}{new Date(payment.paymentDate).getDate().toString().padStart(2, '0')}{(200 + index).toString()}
+                        </TableCell>
                         <TableCell>{payment.customerName}</TableCell>
                         <TableCell>{format(new Date(payment.paymentDate), 'MMM dd, yyyy')}</TableCell>
                         <TableCell>
@@ -917,7 +925,7 @@ const CustomerPayments: React.FC = () => {
                       
                       {expandedPayments.includes(payment.id) && payment.allocations.length > 0 && (
                         <TableRow className="bg-muted/30">
-                          <TableCell colSpan={8}>
+                          <TableCell colSpan={9}>
                             <div className="px-4 py-2">
                               <h4 className="text-sm font-medium mb-2">Payment Allocations</h4>
                               <Table>
