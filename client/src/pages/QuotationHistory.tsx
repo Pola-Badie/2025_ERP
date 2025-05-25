@@ -321,31 +321,129 @@ const QuotationHistory = () => {
           </CardContent>
         </Card>
 
-        {/* Quotations Table */}
-        <Card className="border-0 shadow-sm bg-white/70 backdrop-blur-sm">
-          <CardContent className="p-0">
+        {/* Expanded Customer Quotations Management */}
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-md">
+          <CardContent className="p-6">
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
             ) : (
-              <div className="space-y-4">
-                {/* Enhanced Schedule List Header */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-700 font-medium">
-                      Showing {filteredQuotations.length} quotation{filteredQuotations.length !== 1 ? 's' : ''}
+              <div className="space-y-6">
+                {/* Customer Quotations Dashboard Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2">Customer Quotations Management</h2>
+                      <p className="text-blue-100">Comprehensive pharmaceutical quotation tracking and analysis</p>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      {filteredQuotations.filter(q => q.status === 'accepted').length} Paid
-                      <div className="w-2 h-2 bg-orange-500 rounded-full ml-2"></div>
-                      {filteredQuotations.filter(q => q.status === 'pending').length} Pending
-                      <div className="w-2 h-2 bg-red-500 rounded-full ml-2"></div>
-                      {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length} Overdue
+                    <div className="text-right">
+                      <div className="text-3xl font-bold">{filteredQuotations.length}</div>
+                      <div className="text-blue-200 text-sm">Total Quotations</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                </div>
+
+                {/* Advanced Metrics Dashboard */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-600 font-medium">Accepted</p>
+                        <p className="text-2xl font-bold text-green-800">
+                          {filteredQuotations.filter(q => q.status === 'accepted').length}
+                        </p>
+                      </div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <p className="text-xs text-green-600 mt-1">
+                      ${filteredQuotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-600 font-medium">Pending</p>
+                        <p className="text-2xl font-bold text-orange-800">
+                          {filteredQuotations.filter(q => q.status === 'pending').length}
+                        </p>
+                      </div>
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                    </div>
+                    <p className="text-xs text-orange-600 mt-1">
+                      ${filteredQuotations.filter(q => q.status === 'pending').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-red-600 font-medium">Overdue</p>
+                        <p className="text-2xl font-bold text-red-800">
+                          {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length}
+                        </p>
+                      </div>
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    </div>
+                    <p className="text-xs text-red-600 mt-1">
+                      ${filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-600 font-medium">Total Value</p>
+                        <p className="text-2xl font-bold text-blue-800">
+                          ${filteredQuotations.reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                        </p>
+                      </div>
+                      <DollarSign className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">Combined portfolio value</p>
+                  </div>
+                </div>
+
+                {/* Enhanced Action Bar */}
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm text-gray-700 font-medium">
+                        {filteredQuotations.length} Active Quotations
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-600">
+                          {filteredQuotations.filter(q => q.status === 'accepted').length} Converted
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                        <span className="text-gray-600">
+                          {filteredQuotations.filter(q => q.status === 'pending').length} In Progress
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span className="text-gray-600">
+                          {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length} Expired
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Quotation
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -360,7 +458,7 @@ const QuotationHistory = () => {
                       className="text-green-600 border-green-200 hover:bg-green-50"
                     >
                       <Download className="mr-2 h-4 w-4" />
-                      Export CSV
+                      Export Report
                     </Button>
                   </div>
                 </div>
