@@ -432,7 +432,7 @@ const CustomerPayments: React.FC = () => {
               Record Payment
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <DialogHeader>
               <DialogTitle>Record Customer Payment</DialogTitle>
               <DialogDescription>
