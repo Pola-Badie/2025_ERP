@@ -171,6 +171,34 @@ const Accounting: React.FC = () => {
     setIsReminderDialogOpen(false);
   };
 
+  const downloadReceipt = (invoice: any) => {
+    toast({
+      title: "Receipt Downloaded",
+      description: `Receipt for ${invoice.id} has been downloaded successfully.`,
+      variant: "default"
+    });
+  };
+
+  const viewSupplier = (invoice: any) => {
+    toast({
+      title: "Supplier Information",
+      description: `Opening supplier details for ${invoice.supplier}.`,
+      variant: "default"
+    });
+  };
+
+  const recordPayment = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setPaymentForm({
+      amount: invoice.due || invoice.remaining || '',
+      paymentDate: new Date().toISOString().split('T')[0],
+      paymentMethod: '',
+      reference: '',
+      notes: ''
+    });
+    setIsPaymentDialogOpen(true);
+  };
+
   const [newOption, setNewOption] = useState({ type: '', value: '' });
   
   // State for expense actions
@@ -1501,9 +1529,15 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>Make Payment</DropdownMenuItem>
-                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                              <DropdownMenuItem>Contact Supplier</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleMakePayment({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
+                                Make Payment
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewInvoice({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
+                                View Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleContactSupplier({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
+                                Contact Supplier
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -1598,9 +1632,15 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>Send Reminder</DropdownMenuItem>
-                              <DropdownMenuItem>View Invoice</DropdownMenuItem>
-                              <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSendReminder({id: 'INV-2025-001', customer: 'Cairo Medical Center', total: '$15,450.00', remaining: '$5,450.00', eta: 'ETA240530101'})}>
+                                Send Reminder
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewInvoice({id: 'INV-2025-001', customer: 'Cairo Medical Center', total: '$15,450.00', remaining: '$5,450.00', eta: 'ETA240530101'})}>
+                                View Invoice
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => recordPayment({id: 'INV-2025-001', customer: 'Cairo Medical Center', total: '$15,450.00', remaining: '$5,450.00', eta: 'ETA240530101'})}>
+                                Record Payment
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
