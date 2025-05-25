@@ -323,7 +323,7 @@ const QuotationHistory = () => {
 
         {/* Expanded Customer Quotations Management */}
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-md">
-          <CardContent className="p-6">
+          <CardContent className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-gray-100">
             {isLoading ? (
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -405,67 +405,87 @@ const QuotationHistory = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Action Bar */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm text-gray-700 font-medium">
-                        {filteredQuotations.length} Active Quotations
-                      </span>
+                {/* Enhanced Action Bar - Fixed Layout */}
+                <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-lg border border-gray-200 p-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    {/* Left Section - Statistics */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-700 font-medium">
+                          {filteredQuotations.length} Active Quotations
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-gray-600">
+                            {filteredQuotations.filter(q => q.status === 'accepted').length} Converted
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                          <span className="text-gray-600">
+                            {filteredQuotations.filter(q => q.status === 'pending').length} In Progress
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span className="text-gray-600">
+                            {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length} Expired
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span className="text-gray-600">
-                          {filteredQuotations.filter(q => q.status === 'accepted').length} Converted
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                        <span className="text-gray-600">
-                          {filteredQuotations.filter(q => q.status === 'pending').length} In Progress
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        <span className="text-gray-600">
-                          {filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').length} Expired
-                        </span>
-                      </div>
+                    
+                    {/* Right Section - Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => window.location.href = '/create-quotation'}
+                        className="text-purple-600 border-purple-200 hover:bg-purple-50 transition-colors"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Quotation
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => alert('Bulk actions: Select quotations and perform batch operations like status updates or exports')}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50 transition-colors"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Bulk Actions
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const csvContent = filteredQuotations.map(q => 
+                            `"${q.quotationNumber}","${q.customerName}","${q.date}","${q.status}","${q.total || q.amount}"`
+                          ).join('\n');
+                          const blob = new Blob([`"Quotation #","Customer","Date","Status","Amount"\n${csvContent}`], { type: 'text/csv' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'quotations-export.csv';
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="text-green-600 border-green-200 hover:bg-green-50 transition-colors"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export CSV
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-purple-600 border-purple-200 hover:bg-purple-50"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      New Quotation
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Bulk Actions
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-green-600 border-green-200 hover:bg-green-50"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Export Report
-                    </Button>
                   </div>
                 </div>
 
                 {/* Professional Schedule Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                  <Table>
+                  <div className="overflow-x-auto">
+                    <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50 border-b border-gray-200">
                         <TableHead className="w-12 px-4">
@@ -609,6 +629,7 @@ const QuotationHistory = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
                 </div>
 
                 {/* Pagination Footer */}
