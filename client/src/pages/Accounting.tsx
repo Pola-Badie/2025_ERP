@@ -1361,7 +1361,7 @@ const Accounting: React.FC = () => {
                           onClick={() => handleViewInvoice({id: 'PUR-2025-002', supplier: 'Medical Supplies Co.', total: '$5,420.00', due: '$5,420.00', eta: 'ETA240522002'})}
                           className="h-8 px-2 text-xs"
                         >
-                          <Eye className="h-3 w-3 mr-1" />
+                          <FileText className="h-3 w-3 mr-1" />
                           View
                         </Button>
                       </div>
