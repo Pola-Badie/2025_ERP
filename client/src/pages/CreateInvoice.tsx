@@ -1044,7 +1044,7 @@ const CreateInvoice = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-start mb-4">
               <div className="space-x-2">
                 <Button
                   type="button"
@@ -1053,16 +1053,6 @@ const CreateInvoice = () => {
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Item
-                </Button>
-              </div>
-              <div className="space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.print()}
-                >
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print Invoice
                 </Button>
               </div>
             </div>
