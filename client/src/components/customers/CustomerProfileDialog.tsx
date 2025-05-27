@@ -49,170 +49,413 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold flex items-center justify-between">
-            <span>Customer Profile</span>
-            <DialogClose asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <span className="sr-only">Close</span>
-                <span className="text-lg">×</span>
-              </Button>
-            </DialogClose>
-          </DialogTitle>
+          <div className="flex items-center space-x-3">
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <Building className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-gray-900">Customer Profile</DialogTitle>
+              <p className="text-sm text-gray-600 mt-1">Comprehensive customer information and business relationship details for {customer.name}</p>
+            </div>
+          </div>
         </DialogHeader>
-        
-        <div className="mt-4">
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details">Customer Details</TabsTrigger>
-              <TabsTrigger value="invoices">Invoice History</TabsTrigger>
-            </TabsList>
+
+        <div className="space-y-6">
+          {/* Customer Information Section */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+              <Building className="h-5 w-5 mr-2" />
+              Customer Information
+            </h3>
             
-            <TabsContent value="details" className="mt-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-2xl">{customer.name}</CardTitle>
-                      <CardDescription className="text-md">{customer.position}</CardDescription>
-                    </div>
-                    <Badge className="bg-blue-500">{customer.sector}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-medium">Company</h3>
-                      <div className="flex items-center text-slate-700">
-                        <Building className="h-4 w-4 mr-2 text-slate-500" />
-                        <span>{customer.company}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-medium">Contact Information</h3>
-                      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
-                        <div className="flex items-center text-slate-700">
-                          <Phone className="h-4 w-4 mr-2 text-slate-500" />
-                          <span>{customer.phone}</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Customer Name</label>
+                <div className="text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200">
+                  {customer.name}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Position/Title</label>
+                <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                  {customer.position || 'Director'}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Customer Status</label>
+                <div className="bg-white p-3 rounded border border-blue-200">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Active Customer
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Customer ID</label>
+                <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono">
+                  CUST-{customer.id.toString().padStart(6, '0')}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-blue-700">Customer Since</label>
+                <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                  January 15, 2024
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Company Information Section */}
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+              <Building className="h-5 w-5 mr-2" />
+              Company Information
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Company Name</label>
+                <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                  {customer.company}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Industry Sector</label>
+                <div className="bg-white p-3 rounded border border-green-200">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {customer.sector}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Business Type</label>
+                <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                  Pharmaceutical Manufacturer
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Company Size</label>
+                <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                  Large Enterprise (500+ employees)
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-700">Registration Number</label>
+                <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-mono">
+                  REG-{customer.id}2024
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information Section */}
+          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+              <Phone className="h-5 w-5 mr-2" />
+              Contact Information
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700">Primary Email</label>
+                <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                  <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
+                    {customer.email}
+                  </a>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700">Phone Number</label>
+                <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                  <a href={`tel:${customer.phone}`} className="hover:underline">
+                    {customer.phone}
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700">Alternative Contact</label>
+                <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                  +20 2 1234 5678 (Emergency)
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-purple-700">Preferred Contact Method</label>
+                <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                  Email (Business Hours)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Address Information Section */}
+          <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+            <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Address & Location
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">Business Address</label>
+                <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 min-h-[80px]">
+                  {customer.address}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">Billing Address</label>
+                <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 min-h-[80px]">
+                  Same as business address
+                  <br />
+                  <span className="text-xs text-orange-600">Finance Department, 3rd Floor</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">Country</label>
+                <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                  Egypt
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">Time Zone</label>
+                <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                  EET (UTC+2)
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-orange-700">Service Region</label>
+                <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                  Middle East & North Africa
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tax & Compliance Section */}
+          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              Tax & Compliance
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-yellow-700">ETA Tax Number</label>
+                <div className="bg-white p-3 rounded border border-yellow-200">
+                  {customer.taxNumber ? (
+                    <span className="text-blue-600 font-medium font-mono">{customer.taxNumber}</span>
+                  ) : (
+                    <span className="text-gray-500">Not registered with ETA</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-yellow-700">VAT Status</label>
+                <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                  VAT Registered - 14%
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-yellow-700">Tax Classification</label>
+                <div className="bg-white p-3 rounded border border-yellow-200">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Compliant
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-yellow-700">Commercial Registration</label>
+                <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200 font-mono">
+                  CR-{customer.id}2024-EGY
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-yellow-700">License Expiry</label>
+                <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                  December 31, 2025
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Account Summary Section */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <CalendarIcon className="h-5 w-5 mr-2" />
+              Account Summary & Performance
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white p-4 rounded border border-gray-200">
+                <div className="text-sm font-medium text-gray-700">Total Purchases</div>
+                <div className="text-2xl font-bold text-green-600">8,450 EGP</div>
+                <div className="text-xs text-gray-500">Lifetime value</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded border border-gray-200">
+                <div className="text-sm font-medium text-gray-700">Open Invoices</div>
+                <div className="text-2xl font-bold text-orange-600">2</div>
+                <div className="text-xs text-gray-500">Pending payment</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded border border-gray-200">
+                <div className="text-sm font-medium text-gray-700">Total Orders</div>
+                <div className="text-2xl font-bold text-blue-600">47</div>
+                <div className="text-xs text-gray-500">Since registration</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded border border-gray-200">
+                <div className="text-sm font-medium text-gray-700">Payment Score</div>
+                <div className="text-2xl font-bold text-green-600">96.5%</div>
+                <div className="text-xs text-gray-500">On-time payments</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Last Order Date</label>
+                <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                  April 28, 2025
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Average Order Value</label>
+                <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                  1,875 EGP
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Customer Tier</label>
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gold-100 text-gold-800">
+                    Gold Customer
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Invoice History Section */}
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              Recent Invoice History
+            </h3>
+            
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>ETA Number</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mockInvoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">#{invoice.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <CalendarIcon className="mr-2 h-4 w-4 text-slate-500" />
+                          {formatDate(invoice.date)}
                         </div>
-                        <div className="flex items-center text-slate-700">
-                          <Mail className="h-4 w-4 mr-2 text-slate-500" />
-                          <a href={`mailto:${customer.email}`} className="text-blue-600 hover:underline">
-                            {customer.email}
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-medium">Address</h3>
-                      <div className="flex items-center text-slate-700">
-                        <MapPin className="h-4 w-4 mr-2 text-slate-500" />
-                        <span>{customer.address}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-medium">Egyptian Tax Authority</h3>
-                      <div className="flex items-center text-slate-700">
-                        <FileText className="h-4 w-4 mr-2 text-slate-500" />
-                        <span className="text-blue-600 font-medium">
-                          {customer.taxNumber || 'Not registered'}
+                      </TableCell>
+                      <TableCell>{invoice.items}</TableCell>
+                      <TableCell className="text-right font-medium">{invoice.amount.toLocaleString()} EGP</TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            invoice.status === 'paid'
+                              ? 'bg-green-500'
+                              : invoice.status === 'pending'
+                              ? 'bg-yellow-500'
+                              : 'bg-red-500'
+                          }
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-blue-600 font-mono text-xs">
+                          ETA-{invoice.id}2025
                         </span>
-                      </div>
-                      <p className="text-xs text-slate-500">
-                        Tax registration number for ETA invoice compliance
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-1 pt-2">
-                      <h3 className="text-lg font-medium">Account Summary</h3>
-                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <div className="bg-slate-50 p-3 rounded-md">
-                          <div className="text-sm text-slate-500">Total Purchases</div>
-                          <div className="text-2xl font-medium">8,450 EGP</div>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-md">
-                          <div className="text-sm text-slate-500">Open Invoices</div>
-                          <div className="text-2xl font-medium">2</div>
-                        </div>
-                        <div className="bg-slate-50 p-3 rounded-md">
-                          <div className="text-sm text-slate-500">Last Order</div>
-                          <div className="text-md font-medium">April 28, 2025</div>
-                        </div>
-                      </div>
-                    </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="text-sm text-gray-500">Total Invoices: 4 | Average Payment Time: 18 days</span>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="invoices" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Invoice History</CardTitle>
-                  <CardDescription>
-                    View all invoices and payment history for {customer.name}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Invoice #</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Items</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockInvoices.map((invoice) => (
-                        <TableRow key={invoice.id}>
-                          <TableCell className="font-medium">#{invoice.id}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <CalendarIcon className="mr-2 h-4 w-4 text-slate-500" />
-                              {formatDate(invoice.date)}
-                            </div>
-                          </TableCell>
-                          <TableCell>{invoice.items}</TableCell>
-                          <TableCell className="text-right">{invoice.amount.toLocaleString()} EGP</TableCell>
-                          <TableCell>
-                            <Badge
-                              className={
-                                invoice.status === 'paid'
-                                  ? 'bg-green-500'
-                                  : invoice.status === 'pending'
-                                  ? 'bg-yellow-500'
-                                  : 'bg-red-500'
-                              }
-                            >
-                              {invoice.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  
-                  <div className="mt-6 pt-4 border-t border-slate-200">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-slate-500">Total Invoices: 4</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-slate-500">Total Amount</div>
-                        <div className="text-xl font-medium">8,450 EGP</div>
-                      </div>
-                    </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">Total Amount</div>
+                    <div className="text-xl font-bold text-green-600">8,450 EGP</div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-6 border-t">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            className="border-gray-300 hover:bg-gray-50"
+          >
+            Close
+          </Button>
+          <Button 
+            variant="outline"
+            className="border-blue-300 text-blue-600 hover:bg-blue-50"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Export Profile
+          </Button>
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            Create Invoice
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
