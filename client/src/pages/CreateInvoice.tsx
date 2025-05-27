@@ -87,6 +87,7 @@ const invoiceFormSchema = z.object({
   paymentProofFile: z.any().optional(),
   paymentTerms: z.string().default('0'),
   amountPaid: z.number().min(0),
+  paperInvoiceNumber: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -133,6 +134,7 @@ const defaultFormValues: InvoiceFormValues = {
   paymentProofFile: undefined,
   paymentTerms: '0',
   amountPaid: 0,
+  paperInvoiceNumber: '',
   notes: '',
 };
 
@@ -863,6 +865,19 @@ const CreateInvoice = () => {
                       </Popover>
                     </div>
                   </div>
+                </div>
+
+                {/* Paper Invoice Number Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="paperInvoiceNumber">Paper Invoice Number</Label>
+                  <Input
+                    id="paperInvoiceNumber"
+                    placeholder="P-2025001"
+                    {...form.register('paperInvoiceNumber')}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Physical invoice reference number for record-keeping
+                  </p>
                 </div>
 
                 {/* Customer Details Display */}
