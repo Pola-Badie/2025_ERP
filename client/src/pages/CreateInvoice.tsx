@@ -942,18 +942,20 @@ const CreateInvoice = () => {
 
             {/* Create New Customer Form */}
             {isCreatingCustomer && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">New Customer</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setIsCreatingCustomer(false)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div>
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold">New Customer</h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsCreatingCustomer(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
                     <Label htmlFor="customerCompany">Company Name</Label>
                     <Input
                       id="customerCompany"
@@ -961,7 +963,8 @@ const CreateInvoice = () => {
                       {...form.register('customer.company')}
                     />
                   </div>
-                  <div>
+                  
+                  <div className="grid gap-2">
                     <Label htmlFor="customerName">Name</Label>
                     <Input
                       id="customerName"
@@ -969,12 +972,13 @@ const CreateInvoice = () => {
                       {...form.register('customer.name')}
                     />
                     {form.formState.errors.customer?.name && (
-                      <p className="text-sm text-red-500 mt-1">
+                      <p className="text-sm text-red-500">
                         {form.formState.errors.customer.name.message}
                       </p>
                     )}
                   </div>
-                  <div>
+                  
+                  <div className="grid gap-2">
                     <Label htmlFor="customerPosition">Position</Label>
                     <Input
                       id="customerPosition"
@@ -982,7 +986,8 @@ const CreateInvoice = () => {
                       {...form.register('customer.position')}
                     />
                   </div>
-                  <div>
+                  
+                  <div className="grid gap-2">
                     <Label htmlFor="customerPhone">Phone</Label>
                     <Input
                       id="customerPhone"
@@ -990,7 +995,8 @@ const CreateInvoice = () => {
                       {...form.register('customer.phone')}
                     />
                   </div>
-                  <div>
+                  
+                  <div className="grid gap-2">
                     <Label htmlFor="customerSector">Sector</Label>
                     <Input
                       id="customerSector"
