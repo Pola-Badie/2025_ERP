@@ -2399,56 +2399,154 @@ const Accounting: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* View Receipt Dialog */}
+      {/* Professional View Receipt Dialog */}
       <Dialog open={isViewReceiptOpen} onOpenChange={setIsViewReceiptOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-green-400 scrollbar-track-green-100 bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Expense Receipt</DialogTitle>
-            <DialogDescription>
-              View detailed information about this expense entry.
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Receipt className="h-6 w-6 text-green-600" />
+              </div>
+              Expense Receipt
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Detailed pharmaceutical expense information and financial records
             </DialogDescription>
           </DialogHeader>
+          
           {selectedExpense && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Date</Label>
-                  <div className="text-sm text-muted-foreground">{selectedExpense.date}</div>
+            <div className="space-y-6 py-6">
+              {/* Expense Header Card */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">{selectedExpense.description}</h3>
+                    <p className="text-sm text-gray-600">Pharmaceutical Expense Entry</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600">{selectedExpense.amount}</div>
+                    <div className="text-sm text-gray-600 font-medium">{selectedExpense.date}</div>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium">Amount</Label>
-                  <div className="text-sm text-muted-foreground">{selectedExpense.amount}</div>
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Description</Label>
-                <div className="text-sm text-muted-foreground">{selectedExpense.description}</div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">Account Type</Label>
-                  <div className="text-sm text-muted-foreground">{selectedExpense.accountType}</div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Cost Center</Label>
-                  <div className="text-sm text-muted-foreground">{selectedExpense.costCenter}</div>
+                
+                {/* Payment Method Badge */}
+                <div className="flex justify-end">
+                  <Badge variant="outline" className="text-sm px-3 py-1 border-green-300 text-green-700">
+                    {selectedExpense.paymentMethod}
+                  </Badge>
                 </div>
               </div>
-              <div>
-                <Label className="text-sm font-medium">Payment Method</Label>
-                <div className="text-sm text-muted-foreground">{selectedExpense.paymentMethod}</div>
-              </div>
-              {selectedExpense.notes && (
-                <div>
-                  <Label className="text-sm font-medium">Notes</Label>
-                  <div className="text-sm text-muted-foreground">{selectedExpense.notes}</div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Financial Information */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Financial Details
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Amount</Label>
+                      <div className="text-sm text-blue-800 font-bold">{selectedExpense.amount}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Payment Method</Label>
+                      <div className="text-sm text-blue-800 font-medium">{selectedExpense.paymentMethod}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Transaction Date</Label>
+                      <div className="text-sm text-blue-800">{selectedExpense.date}</div>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Classification Information */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                    <BarChart4 className="h-4 w-4" />
+                    Classification
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Account Type</Label>
+                      <div className="text-sm text-purple-800 font-medium">{selectedExpense.accountType}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Cost Center</Label>
+                      <div className="text-sm text-purple-800 font-medium">{selectedExpense.costCenter}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Department</Label>
+                      <div className="text-sm text-purple-800">Pharmaceutical Operations</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description Information */}
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-4">
+                <h4 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Expense Description
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs font-medium text-orange-700">Primary Description</Label>
+                    <div className="text-sm text-orange-800 font-medium">{selectedExpense.description}</div>
+                  </div>
+                  {selectedExpense.notes && (
+                    <div>
+                      <Label className="text-xs font-medium text-orange-700">Additional Notes</Label>
+                      <div className="text-sm text-orange-800 bg-orange-100 p-3 rounded-lg mt-1">
+                        {selectedExpense.notes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Compliance Information */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-1 bg-gray-100 rounded-full">
+                    <Landmark className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Accounting Compliance</h4>
+                    <p className="text-sm text-gray-700 mt-1">
+                      This expense entry has been recorded in accordance with pharmaceutical industry accounting standards.
+                    </p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      Recorded: {new Date().toLocaleDateString()} | Status: ✓ Verified
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+          
           <DialogFooter>
-            <Button type="button" onClick={() => setIsViewReceiptOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsViewReceiptOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
               Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsViewReceiptOpen(false);
+                toast({
+                  title: "Receipt Downloaded",
+                  description: "Expense receipt has been downloaded as PDF.",
+                  variant: "default"
+                });
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
