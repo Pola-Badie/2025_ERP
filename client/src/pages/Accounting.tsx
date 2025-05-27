@@ -59,11 +59,7 @@ import {
   Trash2,
   AlertCircle,
   Building,
-  Wallet,
-  Phone,
-  Mail,
-  MapPin,
-  Shield
+  Wallet
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -726,10 +722,6 @@ const Accounting: React.FC = () => {
   const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
   const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
   
-  // State for supplier actions
-  const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
-  const [isViewSupplierOpen, setIsViewSupplierOpen] = useState(false);
-  
   // State for quotation actions
   const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
   const [isQuotationPreviewOpen, setIsQuotationPreviewOpen] = useState(false);
@@ -742,31 +734,6 @@ const Accounting: React.FC = () => {
   const handleViewQuotation = (quotation: any) => {
     setSelectedQuotation(quotation);
     setIsQuotationPreviewOpen(true);
-  };
-
-  const handleViewSupplier = (supplier: any) => {
-    // Get detailed supplier information from the suppliers data
-    const supplierDetails = {
-      name: supplier.supplier,
-      id: supplier.id,
-      eta: supplier.eta,
-      contactPerson: "Sarah Johnson",
-      email: "contact@" + supplier.supplier.toLowerCase().replace(/\s+/g, '') + ".com",
-      phone: "+1 234-567-8900",
-      address: "123 Business Ave, Industrial Zone",
-      city: "Cairo",
-      country: "Egypt",
-      taxId: "TAX-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      established: "2018",
-      certifications: ["ISO 9001", "GMP Certified", "FDA Approved"],
-      paymentTerms: "Net 30 days",
-      creditLimit: "$50,000",
-      totalTransactions: Math.floor(Math.random() * 50) + 10,
-      lastTransaction: "2025-05-15",
-      status: "Active"
-    };
-    setSelectedSupplier(supplierDetails);
-    setIsViewSupplierOpen(true);
   };
 
 
@@ -2506,8 +2473,8 @@ const Accounting: React.FC = () => {
                               <DropdownMenuItem onClick={() => handleViewInvoice({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
                                 View Invoice
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewSupplier({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
-                                View Supplier
+                              <DropdownMenuItem onClick={() => handleContactSupplier({id: 'PUR-2025-005', supplier: 'ChemCorp Industries', total: '$18,750.00', due: '$18,750.00', eta: 'ETA240525001'})}>
+                                Contact Supplier
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -2541,8 +2508,8 @@ const Accounting: React.FC = () => {
                               <DropdownMenuItem onClick={() => handleViewInvoice({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
                                 View Invoice
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewSupplier({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
-                                View Supplier
+                              <DropdownMenuItem onClick={() => handleContactSupplier({id: 'PUR-2025-009', supplier: 'Global Pharma Solutions', total: '$24,200.00', due: '$14,200.00', eta: 'ETA240608002'})}>
+                                Contact Supplier
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -2598,8 +2565,8 @@ const Accounting: React.FC = () => {
                               <DropdownMenuItem onClick={() => handleViewInvoice({id: 'PUR-2025-017', supplier: 'Medical Supplies Co.', total: '$11,480.00', due: '$6,480.00', eta: 'ETA240618004'})}>
                                 View Invoice
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleViewSupplier({id: 'PUR-2025-017', supplier: 'Medical Supplies Co.', total: '$11,480.00', due: '$6,480.00', eta: 'ETA240618004'})}>
-                                View Supplier
+                              <DropdownMenuItem onClick={() => handleContactSupplier({id: 'PUR-2025-017', supplier: 'Medical Supplies Co.', total: '$11,480.00', due: '$6,480.00', eta: 'ETA240618004'})}>
+                                Contact Supplier
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -5396,218 +5363,6 @@ const Accounting: React.FC = () => {
               onClick={() => window.location.href = '/create-quotation'}
             >
               Create New Quotation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Professional View Supplier Dialog */}
-      <Dialog open={isViewSupplierOpen} onOpenChange={setIsViewSupplierOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 border-0 shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building className="h-6 w-6 text-blue-600" />
-              </div>
-              Supplier Profile
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 mt-2">
-              Comprehensive supplier information and business relationship details
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedSupplier && (
-            <div className="space-y-6 py-6">
-              {/* Supplier Header Card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800">{selectedSupplier.name}</h3>
-                    <p className="text-sm text-gray-600">Professional Business Partner</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">Supplier ID</div>
-                    <div className="text-lg font-bold text-blue-600">{selectedSupplier.id}</div>
-                  </div>
-                </div>
-                
-                {/* Status Badge */}
-                <div className="flex justify-end">
-                  <Badge className="bg-green-100 text-green-800 font-medium">
-                    {selectedSupplier.status}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Contact Information */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Contact Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-blue-700">Contact Person</Label>
-                      <div className="text-sm text-blue-800 font-medium">{selectedSupplier.contactPerson}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-blue-700">Email</Label>
-                      <div className="text-sm text-blue-800">{selectedSupplier.email}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-blue-700">Phone</Label>
-                      <div className="text-sm text-blue-800">{selectedSupplier.phone}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Business Information */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                    <Building className="h-4 w-4" />
-                    Business Details
-                  </h4>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-green-700">Tax ID</Label>
-                      <div className="text-sm text-green-800 font-medium">{selectedSupplier.taxId}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-green-700">Established</Label>
-                      <div className="text-sm text-green-800">{selectedSupplier.established}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-green-700">ETA Number</Label>
-                      <div className="text-sm text-green-800 font-medium">{selectedSupplier.eta || 'N/A'}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address Information */}
-                <div className="bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Address Information
-                  </h4>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-purple-700">Address</Label>
-                      <div className="text-sm text-purple-800">{selectedSupplier.address}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-purple-700">City</Label>
-                      <div className="text-sm text-purple-800">{selectedSupplier.city}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-purple-700">Country</Label>
-                      <div className="text-sm text-purple-800">{selectedSupplier.country}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Financial Information */}
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
-                  <h4 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
-                    <Wallet className="h-4 w-4" />
-                    Financial Terms
-                  </h4>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-xs font-medium text-orange-700">Payment Terms</Label>
-                      <div className="text-sm text-orange-800 font-medium">{selectedSupplier.paymentTerms}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-orange-700">Credit Limit</Label>
-                      <div className="text-sm text-orange-800">{selectedSupplier.creditLimit}</div>
-                    </div>
-                    <div>
-                      <Label className="text-xs font-medium text-orange-700">Last Transaction</Label>
-                      <div className="text-sm text-orange-800">{selectedSupplier.lastTransaction}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Certifications and Additional Info */}
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  Certifications & Statistics
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-medium text-gray-700">Certifications</Label>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {selectedSupplier.certifications.map((cert: string, index: number) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {cert}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs font-medium text-gray-700">Total Transactions</Label>
-                    <div className="text-sm text-gray-800 font-medium">{selectedSupplier.totalTransactions} transactions</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Compliance Information */}
-              <div className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-1 bg-gray-100 rounded-full">
-                    <Shield className="h-4 w-4 text-gray-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Business Compliance</h4>
-                    <p className="text-sm text-gray-700 mt-1">
-                      This supplier has been verified and meets pharmaceutical industry standards for business partnerships.
-                    </p>
-                    <div className="mt-2 text-xs text-gray-600">
-                      Verified: {new Date().toLocaleDateString()} | Status: ✓ Approved Partner
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setIsViewSupplierOpen(false)}
-              className="border-gray-300 hover:bg-gray-50"
-            >
-              Close
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                toast({
-                  title: "Opening Email Client",
-                  description: `Preparing email for ${selectedSupplier?.contactPerson}...`,
-                });
-                window.location.href = `mailto:${selectedSupplier?.email}?subject=Business Inquiry - ${selectedSupplier?.name}`;
-              }}
-              className="border-blue-300 hover:bg-blue-50"
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Contact Supplier
-            </Button>
-            <Button 
-              onClick={() => {
-                setIsViewSupplierOpen(false);
-                toast({
-                  title: "Supplier Report Generated",
-                  description: "Comprehensive supplier report has been generated as PDF.",
-                });
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -17,7 +17,7 @@ import Settings from "@/pages/Settings";
 import SystemPreferences from "@/pages/SystemPreferences";
 import CreateInvoice from "@/pages/CreateInvoice";
 import CreateQuotation from "@/pages/CreateQuotation";
-import InvoiceHistory from "@/pages/InvoiceHistoryFixed";
+import InvoiceHistory from "@/pages/InvoiceHistory";
 import QuotationHistory from "@/pages/QuotationHistory";
 import LabelGenerator from "@/pages/LabelGenerator";
 import Accounting from "@/pages/Accounting";
