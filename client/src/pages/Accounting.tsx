@@ -64,7 +64,8 @@ import {
   Filter,
   Shield,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Calculator
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -5656,6 +5657,372 @@ const Accounting: React.FC = () => {
             >
               Create New Quotation
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Invoice Dialog */}
+      <Dialog open={isNewInvoiceOpen} onOpenChange={setIsNewInvoiceOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-xl font-bold text-blue-900">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <PlusCircle className="h-5 w-5 text-blue-600" />
+              </div>
+              Create New Invoice
+            </DialogTitle>
+            <DialogDescription className="text-blue-700">
+              Create a professional invoice with ETA compliance and automated tax calculations
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Invoice Header Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <div className="p-1 bg-blue-100 rounded mr-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                </div>
+                Invoice Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-number">Invoice Number</Label>
+                  <Input
+                    id="invoice-number"
+                    value={newInvoiceForm.invoiceNumber}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, invoiceNumber: e.target.value})}
+                    placeholder="INV-2025-001"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-number">ETA Number</Label>
+                  <Input
+                    id="eta-number"
+                    value={newInvoiceForm.etaNumber}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, etaNumber: e.target.value})}
+                    placeholder="ETA240627001"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-date">Invoice Date</Label>
+                  <Input
+                    id="invoice-date"
+                    type="date"
+                    value={newInvoiceForm.invoiceDate}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, invoiceDate: e.target.value})}
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Customer Information Section */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <div className="p-1 bg-green-100 rounded mr-2">
+                  <Building className="h-4 w-4 text-green-600" />
+                </div>
+                Customer Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customer-name">Customer Name</Label>
+                  <Input
+                    id="customer-name"
+                    value={newInvoiceForm.customerName}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerName: e.target.value})}
+                    placeholder="Cairo Medical Center"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="customer-email">Customer Email</Label>
+                  <Input
+                    id="customer-email"
+                    type="email"
+                    value={newInvoiceForm.customerEmail}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerEmail: e.target.value})}
+                    placeholder="orders@cairomedical.com"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="customer-address">Customer Address</Label>
+                  <Input
+                    id="customer-address"
+                    value={newInvoiceForm.customerAddress}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerAddress: e.target.value})}
+                    placeholder="123 Medical Street, Cairo, Egypt"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Terms Section */}
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <div className="p-1 bg-purple-100 rounded mr-2">
+                  <CreditCard className="h-4 w-4 text-purple-600" />
+                </div>
+                Payment Terms
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="due-date">Due Date</Label>
+                  <Input
+                    id="due-date"
+                    type="date"
+                    value={newInvoiceForm.dueDate}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, dueDate: e.target.value})}
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="payment-terms">Payment Terms (Days)</Label>
+                  <Select 
+                    value={newInvoiceForm.paymentTerms} 
+                    onValueChange={(value) => setNewInvoiceForm({...newInvoiceForm, paymentTerms: value})}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Due on Receipt</SelectItem>
+                      <SelectItem value="15">Net 15 Days</SelectItem>
+                      <SelectItem value="30">Net 30 Days</SelectItem>
+                      <SelectItem value="45">Net 45 Days</SelectItem>
+                      <SelectItem value="60">Net 60 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Invoice Items Section */}
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <div className="p-1 bg-orange-100 rounded mr-2">
+                  <ShoppingBag className="h-4 w-4 text-orange-600" />
+                </div>
+                Invoice Items
+              </h3>
+              
+              <div className="space-y-4">
+                {newInvoiceItems.map((item, index) => (
+                  <div key={item.id} className="bg-white rounded-lg p-4 border border-orange-200">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                      <div className="md:col-span-2 space-y-2">
+                        <Label>Product/Service Name</Label>
+                        <Input
+                          value={item.name}
+                          onChange={(e) => {
+                            const updatedItems = [...newInvoiceItems];
+                            updatedItems[index].name = e.target.value;
+                            setNewInvoiceItems(updatedItems);
+                          }}
+                          placeholder="Pharmaceutical Product"
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Quantity</Label>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const updatedItems = [...newInvoiceItems];
+                            const quantity = parseFloat(e.target.value) || 0;
+                            updatedItems[index].quantity = quantity;
+                            updatedItems[index].total = quantity * updatedItems[index].unitPrice;
+                            setNewInvoiceItems(updatedItems);
+                          }}
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Unit</Label>
+                        <Select 
+                          value={item.unit} 
+                          onValueChange={(value) => {
+                            const updatedItems = [...newInvoiceItems];
+                            updatedItems[index].unit = value;
+                            setNewInvoiceItems(updatedItems);
+                          }}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="units">Units</SelectItem>
+                            <SelectItem value="kg">Kilograms</SelectItem>
+                            <SelectItem value="mg">Milligrams</SelectItem>
+                            <SelectItem value="boxes">Boxes</SelectItem>
+                            <SelectItem value="vials">Vials</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Unit Price ($)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) => {
+                            const updatedItems = [...newInvoiceItems];
+                            const unitPrice = parseFloat(e.target.value) || 0;
+                            updatedItems[index].unitPrice = unitPrice;
+                            updatedItems[index].total = updatedItems[index].quantity * unitPrice;
+                            setNewInvoiceItems(updatedItems);
+                          }}
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Total ($)</Label>
+                        <Input
+                          value={item.total.toFixed(2)}
+                          readOnly
+                          className="bg-gray-50"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Label>Description</Label>
+                      <Input
+                        value={item.description}
+                        onChange={(e) => {
+                          const updatedItems = [...newInvoiceItems];
+                          updatedItems[index].description = e.target.value;
+                          setNewInvoiceItems(updatedItems);
+                        }}
+                        placeholder="Detailed product description"
+                        className="bg-white mt-1"
+                      />
+                    </div>
+                    {newInvoiceItems.length > 1 && (
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const updatedItems = newInvoiceItems.filter((_, i) => i !== index);
+                            setNewInvoiceItems(updatedItems);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const newItem = {
+                      id: Date.now(),
+                      name: '',
+                      description: '',
+                      quantity: 1,
+                      unit: 'units',
+                      unitPrice: 0,
+                      total: 0
+                    };
+                    setNewInvoiceItems([...newInvoiceItems, newItem]);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
+            </div>
+
+            {/* Tax & Total Section */}
+            <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <div className="p-1 bg-gray-100 rounded mr-2">
+                  <Calculator className="h-4 w-4 text-gray-600" />
+                </div>
+                Tax Calculations & Total
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="vat-percentage">VAT Percentage (%)</Label>
+                    <Input
+                      id="vat-percentage"
+                      type="number"
+                      value={newInvoiceVatPercentage}
+                      onChange={(e) => setNewInvoiceVatPercentage(parseFloat(e.target.value) || 0)}
+                      className="bg-white"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Input
+                      id="notes"
+                      value={newInvoiceForm.notes}
+                      onChange={(e) => setNewInvoiceForm({...newInvoiceForm, notes: e.target.value})}
+                      placeholder="Additional notes or terms"
+                      className="bg-white"
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4 border border-gray-300">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>${newInvoiceItems.reduce((sum, item) => sum + item.total, 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>VAT ({newInvoiceVatPercentage}%):</span>
+                      <span>${(newInvoiceItems.reduce((sum, item) => sum + item.total, 0) * newInvoiceVatPercentage / 100).toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span>${(newInvoiceItems.reduce((sum, item) => sum + item.total, 0) * (1 + newInvoiceVatPercentage / 100)).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 mt-6">
+            <div className="flex justify-between w-full">
+              <div className="flex space-x-2">
+                <Button variant="outline">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+                <Button variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Save as Draft
+                </Button>
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setIsNewInvoiceOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    setIsNewInvoiceOpen(false);
+                  }}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Create Invoice
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
