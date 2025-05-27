@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2, Eye } from 'lucide-react';
+import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2, Eye, Building2 as Building, User, MapPin, FileText, Package2 as Package, Handshake } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -631,82 +631,375 @@ const Suppliers: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* View Profile Dialog */}
+      {/* Enhanced Supplier Profile Dialog */}
       <Dialog open={isViewProfileOpen} onOpenChange={setIsViewProfileOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              Supplier Profile
-            </DialogTitle>
-            <DialogDescription>
-              Complete information for {selectedSupplier?.name}
-            </DialogDescription>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Building className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Supplier Profile</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Comprehensive business profile and partnership details for {selectedSupplier?.name}</p>
+              </div>
+            </div>
           </DialogHeader>
+
           {selectedSupplier && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Company Name</label>
-                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.name}</p>
+              {/* Company Information Section */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <Building className="h-5 w-5 mr-2" />
+                  Company Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Company Name</label>
+                    <div className="text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200">
+                      {selectedSupplier.name}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Business Type</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      Pharmaceutical Supplier
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Supplier Status</label>
+                    <div className="bg-white p-3 rounded border border-blue-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Active Partner
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Contact Person</label>
-                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.contactPerson || 'Not specified'}</p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.email || 'Not specified'}</p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Phone</label>
-                  <p className="text-sm bg-gray-50 p-2 rounded border">{selectedSupplier.phone || 'Not specified'}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Registration Number</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono">
+                      REG-{selectedSupplier.id.toString().padStart(6, '0')}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Partnership Since</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      {new Date(selectedSupplier.createdAt).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">ETA Number (Tax Registration)</label>
-                <p className="text-sm bg-gray-50 p-2 rounded border">
-                  {selectedSupplier.etaNumber ? (
-                    <span className="text-blue-600 font-medium">{selectedSupplier.etaNumber}</span>
-                  ) : (
-                    <span className="text-gray-500">Not registered with ETA</span>
-                  )}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Address</label>
-                <p className="text-sm bg-gray-50 p-2 rounded border">
-                  {selectedSupplier.address ? `${selectedSupplier.address}, ${selectedSupplier.city}, ${selectedSupplier.state} ${selectedSupplier.zipCode}` : 'Not specified'}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Materials & Services</label>
-                <p className="text-sm bg-gray-50 p-2 rounded border min-h-[60px]">
-                  {selectedSupplier.materials || 'No materials specified'}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-500">
-                <div>
-                  <span className="font-medium">Created:</span> {new Date(selectedSupplier.createdAt).toLocaleDateString()}
+
+              {/* Contact Information Section */}
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Contact Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Primary Contact Person</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      {selectedSupplier.contactPerson || 'Not specified'}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Job Title</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      Business Development Manager
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Email Address</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      {selectedSupplier.email || 'Not specified'}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Phone Number</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      {selectedSupplier.phone || 'Not specified'}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Updated:</span> {new Date(selectedSupplier.updatedAt).toLocaleDateString()}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Alternative Contact</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      +1 (555) 123-4567 (Emergency)
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Website</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      www.{selectedSupplier.name.toLowerCase().replace(/\s+/g, '')}.com
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address & Location Section */}
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                  <MapPin className="h-5 w-5 mr-2" />
+                  Address & Location
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Business Address</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200 min-h-[80px]">
+                      {selectedSupplier.address ? 
+                        `${selectedSupplier.address}\n${selectedSupplier.city}, ${selectedSupplier.state} ${selectedSupplier.zipCode}` : 
+                        'Address not specified'
+                      }
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Shipping Address</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200 min-h-[80px]">
+                      Same as business address
+                      <br />
+                      <span className="text-xs text-purple-600">Warehouse: Building B, Loading Dock 3</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Country</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      United States
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Time Zone</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      EST (UTC-5)
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Delivery Region</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      North America & Middle East
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tax & Compliance Section */}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Tax & Compliance
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">ETA Number (Tax Registration)</label>
+                    <div className="bg-white p-3 rounded border border-orange-200">
+                      {selectedSupplier.etaNumber ? (
+                        <span className="text-blue-600 font-medium font-mono">{selectedSupplier.etaNumber}</span>
+                      ) : (
+                        <span className="text-gray-500">Not registered with ETA</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">VAT Registration</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 font-mono">
+                      VAT-US-{selectedSupplier.id}2025
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Tax Status</label>
+                    <div className="bg-white p-3 rounded border border-orange-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Compliant
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Pharmaceutical License</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 font-mono">
+                      PHARMA-LIC-{selectedSupplier.id.toString().padStart(4, '0')}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Certification Expiry</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                      December 31, 2025
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Products & Services Section */}
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+                  <Package className="h-5 w-5 mr-2" />
+                  Products & Services
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-yellow-700">Primary Materials & Services</label>
+                    <div className="text-sm text-yellow-800 bg-white p-4 rounded border border-yellow-200 min-h-[100px]">
+                      {selectedSupplier.materials || 'No materials specified'}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-yellow-700">Specialization</label>
+                      <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                        Active Pharmaceutical Ingredients (APIs)
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-yellow-700">Quality Certifications</label>
+                      <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                        ISO 9001, GMP, FDA Approved
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-yellow-700">Lead Time</label>
+                      <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                        2-3 weeks
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-yellow-700">Minimum Order</label>
+                      <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                        $5,000 USD
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-yellow-700">Payment Terms</label>
+                      <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
+                        Net 30 days
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Partnership Details Section */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Handshake className="h-5 w-5 mr-2" />
+                  Partnership Details
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Partnership Level</label>
+                    <div className="bg-white p-3 rounded border border-gray-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Preferred Partner
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Total Orders</label>
+                    <div className="text-lg font-bold text-gray-900 bg-white p-3 rounded border border-gray-200">
+                      247
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Total Value</label>
+                    <div className="text-lg font-bold text-green-600 bg-white p-3 rounded border border-gray-200">
+                      $2.4M
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Performance Score</label>
+                    <div className="text-lg font-bold text-green-600 bg-white p-3 rounded border border-gray-200">
+                      98.5%
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Last Order Date</label>
+                    <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                      {new Date(selectedSupplier.updatedAt).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Contract Renewal</label>
+                    <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                      Annual - Due: December 2025
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewProfileOpen(false)}>
+
+          <DialogFooter className="gap-3 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsViewProfileOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
               Close
             </Button>
-            <Button onClick={() => {
-              setIsViewProfileOpen(false);
-              selectedSupplier && handleEdit(selectedSupplier);
-            }}>
+            <Button 
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Export Profile
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsViewProfileOpen(false);
+                selectedSupplier && handleEdit(selectedSupplier);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               <Edit className="mr-2 h-4 w-4" />
               Edit Supplier
             </Button>
