@@ -570,22 +570,22 @@ const QuotationHistory = () => {
                           <TableCell className="px-4">
                             {quotation.status === 'accepted' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Paid
+                                Accepted
                               </span>
                             )}
                             {quotation.status === 'pending' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                Partial
+                                Pending
                               </span>
                             )}
                             {quotation.status === 'rejected' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Unpaid
+                                Rejected
                               </span>
                             )}
                             {quotation.status === 'expired' && (
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Overdue
+                                Expired
                               </span>
                             )}
                             {quotation.status === 'draft' && (
