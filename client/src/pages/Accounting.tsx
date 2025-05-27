@@ -2719,121 +2719,396 @@ const Accounting: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Expense Dialog */}
+      {/* Enhanced Edit Expense Dialog */}
       <Dialog open={isEditExpenseOpen} onOpenChange={setIsEditExpenseOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>Edit Expense Entry</DialogTitle>
-            <DialogDescription>
-              Update the expense information below.
-            </DialogDescription>
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <Edit className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Edit Expense Entry</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Update comprehensive expense information and financial details</p>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-date" className="text-right">
-                Date
-              </Label>
-              <Input
-                id="edit-expense-date"
-                type="date"
-                value={expenseForm.date}
-                onChange={(e) => setExpenseForm({...expenseForm, date: e.target.value})}
-                className="col-span-3"
-              />
+
+          <div className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Basic Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-date">Transaction Date</Label>
+                  <Input
+                    id="edit-expense-date"
+                    type="date"
+                    value={expenseForm.date}
+                    onChange={(e) => setExpenseForm({...expenseForm, date: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-reference">Reference Number</Label>
+                  <Input
+                    id="edit-expense-reference"
+                    placeholder="REF-2025-001"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-priority">Priority Level</Label>
+                  <Select defaultValue="normal">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-description">Description</Label>
+                  <Input
+                    id="edit-expense-description"
+                    value={expenseForm.description}
+                    onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
+                    placeholder="Brief description of the expense"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-vendor">Vendor/Supplier</Label>
+                  <Input
+                    id="edit-expense-vendor"
+                    placeholder="Company or individual name"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-description" className="text-right">
-                Description
-              </Label>
-              <Input
-                id="edit-expense-description"
-                value={expenseForm.description}
-                onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
-                className="col-span-3"
-              />
+
+            {/* Financial Details Section */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <DollarSign className="h-5 w-5 mr-2" />
+                Financial Details
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-amount">Amount ($)</Label>
+                  <Input
+                    id="edit-expense-amount"
+                    type="number"
+                    step="0.01"
+                    value={expenseForm.amount}
+                    onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-tax">Tax Rate (%)</Label>
+                  <Input
+                    id="edit-expense-tax"
+                    type="number"
+                    step="0.1"
+                    placeholder="14.0"
+                    defaultValue="14"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-tax-amount">Tax Amount ($)</Label>
+                  <Input
+                    id="edit-expense-tax-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Calculated automatically"
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-total">Total Amount ($)</Label>
+                  <Input
+                    id="edit-expense-total"
+                    type="number"
+                    step="0.01"
+                    placeholder="Including tax"
+                    readOnly
+                    className="bg-gray-50 font-bold"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-currency">Currency</Label>
+                  <Select defaultValue="usd">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="usd">USD - US Dollar</SelectItem>
+                      <SelectItem value="egp">EGP - Egyptian Pound</SelectItem>
+                      <SelectItem value="eur">EUR - Euro</SelectItem>
+                      <SelectItem value="gbp">GBP - British Pound</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-exchange-rate">Exchange Rate</Label>
+                  <Input
+                    id="edit-expense-exchange-rate"
+                    type="number"
+                    step="0.0001"
+                    placeholder="1.0000"
+                    defaultValue="1.0000"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-notes" className="text-right">
-                Notes
-              </Label>
-              <Textarea
-                id="edit-expense-notes"
-                value={expenseForm.notes}
-                onChange={(e) => setExpenseForm({...expenseForm, notes: e.target.value})}
-                className="col-span-3"
-                rows={2}
-              />
+
+            {/* Classification Section */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <BookOpen className="h-5 w-5 mr-2" />
+                Classification & Allocation
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-account-type">Account Type</Label>
+                  <Select value={expenseForm.accountType} onValueChange={(value) => setExpenseForm({...expenseForm, accountType: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expenseSettings.accountTypes.map((type, index) => (
+                        <SelectItem key={index} value={type.toLowerCase().replace(/\s+/g, '-')}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-cost-center">Cost Center</Label>
+                  <Select value={expenseForm.costCenter} onValueChange={(value) => setExpenseForm({...expenseForm, costCenter: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cost center" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expenseSettings.costCenters.map((center, index) => (
+                        <SelectItem key={index} value={center.toLowerCase().replace(/\s+/g, '-')}>{center}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-department">Department</Label>
+                  <Select defaultValue="admin">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="quality-control">Quality Control</SelectItem>
+                      <SelectItem value="research-dev">Research & Development</SelectItem>
+                      <SelectItem value="admin">Administration</SelectItem>
+                      <SelectItem value="sales-marketing">Sales & Marketing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-project">Project Code</Label>
+                  <Input
+                    id="edit-expense-project"
+                    placeholder="PROJ-2025-001 (optional)"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-gl-account">GL Account Code</Label>
+                  <Input
+                    id="edit-expense-gl-account"
+                    placeholder="5000-001"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-account-type" className="text-right">
-                Account Type
-              </Label>
-              <Select value={expenseForm.accountType} onValueChange={(value) => setExpenseForm({...expenseForm, accountType: value})}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseSettings.accountTypes.map((type, index) => (
-                    <SelectItem key={index} value={type.toLowerCase().replace(/\s+/g, '-')}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Payment Information Section */}
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <CreditCard className="h-5 w-5 mr-2" />
+                Payment Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-payment-method">Payment Method</Label>
+                  <Select value={expenseForm.paymentMethod} onValueChange={(value) => setExpenseForm({...expenseForm, paymentMethod: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expenseSettings.paymentMethods.map((method, index) => (
+                        <SelectItem key={index} value={method.toLowerCase().replace(/\s+/g, '-')}>{method}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-payment-status">Payment Status</Label>
+                  <Select defaultValue="pending">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partially Paid</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-due-date">Due Date</Label>
+                  <Input
+                    id="edit-expense-due-date"
+                    type="date"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-bank-account">Bank Account</Label>
+                  <Select defaultValue="main-account">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="main-account">Main Operating Account</SelectItem>
+                      <SelectItem value="petty-cash">Petty Cash</SelectItem>
+                      <SelectItem value="credit-card">Corporate Credit Card</SelectItem>
+                      <SelectItem value="paypal">PayPal Business</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-check-number">Check/Reference Number</Label>
+                  <Input
+                    id="edit-expense-check-number"
+                    placeholder="Check number or transaction ID"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-cost-center" className="text-right">
-                Cost Center
-              </Label>
-              <Select value={expenseForm.costCenter} onValueChange={(value) => setExpenseForm({...expenseForm, costCenter: value})}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select cost center" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseSettings.costCenters.map((center, index) => (
-                    <SelectItem key={index} value={center.toLowerCase().replace(/\s+/g, '-')}>{center}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-payment-method" className="text-right">
-                Payment Method
-              </Label>
-              <Select value={expenseForm.paymentMethod} onValueChange={(value) => setExpenseForm({...expenseForm, paymentMethod: value})}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseSettings.paymentMethods.map((method, index) => (
-                    <SelectItem key={index} value={method.toLowerCase().replace(/\s+/g, '-')}>{method}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-expense-amount" className="text-right">
-                Amount ($)
-              </Label>
-              <Input
-                id="edit-expense-amount"
-                type="number"
-                step="0.01"
-                value={expenseForm.amount}
-                onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
-                className="col-span-3"
-              />
+
+            {/* Additional Details Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Additional Details
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-expense-notes">Notes & Instructions</Label>
+                  <Textarea
+                    id="edit-expense-notes"
+                    value={expenseForm.notes}
+                    onChange={(e) => setExpenseForm({...expenseForm, notes: e.target.value})}
+                    placeholder="Additional notes, special instructions, or approval requirements..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-expense-approval">Requires Approval</Label>
+                    <Select defaultValue="no">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no">No Approval Required</SelectItem>
+                        <SelectItem value="manager">Manager Approval</SelectItem>
+                        <SelectItem value="finance">Finance Director</SelectItem>
+                        <SelectItem value="ceo">CEO Approval</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-expense-recurring">Recurring Expense</Label>
+                    <Select defaultValue="no">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no">One-time</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="annually">Annually</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsEditExpenseOpen(false)}>
+
+          <DialogFooter className="gap-3 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditExpenseOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button type="submit" onClick={() => {
-              toast({
-                title: "Success",
-                description: "Expense entry has been updated.",
-              });
-              setIsEditExpenseOpen(false);
-            }}>
+            <Button 
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
+            <Button 
+              onClick={() => {
+                toast({
+                  title: "Expense Updated Successfully",
+                  description: "All expense details have been updated and saved to your accounting records.",
+                });
+                setIsEditExpenseOpen(false);
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
               Update Expense
             </Button>
           </DialogFooter>
