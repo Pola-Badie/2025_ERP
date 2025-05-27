@@ -281,163 +281,453 @@ const Suppliers: React.FC = () => {
                 {t('addSupplier')}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
               <DialogHeader>
-                <DialogTitle>{editingSupplier ? 'Edit Supplier' : t('addSupplier')}</DialogTitle>
-                <DialogDescription>
-                  {editingSupplier 
-                    ? 'Update supplier information in the system.' 
-                    : 'Add a new supplier to your inventory system.'}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name *</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="contactPerson"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Person</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input type="tel" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="etaNumber"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>ETA Number (Egyptian Tax Authority)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Enter Egyptian Tax Authority registration number"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Tax registration number for Egyptian Tax Authority compliance
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>Address</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="city"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State/Province</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="zipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal/Zip Code</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="materials"
-                      render={({ field }) => (
-                        <FormItem className="col-span-2">
-                          <FormLabel>Materials Supplied</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              placeholder="List of materials this supplier provides (e.g. Raw chemicals, Packaging materials, Laboratory equipment)"
-                              className="min-h-[80px]"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter the main materials or product categories this supplier provides
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <div className="flex items-center space-x-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Building className="h-6 w-6 text-blue-600" />
                   </div>
-                  <DialogFooter>
+                  <div>
+                    <DialogTitle className="text-xl font-bold text-gray-900">
+                      {editingSupplier ? 'Edit Supplier Information' : 'Add New Supplier'}
+                    </DialogTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {editingSupplier 
+                        ? 'Update comprehensive supplier information and business details' 
+                        : 'Register a new pharmaceutical supplier with complete business profile and compliance information'}
+                    </p>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Company Information Section */}
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                      <Building className="h-5 w-5 mr-2" />
+                      Company Information
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-700 font-medium">Company Name *</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Enter company name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-blue-700">Business Type</label>
+                        <select className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option>Pharmaceutical Supplier</option>
+                          <option>Equipment Supplier</option>
+                          <option>Raw Materials Supplier</option>
+                          <option>Packaging Supplier</option>
+                          <option>Laboratory Supplier</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-blue-700">Supplier Category</label>
+                        <select className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                          <option>Preferred Partner</option>
+                          <option>Standard Supplier</option>
+                          <option>Trial Supplier</option>
+                          <option>Local Supplier</option>
+                          <option>International Supplier</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-blue-700">Registration Number</label>
+                        <Input 
+                          placeholder="Business registration number"
+                          className="border-blue-200 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-blue-700">Establishment Date</label>
+                        <Input 
+                          type="date"
+                          className="border-blue-200 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact Information Section */}
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Contact Information
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="contactPerson"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-green-700 font-medium">Primary Contact Person</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Contact person name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-green-700">Job Title</label>
+                        <Input 
+                          placeholder="Business Development Manager"
+                          className="border-green-200 focus:ring-green-500"
+                        />
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-green-700 font-medium">Email Address</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} placeholder="contact@company.com" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-green-700 font-medium">Phone Number</FormLabel>
+                            <FormControl>
+                              <Input type="tel" {...field} placeholder="+1 (555) 123-4567" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-green-700">Alternative Contact</label>
+                        <Input 
+                          placeholder="Emergency contact number"
+                          className="border-green-200 focus:ring-green-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-green-700">Website</label>
+                        <Input 
+                          placeholder="www.company.com"
+                          className="border-green-200 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Address & Location Section */}
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                      <MapPin className="h-5 w-5 mr-2" />
+                      Address & Location
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-purple-700 font-medium">Business Address</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Street address" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-purple-700 font-medium">City</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="City" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-purple-700 font-medium">State/Province</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="State/Province" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="zipCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-purple-700 font-medium">Postal/Zip Code</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Zip Code" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-purple-700">Country</label>
+                        <select className="w-full px-3 py-2 border border-purple-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                          <option>United States</option>
+                          <option>Egypt</option>
+                          <option>United Kingdom</option>
+                          <option>Germany</option>
+                          <option>India</option>
+                          <option>China</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-purple-700">Time Zone</label>
+                        <select className="w-full px-3 py-2 border border-purple-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                          <option>EST (UTC-5)</option>
+                          <option>PST (UTC-8)</option>
+                          <option>GMT (UTC+0)</option>
+                          <option>EET (UTC+2)</option>
+                          <option>IST (UTC+5:30)</option>
+                          <option>CST (UTC+8)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tax & Compliance Section */}
+                  <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Tax & Compliance
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="etaNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-orange-700 font-medium">ETA Number (Egyptian Tax Authority)</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                placeholder="Enter ETA registration number"
+                                className="border-orange-200 focus:ring-orange-500"
+                              />
+                            </FormControl>
+                            <FormDescription className="text-orange-600">
+                              Tax registration number for Egyptian Tax Authority compliance
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-orange-700">VAT Registration</label>
+                        <Input 
+                          placeholder="VAT registration number"
+                          className="border-orange-200 focus:ring-orange-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-orange-700">Pharmaceutical License</label>
+                        <Input 
+                          placeholder="Pharma license number"
+                          className="border-orange-200 focus:ring-orange-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-orange-700">License Expiry Date</label>
+                        <Input 
+                          type="date"
+                          className="border-orange-200 focus:ring-orange-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-orange-700">Tax Status</label>
+                        <select className="w-full px-3 py-2 border border-orange-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                          <option>Compliant</option>
+                          <option>Under Review</option>
+                          <option>Pending Documentation</option>
+                          <option>Non-Compliant</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Products & Services Section */}
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+                      <Package className="h-5 w-5 mr-2" />
+                      Products & Services
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="materials"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-yellow-700 font-medium">Materials & Services Supplied</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                {...field} 
+                                placeholder="List of materials this supplier provides (e.g. Active Pharmaceutical Ingredients, Packaging materials, Laboratory equipment)"
+                                className="min-h-[100px] border-yellow-200 focus:ring-yellow-500"
+                              />
+                            </FormControl>
+                            <FormDescription className="text-yellow-600">
+                              Enter the main materials or product categories this supplier provides
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-yellow-700">Specialization</label>
+                          <select className="w-full px-3 py-2 border border-yellow-200 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                            <option>Active Pharmaceutical Ingredients</option>
+                            <option>Excipients</option>
+                            <option>Packaging Materials</option>
+                            <option>Laboratory Equipment</option>
+                            <option>Quality Control Instruments</option>
+                          </select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-yellow-700">Quality Certifications</label>
+                          <Input 
+                            placeholder="ISO 9001, GMP, FDA Approved"
+                            className="border-yellow-200 focus:ring-yellow-500"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-yellow-700">Lead Time (Days)</label>
+                          <Input 
+                            type="number"
+                            placeholder="14"
+                            className="border-yellow-200 focus:ring-yellow-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Partnership Terms Section */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Handshake className="h-5 w-5 mr-2" />
+                      Partnership Terms
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Payment Terms</label>
+                        <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                          <option>Net 30 days</option>
+                          <option>Net 15 days</option>
+                          <option>2/10 Net 30</option>
+                          <option>Cash on Delivery</option>
+                          <option>Advance Payment</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Minimum Order Value</label>
+                        <Input 
+                          type="number"
+                          placeholder="5000"
+                          className="border-gray-200 focus:ring-gray-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Currency</label>
+                        <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                          <option>USD - US Dollar</option>
+                          <option>EGP - Egyptian Pound</option>
+                          <option>EUR - Euro</option>
+                          <option>GBP - British Pound</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Contract Type</label>
+                        <select className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                          <option>Annual Contract</option>
+                          <option>Multi-Year Contract</option>
+                          <option>Per-Order Basis</option>
+                          <option>Framework Agreement</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Credit Limit</label>
+                        <Input 
+                          type="number"
+                          placeholder="50000"
+                          className="border-gray-200 focus:ring-gray-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="gap-3 pt-6 border-t">
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -446,16 +736,27 @@ const Suppliers: React.FC = () => {
                         setEditingSupplier(null);
                         setIsAddDialogOpen(false);
                       }}
+                      className="border-gray-300 hover:bg-gray-50"
                     >
                       Cancel
                     </Button>
                     <Button 
+                      type="button"
+                      variant="outline"
+                      className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Save as Draft
+                    </Button>
+                    <Button 
                       type="submit" 
                       disabled={createSupplierMutation.isPending || updateSupplierMutation.isPending}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       {(createSupplierMutation.isPending || updateSupplierMutation.isPending) && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
+                      <Building className="h-4 w-4 mr-2" />
                       {editingSupplier ? 'Update Supplier' : 'Add Supplier'}
                     </Button>
                   </DialogFooter>
