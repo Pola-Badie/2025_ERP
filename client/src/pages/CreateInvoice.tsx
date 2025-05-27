@@ -1049,6 +1049,7 @@ const CreateInvoice = () => {
                   </Button>
                 </div>
               )}
+            </div>
           </CardContent>
         </Card>
 
