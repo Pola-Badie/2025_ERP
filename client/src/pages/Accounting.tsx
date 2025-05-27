@@ -59,7 +59,11 @@ import {
   Trash2,
   AlertCircle,
   Building,
-  Wallet
+  Wallet,
+  Phone,
+  Mail,
+  MapPin,
+  Shield
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
