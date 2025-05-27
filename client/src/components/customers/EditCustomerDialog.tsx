@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building, Phone, MapPin, FileText, HandShake } from 'lucide-react';
+import { Building, Phone, MapPin, FileText, Handshake } from 'lucide-react';
 import { CustomerData } from './CustomerCard';
 
 interface EditCustomerDialogProps {
@@ -443,7 +443,7 @@ const EditCustomerDialog: React.FC<EditCustomerDialogProps> = ({
           {/* Business Terms Section */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <HandShake className="h-5 w-5 mr-2" />
+              <Handshake className="h-5 w-5 mr-2" />
               Business Terms & Preferences
             </h3>
             
