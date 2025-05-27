@@ -59,7 +59,12 @@ import {
   Trash2,
   AlertCircle,
   Building,
-  Wallet
+  Wallet,
+  Search,
+  Filter,
+  Shield,
+  RefreshCw,
+  ExternalLink
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
