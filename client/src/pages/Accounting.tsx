@@ -2727,6 +2727,7 @@ const Accounting: React.FC = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Invoice ID</TableHead>
+                        <TableHead>Paper Inv. No.</TableHead>
                         <TableHead>ETA Number</TableHead>
                         <TableHead>Supplier</TableHead>
                         <TableHead>Due Date</TableHead>
@@ -2740,6 +2741,7 @@ const Accounting: React.FC = () => {
                     <TableBody>
                       <TableRow>
                         <TableCell className="font-medium">PUR-2025-005</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-025005</TableCell>
                         <TableCell className="text-blue-600 font-medium">ETA240525001</TableCell>
                         <TableCell>ChemCorp Industries</TableCell>
                         <TableCell>2025-05-28</TableCell>
@@ -2775,6 +2777,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">PUR-2025-009</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-025009</TableCell>
                         <TableCell className="text-blue-600 font-medium">ETA240608002</TableCell>
                         <TableCell>Global Pharma Solutions</TableCell>
                         <TableCell>2025-06-08</TableCell>
@@ -2810,6 +2813,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">PUR-2025-013</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-025013</TableCell>
                         <TableCell className="text-blue-600 font-medium">ETA240612003</TableCell>
                         <TableCell>Lab Equipment Ltd.</TableCell>
                         <TableCell>2025-06-12</TableCell>
@@ -2835,6 +2839,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">PUR-2025-017</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-025017</TableCell>
                         <TableCell className="text-blue-600 font-medium">ETA240618004</TableCell>
                         <TableCell>Medical Supplies Co.</TableCell>
                         <TableCell>2025-06-18</TableCell>
@@ -2874,6 +2879,7 @@ const Accounting: React.FC = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Invoice ID</TableHead>
+                        <TableHead>Paper Inv. No.</TableHead>
                         <TableHead>ETA Number</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Due Date</TableHead>
@@ -2887,6 +2893,7 @@ const Accounting: React.FC = () => {
                     <TableBody>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-001</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-2025001</TableCell>
                         <TableCell className="text-green-600 font-medium">ETA240530101</TableCell>
                         <TableCell>Cairo Medical Center</TableCell>
                         <TableCell>2025-05-30</TableCell>
@@ -2919,6 +2926,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-003</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-2025003</TableCell>
                         <TableCell className="text-green-600 font-medium">ETA240605102</TableCell>
                         <TableCell>Alexandria Pharmacy</TableCell>
                         <TableCell>2025-06-05</TableCell>
