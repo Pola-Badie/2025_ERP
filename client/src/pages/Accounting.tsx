@@ -5239,6 +5239,134 @@ const Accounting: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Quotation Preview Dialog */}
+      <Dialog open={isQuotationPreviewOpen} onOpenChange={setIsQuotationPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Quotation Preview - {selectedQuotation?.quotationNumber}
+            </DialogTitle>
+            <DialogDescription>
+              Review quotation details and ETA compliance information
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedQuotation && (
+            <div className="space-y-6 p-4">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Quotation Number</label>
+                    <p className="text-blue-600 font-semibold">{selectedQuotation.quotationNumber}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Customer</label>
+                    <p className="font-medium">{selectedQuotation.customer}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Quotation Type</label>
+                    <Badge className="bg-blue-100 text-blue-800">{selectedQuotation.type}</Badge>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">ETA Number</label>
+                    <p className="text-green-600 font-semibold">{selectedQuotation.etaNumber || 'Not uploaded'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Date</label>
+                    <p>{selectedQuotation.date}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Status</label>
+                    <Badge className={
+                      selectedQuotation.status === 'Accepted' ? 'bg-green-100 text-green-800' :
+                      selectedQuotation.status === 'Pending' ? 'bg-orange-100 text-orange-800' :
+                      selectedQuotation.status === 'Sent' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }>
+                      {selectedQuotation.status}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Financial Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold mb-3">Financial Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-600">Subtotal</label>
+                    <p className="font-semibold">${(selectedQuotation.amount / (1 + selectedQuotation.vatPercentage / 100)).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">VAT ({selectedQuotation.vatPercentage}%)</label>
+                    <p className="font-semibold">${(selectedQuotation.amount - (selectedQuotation.amount / (1 + selectedQuotation.vatPercentage / 100))).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Transportation</label>
+                    <p className="font-semibold">$0.00</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Total Amount</label>
+                    <p className="font-bold text-lg">${selectedQuotation.amount.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ETA Compliance Status */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <FileWarning className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-blue-900">ETA Tax Compliance</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      {selectedQuotation.etaNumber ? 
+                        `This quotation has been successfully uploaded to ETA with reference number ${selectedQuotation.etaNumber}` :
+                        'This quotation is pending upload to ETA for tax compliance. Upload required before finalization.'
+                      }
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      {selectedQuotation.etaNumber ? (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">✓ ETA Compliant</span>
+                      ) : (
+                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">⚠ Upload Required</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Description */}
+              <div>
+                <label className="text-sm font-medium text-gray-700">Service Description</label>
+                <p className="mt-1 text-gray-600">{selectedQuotation.description}</p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsQuotationPreviewOpen(false)}>
+              Close
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.href = '/quotation-history'}
+            >
+              View All Quotations
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/create-quotation'}
+            >
+              Create New Quotation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
