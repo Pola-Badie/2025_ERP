@@ -50,7 +50,8 @@ import {
   ArrowLeft,
   Calculator,
   Info,
-  Truck
+  Truck,
+  Edit
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
