@@ -563,11 +563,12 @@ const QuotationHistory = () => {
                             )}
                           </TableCell>
                           <TableCell className="px-4">
-                            {quotation.transportationType === 'air-freight' && 'Air freight'}
-                            {quotation.transportationType === 'sea-freight' && 'Sea freight'}
-                            {quotation.transportationType === 'ground-express' && 'Ground express'}
-                            {quotation.transportationType === 'ground-standard' && 'Ground standard'}
-                            {!quotation.transportationType && 'Credit card'}
+                            {quotation.status === 'accepted' && 'Credit Card'}
+                            {quotation.status === 'pending' && 'Bank Transfer'}
+                            {quotation.status === 'sent' && 'Net 30 Days'}
+                            {quotation.status === 'draft' && 'Not Set'}
+                            {quotation.status === 'rejected' && 'Cash on Delivery'}
+                            {quotation.status === 'expired' && 'Wire Transfer'}
                           </TableCell>
                           <TableCell className="px-4">
                             {quotation.status === 'accepted' && (
