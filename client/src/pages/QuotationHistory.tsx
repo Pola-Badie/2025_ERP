@@ -565,9 +565,9 @@ const QuotationHistory = () => {
                           <TableCell className="px-4">
                             {quotation.status === 'accepted' && 'Credit Card'}
                             {quotation.status === 'pending' && 'Bank Transfer'}
-                            {quotation.status === 'sent' && 'Net 30 Days'}
+                            {quotation.status === 'sent' && 'Check Payment'}
                             {quotation.status === 'draft' && 'Not Set'}
-                            {quotation.status === 'rejected' && 'Cash on Delivery'}
+                            {quotation.status === 'rejected' && 'Cash Payment'}
                             {quotation.status === 'expired' && 'Wire Transfer'}
                           </TableCell>
                           <TableCell className="px-4">
