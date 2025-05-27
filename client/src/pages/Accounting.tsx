@@ -128,6 +128,7 @@ const Accounting: React.FC = () => {
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
+  const [isETASettingsOpen, setIsETASettingsOpen] = useState(false);
   const [vatPercentage, setVatPercentage] = useState(14);
   const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
   const [newInvoiceVatPercentage, setNewInvoiceVatPercentage] = useState(14);
@@ -148,6 +149,23 @@ const Accounting: React.FC = () => {
   const [newInvoiceItems, setNewInvoiceItems] = useState([
     { id: 1, name: '', description: '', quantity: 1, unit: 'units', unitPrice: 0, total: 0 }
   ]);
+  
+  // ETA Settings form state
+  const [etaSettingsForm, setETASettingsForm] = useState({
+    clientId: '',
+    clientSecret: '',
+    username: '',
+    pin: '',
+    apiKey: '',
+    environment: 'production',
+    companyTaxNumber: '',
+    branchCode: '',
+    autoSubmit: true,
+    submissionDelay: '24',
+    backupSubmission: true,
+    notificationEmail: '',
+    complianceThreshold: '90'
+  });
   
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -2609,7 +2627,12 @@ const Accounting: React.FC = () => {
                       <p className="text-sm text-blue-700">Egyptian Tax Authority integration and compliance tracking</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="bg-white hover:bg-blue-50 border-blue-300">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-white hover:bg-blue-50 border-blue-300"
+                    onClick={() => setIsETASettingsOpen(true)}
+                  >
                     <Settings className="h-4 w-4 mr-2" />
                     ETA Settings
                   </Button>
@@ -5633,6 +5656,271 @@ const Accounting: React.FC = () => {
             >
               Create New Quotation
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ETA Settings Dialog */}
+      <Dialog open={isETASettingsOpen} onOpenChange={setIsETASettingsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-xl font-bold text-blue-900">
+              <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                <Shield className="h-5 w-5 text-blue-600" />
+              </div>
+              Egyptian Tax Authority (ETA) Configuration
+            </DialogTitle>
+            <DialogDescription className="text-blue-700">
+              Configure your ETA integration settings for automated tax compliance and invoice submission
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* API Credentials Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <div className="p-1 bg-blue-100 rounded mr-2">
+                  <Settings className="h-4 w-4 text-blue-600" />
+                </div>
+                API Credentials & Authentication
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eta-client-id">Client ID</Label>
+                  <Input
+                    id="eta-client-id"
+                    type="text"
+                    value={etaSettingsForm.clientId}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, clientId: e.target.value})}
+                    placeholder="Enter your ETA Client ID"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-client-secret">Client Secret</Label>
+                  <Input
+                    id="eta-client-secret"
+                    type="password"
+                    value={etaSettingsForm.clientSecret}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, clientSecret: e.target.value})}
+                    placeholder="Enter your ETA Client Secret"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-username">Username</Label>
+                  <Input
+                    id="eta-username"
+                    type="text"
+                    value={etaSettingsForm.username}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, username: e.target.value})}
+                    placeholder="Enter your ETA username"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-pin">PIN</Label>
+                  <Input
+                    id="eta-pin"
+                    type="password"
+                    value={etaSettingsForm.pin}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, pin: e.target.value})}
+                    placeholder="Enter your ETA PIN"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-api-key">API Key</Label>
+                  <Input
+                    id="eta-api-key"
+                    type="password"
+                    value={etaSettingsForm.apiKey}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, apiKey: e.target.value})}
+                    placeholder="Enter your ETA API Key"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="eta-environment">Environment</Label>
+                  <Select 
+                    value={etaSettingsForm.environment} 
+                    onValueChange={(value) => setETASettingsForm({...etaSettingsForm, environment: value})}
+                  >
+                    <SelectTrigger className="bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="production">Production</SelectItem>
+                      <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Company Information Section */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <div className="p-1 bg-green-100 rounded mr-2">
+                  <Building className="h-4 w-4 text-green-600" />
+                </div>
+                Company Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="company-tax-number">Company Tax Number</Label>
+                  <Input
+                    id="company-tax-number"
+                    type="text"
+                    value={etaSettingsForm.companyTaxNumber}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, companyTaxNumber: e.target.value})}
+                    placeholder="Enter company tax registration number"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="branch-code">Branch Code</Label>
+                  <Input
+                    id="branch-code"
+                    type="text"
+                    value={etaSettingsForm.branchCode}
+                    onChange={(e) => setETASettingsForm({...etaSettingsForm, branchCode: e.target.value})}
+                    placeholder="Enter branch identifier code"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Automation Settings Section */}
+            <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <div className="p-1 bg-purple-100 rounded mr-2">
+                  <Settings className="h-4 w-4 text-purple-600" />
+                </div>
+                Automation & Compliance Settings
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="auto-submit">Auto-Submit to ETA</Label>
+                      <p className="text-sm text-gray-600">Automatically submit invoices to ETA upon creation</p>
+                    </div>
+                    <Button
+                      variant={etaSettingsForm.autoSubmit ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setETASettingsForm({...etaSettingsForm, autoSubmit: !etaSettingsForm.autoSubmit})}
+                    >
+                      {etaSettingsForm.autoSubmit ? 'Enabled' : 'Disabled'}
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="submission-delay">Submission Delay (hours)</Label>
+                    <Select 
+                      value={etaSettingsForm.submissionDelay} 
+                      onValueChange={(value) => setETASettingsForm({...etaSettingsForm, submissionDelay: value})}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">Immediate</SelectItem>
+                        <SelectItem value="1">1 Hour</SelectItem>
+                        <SelectItem value="6">6 Hours</SelectItem>
+                        <SelectItem value="24">24 Hours</SelectItem>
+                        <SelectItem value="48">48 Hours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="backup-submission">Backup Submission</Label>
+                      <p className="text-sm text-gray-600">Create backup copies of all ETA submissions</p>
+                    </div>
+                    <Button
+                      variant={etaSettingsForm.backupSubmission ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setETASettingsForm({...etaSettingsForm, backupSubmission: !etaSettingsForm.backupSubmission})}
+                    >
+                      {etaSettingsForm.backupSubmission ? 'Enabled' : 'Disabled'}
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="compliance-threshold">Compliance Threshold (%)</Label>
+                    <Select 
+                      value={etaSettingsForm.complianceThreshold} 
+                      onValueChange={(value) => setETASettingsForm({...etaSettingsForm, complianceThreshold: value})}
+                    >
+                      <SelectTrigger className="bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="70">70% - Basic</SelectItem>
+                        <SelectItem value="80">80% - Good</SelectItem>
+                        <SelectItem value="90">90% - Excellent</SelectItem>
+                        <SelectItem value="95">95% - Perfect</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Notifications Section */}
+            <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <div className="p-1 bg-orange-100 rounded mr-2">
+                  <BellRing className="h-4 w-4 text-orange-600" />
+                </div>
+                Notification Settings
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="notification-email">Notification Email</Label>
+                <Input
+                  id="notification-email"
+                  type="email"
+                  value={etaSettingsForm.notificationEmail}
+                  onChange={(e) => setETASettingsForm({...etaSettingsForm, notificationEmail: e.target.value})}
+                  placeholder="Enter email for ETA notifications and alerts"
+                  className="bg-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-gray-50 -mx-6 -mb-6 px-6 py-4 mt-6">
+            <div className="flex justify-between w-full">
+              <div className="flex space-x-2">
+                <Button variant="outline">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Test Connection
+                </Button>
+                <Button variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Settings
+                </Button>
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setIsETASettingsOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    setIsETASettingsOpen(false);
+                  }}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Save Settings
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
