@@ -1250,8 +1250,24 @@ const Accounting: React.FC = () => {
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
-                            <Upload className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            onClick={() => {
+                              toast({
+                                title: "Downloading PDF",
+                                description: "Quotation QUO-MFG-202505-001 is being downloaded...",
+                              });
+                              const link = document.createElement('a');
+                              link.href = 'data:application/pdf;base64,JVBERi0xLjQKJdP0zOEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCgoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCi9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0xlbmd0aCA0NQo+PgpzdHJlYW0KQVQKL0YxIDEyIFRmCjEwMCA1MDAgVGQKKFF1b3RhdGlvbiBRVU8tTUZHLTIwMjUwNS0wMDEpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIwNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDUKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjMwMApfRU9GCg==';
+                              link.download = 'QUO-MFG-202505-001.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
@@ -1283,8 +1299,24 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
-                            <Upload className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            onClick={() => {
+                              toast({
+                                title: "Downloading PDF",
+                                description: "Quotation QUO-REF-202505-002 is being downloaded...",
+                              });
+                              const link = document.createElement('a');
+                              link.href = 'data:application/pdf;base64,JVBERi0xLjQKJdP0zOEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCgoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCi9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0xlbmd0aCA0NQo+PgpzdHJlYW0KQVQKL0YxIDEyIFRmCjEwMCA1MDAgVGQKKFF1b3RhdGlvbiBRVU8tUkVGLTIwMjUwNS0wMDIpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIwNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDUKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjMwMApfRU9GCg==';
+                              link.download = 'QUO-REF-202505-002.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
@@ -1316,8 +1348,24 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
-                            <Upload className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            onClick={() => {
+                              toast({
+                                title: "Downloading PDF",
+                                description: "Quotation QUO-FIN-202505-003 is being downloaded...",
+                              });
+                              const link = document.createElement('a');
+                              link.href = 'data:application/pdf;base64,JVBERi0xLjQKJdP0zOEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCgoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCi9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0xlbmd0aCA0NQo+PgpzdHJlYW0KQVQKL0YxIDEyIFRmCjEwMCA1MDAgVGQKKFF1b3RhdGlvbiBRVU8tRklOLTIwMjUwNS0wMDMpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA1CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDIwNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDUKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjMwMApfRU9GCg==';
+                              link.download = 'QUO-FIN-202505-003.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
@@ -1349,8 +1397,14 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400">
-                            <Upload className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-gray-400"
+                            disabled
+                            title="Draft quotations cannot be downloaded"
+                          >
+                            <Download className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
