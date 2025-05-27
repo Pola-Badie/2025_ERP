@@ -15,6 +15,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Table,
   TableBody,
   TableCell,
@@ -51,7 +57,10 @@ import {
   Calculator,
   Info,
   Truck,
-  Edit
+  Edit,
+  MessageCircle,
+  Mail,
+  ChevronDown
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -1081,9 +1090,28 @@ const CreateQuotation: React.FC = () => {
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
-                          <Button size="sm">
-                            <Send className="h-3 w-3 mr-1" />
-                            Send
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm">
+                                <Send className="h-3 w-3 mr-1" />
+                                Send
+                                <ChevronDown className="h-3 w-3 ml-1" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                                Send via WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Mail className="h-4 w-4 mr-2 text-blue-600" />
+                                Send via Email
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button size="sm" variant="destructive">
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </div>
@@ -1114,9 +1142,28 @@ const CreateQuotation: React.FC = () => {
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
-                          <Button size="sm">
-                            <Send className="h-3 w-3 mr-1" />
-                            Send
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm">
+                                <Send className="h-3 w-3 mr-1" />
+                                Send
+                                <ChevronDown className="h-3 w-3 ml-1" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                                Send via WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Mail className="h-4 w-4 mr-2 text-blue-600" />
+                                Send via Email
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button size="sm" variant="destructive">
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </div>
@@ -1147,9 +1194,28 @@ const CreateQuotation: React.FC = () => {
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
-                          <Button size="sm">
-                            <Send className="h-3 w-3 mr-1" />
-                            Send
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="sm">
+                                <Send className="h-3 w-3 mr-1" />
+                                Send
+                                <ChevronDown className="h-3 w-3 ml-1" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                                Send via WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Mail className="h-4 w-4 mr-2 text-blue-600" />
+                                Send via Email
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <Button size="sm" variant="destructive">
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Delete
                           </Button>
                         </div>
                       </div>
