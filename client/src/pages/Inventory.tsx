@@ -55,7 +55,13 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
-  Database
+  Database,
+  Package,
+  Archive,
+  DollarSign,
+  Shield,
+  Clock,
+  FileText
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
