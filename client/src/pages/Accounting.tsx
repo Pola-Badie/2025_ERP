@@ -3124,12 +3124,13 @@ const Accounting: React.FC = () => {
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                     <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
-                      <div className="col-span-3">Product Name</div>
+                      <div className="col-span-2">Product Name</div>
                       <div className="col-span-3">Description</div>
                       <div className="col-span-1">Qty</div>
                       <div className="col-span-1">Unit</div>
                       <div className="col-span-2">Unit Price ($)</div>
                       <div className="col-span-2">Total ($)</div>
+                      <div className="col-span-1">Action</div>
                     </div>
                   </div>
                   
@@ -3137,7 +3138,7 @@ const Accounting: React.FC = () => {
                     {invoiceItems.map((item, index) => (
                       <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                         <div className="grid grid-cols-12 gap-2 items-center">
-                          <div className="col-span-3">
+                          <div className="col-span-2">
                             <input
                               type="text"
                               value={item.name}
@@ -3193,7 +3194,7 @@ const Accounting: React.FC = () => {
                               className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                           </div>
-                          <div className="col-span-1">
+                          <div className="col-span-2">
                             <div className="text-sm font-medium text-right">
                               ${item.total.toFixed(2)}
                             </div>
@@ -3598,12 +3599,13 @@ const Accounting: React.FC = () => {
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
-                    <div className="col-span-3">Product Name</div>
+                    <div className="col-span-2">Product Name</div>
                     <div className="col-span-3">Description</div>
                     <div className="col-span-1">Qty</div>
                     <div className="col-span-1">Unit</div>
                     <div className="col-span-2">Unit Price ($)</div>
                     <div className="col-span-2">Total ($)</div>
+                    <div className="col-span-1">Action</div>
                   </div>
                 </div>
                 
@@ -3611,7 +3613,7 @@ const Accounting: React.FC = () => {
                   {purchaseItems.map((item, index) => (
                     <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                       <div className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <input
                             type="text"
                             value={item.name}
@@ -3667,7 +3669,7 @@ const Accounting: React.FC = () => {
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
-                        <div className="col-span-1">
+                        <div className="col-span-2">
                           <div className="text-sm font-medium text-right">
                             ${item.total.toFixed(2)}
                           </div>
