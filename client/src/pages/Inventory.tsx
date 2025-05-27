@@ -1137,10 +1137,25 @@ const Inventory: React.FC = () => {
         setIsProductFormOpen(open);
         if (!open) setProductToEdit(null);
       }}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>{productToEdit ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">
+                  {productToEdit ? 'Edit Product Information' : 'Add New Product'}
+                </DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {productToEdit 
+                    ? 'Update comprehensive product details and inventory information' 
+                    : 'Register a new pharmaceutical product with complete details and specifications'}
+                </p>
+              </div>
+            </div>
           </DialogHeader>
+          
           <ProductForm 
             initialData={productToEdit} 
             onSuccess={() => {
