@@ -721,10 +721,19 @@ const Accounting: React.FC = () => {
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
   const [isEditExpenseOpen, setIsEditExpenseOpen] = useState(false);
+  
+  // State for quotation actions
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [isQuotationPreviewOpen, setIsQuotationPreviewOpen] = useState(false);
 
   const handleViewReceipt = (expense: any) => {
     setSelectedExpense(expense);
     setIsViewReceiptOpen(true);
+  };
+
+  const handleViewQuotation = (quotation: any) => {
+    setSelectedQuotation(quotation);
+    setIsQuotationPreviewOpen(true);
   };
 
 
@@ -1222,7 +1231,23 @@ const Accounting: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleViewQuotation({
+                              id: 'QUO-MFG-202505-001',
+                              quotationNumber: 'QUO-MFG-202505-001',
+                              etaNumber: 'ETA-2025-05-12345',
+                              customer: 'Cairo Medical Center',
+                              type: 'Manufacturing',
+                              date: 'May 15, 2025',
+                              amount: 12450.00,
+                              status: 'Accepted',
+                              description: 'Manufacturing Services',
+                              vatPercentage: 14
+                            })}
+                          >
                             <Eye className="h-3 w-3" />
                           </Button>
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
