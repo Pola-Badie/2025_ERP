@@ -774,9 +774,9 @@ const CreateInvoice = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 py-4">
+            <div className="space-y-4">
               {/* Customer Selection Section */}
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label>Customer</Label>
                   <Button 
@@ -1049,7 +1049,6 @@ const CreateInvoice = () => {
                   </Button>
                 </div>
               )}
-            </div>
           </CardContent>
         </Card>
 
