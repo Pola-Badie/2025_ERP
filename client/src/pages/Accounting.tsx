@@ -2450,43 +2450,247 @@ const Accounting: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="invoices-due">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <FileWarning className="h-5 w-5 mr-2 text-blue-600" />
-                  <span>Invoices Due</span>
+          <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-blue-200">
+            <CardHeader className="pb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center text-2xl font-bold text-slate-800">
+                    <div className="p-3 bg-blue-100 rounded-xl mr-4">
+                      <FileWarning className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <span>Invoice Management Dashboard</span>
+                      <div className="text-sm font-normal text-slate-600 mt-1">
+                        Professional invoice tracking and management • 8 invoices found
+                      </div>
+                    </div>
+                  </CardTitle>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <BellRing className="h-4 w-4 mr-2" /> Reminders
+                <div className="flex space-x-3">
+                  <Button variant="outline" size="sm" className="bg-white hover:bg-gray-50">
+                    <div className="p-1 bg-gray-100 rounded mr-2">
+                      <BellRing className="h-3 w-3 text-gray-600" />
+                    </div>
+                    Reminders
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setIsNewInvoiceOpen(true)}>
-                    <PlusCircle className="h-4 w-4 mr-2" /> Add Invoice
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+                    onClick={() => setIsNewInvoiceOpen(true)}
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    New Invoice
                   </Button>
                 </div>
-              </CardTitle>
-              <CardDescription>Track accounts payable and receivable with due dates</CardDescription>
+              </div>
+              
+              {/* Statistics Dashboard */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+                <Card className="bg-white border-blue-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold text-slate-800">8</div>
+                        <div className="text-sm text-slate-600">Total Invoices</div>
+                      </div>
+                      <div className="p-3 bg-blue-100 rounded-lg">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-white border-green-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">$67,250</div>
+                        <div className="text-sm text-slate-600">Total Value</div>
+                      </div>
+                      <div className="p-3 bg-green-100 rounded-lg">
+                        <DollarSign className="h-5 w-5 text-green-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-white border-orange-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold text-orange-600">$38,420</div>
+                        <div className="text-sm text-slate-600">Outstanding</div>
+                      </div>
+                      <div className="p-3 bg-orange-100 rounded-lg">
+                        <Clock className="h-5 w-5 text-orange-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-white border-purple-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-2xl font-bold text-purple-600">3</div>
+                        <div className="text-sm text-slate-600">Paid This Month</div>
+                      </div>
+                      <div className="p-3 bg-purple-100 rounded-lg">
+                        <CheckCircle className="h-5 w-5 text-purple-600" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="payable">
-                <div className="flex justify-between items-center mb-4">
-                  <TabsList>
-                    <TabsTrigger value="payable">Payable</TabsTrigger>
-                    <TabsTrigger value="receivable">Receivable</TabsTrigger>
-                  </TabsList>
+            <CardContent className="bg-white">
+              {/* Search & Filter Section */}
+              <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 mb-6 border border-gray-200">
+                <div className="flex items-center mb-4">
+                  <Search className="h-5 w-5 text-gray-600 mr-3" />
+                  <h3 className="text-lg font-semibold text-gray-800">Search & Filter Invoices</h3>
+                </div>
+                <div className="text-sm text-gray-600 mb-4">Find specific invoices using advanced search and filtering options</div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input 
+                      placeholder="Search by invoice number, customer name, or amount..."
+                      className="pl-10 bg-white border-gray-300"
+                    />
+                  </div>
                   
                   <Select defaultValue="all">
-                    <SelectTrigger className="w-[150px]">
-                      <SelectValue placeholder="Filter by status" />
+                    <SelectTrigger className="bg-white border-gray-300">
+                      <Filter className="h-4 w-4 mr-2 text-gray-500" />
+                      <SelectValue placeholder="Payment Status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Statuses</SelectItem>
                       <SelectItem value="paid">Paid</SelectItem>
                       <SelectItem value="unpaid">Unpaid</SelectItem>
                       <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="due-soon">Due Soon</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  <Select defaultValue="all-time">
+                    <SelectTrigger className="bg-white border-gray-300">
+                      <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                      <SelectValue placeholder="Date Range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-time">All Time</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="this-week">This Week</SelectItem>
+                      <SelectItem value="this-month">This Month</SelectItem>
+                      <SelectItem value="last-month">Last Month</SelectItem>
+                      <SelectItem value="custom">Custom Range</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* ETA Compliance Dashboard */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border border-blue-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                      <Shield className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-900">ETA Compliance Monitor</h3>
+                      <p className="text-sm text-blue-700">Egyptian Tax Authority integration and compliance tracking</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="bg-white hover:bg-blue-50 border-blue-300">
+                    <Settings className="h-4 w-4 mr-2" />
+                    ETA Settings
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-600">ETA Submitted</div>
+                        <div className="text-xl font-bold text-green-600">6/8</div>
+                      </div>
+                      <CheckCircle className="h-8 w-8 text-green-500" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-600">Pending Upload</div>
+                        <div className="text-xl font-bold text-orange-600">2/8</div>
+                      </div>
+                      <Clock className="h-8 w-8 text-orange-500" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-600">Compliance Rate</div>
+                        <div className="text-xl font-bold text-blue-600">75%</div>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-blue-500" />
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-gray-600">Tax Amount</div>
+                        <div className="text-xl font-bold text-purple-600">$9,415</div>
+                      </div>
+                      <DollarSign className="h-8 w-8 text-purple-500" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                      6 Submitted to ETA
+                    </span>
+                    <span className="flex items-center text-orange-600">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-1"></div>
+                      2 Pending Upload
+                    </span>
+                    <span className="flex items-center text-blue-600">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                      75% Overall Compliance
+                    </span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-100">
+                    <ExternalLink className="h-3 w-3 mr-1" />
+                    View ETA Portal
+                  </Button>
+                </div>
+              </div>
+
+              <Tabs defaultValue="payable">
+                <div className="flex justify-between items-center mb-6">
+                  <TabsList className="bg-gray-100">
+                    <TabsTrigger value="payable" className="data-[state=active]:bg-white">Accounts Payable</TabsTrigger>
+                    <TabsTrigger value="receivable" className="data-[state=active]:bg-white">Accounts Receivable</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="bg-white">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Button variant="outline" size="sm" className="bg-white">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
                 
                 <TabsContent value="payable">
