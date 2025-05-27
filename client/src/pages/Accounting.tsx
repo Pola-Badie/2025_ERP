@@ -55,7 +55,8 @@ import {
   Upload,
   Paperclip,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Building
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -4047,7 +4048,7 @@ const Accounting: React.FC = () => {
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-purple-900 flex items-center">
-                  <Package className="h-5 w-5 mr-2" />
+                  <ShoppingBag className="h-5 w-5 mr-2" />
                   Products & Services
                 </h3>
                 <Button 
@@ -4160,7 +4161,7 @@ const Accounting: React.FC = () => {
             {/* Financial Summary Section */}
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
               <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
-                <Calculator className="h-5 w-5 mr-2" />
+                <DollarSign className="h-5 w-5 mr-2" />
                 Financial Summary
               </h3>
               
