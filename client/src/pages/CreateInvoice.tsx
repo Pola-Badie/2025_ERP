@@ -52,7 +52,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save, FileText, Calendar, User } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save, FileText, Calendar, User, DollarSign, Edit, Eye, Send, ChevronDown, MessageCircle, Mail, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -1474,118 +1480,249 @@ const CreateInvoice = () => {
 
         {/* Draft Invoices Tab */}
         <TabsContent value="drafts" className="space-y-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">Draft Invoices</h2>
-              <p className="text-muted-foreground">Manage your saved invoice drafts</p>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                // Clear all drafts
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                  const key = localStorage.key(i);
-                  if (key && key.startsWith('invoice_draft_')) {
-                    keysToRemove.push(key);
-                  }
-                }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                setSavedDrafts([]);
-                toast({
-                  title: "All Drafts Cleared",
-                  description: "All invoice drafts have been deleted",
-                });
-              }}
-              disabled={savedDrafts.length === 0}
-            >
-              <Trash className="mr-2 h-4 w-4" />
-              Clear All Drafts
-            </Button>
-          </div>
-
-          {savedDrafts.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Draft Invoices</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  You haven't saved any invoice drafts yet. Create an invoice and use "Save as Draft" to see them here.
-                </p>
-                <Button onClick={() => setMainTab("create")} variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Invoice
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {savedDrafts.map((draft) => (
-                <Card key={draft.key} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <FileText className="w-5 h-5 text-blue-600" />
-                          <h3 className="font-medium">
-                            {draft.customer?.name ? `Invoice for ${draft.customer.name}` : 'Untitled Invoice Draft'}
-                          </h3>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Draft
-                          </span>
+          <Card className="bg-gradient-to-br from-slate-50 to-blue-50/50 border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                    Draft Invoice Management
+                  </CardTitle>
+                  <CardDescription className="text-slate-600 mt-1">
+                    Manage your saved invoice drafts • {savedDrafts.length} drafts available
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setMainTab("create")}
+                    className="hover:bg-green-50 hover:border-green-200"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Invoice
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const keysToRemove = [];
+                      for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('invoice_draft_')) {
+                          keysToRemove.push(key);
+                        }
+                      }
+                      keysToRemove.forEach(key => localStorage.removeItem(key));
+                      setSavedDrafts([]);
+                      toast({
+                        title: "All Drafts Cleared",
+                        description: "All invoice drafts have been deleted",
+                      });
+                    }}
+                    disabled={savedDrafts.length === 0}
+                    className="hover:bg-red-50 hover:border-red-200"
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Clear All
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {savedDrafts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="p-4 bg-blue-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                    <FileText className="h-10 w-10 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2 text-slate-800">No Draft Invoices</h3>
+                  <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                    Create invoices and save them as drafts to manage your pharmaceutical billing workflow efficiently.
+                  </p>
+                  <Button onClick={() => setMainTab("create")} className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Invoice
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Statistics Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600">Total Drafts</p>
+                          <p className="text-2xl font-bold text-slate-800">{savedDrafts.length}</p>
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4" />
-                            <span>{draft.customer?.company || draft.customer?.name || 'No customer selected'}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>Saved {new Date(draft.savedAt).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <FileText className="w-4 h-4" />
-                            <span>{draft.items?.length || 0} items</span>
-                          </div>
-                        </div>
-                        
-                        {draft.items && draft.items.length > 0 && (
-                          <div className="mt-3">
-                            <p className="text-sm font-medium text-green-600">
-                              Total: {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(draft.grandTotal || 0)}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => loadDraft(draft.key)}
-                        >
-                          <Printer className="mr-2 h-4 w-4" />
-                          Load Draft
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteDraft(draft.key)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                        <FileText className="h-8 w-8 text-blue-600" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600">Draft Value</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            ${savedDrafts.reduce((sum, draft) => sum + (draft.grandTotal || 0), 0).toFixed(2)}
+                          </p>
+                        </div>
+                        <DollarSign className="h-8 w-8 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600">With Customers</p>
+                          <p className="text-2xl font-bold text-purple-600">
+                            {savedDrafts.filter(draft => draft.customer?.name).length}
+                          </p>
+                        </div>
+                        <User className="h-8 w-8 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-4 border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-slate-600">This Week</p>
+                          <p className="text-2xl font-bold text-orange-600">
+                            {savedDrafts.filter(draft => {
+                              const savedDate = new Date(draft.savedAt);
+                              const weekAgo = new Date();
+                              weekAgo.setDate(weekAgo.getDate() - 7);
+                              return savedDate >= weekAgo;
+                            }).length}
+                          </p>
+                        </div>
+                        <Calendar className="h-8 w-8 text-orange-600" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Draft Invoices List */}
+                  <div className="space-y-4">
+                    {savedDrafts.map((draft, index) => (
+                      <Card key={draft.key} className="border-dashed hover:shadow-md transition-all duration-200 bg-white">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-start gap-3">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-slate-800">
+                                  {draft.customer?.name 
+                                    ? `Invoice for ${draft.customer.company || draft.customer.name}` 
+                                    : `Draft Invoice #${index + 1}`}
+                                </h4>
+                                <p className="text-sm text-slate-500">
+                                  {draft.customer?.company && draft.customer?.name && `${draft.customer.name} • `}
+                                  {draft.items?.length || 0} items • 
+                                  {new Intl.NumberFormat('en-US', {
+                                    style: 'currency',
+                                    currency: 'USD'
+                                  }).format(draft.grandTotal || 0)}
+                                </p>
+                                <p className="text-xs text-slate-400 mt-1">
+                                  Saved {new Date(draft.savedAt).toLocaleDateString()} at {new Date(draft.savedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  loadDraft(draft.key);
+                                  setMainTab("create");
+                                  toast({
+                                    title: "Draft Loaded",
+                                    description: "Invoice draft loaded for editing",
+                                  });
+                                }}
+                                className="hover:bg-blue-50 hover:border-blue-200"
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  toast({
+                                    title: "Preview Loading",
+                                    description: "Preparing invoice preview...",
+                                  });
+                                  // You can implement a preview dialog here
+                                }}
+                                className="hover:bg-green-50 hover:border-green-200"
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                Preview
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                    <Send className="h-3 w-3 mr-1" />
+                                    Send
+                                    <ChevronDown className="h-3 w-3 ml-1" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      toast({
+                                        title: "Sending via WhatsApp",
+                                        description: `Opening WhatsApp for ${draft.customer?.name || 'customer'}...`,
+                                      });
+                                      const message = `Hello! Please find your invoice draft for ${draft.customer?.company || draft.customer?.name || 'your order'}. Total amount: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(draft.grandTotal || 0)}`;
+                                      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                                    }}
+                                  >
+                                    <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                                    Send via WhatsApp
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      toast({
+                                        title: "Opening Email Client",
+                                        description: `Preparing email for ${draft.customer?.name || 'customer'}...`,
+                                      });
+                                      const subject = `Invoice Draft - ${draft.customer?.company || draft.customer?.name || 'Your Order'}`;
+                                      const body = `Dear ${draft.customer?.name || 'Valued Customer'},%0A%0APlease find attached your invoice draft.%0A%0ATotal Amount: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(draft.grandTotal || 0)}%0A%0ABest regards,%0AYour Pharmaceutical Team`;
+                                      window.location.href = `mailto:${draft.customer?.email || ''}?subject=${subject}&body=${body}`;
+                                    }}
+                                  >
+                                    <Mail className="h-4 w-4 mr-2 text-blue-600" />
+                                    Send via Email
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                              <Button 
+                                size="sm" 
+                                variant="destructive"
+                                onClick={() => {
+                                  if (confirm(`Are you sure you want to delete this invoice draft? This action cannot be undone.`)) {
+                                    deleteDraft(draft.key);
+                                    toast({
+                                      title: "Draft Deleted",
+                                      description: "Invoice draft has been permanently deleted.",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
