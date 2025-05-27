@@ -118,8 +118,27 @@ const Accounting: React.FC = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
+  const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [vatPercentage, setVatPercentage] = useState(14);
   const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
+  const [newInvoiceVatPercentage, setNewInvoiceVatPercentage] = useState(14);
+  
+  // New invoice form state
+  const [newInvoiceForm, setNewInvoiceForm] = useState({
+    invoiceNumber: '',
+    etaNumber: '',
+    customerName: '',
+    customerEmail: '',
+    customerAddress: '',
+    invoiceDate: new Date().toISOString().split('T')[0],
+    dueDate: '',
+    paymentTerms: '30',
+    notes: ''
+  });
+  
+  const [newInvoiceItems, setNewInvoiceItems] = useState([
+    { id: 1, name: '', description: '', quantity: 1, unit: 'units', unitPrice: 0, total: 0 }
+  ]);
   
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -136,6 +155,51 @@ const Accounting: React.FC = () => {
     costCenters: ['Marketing', 'Projects', 'Admin', 'Operations'],
     paymentMethods: ['Cash', 'Credit Card', 'Bank Transfer', 'Check']
   });
+
+  // New invoice handlers
+  const addNewInvoiceItem = () => {
+    const newId = Math.max(...newInvoiceItems.map(item => item.id)) + 1;
+    setNewInvoiceItems([...newInvoiceItems, { 
+      id: newId, 
+      name: '', 
+      description: '', 
+      quantity: 1, 
+      unit: 'units', 
+      unitPrice: 0, 
+      total: 0 
+    }]);
+  };
+
+  const removeNewInvoiceItem = (id: number) => {
+    if (newInvoiceItems.length > 1) {
+      setNewInvoiceItems(newInvoiceItems.filter(item => item.id !== id));
+    }
+  };
+
+  const updateNewInvoiceItem = (id: number, field: string, value: any) => {
+    setNewInvoiceItems(newInvoiceItems.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  const calculateNewInvoiceSubtotal = () => {
+    return newInvoiceItems.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateNewInvoiceVat = () => {
+    return calculateNewInvoiceSubtotal() * (newInvoiceVatPercentage / 100);
+  };
+
+  const calculateNewInvoiceTotal = () => {
+    return calculateNewInvoiceSubtotal() + calculateNewInvoiceVat();
+  };
 
   // Invoice action handlers
   const handleMakePayment = (invoice: any) => {
@@ -1994,7 +2058,7 @@ const Accounting: React.FC = () => {
                   <Button variant="outline" size="sm">
                     <BellRing className="h-4 w-4 mr-2" /> Reminders
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => setIsNewInvoiceOpen(true)}>
                     <PlusCircle className="h-4 w-4 mr-2" /> Add Invoice
                   </Button>
                 </div>
@@ -3849,6 +3913,342 @@ const Accounting: React.FC = () => {
               Create Purchase Order
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New Invoice Dialog */}
+      <Dialog open={isNewInvoiceOpen} onOpenChange={setIsNewInvoiceOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <PlusCircle className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Create New Invoice</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Generate a new sales invoice with ETA compliance</p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Invoice Details Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Invoice Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-number">Invoice Number</Label>
+                  <Input
+                    id="invoice-number"
+                    value={newInvoiceForm.invoiceNumber}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, invoiceNumber: e.target.value})}
+                    placeholder="INV-2025-XXX"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="eta-number">ETA Number</Label>
+                  <Input
+                    id="eta-number"
+                    value={newInvoiceForm.etaNumber}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, etaNumber: e.target.value})}
+                    placeholder="ETA240XXXXX"
+                    className="text-green-600 font-medium"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-date">Invoice Date</Label>
+                  <Input
+                    id="invoice-date"
+                    type="date"
+                    value={newInvoiceForm.invoiceDate}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, invoiceDate: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="due-date">Due Date</Label>
+                  <Input
+                    id="due-date"
+                    type="date"
+                    value={newInvoiceForm.dueDate}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, dueDate: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-terms">Payment Terms (Days)</Label>
+                  <Select value={newInvoiceForm.paymentTerms} onValueChange={(value) => setNewInvoiceForm({...newInvoiceForm, paymentTerms: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7 Days</SelectItem>
+                      <SelectItem value="15">15 Days</SelectItem>
+                      <SelectItem value="30">30 Days</SelectItem>
+                      <SelectItem value="45">45 Days</SelectItem>
+                      <SelectItem value="60">60 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer Details Section */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <Building className="h-5 w-5 mr-2" />
+                Customer Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customer-name">Customer Name</Label>
+                  <Input
+                    id="customer-name"
+                    value={newInvoiceForm.customerName}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerName: e.target.value})}
+                    placeholder="Cairo Medical Center"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="customer-email">Customer Email</Label>
+                  <Input
+                    id="customer-email"
+                    type="email"
+                    value={newInvoiceForm.customerEmail}
+                    onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerEmail: e.target.value})}
+                    placeholder="billing@cairomedical.com"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="customer-address">Customer Address</Label>
+                <Textarea
+                  id="customer-address"
+                  value={newInvoiceForm.customerAddress}
+                  onChange={(e) => setNewInvoiceForm({...newInvoiceForm, customerAddress: e.target.value})}
+                  placeholder="123 Medical District, Cairo, Egypt"
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            {/* Products & Services Section */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-purple-900 flex items-center">
+                  <Package className="h-5 w-5 mr-2" />
+                  Products & Services
+                </h3>
+                <Button 
+                  type="button" 
+                  onClick={addNewInvoiceItem}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
+              
+              <div className="border border-purple-200 rounded-lg overflow-hidden">
+                <div className="bg-purple-100 px-4 py-3 border-b border-purple-200">
+                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-purple-900">
+                    <div className="col-span-2">Product Name</div>
+                    <div className="col-span-3">Description</div>
+                    <div className="col-span-1">Qty</div>
+                    <div className="col-span-1">Unit</div>
+                    <div className="col-span-2">Unit Price ($)</div>
+                    <div className="col-span-2">Total ($)</div>
+                    <div className="col-span-1">Action</div>
+                  </div>
+                </div>
+                
+                <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-400 scrollbar-track-purple-100">
+                  {newInvoiceItems.map((item, index) => (
+                    <div key={item.id} className={`px-4 py-3 border-b border-purple-100 ${index % 2 === 0 ? 'bg-white' : 'bg-purple-50'}`}>
+                      <div className="grid grid-cols-12 gap-2 items-center">
+                        <div className="col-span-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => updateNewInvoiceItem(item.id, 'name', e.target.value)}
+                            placeholder="Product name"
+                            className="w-full px-2 py-1 text-sm border border-purple-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => updateNewInvoiceItem(item.id, 'description', e.target.value)}
+                            placeholder="Product description"
+                            className="w-full px-2 py-1 text-sm border border-purple-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updateNewInvoiceItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-purple-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <Select value={item.unit} onValueChange={(value) => updateNewInvoiceItem(item.id, 'unit', value)}>
+                            <SelectTrigger className="h-8 text-sm border-purple-300">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="kg">kg</SelectItem>
+                              <SelectItem value="g">g</SelectItem>
+                              <SelectItem value="mg">mg</SelectItem>
+                              <SelectItem value="L">L</SelectItem>
+                              <SelectItem value="mL">mL</SelectItem>
+                              <SelectItem value="units">units</SelectItem>
+                              <SelectItem value="boxes">boxes</SelectItem>
+                              <SelectItem value="bottles">bottles</SelectItem>
+                              <SelectItem value="vials">vials</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            value={item.unitPrice}
+                            onChange={(e) => updateNewInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-purple-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <div className="text-sm font-medium text-right">
+                            ${item.total.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="col-span-1">
+                          <Button
+                            type="button"
+                            onClick={() => removeNewInvoiceItem(item.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Summary Section */}
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <Calculator className="h-5 w-5 mr-2" />
+                Financial Summary
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="vat-percentage">VAT Percentage (%)</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      id="vat-percentage"
+                      type="number"
+                      value={newInvoiceVatPercentage}
+                      onChange={(e) => setNewInvoiceVatPercentage(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      className="w-24"
+                    />
+                    <span className="text-sm text-gray-600">%</span>
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg border border-orange-300">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Subtotal:</span>
+                      <span className="font-medium">${calculateNewInvoiceSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">VAT ({newInvoiceVatPercentage}%):</span>
+                      <span className="font-medium">${calculateNewInvoiceVat().toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-2">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-900">Total Amount:</span>
+                        <span className="font-bold text-lg text-orange-600">${calculateNewInvoiceTotal().toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="invoice-notes">Notes</Label>
+                <Textarea
+                  id="invoice-notes"
+                  value={newInvoiceForm.notes}
+                  onChange={(e) => setNewInvoiceForm({...newInvoiceForm, notes: e.target.value})}
+                  placeholder="Additional notes or terms..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-6 border-t">
+            <Button variant="outline" onClick={() => setIsNewInvoiceOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                toast({
+                  title: "Invoice Created Successfully",
+                  description: `Invoice ${newInvoiceForm.invoiceNumber} has been created and saved to your accounts receivable.`,
+                  variant: "default"
+                });
+                setIsNewInvoiceOpen(false);
+                // Reset form
+                setNewInvoiceForm({
+                  invoiceNumber: '',
+                  etaNumber: '',
+                  customerName: '',
+                  customerEmail: '',
+                  customerAddress: '',
+                  invoiceDate: new Date().toISOString().split('T')[0],
+                  dueDate: '',
+                  paymentTerms: '30',
+                  notes: ''
+                });
+                setNewInvoiceItems([
+                  { id: 1, name: '', description: '', quantity: 1, unit: 'units', unitPrice: 0, total: 0 }
+                ]);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
