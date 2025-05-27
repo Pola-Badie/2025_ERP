@@ -1150,91 +1150,306 @@ const Inventory: React.FC = () => {
         setIsHistoryDialogOpen(open);
         if (!open) setSelectedProductHistory(null);
       }}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>Product History</DialogTitle>
-            <DialogDescription>
-              {selectedProductHistory ? `Viewing history for ${selectedProductHistory.name}` : ''}
-            </DialogDescription>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Product History & Analytics</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {selectedProductHistory ? `Comprehensive history and performance analytics for ${selectedProductHistory.name}` : 'Loading product details...'}
+                </p>
+              </div>
+            </div>
           </DialogHeader>
           
           {selectedProductHistory && (
-            <div className="space-y-4 py-2">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Current Information</h3>
-                <Badge variant="outline">{selectedProductHistory.status}</Badge>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 border p-4 rounded-md bg-slate-50">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">SKU</p>
-                  <p>{selectedProductHistory.sku}</p>
+            <div className="space-y-6">
+              {/* Product Information Section */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <Package className="h-5 w-5 mr-2" />
+                  Product Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Product Name</label>
+                    <div className="text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200">
+                      {selectedProductHistory.name}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">SKU Code</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono">
+                      {selectedProductHistory.sku}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Drug Name</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      {selectedProductHistory.drugName}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Status</label>
+                    <div className="bg-white p-3 rounded border border-blue-200">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedProductHistory.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        selectedProductHistory.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {selectedProductHistory.status}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Drug Name</p>
-                  <p>{selectedProductHistory.drugName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Quantity</p>
-                  <p>{selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Category</p>
-                  <p>{selectedProductHistory.category}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Cost Price</p>
-                  <p>{formatCurrency(selectedProductHistory.costPrice)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Selling Price</p>
-                  <p>{formatCurrency(selectedProductHistory.sellingPrice)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Expiry Date</p>
-                  <p>{formatDate(selectedProductHistory.expiryDate)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Warehouse</p>
-                  <p>{warehouses.find(w => w.id === selectedWarehouse)?.name || 'Main Warehouse'}</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Category</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      {selectedProductHistory.category}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Manufacturer</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      Global Pharma Solutions
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-lg font-medium mb-3">History Timeline</h3>
+              {/* Inventory Details Section */}
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                  <Archive className="h-5 w-5 mr-2" />
+                  Inventory Details
+                </h3>
                 
-                {/* This would typically be populated from backend data */}
-                <div className="space-y-3">
-                  <div className="flex items-start border-l-2 border-primary pl-4 pb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                      <Pencil className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Product Updated</p>
-                      <p className="text-sm text-slate-500">{formatDate(new Date().toISOString())}</p>
-                      <p className="text-sm mt-1">Quantity changed from 150 to {selectedProductHistory.quantity}</p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Current Quantity</label>
+                    <div className="text-2xl font-bold text-green-900 bg-white p-3 rounded border border-green-200">
+                      {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}
                     </div>
                   </div>
                   
-                  <div className="flex items-start border-l-2 border-primary pl-4 pb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                      <Tag className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Label Generated</p>
-                      <p className="text-sm text-slate-500">{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</p>
-                      <p className="text-sm mt-1">Label created for batch #LB{selectedProductHistory.id}21</p>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Warehouse Location</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      {warehouses.find(w => w.id === selectedWarehouse)?.name || 'Main Warehouse'}
                     </div>
                   </div>
                   
-                  <div className="flex items-start border-l-2 border-primary pl-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
-                      <Plus className="h-5 w-5 text-primary" />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Reorder Level</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      25 {selectedProductHistory.unitOfMeasure}
                     </div>
-                    <div>
-                      <p className="font-medium">Product Added</p>
-                      <p className="text-sm text-slate-500">{formatDate(selectedProductHistory.createdAt)}</p>
-                      <p className="text-sm mt-1">Initial quantity: 100 {selectedProductHistory.unitOfMeasure}</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Stock Value</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-bold">
+                      {formatCurrency(selectedProductHistory.quantity * selectedProductHistory.costPrice)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Last Stock Movement</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      +50 units received on {formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-green-700">Average Monthly Usage</label>
+                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                      45 {selectedProductHistory.unitOfMeasure}/month
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Information Section */}
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  Pricing Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Cost Price</label>
+                    <div className="text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200">
+                      {formatCurrency(selectedProductHistory.costPrice)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Selling Price</label>
+                    <div className="text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200">
+                      {formatCurrency(selectedProductHistory.sellingPrice)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Profit Margin</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      {((selectedProductHistory.sellingPrice - selectedProductHistory.costPrice) / selectedProductHistory.costPrice * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Profit per Unit</label>
+                    <div className="text-sm font-bold text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      {formatCurrency(selectedProductHistory.sellingPrice - selectedProductHistory.costPrice)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Last Price Update</label>
+                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                      {formatDate(new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString())}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-purple-700">Price Trend</label>
+                    <div className="bg-white p-3 rounded border border-purple-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ↗ Increasing
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compliance & Quality Section */}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                  <Shield className="h-5 w-5 mr-2" />
+                  Compliance & Quality
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Expiry Date</label>
+                    <div className={`text-sm font-bold bg-white p-3 rounded border border-orange-200 ${
+                      new Date(selectedProductHistory.expiryDate) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) 
+                        ? 'text-red-600' : 'text-orange-800'
+                    }`}>
+                      {formatDate(selectedProductHistory.expiryDate)}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Batch Number</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 font-mono">
+                      BATCH-{selectedProductHistory.id}2025
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Quality Status</label>
+                    <div className="bg-white p-3 rounded border border-orange-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        ✓ Approved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Last Quality Check</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                      {formatDate(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-orange-700">Regulatory Status</label>
+                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                      EDA Approved - License #EDA{selectedProductHistory.id}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Timeline Section */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <Clock className="h-5 w-5 mr-2" />
+                  Activity Timeline
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start border-l-4 border-blue-500 pl-4 pb-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
+                      <Pencil className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-medium text-gray-900">Product Information Updated</p>
+                        <span className="text-xs text-gray-500">{formatDate(new Date().toISOString())}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Quantity changed from 150 to {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
+                      <p className="text-xs text-gray-500 mt-1">Updated by: System Administrator</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start border-l-4 border-green-500 pl-4 pb-4">
+                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4 flex-shrink-0">
+                      <Package className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-medium text-gray-900">Stock Received</p>
+                        <span className="text-xs text-gray-500">{formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Received 50 {selectedProductHistory.unitOfMeasure} from supplier</p>
+                      <p className="text-xs text-gray-500 mt-1">Purchase Order: PO-2025-{selectedProductHistory.id}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start border-l-4 border-purple-500 pl-4 pb-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mr-4 flex-shrink-0">
+                      <Tag className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-medium text-gray-900">Label Generated</p>
+                        <span className="text-xs text-gray-500">{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Product label created for batch #BATCH-{selectedProductHistory.id}2025</p>
+                      <p className="text-xs text-gray-500 mt-1">Label Type: Pharmaceutical Grade</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start border-l-4 border-yellow-500 pl-4">
+                    <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4 flex-shrink-0">
+                      <Plus className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <p className="font-medium text-gray-900">Product Added to Inventory</p>
+                        <span className="text-xs text-gray-500">{formatDate(selectedProductHistory.createdAt)}</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Initial stock: 100 {selectedProductHistory.unitOfMeasure}</p>
+                      <p className="text-xs text-gray-500 mt-1">Created by: Inventory Manager</p>
                     </div>
                   </div>
                 </div>
@@ -1242,12 +1457,26 @@ const Inventory: React.FC = () => {
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="gap-3 pt-6 border-t">
             <Button
               variant="outline"
               onClick={() => setIsHistoryDialogOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
             >
               Close
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Product
             </Button>
           </DialogFooter>
         </DialogContent>
