@@ -294,10 +294,10 @@ const CustomersDemo: React.FC = () => {
               <Button 
                 size="sm" 
                 onClick={handleAddCustomer} 
-                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                className="w-full sm:w-auto cursor-pointer"
               >
-                <Plus className="h-4 w-4 mr-2" /> 
-                Add New Customer
+                <Plus className="h-4 w-4 mr-2" />
+                Add Customer
               </Button>
             </div>
           </CardHeader>
