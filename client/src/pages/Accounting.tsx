@@ -48,6 +48,8 @@ import {
   Download,
   FileQuestion,
   MoreHorizontal,
+  Eye,
+  CheckCircle,
   BarChart,
   Settings,
   X,
