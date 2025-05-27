@@ -118,6 +118,8 @@ const Accounting: React.FC = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
+  const [vatPercentage, setVatPercentage] = useState(14);
+  const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
   
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -217,7 +219,7 @@ const Accounting: React.FC = () => {
   };
 
   const calculateVAT = () => {
-    return calculateSubtotal() * 0.14; // 14% VAT
+    return calculateSubtotal() * (vatPercentage / 100);
   };
 
   const calculateGrandTotal = () => {
@@ -261,7 +263,7 @@ const Accounting: React.FC = () => {
   };
 
   const calculatePurchaseVAT = () => {
-    return calculatePurchaseSubtotal() * 0.14; // 14% VAT
+    return calculatePurchaseSubtotal() * (purchaseVatPercentage / 100);
   };
 
   const calculatePurchaseGrandTotal = () => {
@@ -3214,13 +3216,27 @@ const Accounting: React.FC = () => {
                   
                   {/* Totals Section */}
                   <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal:</span>
                         <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>VAT (14%):</span>
+                      <div className="flex justify-between items-center text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>VAT:</span>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              value={vatPercentage}
+                              onChange={(e) => setVatPercentage(parseFloat(e.target.value) || 0)}
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <span className="text-xs">%</span>
+                          </div>
+                        </div>
                         <span className="font-medium">${calculateVAT().toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
@@ -3491,6 +3507,294 @@ const Accounting: React.FC = () => {
               setIsContactDialogOpen(false);
             }}>
               Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Professional New Purchase Dialog */}
+      <Dialog open={isNewPurchaseOpen} onOpenChange={setIsNewPurchaseOpen}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <ShoppingBag className="h-6 w-6 text-blue-600" />
+              </div>
+              New Purchase Order
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Create a detailed pharmaceutical purchase order with itemized products and pricing
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-6">
+            {/* Purchase Header Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="purchase-supplier">Supplier</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="chemcorp">ChemCorp Industries</SelectItem>
+                    <SelectItem value="pharmatech">PharmaTech Solutions</SelectItem>
+                    <SelectItem value="biomedical">BioMedical Supplies</SelectItem>
+                    <SelectItem value="labequip">Lab Equipment Corp</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="purchase-date">Purchase Date</Label>
+                <Input
+                  id="purchase-date"
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="purchase-eta">ETA Number</Label>
+                <Input
+                  id="purchase-eta"
+                  placeholder="Auto-generated ETA number"
+                  defaultValue={`ETA${new Date().toISOString().slice(2,10).replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`}
+                />
+              </div>
+              <div>
+                <Label htmlFor="payment-terms">Payment Terms</Label>
+                <Select defaultValue="net30">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment terms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="net15">Net 15 days</SelectItem>
+                    <SelectItem value="net30">Net 30 days</SelectItem>
+                    <SelectItem value="net45">Net 45 days</SelectItem>
+                    <SelectItem value="cod">Cash on Delivery</SelectItem>
+                    <SelectItem value="advance">Advance Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Detailed Product Items Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-lg font-semibold">Purchase Items</Label>
+                <Button 
+                  type="button" 
+                  onClick={addPurchaseItem}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
+              
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
+                    <div className="col-span-3">Product Name</div>
+                    <div className="col-span-3">Description</div>
+                    <div className="col-span-1">Qty</div>
+                    <div className="col-span-1">Unit</div>
+                    <div className="col-span-2">Unit Price ($)</div>
+                    <div className="col-span-2">Total ($)</div>
+                  </div>
+                </div>
+                
+                <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                  {purchaseItems.map((item, index) => (
+                    <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <div className="grid grid-cols-12 gap-2 items-center">
+                        <div className="col-span-3">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => updatePurchaseItem(item.id, 'name', e.target.value)}
+                            placeholder="Product name"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => updatePurchaseItem(item.id, 'description', e.target.value)}
+                            placeholder="Product description"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updatePurchaseItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <Select value={item.unit} onValueChange={(value) => updatePurchaseItem(item.id, 'unit', value)}>
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="kg">kg</SelectItem>
+                              <SelectItem value="g">g</SelectItem>
+                              <SelectItem value="mg">mg</SelectItem>
+                              <SelectItem value="L">L</SelectItem>
+                              <SelectItem value="mL">mL</SelectItem>
+                              <SelectItem value="units">units</SelectItem>
+                              <SelectItem value="boxes">boxes</SelectItem>
+                              <SelectItem value="bottles">bottles</SelectItem>
+                              <SelectItem value="vials">vials</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            value={item.unitPrice}
+                            onChange={(e) => updatePurchaseItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <div className="text-sm font-medium text-right">
+                            ${item.total.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="col-span-1">
+                          <Button
+                            type="button"
+                            onClick={() => removePurchaseItem(item.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Purchase Totals Section */}
+                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal:</span>
+                      <span className="font-medium">${calculatePurchaseSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <span>VAT:</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={purchaseVatPercentage}
+                            onChange={(e) => setPurchaseVatPercentage(parseFloat(e.target.value) || 0)}
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">%</span>
+                        </div>
+                      </div>
+                      <span className="font-medium">${calculatePurchaseVAT().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+                      <span>Grand Total:</span>
+                      <span className="text-blue-600">${calculatePurchaseGrandTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Purchase Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="delivery-date">Expected Delivery Date</Label>
+                <Input
+                  id="delivery-date"
+                  type="date"
+                />
+              </div>
+              <div>
+                <Label htmlFor="purchase-status">Purchase Status</Label>
+                <Select defaultValue="draft">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="pending">Pending Approval</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="sent">Sent to Supplier</SelectItem>
+                    <SelectItem value="received">Received</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <div>
+              <Label htmlFor="purchase-notes">Purchase Notes</Label>
+              <Textarea
+                id="purchase-notes"
+                placeholder="Special instructions, delivery requirements, quality specifications..."
+                rows={3}
+              />
+            </div>
+
+            {/* ETA Compliance Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-blue-100 rounded-full">
+                  <Landmark className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-900">ETA Compliance Information</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    This purchase order includes a valid ETA number for Egyptian Tax Authority compliance. All pharmaceutical purchases must be properly documented.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsNewPurchaseOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsNewPurchaseOpen(false);
+                toast({
+                  title: "Purchase Order Created",
+                  description: `New purchase order with ${purchaseItems.length} items has been created successfully.`,
+                  variant: "default"
+                });
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Purchase Order
             </Button>
           </DialogFooter>
         </DialogContent>
