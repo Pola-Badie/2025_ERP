@@ -1082,11 +1082,31 @@ const CreateQuotation: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setActiveTab('create');
+                              toast({
+                                title: "Opening Editor",
+                                description: "Loading QUOTE-MFG-2025-001 for editing...",
+                              });
+                            }}
+                          >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setIsPreviewOpen(true);
+                              toast({
+                                title: "Preview Loading",
+                                description: "Preparing quotation preview...",
+                              });
+                            }}
+                          >
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
@@ -1099,17 +1119,45 @@ const CreateQuotation: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Sending via WhatsApp",
+                                    description: "Opening WhatsApp with quotation QUOTE-MFG-2025-001...",
+                                  });
+                                  window.open('https://wa.me/?text=Hello! Please find our quotation QUOTE-MFG-2025-001 for Manufacturing services. Total amount: $12,450.00', '_blank');
+                                }}
+                              >
                                 <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                                 Send via WhatsApp
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Opening Email Client",
+                                    description: "Preparing email with quotation QUOTE-MFG-2025-001...",
+                                  });
+                                  window.location.href = 'mailto:?subject=Quotation QUOTE-MFG-2025-001 - Manufacturing Services&body=Dear Client,%0A%0APlease find attached our quotation for Manufacturing services.%0A%0AQuotation Number: QUOTE-MFG-2025-001%0ATotal Amount: $12,450.00%0A%0ABest regards,%0AYour Pharmaceutical Team';
+                                }}
+                              >
                                 <Mail className="h-4 w-4 mr-2 text-blue-600" />
                                 Send via Email
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button size="sm" variant="destructive">
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete QUOTE-MFG-2025-001? This action cannot be undone.')) {
+                                toast({
+                                  title: "Draft Deleted",
+                                  description: "QUOTE-MFG-2025-001 has been permanently deleted.",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                          >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Delete
                           </Button>
@@ -1134,11 +1182,31 @@ const CreateQuotation: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setActiveTab('create');
+                              toast({
+                                title: "Opening Editor",
+                                description: "Loading QUOTE-REF-2025-002 for editing...",
+                              });
+                            }}
+                          >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setIsPreviewOpen(true);
+                              toast({
+                                title: "Preview Loading",
+                                description: "Preparing quotation preview...",
+                              });
+                            }}
+                          >
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
@@ -1151,17 +1219,45 @@ const CreateQuotation: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Sending via WhatsApp",
+                                    description: "Opening WhatsApp with quotation QUOTE-REF-2025-002...",
+                                  });
+                                  window.open('https://wa.me/?text=Hello! Please find our quotation QUOTE-REF-2025-002 for Refining services. Total amount: $8,750.00', '_blank');
+                                }}
+                              >
                                 <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                                 Send via WhatsApp
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Opening Email Client",
+                                    description: "Preparing email with quotation QUOTE-REF-2025-002...",
+                                  });
+                                  window.location.href = 'mailto:?subject=Quotation QUOTE-REF-2025-002 - Refining Services&body=Dear Client,%0A%0APlease find attached our quotation for Refining services.%0A%0AQuotation Number: QUOTE-REF-2025-002%0ATotal Amount: $8,750.00%0A%0ABest regards,%0AYour Pharmaceutical Team';
+                                }}
+                              >
                                 <Mail className="h-4 w-4 mr-2 text-blue-600" />
                                 Send via Email
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button size="sm" variant="destructive">
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete QUOTE-REF-2025-002? This action cannot be undone.')) {
+                                toast({
+                                  title: "Draft Deleted",
+                                  description: "QUOTE-REF-2025-002 has been permanently deleted.",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                          >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Delete
                           </Button>
@@ -1186,11 +1282,31 @@ const CreateQuotation: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setActiveTab('create');
+                              toast({
+                                title: "Opening Editor",
+                                description: "Loading QUOTE-FIN-2025-003 for editing...",
+                              });
+                            }}
+                          >
                             <Edit className="h-3 w-3 mr-1" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setIsPreviewOpen(true);
+                              toast({
+                                title: "Preview Loading",
+                                description: "Preparing quotation preview...",
+                              });
+                            }}
+                          >
                             <Eye className="h-3 w-3 mr-1" />
                             Preview
                           </Button>
@@ -1203,17 +1319,45 @@ const CreateQuotation: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Sending via WhatsApp",
+                                    description: "Opening WhatsApp with quotation QUOTE-FIN-2025-003...",
+                                  });
+                                  window.open('https://wa.me/?text=Hello! Please find our quotation QUOTE-FIN-2025-003 for Finished Products. Total amount: $15,200.00', '_blank');
+                                }}
+                              >
                                 <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                                 Send via WhatsApp
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  toast({
+                                    title: "Opening Email Client",
+                                    description: "Preparing email with quotation QUOTE-FIN-2025-003...",
+                                  });
+                                  window.location.href = 'mailto:?subject=Quotation QUOTE-FIN-2025-003 - Finished Products&body=Dear Client,%0A%0APlease find attached our quotation for Finished Products.%0A%0AQuotation Number: QUOTE-FIN-2025-003%0ATotal Amount: $15,200.00%0A%0ABest regards,%0AYour Pharmaceutical Team';
+                                }}
+                              >
                                 <Mail className="h-4 w-4 mr-2 text-blue-600" />
                                 Send via Email
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button size="sm" variant="destructive">
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete QUOTE-FIN-2025-003? This action cannot be undone.')) {
+                                toast({
+                                  title: "Draft Deleted",
+                                  description: "QUOTE-FIN-2025-003 has been permanently deleted.",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                          >
                             <Trash2 className="h-3 w-3 mr-1" />
                             Delete
                           </Button>
