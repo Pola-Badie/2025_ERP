@@ -910,6 +910,7 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Purchases</TabsTrigger>
             <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
+            <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
             <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
             <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
             <TabsTrigger value="balance-sheet" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Balance Sheet</TabsTrigger>
@@ -1071,6 +1072,319 @@ const Accounting: React.FC = () => {
         
         <TabsContent value="customer-payments">
           <CustomerPayments />
+        </TabsContent>
+        
+        <TabsContent value="quotations">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                  <span>Quotations Management</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = '/create-quotation'}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> 
+                    New Quotation
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = '/quotation-history'}
+                  >
+                    <Eye className="h-4 w-4 mr-2" /> 
+                    View All
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>Track and manage pharmaceutical quotations with ETA compliance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Quotation Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 font-medium">Total Quotations</p>
+                      <p className="text-2xl font-bold text-blue-800">127</p>
+                    </div>
+                    <FileText className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">This month: +12</p>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 font-medium">Accepted</p>
+                      <p className="text-2xl font-bold text-green-800">89</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">$234,580 value</p>
+                </div>
+                
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-600 font-medium">Pending</p>
+                      <p className="text-2xl font-bold text-orange-800">23</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <p className="text-xs text-orange-600 mt-1">$67,840 potential</p>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-600 font-medium">Conversion Rate</p>
+                      <p className="text-2xl font-bold text-purple-800">70%</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <p className="text-xs text-purple-600 mt-1">Up 5% this month</p>
+                </div>
+              </div>
+
+              {/* Recent Quotations Table */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Recent Quotations</h3>
+                  <div className="flex items-center space-x-2">
+                    <Select defaultValue="all">
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="sent">Sent</SelectItem>
+                        <SelectItem value="accepted">Accepted</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select defaultValue="all-types">
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Filter by type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-types">All Types</SelectItem>
+                        <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="refining">Refining</SelectItem>
+                        <SelectItem value="finished">Finished Products</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Quotation #</TableHead>
+                      <TableHead>ETA #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">QUO-MFG-202505-001</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12345</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Cairo Medical Center</div>
+                          <div className="text-xs text-gray-500">Manufacturing Services</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-blue-100 text-blue-800">Manufacturing</Badge>
+                      </TableCell>
+                      <TableCell>May 15, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$12,450.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Accepted</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">QUO-REF-202505-002</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-400 text-sm">Not uploaded</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Alexandria Pharma</div>
+                          <div className="text-xs text-gray-500">API Purification</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Refining</Badge>
+                      </TableCell>
+                      <TableCell>May 14, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$8,750.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-orange-100 text-orange-800">Pending</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">QUO-FIN-202505-003</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12378</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Giza Medical Supply</div>
+                          <div className="text-xs text-gray-500">Finished Products</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-purple-100 text-purple-800">Finished</Badge>
+                      </TableCell>
+                      <TableCell>May 13, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$15,200.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-blue-100 text-blue-800">Sent</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">QUO-MFG-202505-004</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-400 text-sm">Not uploaded</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Delta Pharmaceuticals</div>
+                          <div className="text-xs text-gray-500">Manufacturing Services</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-blue-100 text-blue-800">Manufacturing</Badge>
+                      </TableCell>
+                      <TableCell>May 12, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$9,680.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-gray-100 text-gray-800">Draft</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400">
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">QUO-REF-202505-005</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-400 text-sm">Not uploaded</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Nile Medical Industries</div>
+                          <div className="text-xs text-gray-500">API Purification</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Refining</Badge>
+                      </TableCell>
+                      <TableCell>May 11, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$6,320.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-red-100 text-red-800">Expired</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400">
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+
+                {/* ETA Compliance Summary */}
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start gap-3">
+                    <FileWarning className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-blue-900">ETA Compliance Status</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        3 of 5 recent quotations have been successfully uploaded to ETA. 
+                        2 quotations are pending upload for tax compliance.
+                      </p>
+                      <div className="mt-2 flex items-center gap-4 text-xs">
+                        <span className="text-green-600">✓ 3 Uploaded</span>
+                        <span className="text-orange-600">⏳ 2 Pending</span>
+                        <span className="text-blue-600">📊 60% Compliance Rate</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="accounting-periods">
