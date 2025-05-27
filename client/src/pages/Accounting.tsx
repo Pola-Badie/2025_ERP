@@ -3758,6 +3758,56 @@ const Accounting: React.FC = () => {
               />
             </div>
 
+            {/* Document Upload Section */}
+            <div>
+              <Label>Supporting Documents</Label>
+              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
+                  onChange={handleDocumentUpload}
+                  className="hidden"
+                  id="purchase-document-upload"
+                />
+                <label htmlFor="purchase-document-upload" className="cursor-pointer">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    PDF, DOC, JPG, PNG, TXT, XLS (max 10MB each)
+                  </p>
+                </label>
+              </div>
+              
+              {/* Uploaded Documents List */}
+              {uploadedDocuments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <h4 className="text-sm font-medium text-gray-700">Uploaded Documents:</h4>
+                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                    {uploadedDocuments.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                          <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeDocument(index)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* ETA Compliance Section */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
