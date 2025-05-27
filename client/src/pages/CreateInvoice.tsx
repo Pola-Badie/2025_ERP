@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -773,163 +774,174 @@ const CreateInvoice = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label>Customer</Label>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setIsCreatingCustomer(true)}
+            <div className="grid gap-4">
+              {/* Customer Selection Section */}
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center">
+                  <Label>Customer</Label>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsCreatingCustomer(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Customer
+                  </Button>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
                     >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Customer
+                      {form.watch('customer.name') || "Select customer..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
-                  </div>
-                  <div className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="w-full justify-between"
-                          >
-                            {form.watch('customer.name') || "Select customer..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[400px] p-0">
-                          <Command>
-                            <CommandInput 
-                              placeholder="Search customer..." 
-                              value={customerSearchTerm}
-                              onValueChange={setCustomerSearchTerm}
-                            />
-                            <CommandList>
-                              <CommandEmpty>
-                                {customerSearchTerm.length > 0 ? (
-                                  <div className="py-6 text-center text-sm">
-                                    <p>No customers found for "{customerSearchTerm}"</p>
-                                    <Button 
-                                      variant="outline" 
-                                      className="mt-2"
-                                      onClick={() => setIsCreatingCustomer(true)}
-                                    >
-                                      <Plus className="mr-2 h-4 w-4" />
-                                      Create New Customer
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  "Type to search customers..."
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Search customer..." 
+                        value={customerSearchTerm}
+                        onValueChange={setCustomerSearchTerm}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {customerSearchTerm.length > 0 ? (
+                            <div className="py-6 text-center text-sm">
+                              <p>No customers found for "{customerSearchTerm}"</p>
+                              <Button 
+                                variant="outline" 
+                                className="mt-2"
+                                onClick={() => setIsCreatingCustomer(true)}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Create New Customer
+                              </Button>
+                            </div>
+                          ) : (
+                            "Type to search customers..."
+                          )}
+                        </CommandEmpty>
+                        <CommandGroup heading="Customers">
+                          {customers.map((customer) => (
+                            <CommandItem
+                              key={customer.id}
+                              onSelect={() => handleCustomerSelection(customer.id)}
+                              className="flex items-center justify-between"
+                            >
+                              <div>
+                                <span className="font-medium">{customer.name}</span>
+                                {customer.company && (
+                                  <span className="ml-2 text-sm text-muted-foreground">
+                                    {customer.company}
+                                  </span>
                                 )}
-                              </CommandEmpty>
-                              <CommandGroup heading="Customers">
-                                {customers.map((customer) => (
-                                  <CommandItem
-                                    key={customer.id}
-                                    value={customer.name}
-                                    onSelect={() => handleCustomerSelection(customer)}
-                                    className="flex items-center"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        form.watch('customer.id') === customer.id
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    <div className="flex flex-col">
-                                      <span>{customer.name}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {customer.phone || customer.email}
-                                      </span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={() => setIsCreatingCustomer(true)}
-                                  className="text-blue-600"
-                                >
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  Create New Customer
-                                </CommandItem>
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Paper Invoice Number Field */}
-                <div className="space-y-2">
-                  <Label htmlFor="paperInvoiceNumber">Paper Invoice Number</Label>
-                  <Input
-                    id="paperInvoiceNumber"
-                    placeholder="P-2025001"
-                    {...form.register('paperInvoiceNumber')}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Physical invoice reference number for record-keeping
-                  </p>
-                </div>
-
-                {/* Customer Details Display */}
-                {form.watch('customer.name') && !isCreatingCustomer && (
-                  <div className="border rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      {form.watch('customer.company') ? (
-                        <div>
-                          <h3 className="font-medium">{form.watch('customer.company')}</h3>
-                          <p className="text-sm">{form.watch('customer.name')}</p>
-                        </div>
-                      ) : (
-                        <h3 className="font-medium">{form.watch('customer.name')}</h3>
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => form.setValue('customer', {
-                          id: undefined,
-                          name: '',
-                          company: '',
-                          position: '',
-                          email: '',
-                          phone: '',
-                          sector: '',
-                          address: '',
-                        })}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {form.watch('customer.position') && (
-                      <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
-                    )}
-                    {form.watch('customer.phone') && (
-                      <p className="text-sm text-muted-foreground">Phone: {form.watch('customer.phone')}</p>
-                    )}
-                    {form.watch('customer.sector') && (
-                      <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
-                    )}
-                    {form.watch('customer.email') && (
-                      <p className="text-sm text-muted-foreground">Email: {form.watch('customer.email')}</p>
-                    )}
-                    {form.watch('customer.address') && (
-                      <p className="text-sm text-muted-foreground">Address: {form.watch('customer.address')}</p>
-                    )}
-                  </div>
-                )}
+                              </div>
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  form.watch('customer.id') === customer.id
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              {/* Create New Customer Form */}
-              {isCreatingCustomer && (
+                {/* Paper Invoice Number Field */}
+              <div className="grid gap-2">
+                <Label htmlFor="paperInvoiceNumber">Paper Invoice Number</Label>
+                <Input
+                  id="paperInvoiceNumber"
+                  placeholder="P-2025001"
+                  {...form.register('paperInvoiceNumber')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Physical invoice reference number for record-keeping
+                </p>
+              </div>
+
+              {/* Customer Details Display */}
+              {form.watch('customer.name') && !isCreatingCustomer && (
+                <div className="border rounded-lg p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      {form.watch('customer.company') ? (
+                        <>
+                          <h3 className="font-semibold text-lg">{form.watch('customer.company')}</h3>
+                          <p className="text-sm text-muted-foreground">{form.watch('customer.name')}</p>
+                        </>
+                      ) : (
+                        <h3 className="font-semibold text-lg">{form.watch('customer.name')}</h3>
+                      )}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => form.setValue('customer', {
+                        id: undefined,
+                        name: '',
+                        company: '',
+                        position: '',
+                        email: '',
+                        phone: '',
+                        sector: '',
+                        address: '',
+                      })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    {form.watch('customer.position') && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">Position</Badge>
+                        <span>{form.watch('customer.position')}</span>
+                      </div>
+                    )}
+                    {form.watch('customer.phone') && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">Phone</Badge>
+                        <span>{form.watch('customer.phone')}</span>
+                      </div>
+                    )}
+                    {form.watch('customer.email') && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">Email</Badge>
+                        <span>{form.watch('customer.email')}</span>
+                      </div>
+                    )}
+                    {form.watch('customer.sector') && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">Sector</Badge>
+                        <span>{form.watch('customer.sector')}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {form.watch('customer.address') && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-start gap-2">
+                        <Badge variant="outline" className="text-xs mt-0.5">Address</Badge>
+                        <span className="text-sm">{form.watch('customer.address')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Create New Customer Form */}
+            {isCreatingCustomer && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="font-medium">New Customer</h3>
