@@ -3115,77 +3115,447 @@ const Accounting: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Make Payment Dialog */}
+      {/* Enhanced Make Payment Dialog */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-            <DialogDescription>
-              Record a payment for invoice {selectedInvoice?.id}
-            </DialogDescription>
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Process Payment</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Record comprehensive payment details for invoice {selectedInvoice?.id}</p>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="payment-amount">Payment Amount ($)</Label>
-                <Input
-                  id="payment-amount"
-                  type="number"
-                  step="0.01"
-                  value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                  placeholder="0.00"
-                />
+
+          <div className="space-y-6">
+            {/* Invoice Summary Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Invoice Summary
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">Invoice Number</Label>
+                  <div className="text-lg font-bold text-blue-900">{selectedInvoice?.id || 'INV-2025-001'}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">Customer/Supplier</Label>
+                  <div className="text-sm text-blue-800">{selectedInvoice?.customer || selectedInvoice?.supplier || 'Global Pharma Ltd.'}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">Original Amount</Label>
+                  <div className="text-lg font-bold text-blue-900">{selectedInvoice?.total || '$21,090.00'}</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">Outstanding Balance</Label>
+                  <div className="text-lg font-bold text-red-600">{selectedInvoice?.remaining || selectedInvoice?.due || '$21,090.00'}</div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="payment-date">Payment Date</Label>
-                <Input
-                  id="payment-date"
-                  type="date"
-                  value={paymentForm.paymentDate}
-                  onChange={(e) => setPaymentForm({...paymentForm, paymentDate: e.target.value})}
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">Due Date</Label>
+                  <div className="text-sm text-blue-800">June 15, 2025</div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-blue-700 font-medium">ETA Number</Label>
+                  <div className="text-sm text-blue-800 font-mono">{selectedInvoice?.eta || 'ETA-202500123456'}</div>
+                </div>
               </div>
             </div>
-            <div>
-              <Label htmlFor="payment-method">Payment Method</Label>
-              <Select value={paymentForm.paymentMethod} onValueChange={(value) => setPaymentForm({...paymentForm, paymentMethod: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="check">Check</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="credit-card">Credit Card</SelectItem>
-                </SelectContent>
-              </Select>
+
+            {/* Payment Details Section */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <CreditCard className="h-5 w-5 mr-2" />
+                Payment Details
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-amount">Payment Amount ($)</Label>
+                  <Input
+                    id="payment-amount"
+                    type="number"
+                    step="0.01"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                    placeholder="0.00"
+                    className="text-lg font-bold"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-date">Payment Date</Label>
+                  <Input
+                    id="payment-date"
+                    type="date"
+                    value={paymentForm.paymentDate}
+                    onChange={(e) => setPaymentForm({...paymentForm, paymentDate: e.target.value})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-currency">Currency</Label>
+                  <Select defaultValue="usd">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="usd">USD - US Dollar</SelectItem>
+                      <SelectItem value="egp">EGP - Egyptian Pound</SelectItem>
+                      <SelectItem value="eur">EUR - Euro</SelectItem>
+                      <SelectItem value="gbp">GBP - British Pound</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="exchange-rate">Exchange Rate</Label>
+                  <Input
+                    id="exchange-rate"
+                    type="number"
+                    step="0.0001"
+                    placeholder="1.0000"
+                    defaultValue="1.0000"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="local-amount">Local Amount (EGP)</Label>
+                  <Input
+                    id="local-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Calculated automatically"
+                    readOnly
+                    className="bg-gray-50 font-mono"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="payment-reference">Reference Number</Label>
-              <Input
-                id="payment-reference"
-                value={paymentForm.reference}
-                onChange={(e) => setPaymentForm({...paymentForm, reference: e.target.value})}
-                placeholder="Transaction/Check number"
-              />
+
+            {/* Payment Method Section */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <Banknote className="h-5 w-5 mr-2" />
+                Payment Method & Banking
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-method">Payment Method</Label>
+                  <Select value={paymentForm.paymentMethod} onValueChange={(value) => setPaymentForm({...paymentForm, paymentMethod: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="wire-transfer">International Wire</SelectItem>
+                      <SelectItem value="check">Check</SelectItem>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="credit-card">Credit Card</SelectItem>
+                      <SelectItem value="letter-of-credit">Letter of Credit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="bank-account">From Bank Account</Label>
+                  <Select defaultValue="main-account">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="main-account">Main Operating Account (USD)</SelectItem>
+                      <SelectItem value="egp-account">Local Account (EGP)</SelectItem>
+                      <SelectItem value="euro-account">European Account (EUR)</SelectItem>
+                      <SelectItem value="petty-cash">Petty Cash</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-reference">Transaction Reference</Label>
+                  <Input
+                    id="payment-reference"
+                    value={paymentForm.reference}
+                    onChange={(e) => setPaymentForm({...paymentForm, reference: e.target.value})}
+                    placeholder="TXN-202500001"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="check-number">Check/Wire Number</Label>
+                  <Input
+                    id="check-number"
+                    placeholder="Check or wire reference"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="clearance-date">Expected Clearance</Label>
+                  <Input
+                    id="clearance-date"
+                    type="date"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="payment-notes">Notes</Label>
-              <Textarea
-                id="payment-notes"
-                value={paymentForm.notes}
-                onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-                placeholder="Additional payment notes..."
-                rows={3}
-              />
+
+            {/* Allocation & Accounting Section */}
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <BookOpen className="h-5 w-5 mr-2" />
+                Allocation & Accounting
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-type">Payment Type</Label>
+                  <Select defaultValue="full-payment">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-payment">Full Payment</SelectItem>
+                      <SelectItem value="partial-payment">Partial Payment</SelectItem>
+                      <SelectItem value="advance-payment">Advance Payment</SelectItem>
+                      <SelectItem value="final-settlement">Final Settlement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="cost-center">Cost Center</Label>
+                  <Select defaultValue="administration">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="quality-control">Quality Control</SelectItem>
+                      <SelectItem value="research-dev">Research & Development</SelectItem>
+                      <SelectItem value="administration">Administration</SelectItem>
+                      <SelectItem value="sales-marketing">Sales & Marketing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="gl-account">GL Account Code</Label>
+                  <Input
+                    id="gl-account"
+                    placeholder="1100-001"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="project-code">Project Code</Label>
+                  <Input
+                    id="project-code"
+                    placeholder="PROJ-2025-001 (optional)"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Select defaultValue="finance">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="procurement">Procurement</SelectItem>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="admin">Administration</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Tax & Compliance Section */}
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2" />
+                Tax & Compliance
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="withholding-tax">Withholding Tax (%)</Label>
+                  <Input
+                    id="withholding-tax"
+                    type="number"
+                    step="0.1"
+                    placeholder="0.0"
+                    defaultValue="0"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="tax-amount">Tax Amount ($)</Label>
+                  <Input
+                    id="tax-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Calculated automatically"
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="net-payment">Net Payment Amount ($)</Label>
+                  <Input
+                    id="net-payment"
+                    type="number"
+                    step="0.01"
+                    placeholder="After tax deduction"
+                    readOnly
+                    className="bg-gray-50 font-bold"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tax-certificate">Tax Certificate Number</Label>
+                  <Input
+                    id="tax-certificate"
+                    placeholder="TAX-CERT-001 (if applicable)"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="eta-compliance">ETA Compliance Status</Label>
+                  <Select defaultValue="compliant">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="compliant">✓ ETA Compliant</SelectItem>
+                      <SelectItem value="exempt">Tax Exempt</SelectItem>
+                      <SelectItem value="pending">Pending Review</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Additional Information
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="payment-notes">Payment Notes & Instructions</Label>
+                  <Textarea
+                    id="payment-notes"
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                    placeholder="Additional payment notes, special instructions, or compliance requirements..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="approval-required">Approval Required</Label>
+                    <Select defaultValue="auto-approved">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto-approved">Auto Approved</SelectItem>
+                        <SelectItem value="manager">Manager Approval</SelectItem>
+                        <SelectItem value="finance-director">Finance Director</SelectItem>
+                        <SelectItem value="ceo">CEO Approval</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-priority">Payment Priority</Label>
+                    <Select defaultValue="normal">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-terms">Payment Terms</Label>
+                    <Input
+                      id="payment-terms"
+                      placeholder="Net 30, 2/10 Net 30, etc."
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="supplier-invoice">Supplier Invoice Ref</Label>
+                    <Input
+                      id="supplier-invoice"
+                      placeholder="Supplier's invoice number"
+                      className="font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
+
+          <DialogFooter className="gap-3 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPaymentDialogOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
               Cancel
             </Button>
-            <Button onClick={processPayment}>
+            <Button 
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
+            <Button 
+              onClick={processPayment}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
               <DollarSign className="h-4 w-4 mr-2" />
               Process Payment
             </Button>
