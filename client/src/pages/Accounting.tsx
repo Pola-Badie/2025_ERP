@@ -107,8 +107,17 @@ const Accounting: React.FC = () => {
   const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
+  const [invoiceItems, setInvoiceItems] = useState([
+    { id: 1, name: 'Active Pharmaceutical Ingredients', description: 'Ibuprofen (500kg), Paracetamol (300kg)', quantity: 800, unit: 'kg', unitPrice: 18.75, total: 15000 },
+    { id: 2, name: 'Packaging Materials', description: 'Glass Vials (10,000), Aluminum Caps (15,000)', quantity: 25000, unit: 'units', unitPrice: 0.14, total: 3500 }
+  ]);
+  const [purchaseItems, setPurchaseItems] = useState([
+    { id: 1, name: 'Raw Chemicals', description: 'Sodium Chloride (250kg), Potassium Iodide (100kg)', quantity: 350, unit: 'kg', unitPrice: 12.50, total: 4375 },
+    { id: 2, name: 'Laboratory Equipment', description: 'Precision Scale, pH Meter', quantity: 2, unit: 'units', unitPrice: 850.00, total: 1700 }
+  ]);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
+  const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
   
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -170,6 +179,93 @@ const Accounting: React.FC = () => {
       description: "Document has been removed from the invoice.",
       variant: "default"
     });
+  };
+
+  const addInvoiceItem = () => {
+    const newItem = {
+      id: Date.now(),
+      name: '',
+      description: '',
+      quantity: 1,
+      unit: 'kg',
+      unitPrice: 0,
+      total: 0
+    };
+    setInvoiceItems(prev => [...prev, newItem]);
+  };
+
+  const updateInvoiceItem = (id: number, field: string, value: any) => {
+    setInvoiceItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        // Auto-calculate total when quantity or unitPrice changes
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  const removeInvoiceItem = (id: number) => {
+    setInvoiceItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const calculateSubtotal = () => {
+    return invoiceItems.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateVAT = () => {
+    return calculateSubtotal() * 0.14; // 14% VAT
+  };
+
+  const calculateGrandTotal = () => {
+    return calculateSubtotal() + calculateVAT();
+  };
+
+  // Purchase Items Management
+  const addPurchaseItem = () => {
+    const newItem = {
+      id: Date.now(),
+      name: '',
+      description: '',
+      quantity: 1,
+      unit: 'kg',
+      unitPrice: 0,
+      total: 0
+    };
+    setPurchaseItems(prev => [...prev, newItem]);
+  };
+
+  const updatePurchaseItem = (id: number, field: string, value: any) => {
+    setPurchaseItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        // Auto-calculate total when quantity or unitPrice changes
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  const removePurchaseItem = (id: number) => {
+    setPurchaseItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const calculatePurchaseSubtotal = () => {
+    return purchaseItems.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculatePurchaseVAT = () => {
+    return calculatePurchaseSubtotal() * 0.14; // 14% VAT
+  };
+
+  const calculatePurchaseGrandTotal = () => {
+    return calculatePurchaseSubtotal() + calculatePurchaseVAT();
   };
 
   const handleSendReminder = (invoice: any) => {
@@ -1517,7 +1613,11 @@ const Accounting: React.FC = () => {
                   <ShoppingBag className="h-5 w-5 mr-2 text-blue-600" />
                   <span>Purchases Management</span>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsNewPurchaseOpen(true)}
+                >
                   <Plus className="h-4 w-4 mr-2" /> New Purchase
                 </Button>
               </CardTitle>
@@ -3004,14 +3104,132 @@ const Accounting: React.FC = () => {
                 </Select>
               </div>
 
+              {/* Detailed Product Items Section */}
               <div>
-                <Label htmlFor="edit-items">Items Description</Label>
-                <Textarea
-                  id="edit-items"
-                  placeholder="Describe the items or services..."
-                  defaultValue="Active Pharmaceutical Ingredients - Ibuprofen (500kg), Paracetamol (300kg)"
-                  rows={3}
-                />
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-lg font-semibold">Products & Services</Label>
+                  <Button 
+                    type="button" 
+                    onClick={addInvoiceItem}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Item
+                  </Button>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
+                      <div className="col-span-3">Product Name</div>
+                      <div className="col-span-3">Description</div>
+                      <div className="col-span-1">Qty</div>
+                      <div className="col-span-1">Unit</div>
+                      <div className="col-span-2">Unit Price ($)</div>
+                      <div className="col-span-2">Total ($)</div>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                    {invoiceItems.map((item, index) => (
+                      <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <div className="grid grid-cols-12 gap-2 items-center">
+                          <div className="col-span-3">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => updateInvoiceItem(item.id, 'name', e.target.value)}
+                              placeholder="Product name"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="col-span-3">
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => updateInvoiceItem(item.id, 'description', e.target.value)}
+                              placeholder="Product description"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => updateInvoiceItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.01"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <Select value={item.unit} onValueChange={(value) => updateInvoiceItem(item.id, 'unit', value)}>
+                              <SelectTrigger className="h-8 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="kg">kg</SelectItem>
+                                <SelectItem value="g">g</SelectItem>
+                                <SelectItem value="mg">mg</SelectItem>
+                                <SelectItem value="L">L</SelectItem>
+                                <SelectItem value="mL">mL</SelectItem>
+                                <SelectItem value="units">units</SelectItem>
+                                <SelectItem value="boxes">boxes</SelectItem>
+                                <SelectItem value="bottles">bottles</SelectItem>
+                                <SelectItem value="vials">vials</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="col-span-2">
+                            <input
+                              type="number"
+                              value={item.unitPrice}
+                              onChange={(e) => updateInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.01"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="col-span-1">
+                            <div className="text-sm font-medium text-right">
+                              ${item.total.toFixed(2)}
+                            </div>
+                          </div>
+                          <div className="col-span-1">
+                            <Button
+                              type="button"
+                              onClick={() => removeInvoiceItem(item.id)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Totals Section */}
+                  <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>VAT (14%):</span>
+                        <span className="font-medium">${calculateVAT().toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+                        <span>Grand Total:</span>
+                        <span className="text-blue-600">${calculateGrandTotal().toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Document Upload Section */}
