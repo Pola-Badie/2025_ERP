@@ -1436,8 +1436,14 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400">
-                            <Upload className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-gray-400"
+                            disabled
+                            title="Expired quotations cannot be downloaded"
+                          >
+                            <Download className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
