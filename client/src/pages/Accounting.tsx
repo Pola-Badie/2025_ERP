@@ -56,7 +56,8 @@ import {
   Paperclip,
   Trash2,
   AlertCircle,
-  Building
+  Building,
+  Wallet
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -3250,7 +3251,7 @@ const Accounting: React.FC = () => {
             {/* Payment Method Section */}
             <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
               <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
-                <Banknote className="h-5 w-5 mr-2" />
+                <Wallet className="h-5 w-5 mr-2" />
                 Payment Method & Banking
               </h3>
               
