@@ -2959,6 +2959,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-007</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-2025007</TableCell>
                         <TableCell className="text-green-600 font-medium">ETA240610103</TableCell>
                         <TableCell>Giza Hospital Network</TableCell>
                         <TableCell>2025-06-10</TableCell>
@@ -2985,6 +2986,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-012</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-2025012</TableCell>
                         <TableCell className="text-green-600 font-medium">ETA240615104</TableCell>
                         <TableCell>Luxor Pharmaceuticals</TableCell>
                         <TableCell>2025-06-15</TableCell>
@@ -3010,6 +3012,7 @@ const Accounting: React.FC = () => {
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">INV-2025-018</TableCell>
+                        <TableCell className="font-medium text-gray-700">P-2025018</TableCell>
                         <TableCell className="text-green-600 font-medium">ETA240620105</TableCell>
                         <TableCell>Aswan Medical Supplies</TableCell>
                         <TableCell>2025-06-20</TableCell>
