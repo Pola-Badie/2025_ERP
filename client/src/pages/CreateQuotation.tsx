@@ -95,6 +95,9 @@ const CreateQuotation: React.FC = () => {
   const [transportationFees, setTransportationFees] = useState(0);
   const [transportationType, setTransportationType] = useState('standard');
   const [transportationNotes, setTransportationNotes] = useState('');
+  
+  // VAT percentage state
+  const [vatPercentage, setVatPercentage] = useState(14);
 
   // Item form for adding new items
   const [newItem, setNewItem] = useState<Partial<QuotationItem>>({
@@ -235,7 +238,7 @@ const CreateQuotation: React.FC = () => {
   };
 
   const calculateTax = () => {
-    return calculateTotal() * 0.14; // 14% VAT
+    return calculateTotal() * (vatPercentage / 100);
   };
 
   const calculateGrandTotal = () => {
@@ -762,6 +765,36 @@ const CreateQuotation: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Tax Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Tax Configuration
+              </CardTitle>
+              <CardDescription>
+                Configure VAT percentage for this quotation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <Label>VAT Percentage (%)</Label>
+                <Input 
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={vatPercentage}
+                  onChange={(e) => setVatPercentage(Number(e.target.value))}
+                  placeholder="14"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Standard Egyptian VAT is 14%. Adjust as needed for specific products or regulations.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}
@@ -812,7 +845,7 @@ const CreateQuotation: React.FC = () => {
                 <span>${transportationFees.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>VAT (14%):</span>
+                <span>VAT ({vatPercentage}%):</span>
                 <span>${calculateTax().toFixed(2)}</span>
               </div>
               <Separator />
@@ -955,7 +988,7 @@ const CreateQuotation: React.FC = () => {
                       <span>${transportationFees.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>VAT (14%):</span>
+                      <span>VAT ({vatPercentage}%):</span>
                       <span>${calculateTax().toFixed(2)}</span>
                     </div>
                     <Separator className="my-2" />
