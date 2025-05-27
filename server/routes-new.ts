@@ -769,6 +769,272 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Quotations Endpoints =============
+  
+  // Get quotations
+  app.get("/api/quotations", async (req: Request, res: Response) => {
+    try {
+      const { query, status, type, date } = req.query;
+      
+      // Generate realistic pharmaceutical quotations based on your business operations
+      const quotations = [
+        // Manufacturing Quotations
+        {
+          id: 1,
+          quotationNumber: "MFG-2025-001",
+          type: "manufacturing",
+          customerName: "Cairo Medical Center",
+          customerId: 1,
+          date: "2025-01-15",
+          validUntil: "2025-02-14",
+          status: "accepted",
+          subtotal: 45000,
+          transportationFees: 2500,
+          transportationType: "air-freight",
+          tax: 6650,
+          total: 54150,
+          amount: 54150,
+          notes: "Custom manufacturing of Ibuprofen tablets 400mg. GMP compliance required.",
+          items: [
+            {
+              productName: "Ibuprofen Tablets 400mg",
+              description: "Custom manufacturing with client's specifications",
+              specifications: "USP grade, film-coated, 10x10 blister packs",
+              quantity: 100000,
+              uom: "tablets",
+              unitPrice: 0.45,
+              total: 45000
+            }
+          ]
+        },
+        {
+          id: 2,
+          quotationNumber: "MFG-2025-003",
+          type: "manufacturing",
+          customerName: "Alexandria Pharmacy Chain",
+          customerId: 2,
+          date: "2025-01-20",
+          validUntil: "2025-02-19",
+          status: "pending",
+          subtotal: 32000,
+          transportationFees: 1800,
+          transportationType: "ground-express",
+          tax: 4732,
+          total: 38532,
+          amount: 38532,
+          notes: "Manufacturing paracetamol suspension for pediatric use.",
+          items: [
+            {
+              productName: "Paracetamol Suspension 120mg/5ml",
+              description: "Pediatric formulation with orange flavor",
+              specifications: "Sugar-free, 100ml bottles with child-resistant caps",
+              quantity: 5000,
+              uom: "bottles",
+              unitPrice: 6.40,
+              total: 32000
+            }
+          ]
+        },
+        
+        // Refining Quotations
+        {
+          id: 3,
+          quotationNumber: "REF-2025-005",
+          type: "refining",
+          customerName: "Global Pharma Solutions",
+          customerId: 3,
+          date: "2025-01-10",
+          validUntil: "2025-02-09",
+          status: "accepted",
+          subtotal: 78000,
+          transportationFees: 3200,
+          transportationType: "sea-freight",
+          tax: 11368,
+          total: 92568,
+          amount: 92568,
+          notes: "API purification and crystallization services for Amoxicillin trihydrate.",
+          items: [
+            {
+              productName: "Amoxicillin Trihydrate API",
+              description: "Purification and recrystallization from crude material",
+              specifications: "99.5% purity, USP/EP compliant, micronized grade",
+              quantity: 500,
+              uom: "kg",
+              unitPrice: 156.00,
+              total: 78000
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "REF-2025-007",
+          type: "refining",
+          customerName: "Luxor Pharmaceuticals",
+          customerId: 4,
+          date: "2025-01-22",
+          validUntil: "2025-02-21",
+          status: "sent",
+          subtotal: 65000,
+          transportationFees: 2800,
+          transportationType: "air-freight",
+          tax: 9492,
+          total: 77292,
+          amount: 77292,
+          notes: "Refining services for Ciprofloxacin HCl with impurity removal.",
+          items: [
+            {
+              productName: "Ciprofloxacin HCl API",
+              description: "Impurity removal and grade enhancement",
+              specifications: "Pharmaceutical grade, <0.1% impurities, white crystalline powder",
+              quantity: 250,
+              uom: "kg",
+              unitPrice: 260.00,
+              total: 65000
+            }
+          ]
+        },
+        
+        // Finished Products Quotations
+        {
+          id: 5,
+          quotationNumber: "FIN-2025-002",
+          type: "finished",
+          customerName: "Giza Hospital Network",
+          customerId: 5,
+          date: "2025-01-18",
+          validUntil: "2025-02-17",
+          status: "pending",
+          subtotal: 28500,
+          transportationFees: 1200,
+          transportationType: "ground-standard",
+          tax: 4158,
+          total: 33858,
+          amount: 33858,
+          notes: "Emergency supply of antibiotics for hospital network.",
+          items: [
+            {
+              productName: "Amoxicillin Capsules 500mg",
+              description: "Ready-to-dispense finished product",
+              specifications: "Hard gelatin capsules, 10x10 blister packs",
+              quantity: 50000,
+              uom: "capsules",
+              unitPrice: 0.57,
+              total: 28500
+            }
+          ]
+        },
+        {
+          id: 6,
+          quotationNumber: "FIN-2025-004",
+          type: "finished",
+          customerName: "Aswan Medical Supplies",
+          customerId: 6,
+          date: "2025-01-25",
+          validUntil: "2025-02-24",
+          status: "draft",
+          subtotal: 18900,
+          transportationFees: 950,
+          transportationType: "ground-express",
+          tax: 2759.50,
+          total: 22609.50,
+          amount: 22609.50,
+          notes: "Cardiovascular medications for regional distribution.",
+          items: [
+            {
+              productName: "Amlodipine Tablets 5mg",
+              description: "Cardiovascular medication for hypertension",
+              specifications: "Film-coated tablets, 3x10 blister packs",
+              quantity: 30000,
+              uom: "tablets",
+              unitPrice: 0.63,
+              total: 18900
+            }
+          ]
+        },
+        {
+          id: 7,
+          quotationNumber: "FIN-2025-006",
+          type: "finished",
+          customerName: "Red Sea Pharmacy",
+          customerId: 7,
+          date: "2025-01-12",
+          validUntil: "2025-02-11",
+          status: "rejected",
+          subtotal: 12400,
+          transportationFees: 680,
+          transportationType: "ground-standard",
+          tax: 1811.20,
+          total: 14891.20,
+          amount: 14891.20,
+          notes: "Pain management medications for pharmacy chain.",
+          items: [
+            {
+              productName: "Diclofenac Sodium Tablets 50mg",
+              description: "Non-steroidal anti-inflammatory drug",
+              specifications: "Enteric-coated tablets, 2x10 blister packs",
+              quantity: 20000,
+              uom: "tablets",
+              unitPrice: 0.62,
+              total: 12400
+            }
+          ]
+        },
+        {
+          id: 8,
+          quotationNumber: "MFG-2025-008",
+          type: "manufacturing",
+          customerName: "Sinai Medical Center",
+          customerId: 8,
+          date: "2025-01-28",
+          validUntil: "2025-02-27",
+          status: "expired",
+          subtotal: 55000,
+          transportationFees: 2200,
+          transportationType: "air-freight",
+          tax: 8008,
+          total: 65208,
+          amount: 65208,
+          notes: "Custom formulation for diabetic patients.",
+          items: [
+            {
+              productName: "Metformin XR Tablets 1000mg",
+              description: "Extended-release formulation for diabetes management",
+              specifications: "Sustained-release matrix tablets, 3x10 blister packs",
+              quantity: 75000,
+              uom: "tablets",
+              unitPrice: 0.73,
+              total: 55000
+            }
+          ]
+        }
+      ];
+
+      // Apply filters
+      let filteredQuotations = quotations;
+
+      if (query && query !== '') {
+        const searchTerm = (query as string).toLowerCase();
+        filteredQuotations = filteredQuotations.filter(q => 
+          q.quotationNumber.toLowerCase().includes(searchTerm) ||
+          q.customerName.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      if (status && status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.status === status);
+      }
+
+      if (type && type !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.type === type);
+      }
+
+      res.json(filteredQuotations);
+    } catch (error) {
+      console.error("Quotations error:", error);
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+
   // ============= Expenses Endpoints =============
   
   // Get expenses
