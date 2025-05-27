@@ -499,7 +499,7 @@ const QuotationHistory = () => {
                         <TableHead className="font-semibold text-gray-700 px-4">Customer</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Date</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4 text-right">Amount</TableHead>
-                        <TableHead className="font-semibold text-gray-700 px-4 text-right">Outstanding</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4 text-right">Payment Terms</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Payment Method</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Status</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4 text-center">ETA Upload</TableHead>
@@ -552,15 +552,12 @@ const QuotationHistory = () => {
                             ${(quotation.total || quotation.amount).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right px-4">
-                            {quotation.status === 'accepted' ? (
-                              <span className="text-gray-900 font-medium">$0.00</span>
-                            ) : quotation.status === 'pending' ? (
-                              <span className="text-orange-600 font-medium">
-                                ${(quotation.total || quotation.amount).toLocaleString()}
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">-</span>
-                            )}
+                            {quotation.status === 'accepted' && 'Net 15'}
+                            {quotation.status === 'pending' && 'Net 30'}
+                            {quotation.status === 'sent' && 'Due on Receipt'}
+                            {quotation.status === 'draft' && 'Not Set'}
+                            {quotation.status === 'rejected' && 'Cash on Delivery'}
+                            {quotation.status === 'expired' && 'Net 60'}
                           </TableCell>
                           <TableCell className="px-4">
                             {quotation.status === 'accepted' && 'Credit Card'}
@@ -603,7 +600,19 @@ const QuotationHistory = () => {
                             )}
                           </TableCell>
                           <TableCell className="px-4 text-center">
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-3 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                                onClick={() => {
+                                  setSelectedQuotation(quotation);
+                                  setShowPreview(true);
+                                }}
+                              >
+                                <Eye className="h-3 w-3 mr-1" />
+                                View
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -611,18 +620,6 @@ const QuotationHistory = () => {
                                 title="Upload to ETA"
                               >
                                 <Upload className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 text-gray-500 hover:bg-gray-50 rounded-full"
-                                title="View details"
-                                onClick={() => {
-                                  setSelectedQuotation(quotation);
-                                  setShowPreview(true);
-                                }}
-                              >
-                                <Eye className="h-3 w-3" />
                               </Button>
                             </div>
                           </TableCell>
