@@ -61,7 +61,8 @@ import {
   DollarSign,
   Shield,
   Clock,
-  FileText
+  FileText,
+  ArrowRightLeft
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
@@ -127,6 +128,11 @@ const Inventory: React.FC = () => {
   // State for product history dialog
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [selectedProductHistory, setSelectedProductHistory] = useState<Product | null>(null);
+  
+  // State for warehouse transfer dialog
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [transferQuantity, setTransferQuantity] = useState('');
+  const [targetWarehouse, setTargetWarehouse] = useState('');
   
   // CSV Integration
   const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
@@ -1494,6 +1500,14 @@ const Inventory: React.FC = () => {
               Export Report
             </Button>
             <Button 
+              variant="outline"
+              onClick={() => setIsTransferDialogOpen(true)}
+              className="border-green-300 text-green-600 hover:bg-green-50"
+            >
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Transfer to Warehouse
+            </Button>
+            <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Pencil className="h-4 w-4 mr-2" />
@@ -1589,6 +1603,114 @@ const Inventory: React.FC = () => {
             disabled={!warehouseToEdit || !warehouseToEdit.name}
             >
               {warehouseToEdit && warehouseToEdit.id ? 'Save Changes' : 'Add Warehouse'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Warehouse Transfer Dialog */}
+      <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-green-600" />
+              Transfer Product to Another Warehouse
+            </DialogTitle>
+            <DialogDescription>
+              Transfer stock from the current warehouse to a different warehouse location
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            {selectedProductHistory && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-2">Product Details</h4>
+                <div className="space-y-1 text-sm">
+                  <p><span className="font-medium">Product:</span> {selectedProductHistory.name}</p>
+                  <p><span className="font-medium">Current Stock:</span> {selectedProductHistory.currentStock} {selectedProductHistory.unitOfMeasure}</p>
+                  <p><span className="font-medium">Current Warehouse:</span> {warehouses.find(w => w.id === selectedWarehouse)?.name || 'Unknown'}</p>
+                </div>
+              </div>
+            )}
+            
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="target-warehouse">Target Warehouse</Label>
+                <Select value={targetWarehouse} onValueChange={setTargetWarehouse}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select target warehouse" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {warehouses
+                      .filter(w => w.id !== selectedWarehouse)
+                      .map((warehouse) => (
+                        <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
+                          {warehouse.name} - {warehouse.location}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="transfer-quantity">Transfer Quantity</Label>
+                <Input
+                  id="transfer-quantity"
+                  type="number"
+                  placeholder="Enter quantity to transfer"
+                  value={transferQuantity}
+                  onChange={(e) => setTransferQuantity(e.target.value)}
+                  max={selectedProductHistory?.currentStock || 0}
+                  min="1"
+                />
+                <p className="text-xs text-gray-600">
+                  Maximum: {selectedProductHistory?.currentStock || 0} {selectedProductHistory?.unitOfMeasure}
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="transfer-notes">Transfer Notes (Optional)</Label>
+                <Textarea
+                  id="transfer-notes"
+                  placeholder="Add any notes about this transfer..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsTransferDialogOpen(false);
+                setTransferQuantity('');
+                setTargetWarehouse('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (targetWarehouse && transferQuantity && selectedProductHistory) {
+                  const targetWarehouseName = warehouses.find(w => w.id.toString() === targetWarehouse)?.name;
+                  const currentWarehouseName = warehouses.find(w => w.id === selectedWarehouse)?.name;
+                  
+                  toast({
+                    title: "Transfer Initiated",
+                    description: `Transferring ${transferQuantity} ${selectedProductHistory.unitOfMeasure} of ${selectedProductHistory.name} from ${currentWarehouseName} to ${targetWarehouseName}`
+                  });
+                  
+                  setIsTransferDialogOpen(false);
+                  setTransferQuantity('');
+                  setTargetWarehouse('');
+                }
+              }}
+              disabled={!targetWarehouse || !transferQuantity || Number(transferQuantity) <= 0 || Number(transferQuantity) > (selectedProductHistory?.currentStock || 0)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Confirm Transfer
             </Button>
           </DialogFooter>
         </DialogContent>
