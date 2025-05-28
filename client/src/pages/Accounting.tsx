@@ -130,6 +130,8 @@ const Accounting: React.FC = () => {
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
   const [isNewInvoiceOpen, setIsNewInvoiceOpen] = useState(false);
   const [isETASettingsOpen, setIsETASettingsOpen] = useState(false);
+  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [transferQuotation, setTransferQuotation] = useState<any>(null);
   const [vatPercentage, setVatPercentage] = useState(14);
   const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
   const [newInvoiceVatPercentage, setNewInvoiceVatPercentage] = useState(14);
@@ -813,6 +815,28 @@ const Accounting: React.FC = () => {
     setIsEditExpenseOpen(true);
   };
 
+  const handleTransferToInvoice = (quotation: any) => {
+    setTransferQuotation(quotation);
+    setIsTransferDialogOpen(true);
+  };
+
+  const confirmTransferToInvoice = () => {
+    if (transferQuotation) {
+      toast({
+        title: "Creating Invoice",
+        description: `Converting quotation ${transferQuotation.quotationNumber} to invoice...`,
+      });
+      
+      // Navigate to create invoice with pre-filled data
+      setTimeout(() => {
+        window.location.href = `/create-invoice?from=${transferQuotation.quotationNumber}`;
+      }, 1000);
+      
+      setIsTransferDialogOpen(false);
+      setTransferQuotation(null);
+    }
+  };
+
 
 
   const handleExpenseSubmit = async () => {
@@ -1279,16 +1303,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Transfer to Invoice"
-                            onClick={() => {
-                              toast({
-                                title: "Creating Invoice",
-                                description: "Converting quotation QUO-MFG-202505-001 to invoice...",
-                              });
-                              // Navigate to create invoice with pre-filled data
-                              setTimeout(() => {
-                                window.location.href = '/create-invoice?from=QUO-MFG-202505-001';
-                              }, 1000);
-                            }}
+                            onClick={() => handleTransferToInvoice({
+                              id: 'QUO-MFG-202505-001',
+                              quotationNumber: 'QUO-MFG-202505-001',
+                              etaNumber: 'ETA-2025-05-12345',
+                              customer: 'Cairo Medical Center',
+                              type: 'Manufacturing',
+                              date: 'May 15, 2025',
+                              amount: 12450.00,
+                              status: 'Accepted',
+                              description: 'Manufacturing Services',
+                              vatPercentage: 14
+                            })}
                           >
                             <FileText className="h-3 w-3" />
                           </Button>
@@ -1395,16 +1421,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Transfer to Invoice"
-                            onClick={() => {
-                              toast({
-                                title: "Creating Invoice",
-                                description: "Converting quotation QUO-FIN-202505-003 to invoice...",
-                              });
-                              // Navigate to create invoice with pre-filled data
-                              setTimeout(() => {
-                                window.location.href = '/create-invoice?from=QUO-FIN-202505-003';
-                              }, 1000);
-                            }}
+                            onClick={() => handleTransferToInvoice({
+                              id: 'QUO-FIN-202505-003',
+                              quotationNumber: 'QUO-FIN-202505-003',
+                              etaNumber: 'ETA-2025-05-12378',
+                              customer: 'Giza Medical Supply',
+                              type: 'Finished',
+                              date: 'May 13, 2025',
+                              amount: 15200.00,
+                              status: 'Sent',
+                              description: 'Finished Products',
+                              vatPercentage: 14
+                            })}
                           >
                             <FileText className="h-3 w-3" />
                           </Button>
@@ -6335,6 +6363,125 @@ const Accounting: React.FC = () => {
                 </Button>
               </div>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer to Invoice Dialog */}
+      <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-blue-900">
+              <FileText className="h-5 w-5 mr-2 text-blue-600" />
+              Transfer Quotation to Invoice
+            </DialogTitle>
+            <DialogDescription>
+              Convert this quotation into an invoice with all data pre-filled for faster processing.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {transferQuotation && (
+            <div className="space-y-6 py-4">
+              {/* Quotation Summary */}
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <div className="p-1 bg-blue-100 rounded mr-2">
+                    <FileText className="h-3 w-3 text-blue-600" />
+                  </div>
+                  Quotation Details
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Quotation Number:</span>
+                    <p className="font-medium text-blue-700">{transferQuotation.quotationNumber}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">ETA Number:</span>
+                    <p className="font-medium text-green-700">{transferQuotation.etaNumber}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Customer:</span>
+                    <p className="font-medium">{transferQuotation.customer}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Type:</span>
+                    <Badge className={
+                      transferQuotation.type === 'Manufacturing' ? 'bg-blue-100 text-blue-800' :
+                      transferQuotation.type === 'Refining' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    }>
+                      {transferQuotation.type}
+                    </Badge>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Date:</span>
+                    <p className="font-medium">{transferQuotation.date}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Amount:</span>
+                    <p className="font-semibold text-lg">${transferQuotation.amount.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transfer Information */}
+              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-3 flex items-center">
+                  <div className="p-1 bg-green-100 rounded mr-2">
+                    <CheckCircle className="h-3 w-3 text-green-600" />
+                  </div>
+                  What will happen?
+                </h4>
+                <ul className="space-y-2 text-sm text-green-800">
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    A new invoice will be created with pre-filled customer and product information
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    All quotation details will be transferred automatically
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    ETA compliance information will be preserved
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                    You can review and modify details before finalizing the invoice
+                  </li>
+                </ul>
+              </div>
+
+              {/* Status Notice */}
+              <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                <div className="flex items-start">
+                  <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
+                  <div>
+                    <h4 className="font-medium text-yellow-900">Important Notice</h4>
+                    <p className="text-sm text-yellow-800 mt-1">
+                      Once transferred, this quotation will be marked as "Converted to Invoice" and cannot be transferred again. 
+                      The original quotation will remain in your records for reference.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsTransferDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmTransferToInvoice}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Transfer to Invoice
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
