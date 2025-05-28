@@ -6369,8 +6369,8 @@ const Accounting: React.FC = () => {
 
       {/* Transfer to Invoice Dialog */}
       <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center text-blue-900">
               <FileText className="h-5 w-5 mr-2 text-blue-600" />
               Transfer Quotation to Invoice
@@ -6381,7 +6381,7 @@ const Accounting: React.FC = () => {
           </DialogHeader>
           
           {transferQuotation && (
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-4 overflow-y-auto flex-1 pr-2">
               {/* Quotation Summary */}
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
@@ -6468,7 +6468,7 @@ const Accounting: React.FC = () => {
             </div>
           )}
 
-          <DialogFooter className="flex justify-between">
+          <DialogFooter className="flex justify-between flex-shrink-0 mt-4">
             <Button 
               variant="outline" 
               onClick={() => setIsTransferDialogOpen(false)}
