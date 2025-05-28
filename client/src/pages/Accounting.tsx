@@ -1277,6 +1277,24 @@ const Accounting: React.FC = () => {
                           <Button 
                             variant="ghost" 
                             size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Transfer to Invoice"
+                            onClick={() => {
+                              toast({
+                                title: "Creating Invoice",
+                                description: "Converting quotation QUO-MFG-202505-001 to invoice...",
+                              });
+                              // Navigate to create invoice with pre-filled data
+                              setTimeout(() => {
+                                window.location.href = '/create-invoice?from=QUO-MFG-202505-001';
+                              }, 1000);
+                            }}
+                          >
+                            <FileText className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
                             className="h-7 w-7 p-0 text-green-600"
                             onClick={() => {
                               toast({
@@ -1371,6 +1389,24 @@ const Accounting: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Transfer to Invoice"
+                            onClick={() => {
+                              toast({
+                                title: "Creating Invoice",
+                                description: "Converting quotation QUO-FIN-202505-003 to invoice...",
+                              });
+                              // Navigate to create invoice with pre-filled data
+                              setTimeout(() => {
+                                window.location.href = '/create-invoice?from=QUO-FIN-202505-003';
+                              }, 1000);
+                            }}
+                          >
+                            <FileText className="h-3 w-3" />
                           </Button>
                           <Button 
                             variant="ghost" 
