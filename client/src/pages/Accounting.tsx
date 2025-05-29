@@ -128,6 +128,38 @@ const Accounting: React.FC = () => {
     { id: 1, name: 'Raw Chemicals', description: 'Sodium Chloride (250kg), Potassium Iodide (100kg)', quantity: 350, unit: 'kg', unitPrice: 12.50, total: 4375 },
     { id: 2, name: 'Laboratory Equipment', description: 'Precision Scale, pH Meter', quantity: 2, unit: 'units', unitPrice: 850.00, total: 1700 }
   ]);
+
+  // Payroll selection state
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [selectAllPayroll, setSelectAllPayroll] = useState(false);
+
+  // Employee list for payroll
+  const employees = ['select-emp-001', 'select-emp-002', 'select-emp-003', 'select-emp-004'];
+
+  // Handle select all checkbox
+  const handleSelectAllPayroll = (checked: boolean) => {
+    setSelectAllPayroll(checked);
+    if (checked) {
+      setSelectedEmployees([...employees]);
+    } else {
+      setSelectedEmployees([]);
+    }
+  };
+
+  // Handle individual employee selection
+  const handleEmployeeSelection = (employeeId: string, checked: boolean) => {
+    if (checked) {
+      const newSelected = [...selectedEmployees, employeeId];
+      setSelectedEmployees(newSelected);
+      if (newSelected.length === employees.length) {
+        setSelectAllPayroll(true);
+      }
+    } else {
+      const newSelected = selectedEmployees.filter(id => id !== employeeId);
+      setSelectedEmployees(newSelected);
+      setSelectAllPayroll(false);
+    }
+  };
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
@@ -1250,6 +1282,8 @@ const Accounting: React.FC = () => {
                         <Checkbox 
                           id="select-all-payroll"
                           aria-label="Select all employees"
+                          checked={selectAllPayroll}
+                          onCheckedChange={handleSelectAllPayroll}
                         />
                       </TableHead>
                       <TableHead>Employee</TableHead>
@@ -1269,6 +1303,8 @@ const Accounting: React.FC = () => {
                         <Checkbox 
                           id="select-emp-001"
                           aria-label="Select Ahmed Hassan"
+                          checked={selectedEmployees.includes('select-emp-001')}
+                          onCheckedChange={(checked) => handleEmployeeSelection('select-emp-001', checked as boolean)}
                         />
                       </TableCell>
                       <TableCell>
@@ -1303,6 +1339,8 @@ const Accounting: React.FC = () => {
                         <Checkbox 
                           id="select-emp-002"
                           aria-label="Select Fatima Al-Zahra"
+                          checked={selectedEmployees.includes('select-emp-002')}
+                          onCheckedChange={(checked) => handleEmployeeSelection('select-emp-002', checked as boolean)}
                         />
                       </TableCell>
                       <TableCell>
@@ -1337,6 +1375,8 @@ const Accounting: React.FC = () => {
                         <Checkbox 
                           id="select-emp-003"
                           aria-label="Select Omar Mahmoud"
+                          checked={selectedEmployees.includes('select-emp-003')}
+                          onCheckedChange={(checked) => handleEmployeeSelection('select-emp-003', checked as boolean)}
                         />
                       </TableCell>
                       <TableCell>
@@ -1368,6 +1408,8 @@ const Accounting: React.FC = () => {
                         <Checkbox 
                           id="select-emp-004"
                           aria-label="Select Nour Abdel Rahman"
+                          checked={selectedEmployees.includes('select-emp-004')}
+                          onCheckedChange={(checked) => handleEmployeeSelection('select-emp-004', checked as boolean)}
                         />
                       </TableCell>
                       <TableCell>
