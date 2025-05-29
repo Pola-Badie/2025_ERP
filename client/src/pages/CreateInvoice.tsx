@@ -288,6 +288,17 @@ const CreateInvoice = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch categories to map category names
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: ['/api/categories'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/categories');
+      return await res.json();
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
   // Filter products based on search term
   const products = productSearchTerm.length > 0 
     ? allProducts.filter(product => 
@@ -522,12 +533,16 @@ const CreateInvoice = () => {
   const handleProductSelection = (productId: number, index: number) => {
     const product = products.find(p => p.id === productId);
     if (product) {
+      // Find category name by ID
+      const category = categories.find(c => c.id === product.categoryId);
+      const categoryName = category ? category.name : `Category ${product.categoryId}`;
+      
       form.setValue(`items.${index}.productId`, product.id);
       form.setValue(`items.${index}.productName`, product.name);
-      form.setValue(`items.${index}.category`, product.category || '');
-      form.setValue(`items.${index}.batchNo`, product.batchNo || '');
-      form.setValue(`items.${index}.gs1Code`, product.gs1Code || '');
-      form.setValue(`items.${index}.type`, product.type || '');
+      form.setValue(`items.${index}.category`, categoryName);
+      form.setValue(`items.${index}.batchNo`, product.sku || '');
+      form.setValue(`items.${index}.gs1Code`, product.barcode || '');
+      form.setValue(`items.${index}.type`, product.productType || '');
       form.setValue(`items.${index}.unitPrice`, parseFloat(product.sellingPrice));
       
       // Close this product's popover
@@ -1150,7 +1165,7 @@ const CreateInvoice = () => {
                                         <div className="flex-1">
                                           <div className="font-medium">{product.name}</div>
                                           <div className="text-xs text-muted-foreground">
-                                            {product.category} • {product.batchNo || 'No Batch'} • {product.gs1Code || 'No GS1'}
+                                            {categories.find(c => c.id === product.categoryId)?.name || 'No Category'} • {product.sku || 'No SKU'} • {product.barcode || 'No Barcode'}
                                           </div>
                                         </div>
                                         <div className="text-right">
