@@ -269,20 +269,25 @@ const CreateInvoice = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch products data
-  const { data: products = [] } = useQuery<any[]>({
-    queryKey: ['/api/products', productSearchTerm],
+  // Fetch all products from inventory
+  const { data: allProducts = [] } = useQuery<any[]>({
+    queryKey: ['/api/products'],
     queryFn: async () => {
-      if (productSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/products?query=${encodeURIComponent(productSearchTerm)}`);
-        return await res.json();
-      }
-      return [];
+      const res = await apiRequest('GET', '/api/products');
+      return await res.json();
     },
-    enabled: productSearchTerm.length > 0,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
+
+  // Filter products based on search term
+  const products = productSearchTerm.length > 0 
+    ? allProducts.filter(product => 
+        product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+        product.drugName?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+        product.category?.toLowerCase().includes(productSearchTerm.toLowerCase())
+      )
+    : allProducts;
 
   // Mutation for creating a customer
   const createCustomerMutation = useMutation({
