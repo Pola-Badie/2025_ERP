@@ -736,7 +736,7 @@ const Inventory: React.FC = () => {
                         </th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Batch No.</th>
+                        <th className="px-6 py-3 text-left font-medium text-slate-500">Batch No.</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">GS1 Code</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Type</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
@@ -773,7 +773,7 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3">
                               {product.category}
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">{product.sku}</td>
+                            <td className="px-6 py-3 font-mono text-xs whitespace-nowrap">{product.sku}</td>
                             <td className="px-4 py-3 font-mono text-xs text-blue-600">
                               {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
                             </td>
