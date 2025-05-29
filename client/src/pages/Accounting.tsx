@@ -160,6 +160,35 @@ const Accounting: React.FC = () => {
       setSelectAllPayroll(false);
     }
   };
+
+  // Payroll action handlers
+  const handleViewPayroll = (employeeId: string, employeeName: string) => {
+    toast({
+      title: "Viewing Payroll Details",
+      description: `Opening payroll details for ${employeeName}`,
+    });
+  };
+
+  const handlePayrollSlip = (employeeId: string, employeeName: string) => {
+    toast({
+      title: "Generating Payroll Slip",
+      description: `Payroll slip for ${employeeName} is being generated...`,
+    });
+    // Simulate PDF download
+    const link = document.createElement('a');
+    link.href = 'data:application/pdf;base64,JVBERi0xLjQKJdP0zOEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCgoyIDAgb2JqCjw8Ci9UeXBlIC9QYWdlcwovS2lkcyBbMyAwIFJdCi9Db3VudCAxCj4+CmVuZG9iagoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCi9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKCjQgMCBvYmoKPDwKL0xlbmd0aCA0NQo+PgpzdHJlYW0KQVQKL0YxIDEyIFRmCjEwMCA1MDAgVGQKKFBheXJvbGwgU2xpcCkgVGEKRVQKZW5kc3RyZWFtCmVuZG9iagoKKQp0cmFpbGVyCjw8Ci9TaXplIDUKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjMwMApfRU9GCg==';
+    link.download = `payroll-slip-${employeeId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleEditPayroll = (employeeId: string, employeeName: string) => {
+    toast({
+      title: "Edit Payroll",
+      description: `Opening edit form for ${employeeName}'s payroll`,
+    });
+  };
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
@@ -1324,10 +1353,22 @@ const Accounting: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleViewPayroll('select-emp-001', 'Ahmed Hassan')}
+                            title="View Payroll Details"
+                          >
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            onClick={() => handlePayrollSlip('select-emp-001', 'Ahmed Hassan')}
+                            title="Generate Payroll Slip"
+                          >
                             <FileText className="h-3 w-3" />
                           </Button>
                         </div>
@@ -1360,10 +1401,22 @@ const Accounting: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleViewPayroll('select-emp-002', 'Fatima Al-Zahra')}
+                            title="View Payroll Details"
+                          >
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            onClick={() => handlePayrollSlip('select-emp-002', 'Fatima Al-Zahra')}
+                            title="Generate Payroll Slip"
+                          >
                             <FileText className="h-3 w-3" />
                           </Button>
                         </div>
@@ -1396,7 +1449,13 @@ const Accounting: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleViewPayroll('select-emp-003', 'Omar Mahmoud')}
+                            title="View Payroll Details"
+                          >
                             <Eye className="h-3 w-3" />
                           </Button>
                         </div>
@@ -1429,7 +1488,13 @@ const Accounting: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            onClick={() => handleEditPayroll('select-emp-004', 'Nour Abdel Rahman')}
+                            title="Edit Payroll"
+                          >
                             <Pencil className="h-3 w-3" />
                           </Button>
                         </div>
