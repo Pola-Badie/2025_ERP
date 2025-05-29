@@ -65,7 +65,9 @@ import {
   Shield,
   RefreshCw,
   ExternalLink,
-  Calculator
+  Calculator,
+  Users,
+  Pencil
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { 
@@ -1132,6 +1134,245 @@ const Accounting: React.FC = () => {
         
         <TabsContent value="customer-payments">
           <CustomerPayments />
+        </TabsContent>
+        
+        <TabsContent value="payroll">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-blue-600" />
+                  <span>Payroll Management</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = '/payroll'}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> 
+                    Add Employee
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" /> 
+                    Export Payroll
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>Manage employee payroll, salaries, and attendance tracking</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Payroll Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 font-medium">Total Employees</p>
+                      <p className="text-2xl font-bold text-blue-800">24</p>
+                    </div>
+                    <Users className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">21 active</p>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 font-medium">Monthly Payroll</p>
+                      <p className="text-2xl font-bold text-green-800">$185,400</p>
+                    </div>
+                    <DollarSign className="w-8 h-8 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">+8% from last month</p>
+                </div>
+                
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-600 font-medium">Pending Payrolls</p>
+                      <p className="text-2xl font-bold text-orange-800">4</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <p className="text-xs text-orange-600 mt-1">Requires processing</p>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-600 font-medium">Attendance Rate</p>
+                      <p className="text-2xl font-bold text-purple-800">97.8%</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <p className="text-xs text-purple-600 mt-1">Above target</p>
+                </div>
+              </div>
+
+              {/* Recent Payroll Entries */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Recent Payroll Entries</h3>
+                  <div className="flex items-center space-x-2">
+                    <Select defaultValue="all">
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Filter by department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="production">Production</SelectItem>
+                        <SelectItem value="quality">Quality Control</SelectItem>
+                        <SelectItem value="sales">Sales</SelectItem>
+                        <SelectItem value="accounting">Accounting</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select defaultValue="current">
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Pay period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="current">Current Month</SelectItem>
+                        <SelectItem value="previous">Previous Month</SelectItem>
+                        <SelectItem value="quarter">This Quarter</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Pay Period</TableHead>
+                      <TableHead className="text-right">Basic Salary</TableHead>
+                      <TableHead className="text-right">Overtime</TableHead>
+                      <TableHead className="text-right">Deductions</TableHead>
+                      <TableHead className="text-right">Net Pay</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Ahmed Hassan</div>
+                          <div className="text-xs text-gray-500">EMP001 - Chemical Engineer</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Production</TableCell>
+                      <TableCell>Jan 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$8,500.00</TableCell>
+                      <TableCell className="text-right">$450.00</TableCell>
+                      <TableCell className="text-right">$200.00</TableCell>
+                      <TableCell className="text-right font-bold text-green-600">$8,750.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                            <FileText className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Fatima Al-Zahra</div>
+                          <div className="text-xs text-gray-500">EMP002 - Lab Technician</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Quality Control</TableCell>
+                      <TableCell>Jan 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$6,500.00</TableCell>
+                      <TableCell className="text-right">$0.00</TableCell>
+                      <TableCell className="text-right">$150.00</TableCell>
+                      <TableCell className="text-right font-bold text-green-600">$6,350.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
+                            <FileText className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Omar Mahmoud</div>
+                          <div className="text-xs text-gray-500">EMP003 - Sales Manager</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Sales</TableCell>
+                      <TableCell>Jan 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$12,000.00</TableCell>
+                      <TableCell className="text-right">$600.00</TableCell>
+                      <TableCell className="text-right">$300.00</TableCell>
+                      <TableCell className="text-right font-bold text-orange-600">$12,300.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-orange-100 text-orange-800">Pending</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Nour Abdel Rahman</div>
+                          <div className="text-xs text-gray-500">EMP004 - Financial Analyst</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Accounting</TableCell>
+                      <TableCell>Jan 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$7,500.00</TableCell>
+                      <TableCell className="text-right">$200.00</TableCell>
+                      <TableCell className="text-right">$100.00</TableCell>
+                      <TableCell className="text-right font-bold text-gray-600">$7,600.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-gray-100 text-gray-800">Draft</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600">
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="quotations">
