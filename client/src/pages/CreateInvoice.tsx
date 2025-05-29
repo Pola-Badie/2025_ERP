@@ -1192,7 +1192,7 @@ const CreateInvoice = () => {
                               className="w-full justify-between text-left"
                             >
                               <span className="truncate">
-                                {field.productName || "Select a product..."}
+                                {form.watch(`items.${index}.productName`) || "Select a product..."}
                               </span>
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
