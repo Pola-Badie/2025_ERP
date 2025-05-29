@@ -27,6 +27,7 @@ import Procurement from "@/pages/Procurement";
 import OrderManagement from "@/pages/OrderManagement";
 import OrdersHistory from "@/pages/OrdersHistory";
 import Notifications from "@/pages/Notifications";
+import Payroll from "@/pages/Payroll";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -63,6 +64,7 @@ function App() {
             <Route path="/order-management" component={OrderManagement} />
             <Route path="/orders-history" component={OrdersHistory} />
             <Route path="/notifications" component={Notifications} />
+            <Route path="/payroll" component={Payroll} />
             <Route path="/login" component={Login} />
             <Route component={NotFound} />
           </Switch>

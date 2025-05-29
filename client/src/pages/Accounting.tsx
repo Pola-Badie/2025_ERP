@@ -969,6 +969,7 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Purchases</TabsTrigger>
             <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
+            <TabsTrigger value="payroll" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Payroll</TabsTrigger>
             <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
             <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
             <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
