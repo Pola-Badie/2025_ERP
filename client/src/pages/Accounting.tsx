@@ -69,6 +69,7 @@ import {
   Users,
   Pencil
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { 
   Select,
@@ -1245,6 +1246,12 @@ const Accounting: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox 
+                          id="select-all-payroll"
+                          aria-label="Select all employees"
+                        />
+                      </TableHead>
                       <TableHead>Employee</TableHead>
                       <TableHead>Department</TableHead>
                       <TableHead>Pay Period</TableHead>
@@ -1258,6 +1265,12 @@ const Accounting: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     <TableRow>
+                      <TableCell>
+                        <Checkbox 
+                          id="select-emp-001"
+                          aria-label="Select Ahmed Hassan"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">Ahmed Hassan</div>
@@ -1281,14 +1294,17 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
                             <FileText className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600" title="Mark as Verified">
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                     
                     <TableRow>
+                      <TableCell>
+                        <Checkbox 
+                          id="select-emp-002"
+                          aria-label="Select Fatima Al-Zahra"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">Fatima Al-Zahra</div>
@@ -1312,14 +1328,17 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
                             <FileText className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600" title="Mark as Verified">
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                     
                     <TableRow>
+                      <TableCell>
+                        <Checkbox 
+                          id="select-emp-003"
+                          aria-label="Select Omar Mahmoud"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">Omar Mahmoud</div>
@@ -1340,14 +1359,17 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Eye className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600">
-                            <CheckCircle className="h-3 w-3" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
                     
                     <TableRow>
+                      <TableCell>
+                        <Checkbox 
+                          id="select-emp-004"
+                          aria-label="Select Nour Abdel Rahman"
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">Nour Abdel Rahman</div>
@@ -1367,9 +1389,6 @@ const Accounting: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
                             <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600">
-                            <CheckCircle className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
