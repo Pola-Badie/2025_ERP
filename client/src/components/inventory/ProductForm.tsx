@@ -294,9 +294,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                   className="font-mono"
                 />
               </FormControl>
-              <p className="text-sm text-gray-500">
-                GS1 codes ensure Egyptian Tax Authority (ETA) compatibility for pharmaceutical products
-              </p>
               <FormMessage />
             </FormItem>
           )}
