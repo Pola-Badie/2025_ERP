@@ -308,6 +308,61 @@ const CreateInvoice = () => {
       )
     : allProducts;
 
+  // Calculate totals automatically when form values change
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (value.items) {
+        // Calculate line totals
+        value.items.forEach((item, index) => {
+          if (item && typeof item.quantity === 'number' && typeof item.unitPrice === 'number') {
+            const lineTotal = item.quantity * item.unitPrice;
+            if (lineTotal !== item.total) {
+              form.setValue(`items.${index}.total`, lineTotal);
+            }
+          }
+        });
+
+        // Calculate subtotal
+        const subtotal = value.items.reduce((sum, item) => {
+          return sum + (item?.total || 0);
+        }, 0);
+        
+        if (subtotal !== value.subtotal) {
+          form.setValue('subtotal', subtotal);
+        }
+
+        // Calculate discount amount
+        let discountAmount = 0;
+        if (value.discountType === 'percentage' && value.discountValue) {
+          discountAmount = (subtotal * value.discountValue) / 100;
+        } else if (value.discountType === 'amount' && value.discountValue) {
+          discountAmount = value.discountValue;
+        }
+        
+        if (discountAmount !== value.discountAmount) {
+          form.setValue('discountAmount', discountAmount);
+        }
+
+        // Calculate tax amount
+        const taxableAmount = subtotal - discountAmount;
+        const taxAmount = value.taxRate ? (taxableAmount * value.taxRate) / 100 : 0;
+        
+        if (taxAmount !== value.taxAmount) {
+          form.setValue('taxAmount', taxAmount);
+        }
+
+        // Calculate grand total
+        const grandTotal = taxableAmount + taxAmount;
+        
+        if (grandTotal !== value.grandTotal) {
+          form.setValue('grandTotal', grandTotal);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   // Mutation for creating a customer
   const createCustomerMutation = useMutation({
     mutationFn: async (newCustomer: any) => {
