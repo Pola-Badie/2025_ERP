@@ -44,6 +44,10 @@ const productFormSchema = z.object({
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
   unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
   lowStockThreshold: z.coerce.number().int().nonnegative({ message: 'Low stock threshold must be a non-negative integer' }),
+  reorderLevel: z.coerce.number().int().nonnegative().optional(),
+  maxStockLevel: z.coerce.number().int().nonnegative().optional(),
+  criticalLevel: z.coerce.number().int().nonnegative().optional(),
+  alertFrequency: z.string().optional(),
   costPrice: z.coerce.number().positive({ message: 'Cost price must be greater than 0' }),
   sellingPrice: z.coerce.number().positive({ message: 'Selling price must be greater than 0' }),
   location: z.string().optional(),
@@ -97,6 +101,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
     quantity: initialData?.quantity || 0,
     unitOfMeasure: initialData?.unitOfMeasure || 'PCS',
     lowStockThreshold: initialData?.lowStockThreshold || 10,
+    reorderLevel: initialData?.reorderLevel || 25,
+    maxStockLevel: initialData?.maxStockLevel || 250,
+    criticalLevel: initialData?.criticalLevel || 5,
+    alertFrequency: initialData?.alertFrequency || 'daily',
     costPrice: initialData?.costPrice || 0,
     sellingPrice: initialData?.sellingPrice || 0,
     location: initialData?.location || '',
@@ -593,6 +601,138 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
               </FormItem>
             )}
           />
+        </div>
+        
+        {/* Threshold Settings Section */}
+        <div className="border-t pt-6 mt-6">
+          <h3 className="text-lg font-medium mb-4">Inventory Threshold Settings</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="reorderLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Reorder Level</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      if (value !== 'custom') {
+                        field.onChange(parseInt(value));
+                      }
+                    }} 
+                    value={field.value ? field.value.toString() : ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reorder level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="15">Conservative (15 units)</SelectItem>
+                      <SelectItem value="25">Standard (25 units)</SelectItem>
+                      <SelectItem value="40">Aggressive (40 units)</SelectItem>
+                      <SelectItem value="75">High Volume (75 units)</SelectItem>
+                      <SelectItem value="custom">Custom Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="maxStockLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Maximum Stock Level</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      if (value !== 'custom') {
+                        field.onChange(parseInt(value));
+                      }
+                    }} 
+                    value={field.value ? field.value.toString() : ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select max level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="100">Small (100 units)</SelectItem>
+                      <SelectItem value="250">Medium (250 units)</SelectItem>
+                      <SelectItem value="500">Large (500 units)</SelectItem>
+                      <SelectItem value="1000">Extra Large (1000 units)</SelectItem>
+                      <SelectItem value="custom">Custom Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <FormField
+              control={form.control}
+              name="criticalLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Critical Stock Level</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      if (value !== 'custom') {
+                        field.onChange(parseInt(value));
+                      }
+                    }} 
+                    value={field.value ? field.value.toString() : ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select critical level" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="2">Emergency (2 units)</SelectItem>
+                      <SelectItem value="5">Critical (5 units)</SelectItem>
+                      <SelectItem value="8">Warning (8 units)</SelectItem>
+                      <SelectItem value="12">Caution (12 units)</SelectItem>
+                      <SelectItem value="custom">Custom Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="alertFrequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Alert Frequency</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value || ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select alert frequency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="immediate">Immediate</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="never">Never</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         
         <div className="flex justify-end space-x-2 pt-4">
