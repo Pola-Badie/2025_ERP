@@ -373,15 +373,39 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Low Stock Threshold</FormLabel>
-                <FormControl>
+                <div className="flex space-x-2">
+                  <Select 
+                    onValueChange={(value) => {
+                      if (value !== 'custom') {
+                        field.onChange(parseInt(value));
+                      }
+                    }} 
+                    value={field.value ? field.value.toString() : ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select threshold" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="5">Very Low (5 units)</SelectItem>
+                      <SelectItem value="10">Low (10 units)</SelectItem>
+                      <SelectItem value="20">Medium (20 units)</SelectItem>
+                      <SelectItem value="50">High (50 units)</SelectItem>
+                      <SelectItem value="100">Very High (100 units)</SelectItem>
+                      <SelectItem value="custom">Custom Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Input 
                     type="number" 
-                    placeholder="10" 
+                    placeholder="Custom" 
                     min="0"
                     step="1"
-                    {...field} 
+                    className="w-24"
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                   />
-                </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
