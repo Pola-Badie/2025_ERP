@@ -739,6 +739,7 @@ const Inventory: React.FC = () => {
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">SKU</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">GS1 Code</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Type</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
@@ -775,6 +776,12 @@ const Inventory: React.FC = () => {
                               {product.category}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
+                            <td className="px-4 py-3">
+                              <div className="font-mono text-xs text-blue-600">
+                                {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
+                              </div>
+                              <div className="text-xs text-gray-500">ETA Compatible</div>
+                            </td>
                             <td className="px-4 py-3">
                               {product.productType ? (
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
