@@ -968,10 +968,10 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="chart-of-accounts" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Chart of Accounts</TabsTrigger>
             <TabsTrigger value="journal-entries" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Journal Entries</TabsTrigger>
             <TabsTrigger value="expenses" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Expenses</TabsTrigger>
+            <TabsTrigger value="payroll" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Payroll</TabsTrigger>
             <TabsTrigger value="purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Purchases</TabsTrigger>
             <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
-            <TabsTrigger value="payroll" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Payroll</TabsTrigger>
             <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
             <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
             <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
@@ -1281,6 +1281,9 @@ const Accounting: React.FC = () => {
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
                             <FileText className="h-3 w-3" />
                           </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600" title="Mark as Verified">
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1308,6 +1311,9 @@ const Accounting: React.FC = () => {
                           </Button>
                           <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-blue-600">
                             <FileText className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-green-600" title="Mark as Verified">
+                            <CheckCircle className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
