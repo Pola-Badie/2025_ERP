@@ -773,12 +773,16 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3">
                               {product.category}
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs">{product.sku}</td>
+                            <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">{product.sku}</td>
                             <td className="px-4 py-3">
-                              <div className="font-mono text-xs text-blue-600">
-                                {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs text-blue-600">
+                                  {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
+                                </span>
+                                <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
+                                  ETA Compatible
+                                </span>
                               </div>
-                              <div className="text-xs text-gray-500">ETA Compatible</div>
                             </td>
                             <td className="px-4 py-3">
                               {product.productType ? (
