@@ -62,7 +62,9 @@ import {
   Shield,
   Clock,
   FileText,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Settings,
+  X
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
@@ -133,6 +135,16 @@ const Inventory: React.FC = () => {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [transferQuantity, setTransferQuantity] = useState('');
   const [targetWarehouse, setTargetWarehouse] = useState('');
+  
+  // State for inventory settings dialog
+  const [isInventorySettingsOpen, setIsInventorySettingsOpen] = useState(false);
+  const [inventorySettings, setInventorySettings] = useState({
+    unitsOfMeasure: ['L', 'PCS', 'T', 'KG', 'g', 'mg'],
+    productTypes: ['Raw Material', 'Semi-Raw Material', 'Finished Product'],
+    statusOptions: ['Active', 'Inactive', 'Discontinued', 'Out of Stock'],
+    locationTypes: ['Warehouse', 'Storage Room', 'Cold Storage', 'Quarantine']
+  });
+  const [newOption, setNewOption] = useState({ type: '', value: '' });
   
   // CSV Integration
   const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
@@ -434,6 +446,70 @@ const Inventory: React.FC = () => {
     return null;
   };
   
+  // Inventory settings handlers
+  const addNewOption = () => {
+    if (!newOption.value.trim()) return;
+    
+    setInventorySettings(prev => {
+      const updated = { ...prev };
+      switch (newOption.type) {
+        case 'unitOfMeasure':
+          if (!updated.unitsOfMeasure.includes(newOption.value)) {
+            updated.unitsOfMeasure.push(newOption.value);
+          }
+          break;
+        case 'productType':
+          if (!updated.productTypes.includes(newOption.value)) {
+            updated.productTypes.push(newOption.value);
+          }
+          break;
+        case 'statusOption':
+          if (!updated.statusOptions.includes(newOption.value)) {
+            updated.statusOptions.push(newOption.value);
+          }
+          break;
+        case 'locationType':
+          if (!updated.locationTypes.includes(newOption.value)) {
+            updated.locationTypes.push(newOption.value);
+          }
+          break;
+      }
+      return updated;
+    });
+    
+    setNewOption({ type: '', value: '' });
+    toast({
+      title: 'Option Added',
+      description: `${newOption.value} has been added successfully.`
+    });
+  };
+
+  const removeOption = (type: string, value: string) => {
+    setInventorySettings(prev => {
+      const updated = { ...prev };
+      switch (type) {
+        case 'unitOfMeasure':
+          updated.unitsOfMeasure = updated.unitsOfMeasure.filter(item => item !== value);
+          break;
+        case 'productType':
+          updated.productTypes = updated.productTypes.filter(item => item !== value);
+          break;
+        case 'statusOption':
+          updated.statusOptions = updated.statusOptions.filter(item => item !== value);
+          break;
+        case 'locationType':
+          updated.locationTypes = updated.locationTypes.filter(item => item !== value);
+          break;
+      }
+      return updated;
+    });
+    
+    toast({
+      title: 'Option Removed',
+      description: `${value} has been removed successfully.`
+    });
+  };
+
   // Product action handlers
   const handleCreateLabel = (product: Product) => {
     // Store the selected product in localStorage so the Label Generator can access it
@@ -529,13 +605,23 @@ const Inventory: React.FC = () => {
               </div>
             </>
           )}
-          <Button onClick={() => {
-            setProductToEdit(null);
-            setIsProductFormOpen(true);
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setIsInventorySettingsOpen(true)}
+              title="Inventory Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => {
+              setProductToEdit(null);
+              setIsProductFormOpen(true);
+            }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
         </div>
       </div>
       {/* Warehouse Selector */}
@@ -1707,6 +1793,128 @@ const Inventory: React.FC = () => {
             >
               <ArrowRightLeft className="h-4 w-4 mr-2" />
               Confirm Transfer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Inventory Settings Dialog */}
+      <Dialog open={isInventorySettingsOpen} onOpenChange={setIsInventorySettingsOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Inventory Dropdown Options</DialogTitle>
+            <DialogDescription>
+              Manage the options available in Units of Measure, Product Types, Status Options, and Location Types dropdowns.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            {/* Units of Measure */}
+            <div>
+              <h4 className="font-medium mb-3">Units of Measure</h4>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {inventorySettings.unitsOfMeasure.map((unit, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {unit}
+                    <X 
+                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                      onClick={() => removeOption('unitOfMeasure', unit)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="New unit (e.g., mL, tablets)"
+                  value={newOption.type === 'unitOfMeasure' ? newOption.value : ''}
+                  onChange={(e) => setNewOption({ type: 'unitOfMeasure', value: e.target.value })}
+                />
+                <Button onClick={addNewOption} disabled={newOption.type !== 'unitOfMeasure' || !newOption.value.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Product Types */}
+            <div>
+              <h4 className="font-medium mb-3">Product Types</h4>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {inventorySettings.productTypes.map((type, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {type}
+                    <X 
+                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                      onClick={() => removeOption('productType', type)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="New product type"
+                  value={newOption.type === 'productType' ? newOption.value : ''}
+                  onChange={(e) => setNewOption({ type: 'productType', value: e.target.value })}
+                />
+                <Button onClick={addNewOption} disabled={newOption.type !== 'productType' || !newOption.value.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Status Options */}
+            <div>
+              <h4 className="font-medium mb-3">Status Options</h4>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {inventorySettings.statusOptions.map((status, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {status}
+                    <X 
+                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                      onClick={() => removeOption('statusOption', status)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="New status option"
+                  value={newOption.type === 'statusOption' ? newOption.value : ''}
+                  onChange={(e) => setNewOption({ type: 'statusOption', value: e.target.value })}
+                />
+                <Button onClick={addNewOption} disabled={newOption.type !== 'statusOption' || !newOption.value.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
+
+            {/* Location Types */}
+            <div>
+              <h4 className="font-medium mb-3">Location Types</h4>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {inventorySettings.locationTypes.map((location, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {location}
+                    <X 
+                      className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                      onClick={() => removeOption('locationType', location)}
+                    />
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="New location type"
+                  value={newOption.type === 'locationType' ? newOption.value : ''}
+                  onChange={(e) => setNewOption({ type: 'locationType', value: e.target.value })}
+                />
+                <Button onClick={addNewOption} disabled={newOption.type !== 'locationType' || !newOption.value.trim()}>
+                  Add
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={() => setIsInventorySettingsOpen(false)}>
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>
