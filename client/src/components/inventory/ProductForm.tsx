@@ -39,6 +39,7 @@ const productFormSchema = z.object({
   drugName: z.string().min(3, { message: 'Drug name must be at least 3 characters' }),
   categoryId: z.coerce.number().positive({ message: 'Please select a category' }),
   sku: z.string().min(1, { message: 'SKU is required' }),
+  gs1Code: z.string().optional(),
   description: z.string().optional(),
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
   unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
@@ -91,6 +92,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
     drugName: initialData?.drugName || '',
     categoryId: initialData?.categoryId || 0,
     sku: initialData?.sku || '',
+    gs1Code: initialData?.gs1Code || '',
     description: initialData?.description || '',
     quantity: initialData?.quantity || 0,
     unitOfMeasure: initialData?.unitOfMeasure || 'PCS',
@@ -163,6 +165,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
       drugName: data.drugName,
       categoryId: data.categoryId.toString(),
       sku: data.sku,
+      gs1Code: data.gs1Code || '',
       description: data.description || '',
       quantity: parseFloat(data.quantity.toString()),
       lowStockThreshold: parseInt(data.lowStockThreshold.toString()),
@@ -262,7 +265,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="sku"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SKU</FormLabel>
+                <FormLabel>Batch No.</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter SKU (optional)" {...field} />
                 </FormControl>
@@ -271,6 +274,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             )}
           />
         </div>
+        
+        <FormField
+          control={form.control}
+          name="gs1Code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                GS1 Code 
+                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">
+                  ETA Compatible
+                </span>
+              </FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Enter GS1 Code for ETA compliance (optional)" 
+                  {...field}
+                  value={field.value || ''}
+                  className="font-mono"
+                />
+              </FormControl>
+              <p className="text-sm text-gray-500">
+                GS1 codes ensure Egyptian Tax Authority (ETA) compatibility for pharmaceutical products
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={form.control}

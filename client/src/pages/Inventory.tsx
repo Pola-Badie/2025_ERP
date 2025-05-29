@@ -538,7 +538,6 @@ const Inventory: React.FC = () => {
           </Button>
         </div>
       </div>
-      
       {/* Warehouse Selector */}
       {activeTab === 'inventory' && (
         <Card className="mb-6">
@@ -616,7 +615,6 @@ const Inventory: React.FC = () => {
           </CardContent>
         </Card>
       )}
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="border-b mb-4">
           <TabsList className="flex border-0 p-0 h-auto bg-transparent gap-0">
@@ -738,7 +736,7 @@ const Inventory: React.FC = () => {
                         </th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">SKU</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">Batch No.</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">GS1 Code</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Type</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
@@ -1058,7 +1056,6 @@ const Inventory: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Delete Category Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -1087,7 +1084,6 @@ const Inventory: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Edit Category Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -1144,7 +1140,6 @@ const Inventory: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Product Form Dialog */}
       <Dialog open={isProductFormOpen} onOpenChange={(open) => {
         setIsProductFormOpen(open);
@@ -1178,7 +1173,6 @@ const Inventory: React.FC = () => {
           />
         </DialogContent>
       </Dialog>
-
       {/* Product History Dialog */}
       <Dialog open={isHistoryDialogOpen} onOpenChange={(open) => {
         setIsHistoryDialogOpen(open);
@@ -1523,7 +1517,6 @@ const Inventory: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Warehouse Dialog */}
       <Dialog open={isWarehouseDialogOpen} onOpenChange={setIsWarehouseDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -1614,7 +1607,6 @@ const Inventory: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Warehouse Transfer Dialog */}
       <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
