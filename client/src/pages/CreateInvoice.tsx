@@ -71,6 +71,10 @@ const invoiceFormSchema = z.object({
   items: z.array(z.object({
     productId: z.number().min(1, 'Product is required'),
     productName: z.string(),
+    category: z.string().optional(),
+    batchNo: z.string().optional(),
+    gs1Code: z.string().optional(),
+    type: z.string().optional(),
     quantity: z.number().min(1, 'Quantity must be at least 1'),
     unitPrice: z.number().min(0, 'Unit price must be positive'),
     total: z.number().min(0),
@@ -117,6 +121,10 @@ const defaultFormValues: InvoiceFormValues = {
     {
       productId: 0,
       productName: '',
+      category: '',
+      batchNo: '',
+      gs1Code: '',
+      type: '',
       quantity: 1,
       unitPrice: 0,
       total: 0,
@@ -516,6 +524,10 @@ const CreateInvoice = () => {
     if (product) {
       form.setValue(`items.${index}.productId`, product.id);
       form.setValue(`items.${index}.productName`, product.name);
+      form.setValue(`items.${index}.category`, product.category || '');
+      form.setValue(`items.${index}.batchNo`, product.batchNo || '');
+      form.setValue(`items.${index}.gs1Code`, product.gs1Code || '');
+      form.setValue(`items.${index}.type`, product.type || '');
       form.setValue(`items.${index}.unitPrice`, parseFloat(product.sellingPrice));
       
       // Close this product's popover
@@ -1075,11 +1087,15 @@ const CreateInvoice = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[300px]">Product</TableHead>
+                    <TableHead className="w-[200px]">Product</TableHead>
+                    <TableHead className="w-[120px]">Category</TableHead>
+                    <TableHead className="w-[100px]">Batch No.</TableHead>
+                    <TableHead className="w-[120px]">GS1 Code</TableHead>
+                    <TableHead className="w-[80px]">Type</TableHead>
                     <TableHead className="w-[100px] text-right">Quantity</TableHead>
-                    <TableHead className="w-[150px] text-right">Unit Price</TableHead>
-                    <TableHead className="w-[150px] text-right">Total</TableHead>
-                    <TableHead className="w-[80px]"></TableHead>
+                    <TableHead className="w-[120px] text-right">Unit Price</TableHead>
+                    <TableHead className="w-[120px] text-right">Total</TableHead>
+                    <TableHead className="w-[60px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1103,13 +1119,15 @@ const CreateInvoice = () => {
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="w-full justify-between"
+                              className="w-full justify-between text-left"
                             >
-                              {field.productName || "Select a product..."}
+                              <span className="truncate">
+                                {field.productName || "Select a product..."}
+                              </span>
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
+                          <PopoverContent className="w-[400px] p-0">
                             <Command>
                               <CommandInput 
                                 placeholder="Search products..." 
@@ -1126,25 +1144,32 @@ const CreateInvoice = () => {
                                     <CommandItem
                                       key={product.id}
                                       onSelect={() => handleProductSelection(product.id, index)}
-                                      className="flex items-center justify-between"
+                                      className="flex flex-col items-start py-2"
                                     >
-                                      <div>
-                                        <span className="font-medium">{product.name}</span>
-                                        <span className="ml-2 text-sm text-muted-foreground">
-                                          {new Intl.NumberFormat('en-US', {
-                                            style: 'currency',
-                                            currency: 'USD'
-                                          }).format(product.sellingPrice)}
-                                        </span>
+                                      <div className="flex items-center justify-between w-full">
+                                        <div className="flex-1">
+                                          <div className="font-medium">{product.name}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {product.category} • {product.batchNo || 'No Batch'} • {product.gs1Code || 'No GS1'}
+                                          </div>
+                                        </div>
+                                        <div className="text-right">
+                                          <div className="text-sm font-medium">
+                                            {new Intl.NumberFormat('en-US', {
+                                              style: 'currency',
+                                              currency: 'USD'
+                                            }).format(product.sellingPrice)}
+                                          </div>
+                                          <Check
+                                            className={cn(
+                                              "h-4 w-4 mt-1",
+                                              field.productId === product.id
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                          />
+                                        </div>
                                       </div>
-                                      <Check
-                                        className={cn(
-                                          "ml-auto h-4 w-4",
-                                          field.productId === product.id
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
                                     </CommandItem>
                                   ))}
                                 </CommandGroup>
@@ -1152,6 +1177,18 @@ const CreateInvoice = () => {
                             </Command>
                           </PopoverContent>
                         </Popover>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{form.watch(`items.${index}.category`) || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{form.watch(`items.${index}.batchNo`) || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{form.watch(`items.${index}.gs1Code`) || '-'}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">{form.watch(`items.${index}.type`) || '-'}</span>
                       </TableCell>
                       <TableCell className="text-right">
                         <Input
@@ -1179,10 +1216,12 @@ const CreateInvoice = () => {
                         />
                       </TableCell>
                       <TableCell className="text-right">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(form.watch(`items.${index}.total`) || 0)}
+                        <span className="font-medium">
+                          {new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD'
+                          }).format(form.watch(`items.${index}.total`) || 0)}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1199,7 +1238,7 @@ const CreateInvoice = () => {
                   ))}
                   {fields.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4">
+                      <TableCell colSpan={9} className="text-center py-4">
                         No items added. Click "Add Item" to add products to this invoice.
                       </TableCell>
                     </TableRow>
