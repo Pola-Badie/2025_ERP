@@ -16,6 +16,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from '@/components/ui/radio-group';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useQuery } from '@tanstack/react-query';
 import CustomerSearch from './CustomerSearch';
 import BatchNumberField from './BatchNumberField';
@@ -129,27 +130,18 @@ const RefiningOrderFields: React.FC<RefiningOrderFieldsProps> = ({
         {sourceType === 'production' ? (
           <div className="space-y-2">
             <Label htmlFor="productionOrder">Select Production Order</Label>
-            <Select
+            <SearchableSelect
               value={selectedProductionOrder}
               onValueChange={onProductionOrderSelect}
-            >
-              <SelectTrigger id="productionOrder">
-                <SelectValue placeholder="Select production order" />
-              </SelectTrigger>
-              <SelectContent>
-                {isLoadingOrders ? (
-                  <SelectItem value="loading" disabled>
-                    Loading orders...
-                  </SelectItem>
-                ) : (
-                  productionOrders?.map((order: any) => (
-                    <SelectItem key={order.id} value={order.id.toString()}>
-                      {order.batchNumber || order.orderNumber} - {order.finalProduct || "Unknown product"}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+              options={productionOrders?.map((order: any) => ({
+                value: order.id.toString(),
+                label: `${order.batchNumber || order.orderNumber} - ${order.finalProduct || "Unknown product"}`
+              })) || []}
+              placeholder="Select production order"
+              searchPlaceholder="Search production orders..."
+              emptyText="No production orders found"
+              isLoading={isLoadingOrders}
+            />
           </div>
         ) : (
           <div className="space-y-2">
