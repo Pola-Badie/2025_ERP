@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
-import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -182,9 +181,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 
                 {/* Content Wrapper with Glass Effect */}
                 <div className="relative backdrop-blur-sm">
-                  {/* Page Navigation */}
-                  <PageNavigation />
-                  
                   {children}
                 </div>
               </div>
