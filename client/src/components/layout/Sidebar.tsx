@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, Search, X } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
@@ -13,6 +13,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [location, setLocation] = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const navItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
@@ -82,6 +84,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     }
   };
 
+  // Filter navigation items based on search term
+  const filteredNavItems = navItems.filter(item => 
+    t(item.key).toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.key.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className={cn(className, "bg-[#1C3149] text-white min-h-screen")}>
       <div className="flex h-16 items-center px-6 border-b border-[#2A3F55]">
@@ -110,9 +118,40 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           </button>
         )}
       </div>
+      
+      {/* Search Section */}
+      <div className="px-4 py-3 border-b border-[#2A3F55]">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            className={cn(
+              "w-full pl-10 pr-4 py-2 text-sm rounded-md border border-[#2A3F55] bg-[#26405A] text-white placeholder-gray-400",
+              "focus:outline-none focus:ring-2 focus:ring-[#3BCEAC] focus:border-transparent",
+              "transition-colors duration-200"
+            )}
+            placeholder={language === 'ar' ? "البحث في القائمة..." : "Search navigation..."}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-0">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <li key={item.path}>
               <div
                 className={cn(
