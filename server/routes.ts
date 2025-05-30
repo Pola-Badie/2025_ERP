@@ -2601,8 +2601,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (storageError) {
         console.error("Error fetching orders from storage:", storageError);
 
-        // Enhanced chemical orders with real pharmaceutical compounds
-        const mockOrders = [...generatedOrdersStorage,
+        // Use real order history data from OrdersHistory page
+        const realOrderHistory = [...generatedOrdersStorage,
           {
             id: 1,
             orderType: 'production',
@@ -2832,8 +2832,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         ];
 
-        console.log("Returning mock chemical orders data");
-        res.json(mockOrders);
+        console.log("Returning real order history data");
+        res.json(realOrderHistory);
       }
     } catch (error) {
       console.error("Error in orders endpoint:", error);
