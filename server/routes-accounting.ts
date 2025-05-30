@@ -523,35 +523,66 @@ export function registerAccountingRoutes(app: Express) {
       const start = new Date(startDate as string);
       const end = new Date(endDate as string);
 
-      // Import the financial data
-      const { loadFinancialData } = await import('./financial-seed-data');
-      const financialData = loadFinancialData();
+      // Get real data from database
+      const journalEntries = await db.select().from(journalEntriesTable)
+        .where(and(
+          gte(journalEntriesTable.entryDate, start),
+          lte(journalEntriesTable.entryDate, end)
+        ));
+
+      const accounts = await db.select().from(accountsTable);
       
-      // Generate P&L data from mock data
-      const salesData = financialData.dueInvoices.filter(invoice => 
-        new Date(invoice.invoiceDate) >= start && new Date(invoice.invoiceDate) <= end
-      );
+      // Calculate revenue from sales and journal entries
+      const revenueAccounts = accounts.filter(acc => acc.type === 'Revenue');
+      const expenseAccounts = accounts.filter(acc => acc.type === 'Expense');
       
-      const cogsData = financialData.purchases.filter(purchase => 
-        new Date(purchase.date) >= start && new Date(purchase.date) <= end
-      );
+      let totalRevenue = 0;
+      let totalCogs = 0;
+      let totalExpenses = 0;
       
-      const expensesData = financialData.expenses.filter(expense => 
-        new Date(expense.date) >= start && new Date(expense.date) <= end
-      );
-      
-      // Calculate totals
-      const currentRevenueTotal = salesData.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
-      const currentCogsTotal = cogsData.reduce((sum, purchase) => sum + purchase.total, 0);
-      const currentExpensesTotal = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
-      
-      // Group expenses by cost center for breakdown
-      const expensesByCategory = {};
-      expensesData.forEach(expense => {
-        if (!expensesByCategory[expense.costCenter]) {
-          expensesByCategory[expense.costCenter] = [];
+      // Calculate from journal entries
+      journalEntries.forEach(entry => {
+        const account = accounts.find(acc => acc.id === entry.accountId);
+        if (account) {
+          if (account.type === 'Revenue') {
+            totalRevenue += entry.creditAmount - entry.debitAmount;
+          } else if (account.type === 'Expense') {
+            totalExpenses += entry.debitAmount - entry.creditAmount;
+          } else if (account.name.toLowerCase().includes('cost of goods') || 
+                    account.name.toLowerCase().includes('cogs')) {
+            totalCogs += entry.debitAmount - entry.creditAmount;
+          }
         }
-        expensesByCategory[expense.costCenter].push(expense);
+      });
+
+      // Get sales data from the sales table
+      const salesData = await db.select().from(sales)
+        .where(and(
+          gte(sales.saleDate, start),
+          lte(sales.saleDate, end)
+        ));
+      
+      const salesRevenue = salesData.reduce((sum, sale) => sum + parseFloat(sale.totalAmount.toString()), 0);
+      
+      // Calculate totals from database data
+      const currentRevenueTotal = totalRevenue + salesRevenue;
+      const currentCogsTotal = totalCogs;
+      const currentExpensesTotal = totalExpenses;
+      
+      // Group expenses by account type for breakdown
+      const expensesByCategory = {};
+      journalEntries.forEach(entry => {
+        const account = accounts.find(acc => acc.id === entry.accountId);
+        if (account && account.type === 'Expense') {
+          if (!expensesByCategory[account.name]) {
+            expensesByCategory[account.name] = [];
+          }
+          expensesByCategory[account.name].push({
+            description: entry.description,
+            amount: entry.debitAmount - entry.creditAmount,
+            date: entry.entryDate
+          });
+        }
       });
       
       // Calculate previous period (YTD) by taking a larger date range
