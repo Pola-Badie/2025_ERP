@@ -76,8 +76,20 @@ const OrdersHistory: React.FC = () => {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const itemsPerPage = 10;
 
-  // Sample order history data - this would come from your API
-  const orderHistory: OrderHistoryItem[] = [
+  // Fetch production order history from database
+  const { data: orderHistory = [], isLoading } = useQuery({
+    queryKey: ['/api/orders/production-history'],
+    queryFn: async () => {
+      const response = await fetch('/api/orders/production-history');
+      if (!response.ok) {
+        throw new Error('Failed to fetch production order history');
+      }
+      return response.json();
+    }
+  });
+
+  // Keep the sample data as fallback only for demonstration
+  const sampleOrderHistory: OrderHistoryItem[] = [
     {
       id: 'ORD-001',
       orderNumber: 'PROD-2024-001',
