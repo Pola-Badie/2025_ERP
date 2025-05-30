@@ -859,7 +859,9 @@ const Inventory: React.FC = () => {
                             <td className="px-4 py-3">
                               {product.category}
                             </td>
-                            <td className="px-6 py-3 font-mono text-xs whitespace-nowrap">{product.sku}</td>
+                            <td className="px-6 py-3 font-mono text-xs whitespace-nowrap">
+                              {`BATCH-${product.sku?.slice(-4) || '0000'}-${new Date().getFullYear().toString().slice(-2)}`}
+                            </td>
                             <td className="px-4 py-3 font-mono text-xs text-blue-600 whitespace-nowrap">
                               {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
                             </td>
