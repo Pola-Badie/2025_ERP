@@ -74,6 +74,7 @@ import { queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import CustomerSelector from '@/components/CustomerSelector';
 
 const OrderManagement = () => {
   const { toast } = useToast();
@@ -1478,6 +1479,70 @@ const OrderManagement = () => {
                                 onClick={() => handleRemoveRefiningMaterial(index)}
                               >
                                 <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Packaging Section */}
+                    <div>
+                      <Label className="text-base font-semibold">Packaging</Label>
+
+                      {/* Add Packaging Form */}
+                      <div className="grid grid-cols-4 gap-2 mb-3">
+                        <Select value={packagingToAdd?.id?.toString()} onValueChange={(value) => {
+                          const item = packagingMaterials?.find((p: any) => p.id.toString() === value);
+                          setPackagingToAdd(item);
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select packaging" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {packagingMaterials?.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id.toString()}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Input 
+                          type="number" 
+                          placeholder="Qty"
+                          value={packagingQuantity}
+                          onChange={(e) => setPackagingQuantity(parseInt(e.target.value) || 0)}
+                        />
+
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="Unit Price"
+                          value={packagingUnitPrice}
+                          onChange={(e) => setPackagingUnitPrice(e.target.value)}
+                        />
+
+                        <Button onClick={handleAddPackaging} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {/* Packaging List */}
+                      {packagingItems.length > 0 && (
+                        <div className="space-y-2">
+                          {packagingItems.map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                              <span className="font-medium">{item.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {item.quantity} {item.unitOfMeasure} × ${item.unitPrice}
+                              </span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleRemovePackaging(index)}
+                              >
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
                           ))}
