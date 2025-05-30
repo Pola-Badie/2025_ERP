@@ -2255,6 +2255,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get production order history with batch numbers
+  app.get("/api/orders/production-history", async (req: Request, res: Response) => {
+    try {
+      // Query production orders from database
+      const productionOrders = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.orderType, 'production'))
+        .orderBy(desc(orders.createdAt));
+
+      // Format orders with proper batch numbers and processing data
+      const formattedHistory = productionOrders.map(order => {
+        // Parse materials and packaging data
+        const materials = order.materials ? JSON.parse(order.materials) : [];
+        const packaging = order.packaging ? JSON.parse(order.packaging) : [];
+        
+        return {
+          id: order.id,
+          orderNumber: order.orderNumber || order.batchNumber,
+          batchNumber: order.batchNumber,
+          type: order.orderType,
+          customerName: order.customerName,
+          customerCompany: order.customerName, // Using customerName as company for now
+          targetProduct: order.finalProduct,
+          orderDate: order.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+          completionDate: order.updatedAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+          status: order.status === 'completed' ? 'completed' : order.status === 'pending' ? 'in-progress' : order.status,
+          totalCost: parseFloat(order.totalCost || '0'),
+          revenue: parseFloat(order.totalCost || '0') * 1.4, // Estimated revenue (40% markup)
+          profit: parseFloat(order.totalCost || '0') * 0.4, // Estimated profit (40% of cost)
+          rawMaterials: materials.map((m: any) => m.name).filter(Boolean),
+          additionalCosts: {
+            transportation: parseFloat(order.transportationCost || '0'),
+            labor: parseFloat(order.totalCost || '0') * 0.15, // Estimated 15% for labor
+            equipment: parseFloat(order.totalCost || '0') * 0.10, // Estimated 10% for equipment
+            qualityControl: parseFloat(order.totalCost || '0') * 0.05, // Estimated 5% for QC
+            storage: parseFloat(order.totalCost || '0') * 0.03 // Estimated 3% for storage
+          }
+        };
+      });
+
+      res.json(formattedHistory);
+    } catch (error) {
+      console.error("Error fetching production order history:", error);
+      res.status(500).json({ message: "Failed to fetch production order history" });
+    }
+  });
+
   // Generate sales report
   app.get("/api/reports/sales", async (req: Request, res: Response) => {
     try {
@@ -2601,8 +2649,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (storageError) {
         console.error("Error fetching orders from storage:", storageError);
 
-        // Use real order history data from OrdersHistory page
-        const realOrderHistory = [...generatedOrdersStorage,
+        // Enhanced chemical orders with real pharmaceutical compounds
+        const mockOrders = [...generatedOrdersStorage,
           {
             id: 1,
             orderType: 'production',
@@ -2832,8 +2880,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         ];
 
-        console.log("Returning real order history data");
-        res.json(realOrderHistory);
+        console.log("Returning mock chemical orders data");
+        res.json(mockOrders);
       }
     } catch (error) {
       console.error("Error in orders endpoint:", error);
