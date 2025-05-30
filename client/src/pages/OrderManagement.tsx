@@ -311,15 +311,38 @@ const OrderManagement = () => {
     return () => clearTimeout(timer);
   }, [hasGeneratedInitialOrders, refetchOrders]);
 
-  // Filter customers based on search term
-  const filteredCustomers = customers ? customers.filter((customer: any) => {
-    const term = customerSearchTerm.toLowerCase();
-    return (
-      customer.name?.toLowerCase().includes(term) ||
-      customer.company?.toLowerCase().includes(term) ||
-      customer.sector?.toLowerCase().includes(term)
-    );
-  }) : [];
+  // Filter customers based on search term and enrich with order history
+  const filteredCustomers = React.useMemo(() => {
+    if (!customers) return [];
+    
+    return customers.filter((customer: any) => {
+      const term = customerSearchTerm.toLowerCase();
+      return (
+        customer.name?.toLowerCase().includes(term) ||
+        customer.company?.toLowerCase().includes(term) ||
+        customer.sector?.toLowerCase().includes(term)
+      );
+    }).map((customer: any) => {
+      // Find recent orders for this customer
+      const customerOrders = allOrders?.filter((order: any) => 
+        order.customerName === customer.name || 
+        order.customerId === customer.id
+      ) || [];
+      
+      // Get the most recent order
+      const recentOrder = customerOrders.sort((a: any, b: any) => 
+        new Date(b.createdAt || b.orderDate).getTime() - new Date(a.createdAt || a.orderDate).getTime()
+      )[0];
+      
+      return {
+        ...customer,
+        orderCount: customerOrders.length,
+        lastOrderDate: recentOrder?.createdAt || recentOrder?.orderDate,
+        lastOrderProduct: recentOrder?.finalProduct || recentOrder?.targetProduct,
+        lastOrderValue: recentOrder?.totalCost || recentOrder?.totalAmount
+      };
+    });
+  }, [customers, customerSearchTerm, allOrders]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'create' | 'refining');
