@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'wouter';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { 
@@ -101,6 +102,7 @@ import AccountingPeriods from '@/components/accounting/AccountingPeriods';
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isNewExpenseOpen, setIsNewExpenseOpen] = useState(false);
   const [isExpenseSettingsOpen, setIsExpenseSettingsOpen] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
@@ -1210,7 +1212,7 @@ const Accounting: React.FC = () => {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.location.href = '/payroll'}
+                    onClick={() => setLocation('/payroll')}
                   >
                     <Plus className="h-4 w-4 mr-2" /> 
                     Add Employee
