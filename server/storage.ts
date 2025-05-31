@@ -20,7 +20,54 @@ import {
   quotationItems, type QuotationItem, type InsertQuotationItem,
   orders, type Order, type InsertOrder,
   orderItems, type OrderItem, type InsertOrderItem,
-  orderFees, type OrderFee, type InsertOrderFee
+  orderFees, type OrderFee, type InsertOrderFee,
+  // New pharmaceutical tables
+  batches, type Batch, type InsertBatch,
+  productFormulations, type ProductFormulation, type InsertProductFormulation,
+  productSafety, type ProductSafety, type InsertProductSafety,
+  qualityTests, type QualityTest, type InsertQualityTest,
+  productionOrders, type ProductionOrder, type InsertProductionOrder,
+  productionMaterials, type ProductionMaterial,
+  productLabels, type ProductLabel, type InsertProductLabel,
+  regulatorySubmissions, type RegulatorySubmission, type InsertRegulatorySubmission,
+  inventoryAdjustments, type InventoryAdjustment, type InsertInventoryAdjustment,
+  warehouses, type Warehouse, type InsertWarehouse,
+  warehouseLocations, type WarehouseLocation, type InsertWarehouseLocation,
+  stockMovements, type StockMovement, type InsertStockMovement,
+  // Financial tables
+  accounts, type Account, type InsertAccount,
+  journalEntries, type JournalEntry, type InsertJournalEntry,
+  journalLines, type JournalLine, type InsertJournalLine,
+  financialPeriods, type FinancialPeriod, type InsertFinancialPeriod,
+  accountingPeriods, type AccountingPeriod, type InsertAccountingPeriod,
+  customerPayments, type CustomerPayment, type InsertCustomerPayment,
+  paymentAllocations, type PaymentAllocation, type InsertPaymentAllocation,
+  financialReports, type FinancialReport, type InsertFinancialReport,
+  accountsReceivable, type AccountsReceivable, type InsertAccountsReceivable,
+  accountsPayable, type AccountsPayable, type InsertAccountsPayable,
+  taxRates, type TaxRate, type InsertTaxRate,
+  currencies, type Currency, type InsertCurrency,
+  bankAccounts, type BankAccount, type InsertBankAccount,
+  budgets, type Budget, type InsertBudget,
+  budgetCategories, type BudgetCategory,
+  assets, type Asset, type InsertAsset,
+  maintenanceRecords, type MaintenanceRecord,
+  // HR tables
+  departments, type Department, type InsertDepartment,
+  employeeProfiles, type EmployeeProfile, type InsertEmployeeProfile,
+  // Document management
+  documentTypes, type DocumentType,
+  documents, type Document, type InsertDocument,
+  // Notifications
+  notificationTemplates, type NotificationTemplate,
+  notifications, type Notification, type InsertNotification,
+  // Reports and analytics
+  reportDefinitions, type ReportDefinition,
+  reportInstances, type ReportInstance,
+  // Integration
+  integrationConfigs, type IntegrationConfig,
+  syncLogs, type SyncLog,
+  auditLogs, type AuditLog
 } from "@shared/schema";
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -141,6 +188,189 @@ export interface IStorage {
   deleteOrder(id: number): Promise<boolean>;
   deleteOrderItems(orderId: number): Promise<boolean>;
   deleteOrderFees(orderId: number): Promise<boolean>;
+
+  // Batch Management methods
+  getBatches(filters?: { productId?: number; status?: string; supplierId?: number }): Promise<Batch[]>;
+  getBatch(id: number): Promise<Batch | undefined>;
+  getBatchByNumber(batchNumber: string): Promise<Batch | undefined>;
+  getBatchesByProduct(productId: number): Promise<Batch[]>;
+  getBatchesByStatus(status: string): Promise<Batch[]>;
+  getExpiringBatches(days: number): Promise<Batch[]>;
+  createBatch(batch: InsertBatch): Promise<Batch>;
+  updateBatch(id: number, data: Partial<Batch>): Promise<Batch | undefined>;
+  deleteBatch(id: number): Promise<boolean>;
+
+  // Product Formulation methods
+  getProductFormulations(productId: number): Promise<ProductFormulation[]>;
+  getFormulation(id: number): Promise<ProductFormulation | undefined>;
+  createFormulation(formulation: InsertProductFormulation): Promise<ProductFormulation>;
+  updateFormulation(id: number, data: Partial<ProductFormulation>): Promise<ProductFormulation | undefined>;
+  deleteFormulation(id: number): Promise<boolean>;
+
+  // Product Safety methods
+  getProductSafety(productId: number): Promise<ProductSafety | undefined>;
+  createProductSafety(safety: InsertProductSafety): Promise<ProductSafety>;
+  updateProductSafety(productId: number, data: Partial<ProductSafety>): Promise<ProductSafety | undefined>;
+  deleteProductSafety(productId: number): Promise<boolean>;
+
+  // Quality Control methods
+  getQualityTests(batchId?: number): Promise<QualityTest[]>;
+  getQualityTest(id: number): Promise<QualityTest | undefined>;
+  getQualityTestsByBatch(batchId: number): Promise<QualityTest[]>;
+  createQualityTest(test: InsertQualityTest): Promise<QualityTest>;
+  updateQualityTest(id: number, data: Partial<QualityTest>): Promise<QualityTest | undefined>;
+  deleteQualityTest(id: number): Promise<boolean>;
+
+  // Production Order methods
+  getProductionOrders(filters?: { status?: string; productId?: number }): Promise<ProductionOrder[]>;
+  getProductionOrder(id: number): Promise<ProductionOrder | undefined>;
+  getProductionMaterials(productionOrderId: number): Promise<ProductionMaterial[]>;
+  createProductionOrder(order: InsertProductionOrder): Promise<ProductionOrder>;
+  updateProductionOrder(id: number, data: Partial<ProductionOrder>): Promise<ProductionOrder | undefined>;
+  deleteProductionOrder(id: number): Promise<boolean>;
+
+  // Product Label methods
+  getProductLabels(productId?: number, batchId?: number): Promise<ProductLabel[]>;
+  getProductLabel(id: number): Promise<ProductLabel | undefined>;
+  createProductLabel(label: InsertProductLabel): Promise<ProductLabel>;
+  updateProductLabel(id: number, data: Partial<ProductLabel>): Promise<ProductLabel | undefined>;
+  deleteProductLabel(id: number): Promise<boolean>;
+
+  // Regulatory Submission methods
+  getRegulatorySubmissions(productId?: number, status?: string): Promise<RegulatorySubmission[]>;
+  getRegulatorySubmission(id: number): Promise<RegulatorySubmission | undefined>;
+  createRegulatorySubmission(submission: InsertRegulatorySubmission): Promise<RegulatorySubmission>;
+  updateRegulatorySubmission(id: number, data: Partial<RegulatorySubmission>): Promise<RegulatorySubmission | undefined>;
+  deleteRegulatorySubmission(id: number): Promise<boolean>;
+
+  // Inventory Adjustment methods
+  getInventoryAdjustments(filters?: { productId?: number; dateFrom?: string; dateTo?: string }): Promise<InventoryAdjustment[]>;
+  getInventoryAdjustment(id: number): Promise<InventoryAdjustment | undefined>;
+  createInventoryAdjustment(adjustment: InsertInventoryAdjustment): Promise<InventoryAdjustment>;
+  updateInventoryAdjustment(id: number, data: Partial<InventoryAdjustment>): Promise<InventoryAdjustment | undefined>;
+  deleteInventoryAdjustment(id: number): Promise<boolean>;
+
+  // Warehouse Management methods
+  getWarehouses(): Promise<Warehouse[]>;
+  getWarehouse(id: number): Promise<Warehouse | undefined>;
+  getWarehouseLocations(warehouseId?: number): Promise<WarehouseLocation[]>;
+  getWarehouseLocation(id: number): Promise<WarehouseLocation | undefined>;
+  createWarehouse(warehouse: InsertWarehouse): Promise<Warehouse>;
+  createWarehouseLocation(location: InsertWarehouseLocation): Promise<WarehouseLocation>;
+  updateWarehouse(id: number, data: Partial<Warehouse>): Promise<Warehouse | undefined>;
+  updateWarehouseLocation(id: number, data: Partial<WarehouseLocation>): Promise<WarehouseLocation | undefined>;
+  deleteWarehouse(id: number): Promise<boolean>;
+  deleteWarehouseLocation(id: number): Promise<boolean>;
+
+  // Stock Movement methods
+  getStockMovements(filters?: { productId?: number; dateFrom?: string; dateTo?: string }): Promise<StockMovement[]>;
+  getStockMovement(id: number): Promise<StockMovement | undefined>;
+  createStockMovement(movement: InsertStockMovement): Promise<StockMovement>;
+  updateStockMovement(id: number, data: Partial<StockMovement>): Promise<StockMovement | undefined>;
+  deleteStockMovement(id: number): Promise<boolean>;
+
+  // Financial - Account methods
+  getAccounts(type?: string): Promise<Account[]>;
+  getAccount(id: number): Promise<Account | undefined>;
+  getAccountByCode(code: string): Promise<Account | undefined>;
+  createAccount(account: InsertAccount): Promise<Account>;
+  updateAccount(id: number, data: Partial<Account>): Promise<Account | undefined>;
+  deleteAccount(id: number): Promise<boolean>;
+
+  // Journal Entry methods
+  getJournalEntries(filters?: { dateFrom?: string; dateTo?: string; status?: string }): Promise<JournalEntry[]>;
+  getJournalEntry(id: number): Promise<JournalEntry | undefined>;
+  getJournalLines(journalId: number): Promise<JournalLine[]>;
+  createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry>;
+  createJournalLine(line: InsertJournalLine): Promise<JournalLine>;
+  updateJournalEntry(id: number, data: Partial<JournalEntry>): Promise<JournalEntry | undefined>;
+  deleteJournalEntry(id: number): Promise<boolean>;
+
+  // Financial Period methods
+  getFinancialPeriods(): Promise<FinancialPeriod[]>;
+  getFinancialPeriod(id: number): Promise<FinancialPeriod | undefined>;
+  getCurrentFinancialPeriod(): Promise<FinancialPeriod | undefined>;
+  createFinancialPeriod(period: InsertFinancialPeriod): Promise<FinancialPeriod>;
+  updateFinancialPeriod(id: number, data: Partial<FinancialPeriod>): Promise<FinancialPeriod | undefined>;
+  deleteFinancialPeriod(id: number): Promise<boolean>;
+
+  // Customer Payment methods
+  getCustomerPayments(filters?: { customerId?: number; dateFrom?: string; dateTo?: string }): Promise<CustomerPayment[]>;
+  getCustomerPayment(id: number): Promise<CustomerPayment | undefined>;
+  getPaymentAllocations(paymentId: number): Promise<PaymentAllocation[]>;
+  createCustomerPayment(payment: InsertCustomerPayment): Promise<CustomerPayment>;
+  createPaymentAllocation(allocation: InsertPaymentAllocation): Promise<PaymentAllocation>;
+  updateCustomerPayment(id: number, data: Partial<CustomerPayment>): Promise<CustomerPayment | undefined>;
+  deleteCustomerPayment(id: number): Promise<boolean>;
+
+  // Tax Rate methods
+  getTaxRates(active?: boolean): Promise<TaxRate[]>;
+  getTaxRate(id: number): Promise<TaxRate | undefined>;
+  createTaxRate(taxRate: InsertTaxRate): Promise<TaxRate>;
+  updateTaxRate(id: number, data: Partial<TaxRate>): Promise<TaxRate | undefined>;
+  deleteTaxRate(id: number): Promise<boolean>;
+
+  // Currency methods
+  getCurrencies(active?: boolean): Promise<Currency[]>;
+  getCurrency(id: number): Promise<Currency | undefined>;
+  getBaseCurrency(): Promise<Currency | undefined>;
+  createCurrency(currency: InsertCurrency): Promise<Currency>;
+  updateCurrency(id: number, data: Partial<Currency>): Promise<Currency | undefined>;
+  deleteCurrency(id: number): Promise<boolean>;
+
+  // Bank Account methods
+  getBankAccounts(active?: boolean): Promise<BankAccount[]>;
+  getBankAccount(id: number): Promise<BankAccount | undefined>;
+  createBankAccount(account: InsertBankAccount): Promise<BankAccount>;
+  updateBankAccount(id: number, data: Partial<BankAccount>): Promise<BankAccount | undefined>;
+  deleteBankAccount(id: number): Promise<boolean>;
+
+  // Budget methods
+  getBudgets(year?: number): Promise<Budget[]>;
+  getBudget(id: number): Promise<Budget | undefined>;
+  getBudgetCategories(budgetId: number): Promise<BudgetCategory[]>;
+  createBudget(budget: InsertBudget): Promise<Budget>;
+  updateBudget(id: number, data: Partial<Budget>): Promise<Budget | undefined>;
+  deleteBudget(id: number): Promise<boolean>;
+
+  // Asset methods
+  getAssets(category?: string, status?: string): Promise<Asset[]>;
+  getAsset(id: number): Promise<Asset | undefined>;
+  getMaintenanceRecords(assetId: number): Promise<MaintenanceRecord[]>;
+  createAsset(asset: InsertAsset): Promise<Asset>;
+  updateAsset(id: number, data: Partial<Asset>): Promise<Asset | undefined>;
+  deleteAsset(id: number): Promise<boolean>;
+
+  // Department methods
+  getDepartments(active?: boolean): Promise<Department[]>;
+  getDepartment(id: number): Promise<Department | undefined>;
+  createDepartment(department: InsertDepartment): Promise<Department>;
+  updateDepartment(id: number, data: Partial<Department>): Promise<Department | undefined>;
+  deleteDepartment(id: number): Promise<boolean>;
+
+  // Employee Profile methods
+  getEmployeeProfiles(departmentId?: number): Promise<EmployeeProfile[]>;
+  getEmployeeProfile(id: number): Promise<EmployeeProfile | undefined>;
+  getEmployeeByUserId(userId: number): Promise<EmployeeProfile | undefined>;
+  createEmployeeProfile(profile: InsertEmployeeProfile): Promise<EmployeeProfile>;
+  updateEmployeeProfile(id: number, data: Partial<EmployeeProfile>): Promise<EmployeeProfile | undefined>;
+  deleteEmployeeProfile(id: number): Promise<boolean>;
+
+  // Document methods
+  getDocuments(entityType?: string, entityId?: number): Promise<Document[]>;
+  getDocument(id: number): Promise<Document | undefined>;
+  getDocumentTypes(): Promise<DocumentType[]>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, data: Partial<Document>): Promise<Document | undefined>;
+  deleteDocument(id: number): Promise<boolean>;
+
+  // Notification methods
+  getNotifications(userId: number, unreadOnly?: boolean): Promise<Notification[]>;
+  getNotification(id: number): Promise<Notification | undefined>;
+  getNotificationTemplates(): Promise<NotificationTemplate[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: number): Promise<boolean>;
+  deleteNotification(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1049,6 +1279,932 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(suppliers)
       .where(eq(suppliers.id, id))
       .returning();
+    return result.length > 0;
+  }
+
+  // Batch Management implementations
+  async getBatches(filters?: { productId?: number; status?: string; supplierId?: number }): Promise<Batch[]> {
+    let query = db.select().from(batches);
+    
+    if (filters?.productId) {
+      query = query.where(eq(batches.productId, filters.productId));
+    }
+    if (filters?.status) {
+      query = query.where(eq(batches.status, filters.status));
+    }
+    if (filters?.supplierId) {
+      query = query.where(eq(batches.supplierId, filters.supplierId));
+    }
+    
+    return await query.orderBy(desc(batches.createdAt));
+  }
+
+  async getBatch(id: number): Promise<Batch | undefined> {
+    const [batch] = await db.select().from(batches).where(eq(batches.id, id));
+    return batch;
+  }
+
+  async getBatchByNumber(batchNumber: string): Promise<Batch | undefined> {
+    const [batch] = await db.select().from(batches).where(eq(batches.batchNumber, batchNumber));
+    return batch;
+  }
+
+  async getBatchesByProduct(productId: number): Promise<Batch[]> {
+    return await db.select().from(batches).where(eq(batches.productId, productId));
+  }
+
+  async getBatchesByStatus(status: string): Promise<Batch[]> {
+    return await db.select().from(batches).where(eq(batches.status, status));
+  }
+
+  async getExpiringBatches(days: number): Promise<Batch[]> {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+    return await db.select().from(batches).where(lte(batches.expiryDate, futureDate.toISOString().split('T')[0]));
+  }
+
+  async createBatch(batch: InsertBatch): Promise<Batch> {
+    const [newBatch] = await db.insert(batches).values(batch).returning();
+    return newBatch;
+  }
+
+  async updateBatch(id: number, data: Partial<Batch>): Promise<Batch | undefined> {
+    const [updated] = await db.update(batches)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(batches.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBatch(id: number): Promise<boolean> {
+    const result = await db.delete(batches).where(eq(batches.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Product Formulation implementations
+  async getProductFormulations(productId: number): Promise<ProductFormulation[]> {
+    return await db.select().from(productFormulations).where(eq(productFormulations.productId, productId));
+  }
+
+  async getFormulation(id: number): Promise<ProductFormulation | undefined> {
+    const [formulation] = await db.select().from(productFormulations).where(eq(productFormulations.id, id));
+    return formulation;
+  }
+
+  async createFormulation(formulation: InsertProductFormulation): Promise<ProductFormulation> {
+    const [newFormulation] = await db.insert(productFormulations).values(formulation).returning();
+    return newFormulation;
+  }
+
+  async updateFormulation(id: number, data: Partial<ProductFormulation>): Promise<ProductFormulation | undefined> {
+    const [updated] = await db.update(productFormulations)
+      .set(data)
+      .where(eq(productFormulations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFormulation(id: number): Promise<boolean> {
+    const result = await db.delete(productFormulations).where(eq(productFormulations.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Product Safety implementations
+  async getProductSafety(productId: number): Promise<ProductSafety | undefined> {
+    const [safety] = await db.select().from(productSafety).where(eq(productSafety.productId, productId));
+    return safety;
+  }
+
+  async createProductSafety(safety: InsertProductSafety): Promise<ProductSafety> {
+    const [newSafety] = await db.insert(productSafety).values(safety).returning();
+    return newSafety;
+  }
+
+  async updateProductSafety(productId: number, data: Partial<ProductSafety>): Promise<ProductSafety | undefined> {
+    const [updated] = await db.update(productSafety)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(productSafety.productId, productId))
+      .returning();
+    return updated;
+  }
+
+  async deleteProductSafety(productId: number): Promise<boolean> {
+    const result = await db.delete(productSafety).where(eq(productSafety.productId, productId)).returning();
+    return result.length > 0;
+  }
+
+  // Quality Control implementations
+  async getQualityTests(batchId?: number): Promise<QualityTest[]> {
+    if (batchId) {
+      return await db.select().from(qualityTests).where(eq(qualityTests.batchId, batchId));
+    }
+    return await db.select().from(qualityTests).orderBy(desc(qualityTests.testDate));
+  }
+
+  async getQualityTest(id: number): Promise<QualityTest | undefined> {
+    const [test] = await db.select().from(qualityTests).where(eq(qualityTests.id, id));
+    return test;
+  }
+
+  async getQualityTestsByBatch(batchId: number): Promise<QualityTest[]> {
+    return await db.select().from(qualityTests).where(eq(qualityTests.batchId, batchId));
+  }
+
+  async createQualityTest(test: InsertQualityTest): Promise<QualityTest> {
+    const [newTest] = await db.insert(qualityTests).values(test).returning();
+    return newTest;
+  }
+
+  async updateQualityTest(id: number, data: Partial<QualityTest>): Promise<QualityTest | undefined> {
+    const [updated] = await db.update(qualityTests)
+      .set(data)
+      .where(eq(qualityTests.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteQualityTest(id: number): Promise<boolean> {
+    const result = await db.delete(qualityTests).where(eq(qualityTests.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Production Order implementations
+  async getProductionOrders(filters?: { status?: string; productId?: number }): Promise<ProductionOrder[]> {
+    let query = db.select().from(productionOrders);
+    
+    if (filters?.status) {
+      query = query.where(eq(productionOrders.status, filters.status));
+    }
+    if (filters?.productId) {
+      query = query.where(eq(productionOrders.productId, filters.productId));
+    }
+    
+    return await query.orderBy(desc(productionOrders.createdAt));
+  }
+
+  async getProductionOrder(id: number): Promise<ProductionOrder | undefined> {
+    const [order] = await db.select().from(productionOrders).where(eq(productionOrders.id, id));
+    return order;
+  }
+
+  async getProductionMaterials(productionOrderId: number): Promise<ProductionMaterial[]> {
+    return await db.select().from(productionMaterials).where(eq(productionMaterials.productionOrderId, productionOrderId));
+  }
+
+  async createProductionOrder(order: InsertProductionOrder): Promise<ProductionOrder> {
+    const [newOrder] = await db.insert(productionOrders).values(order).returning();
+    return newOrder;
+  }
+
+  async updateProductionOrder(id: number, data: Partial<ProductionOrder>): Promise<ProductionOrder | undefined> {
+    const [updated] = await db.update(productionOrders)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(productionOrders.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProductionOrder(id: number): Promise<boolean> {
+    const result = await db.delete(productionOrders).where(eq(productionOrders.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Product Label implementations
+  async getProductLabels(productId?: number, batchId?: number): Promise<ProductLabel[]> {
+    let query = db.select().from(productLabels);
+    
+    if (productId) {
+      query = query.where(eq(productLabels.productId, productId));
+    }
+    if (batchId) {
+      query = query.where(eq(productLabels.batchId, batchId));
+    }
+    
+    return await query.orderBy(desc(productLabels.createdAt));
+  }
+
+  async getProductLabel(id: number): Promise<ProductLabel | undefined> {
+    const [label] = await db.select().from(productLabels).where(eq(productLabels.id, id));
+    return label;
+  }
+
+  async createProductLabel(label: InsertProductLabel): Promise<ProductLabel> {
+    const [newLabel] = await db.insert(productLabels).values(label).returning();
+    return newLabel;
+  }
+
+  async updateProductLabel(id: number, data: Partial<ProductLabel>): Promise<ProductLabel | undefined> {
+    const [updated] = await db.update(productLabels)
+      .set(data)
+      .where(eq(productLabels.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProductLabel(id: number): Promise<boolean> {
+    const result = await db.delete(productLabels).where(eq(productLabels.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Regulatory Submission implementations
+  async getRegulatorySubmissions(productId?: number, status?: string): Promise<RegulatorySubmission[]> {
+    let query = db.select().from(regulatorySubmissions);
+    
+    if (productId) {
+      query = query.where(eq(regulatorySubmissions.productId, productId));
+    }
+    if (status) {
+      query = query.where(eq(regulatorySubmissions.status, status));
+    }
+    
+    return await query.orderBy(desc(regulatorySubmissions.submissionDate));
+  }
+
+  async getRegulatorySubmission(id: number): Promise<RegulatorySubmission | undefined> {
+    const [submission] = await db.select().from(regulatorySubmissions).where(eq(regulatorySubmissions.id, id));
+    return submission;
+  }
+
+  async createRegulatorySubmission(submission: InsertRegulatorySubmission): Promise<RegulatorySubmission> {
+    const [newSubmission] = await db.insert(regulatorySubmissions).values(submission).returning();
+    return newSubmission;
+  }
+
+  async updateRegulatorySubmission(id: number, data: Partial<RegulatorySubmission>): Promise<RegulatorySubmission | undefined> {
+    const [updated] = await db.update(regulatorySubmissions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(regulatorySubmissions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteRegulatorySubmission(id: number): Promise<boolean> {
+    const result = await db.delete(regulatorySubmissions).where(eq(regulatorySubmissions.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Inventory Adjustment implementations
+  async getInventoryAdjustments(filters?: { productId?: number; dateFrom?: string; dateTo?: string }): Promise<InventoryAdjustment[]> {
+    let query = db.select().from(inventoryAdjustments);
+    
+    if (filters?.productId) {
+      query = query.where(eq(inventoryAdjustments.productId, filters.productId));
+    }
+    if (filters?.dateFrom) {
+      query = query.where(gte(inventoryAdjustments.adjustmentDate, new Date(filters.dateFrom)));
+    }
+    if (filters?.dateTo) {
+      query = query.where(lte(inventoryAdjustments.adjustmentDate, new Date(filters.dateTo)));
+    }
+    
+    return await query.orderBy(desc(inventoryAdjustments.adjustmentDate));
+  }
+
+  async getInventoryAdjustment(id: number): Promise<InventoryAdjustment | undefined> {
+    const [adjustment] = await db.select().from(inventoryAdjustments).where(eq(inventoryAdjustments.id, id));
+    return adjustment;
+  }
+
+  async createInventoryAdjustment(adjustment: InsertInventoryAdjustment): Promise<InventoryAdjustment> {
+    const [newAdjustment] = await db.insert(inventoryAdjustments).values(adjustment).returning();
+    return newAdjustment;
+  }
+
+  async updateInventoryAdjustment(id: number, data: Partial<InventoryAdjustment>): Promise<InventoryAdjustment | undefined> {
+    const [updated] = await db.update(inventoryAdjustments)
+      .set(data)
+      .where(eq(inventoryAdjustments.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteInventoryAdjustment(id: number): Promise<boolean> {
+    const result = await db.delete(inventoryAdjustments).where(eq(inventoryAdjustments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Warehouse Management implementations
+  async getWarehouses(): Promise<Warehouse[]> {
+    return await db.select().from(warehouses).where(eq(warehouses.isActive, true));
+  }
+
+  async getWarehouse(id: number): Promise<Warehouse | undefined> {
+    const [warehouse] = await db.select().from(warehouses).where(eq(warehouses.id, id));
+    return warehouse;
+  }
+
+  async getWarehouseLocations(warehouseId?: number): Promise<WarehouseLocation[]> {
+    if (warehouseId) {
+      return await db.select().from(warehouseLocations)
+        .where(and(eq(warehouseLocations.warehouseId, warehouseId), eq(warehouseLocations.isActive, true)));
+    }
+    return await db.select().from(warehouseLocations).where(eq(warehouseLocations.isActive, true));
+  }
+
+  async getWarehouseLocation(id: number): Promise<WarehouseLocation | undefined> {
+    const [location] = await db.select().from(warehouseLocations).where(eq(warehouseLocations.id, id));
+    return location;
+  }
+
+  async createWarehouse(warehouse: InsertWarehouse): Promise<Warehouse> {
+    const [newWarehouse] = await db.insert(warehouses).values(warehouse).returning();
+    return newWarehouse;
+  }
+
+  async createWarehouseLocation(location: InsertWarehouseLocation): Promise<WarehouseLocation> {
+    const [newLocation] = await db.insert(warehouseLocations).values(location).returning();
+    return newLocation;
+  }
+
+  async updateWarehouse(id: number, data: Partial<Warehouse>): Promise<Warehouse | undefined> {
+    const [updated] = await db.update(warehouses)
+      .set(data)
+      .where(eq(warehouses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateWarehouseLocation(id: number, data: Partial<WarehouseLocation>): Promise<WarehouseLocation | undefined> {
+    const [updated] = await db.update(warehouseLocations)
+      .set(data)
+      .where(eq(warehouseLocations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteWarehouse(id: number): Promise<boolean> {
+    const [updated] = await db.update(warehouses)
+      .set({ isActive: false })
+      .where(eq(warehouses.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  async deleteWarehouseLocation(id: number): Promise<boolean> {
+    const [updated] = await db.update(warehouseLocations)
+      .set({ isActive: false })
+      .where(eq(warehouseLocations.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Stock Movement implementations
+  async getStockMovements(filters?: { productId?: number; dateFrom?: string; dateTo?: string }): Promise<StockMovement[]> {
+    let query = db.select().from(stockMovements);
+    
+    if (filters?.productId) {
+      query = query.where(eq(stockMovements.productId, filters.productId));
+    }
+    if (filters?.dateFrom) {
+      query = query.where(gte(stockMovements.movementDate, new Date(filters.dateFrom)));
+    }
+    if (filters?.dateTo) {
+      query = query.where(lte(stockMovements.movementDate, new Date(filters.dateTo)));
+    }
+    
+    return await query.orderBy(desc(stockMovements.movementDate));
+  }
+
+  async getStockMovement(id: number): Promise<StockMovement | undefined> {
+    const [movement] = await db.select().from(stockMovements).where(eq(stockMovements.id, id));
+    return movement;
+  }
+
+  async createStockMovement(movement: InsertStockMovement): Promise<StockMovement> {
+    const [newMovement] = await db.insert(stockMovements).values(movement).returning();
+    return newMovement;
+  }
+
+  async updateStockMovement(id: number, data: Partial<StockMovement>): Promise<StockMovement | undefined> {
+    const [updated] = await db.update(stockMovements)
+      .set(data)
+      .where(eq(stockMovements.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteStockMovement(id: number): Promise<boolean> {
+    const result = await db.delete(stockMovements).where(eq(stockMovements.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Financial - Account implementations
+  async getAccounts(type?: string): Promise<Account[]> {
+    if (type) {
+      return await db.select().from(accounts).where(and(eq(accounts.type, type), eq(accounts.isActive, true)));
+    }
+    return await db.select().from(accounts).where(eq(accounts.isActive, true));
+  }
+
+  async getAccount(id: number): Promise<Account | undefined> {
+    const [account] = await db.select().from(accounts).where(eq(accounts.id, id));
+    return account;
+  }
+
+  async getAccountByCode(code: string): Promise<Account | undefined> {
+    const [account] = await db.select().from(accounts).where(eq(accounts.code, code));
+    return account;
+  }
+
+  async createAccount(account: InsertAccount): Promise<Account> {
+    const [newAccount] = await db.insert(accounts).values(account).returning();
+    return newAccount;
+  }
+
+  async updateAccount(id: number, data: Partial<Account>): Promise<Account | undefined> {
+    const [updated] = await db.update(accounts)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(accounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAccount(id: number): Promise<boolean> {
+    const [updated] = await db.update(accounts)
+      .set({ isActive: false })
+      .where(eq(accounts.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Journal Entry implementations
+  async getJournalEntries(filters?: { dateFrom?: string; dateTo?: string; status?: string }): Promise<JournalEntry[]> {
+    let query = db.select().from(journalEntries);
+    
+    if (filters?.dateFrom) {
+      query = query.where(gte(journalEntries.date, filters.dateFrom));
+    }
+    if (filters?.dateTo) {
+      query = query.where(lte(journalEntries.date, filters.dateTo));
+    }
+    if (filters?.status) {
+      query = query.where(eq(journalEntries.status, filters.status));
+    }
+    
+    return await query.orderBy(desc(journalEntries.date));
+  }
+
+  async getJournalEntry(id: number): Promise<JournalEntry | undefined> {
+    const [entry] = await db.select().from(journalEntries).where(eq(journalEntries.id, id));
+    return entry;
+  }
+
+  async getJournalLines(journalId: number): Promise<JournalLine[]> {
+    return await db.select().from(journalLines)
+      .where(eq(journalLines.journalId, journalId))
+      .orderBy(asc(journalLines.position));
+  }
+
+  async createJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
+    const [newEntry] = await db.insert(journalEntries).values(entry).returning();
+    return newEntry;
+  }
+
+  async createJournalLine(line: InsertJournalLine): Promise<JournalLine> {
+    const [newLine] = await db.insert(journalLines).values(line).returning();
+    return newLine;
+  }
+
+  async updateJournalEntry(id: number, data: Partial<JournalEntry>): Promise<JournalEntry | undefined> {
+    const [updated] = await db.update(journalEntries)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(journalEntries.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteJournalEntry(id: number): Promise<boolean> {
+    const result = await db.delete(journalEntries).where(eq(journalEntries.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Financial Period implementations
+  async getFinancialPeriods(): Promise<FinancialPeriod[]> {
+    return await db.select().from(financialPeriods).orderBy(desc(financialPeriods.startDate));
+  }
+
+  async getFinancialPeriod(id: number): Promise<FinancialPeriod | undefined> {
+    const [period] = await db.select().from(financialPeriods).where(eq(financialPeriods.id, id));
+    return period;
+  }
+
+  async getCurrentFinancialPeriod(): Promise<FinancialPeriod | undefined> {
+    const today = new Date().toISOString().split('T')[0];
+    const [period] = await db.select().from(financialPeriods)
+      .where(and(
+        lte(financialPeriods.startDate, today),
+        gte(financialPeriods.endDate, today),
+        eq(financialPeriods.status, 'open')
+      ));
+    return period;
+  }
+
+  async createFinancialPeriod(period: InsertFinancialPeriod): Promise<FinancialPeriod> {
+    const [newPeriod] = await db.insert(financialPeriods).values(period).returning();
+    return newPeriod;
+  }
+
+  async updateFinancialPeriod(id: number, data: Partial<FinancialPeriod>): Promise<FinancialPeriod | undefined> {
+    const [updated] = await db.update(financialPeriods)
+      .set(data)
+      .where(eq(financialPeriods.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFinancialPeriod(id: number): Promise<boolean> {
+    const result = await db.delete(financialPeriods).where(eq(financialPeriods.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Customer Payment implementations
+  async getCustomerPayments(filters?: { customerId?: number; dateFrom?: string; dateTo?: string }): Promise<CustomerPayment[]> {
+    let query = db.select().from(customerPayments);
+    
+    if (filters?.customerId) {
+      query = query.where(eq(customerPayments.customerId, filters.customerId));
+    }
+    if (filters?.dateFrom) {
+      query = query.where(gte(customerPayments.paymentDate, filters.dateFrom));
+    }
+    if (filters?.dateTo) {
+      query = query.where(lte(customerPayments.paymentDate, filters.dateTo));
+    }
+    
+    return await query.orderBy(desc(customerPayments.paymentDate));
+  }
+
+  async getCustomerPayment(id: number): Promise<CustomerPayment | undefined> {
+    const [payment] = await db.select().from(customerPayments).where(eq(customerPayments.id, id));
+    return payment;
+  }
+
+  async getPaymentAllocations(paymentId: number): Promise<PaymentAllocation[]> {
+    return await db.select().from(paymentAllocations).where(eq(paymentAllocations.paymentId, paymentId));
+  }
+
+  async createCustomerPayment(payment: InsertCustomerPayment): Promise<CustomerPayment> {
+    const [newPayment] = await db.insert(customerPayments).values(payment).returning();
+    return newPayment;
+  }
+
+  async createPaymentAllocation(allocation: InsertPaymentAllocation): Promise<PaymentAllocation> {
+    const [newAllocation] = await db.insert(paymentAllocations).values(allocation).returning();
+    return newAllocation;
+  }
+
+  async updateCustomerPayment(id: number, data: Partial<CustomerPayment>): Promise<CustomerPayment | undefined> {
+    const [updated] = await db.update(customerPayments)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(customerPayments.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCustomerPayment(id: number): Promise<boolean> {
+    const result = await db.delete(customerPayments).where(eq(customerPayments.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Tax Rate implementations
+  async getTaxRates(active?: boolean): Promise<TaxRate[]> {
+    if (active !== undefined) {
+      return await db.select().from(taxRates).where(eq(taxRates.isActive, active));
+    }
+    return await db.select().from(taxRates);
+  }
+
+  async getTaxRate(id: number): Promise<TaxRate | undefined> {
+    const [taxRate] = await db.select().from(taxRates).where(eq(taxRates.id, id));
+    return taxRate;
+  }
+
+  async createTaxRate(taxRate: InsertTaxRate): Promise<TaxRate> {
+    const [newTaxRate] = await db.insert(taxRates).values(taxRate).returning();
+    return newTaxRate;
+  }
+
+  async updateTaxRate(id: number, data: Partial<TaxRate>): Promise<TaxRate | undefined> {
+    const [updated] = await db.update(taxRates)
+      .set(data)
+      .where(eq(taxRates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTaxRate(id: number): Promise<boolean> {
+    const [updated] = await db.update(taxRates)
+      .set({ isActive: false })
+      .where(eq(taxRates.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Currency implementations
+  async getCurrencies(active?: boolean): Promise<Currency[]> {
+    if (active !== undefined) {
+      return await db.select().from(currencies).where(eq(currencies.isActive, active));
+    }
+    return await db.select().from(currencies);
+  }
+
+  async getCurrency(id: number): Promise<Currency | undefined> {
+    const [currency] = await db.select().from(currencies).where(eq(currencies.id, id));
+    return currency;
+  }
+
+  async getBaseCurrency(): Promise<Currency | undefined> {
+    const [currency] = await db.select().from(currencies)
+      .where(and(eq(currencies.isBaseCurrency, true), eq(currencies.isActive, true)));
+    return currency;
+  }
+
+  async createCurrency(currency: InsertCurrency): Promise<Currency> {
+    const [newCurrency] = await db.insert(currencies).values(currency).returning();
+    return newCurrency;
+  }
+
+  async updateCurrency(id: number, data: Partial<Currency>): Promise<Currency | undefined> {
+    const [updated] = await db.update(currencies)
+      .set({ ...data, lastUpdated: new Date() })
+      .where(eq(currencies.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCurrency(id: number): Promise<boolean> {
+    const [updated] = await db.update(currencies)
+      .set({ isActive: false })
+      .where(eq(currencies.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Bank Account implementations
+  async getBankAccounts(active?: boolean): Promise<BankAccount[]> {
+    if (active !== undefined) {
+      return await db.select().from(bankAccounts).where(eq(bankAccounts.isActive, active));
+    }
+    return await db.select().from(bankAccounts);
+  }
+
+  async getBankAccount(id: number): Promise<BankAccount | undefined> {
+    const [account] = await db.select().from(bankAccounts).where(eq(bankAccounts.id, id));
+    return account;
+  }
+
+  async createBankAccount(account: InsertBankAccount): Promise<BankAccount> {
+    const [newAccount] = await db.insert(bankAccounts).values(account).returning();
+    return newAccount;
+  }
+
+  async updateBankAccount(id: number, data: Partial<BankAccount>): Promise<BankAccount | undefined> {
+    const [updated] = await db.update(bankAccounts)
+      .set(data)
+      .where(eq(bankAccounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBankAccount(id: number): Promise<boolean> {
+    const [updated] = await db.update(bankAccounts)
+      .set({ isActive: false })
+      .where(eq(bankAccounts.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Budget implementations
+  async getBudgets(year?: number): Promise<Budget[]> {
+    if (year) {
+      return await db.select().from(budgets).where(eq(budgets.budgetYear, year));
+    }
+    return await db.select().from(budgets).orderBy(desc(budgets.budgetYear));
+  }
+
+  async getBudget(id: number): Promise<Budget | undefined> {
+    const [budget] = await db.select().from(budgets).where(eq(budgets.id, id));
+    return budget;
+  }
+
+  async getBudgetCategories(budgetId: number): Promise<BudgetCategory[]> {
+    return await db.select().from(budgetCategories).where(eq(budgetCategories.budgetId, budgetId));
+  }
+
+  async createBudget(budget: InsertBudget): Promise<Budget> {
+    const [newBudget] = await db.insert(budgets).values(budget).returning();
+    return newBudget;
+  }
+
+  async updateBudget(id: number, data: Partial<Budget>): Promise<Budget | undefined> {
+    const [updated] = await db.update(budgets)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(budgets.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBudget(id: number): Promise<boolean> {
+    const result = await db.delete(budgets).where(eq(budgets.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Asset implementations
+  async getAssets(category?: string, status?: string): Promise<Asset[]> {
+    let query = db.select().from(assets);
+    
+    if (category) {
+      query = query.where(eq(assets.category, category));
+    }
+    if (status) {
+      query = query.where(eq(assets.status, status));
+    }
+    
+    return await query.orderBy(desc(assets.createdAt));
+  }
+
+  async getAsset(id: number): Promise<Asset | undefined> {
+    const [asset] = await db.select().from(assets).where(eq(assets.id, id));
+    return asset;
+  }
+
+  async getMaintenanceRecords(assetId: number): Promise<MaintenanceRecord[]> {
+    return await db.select().from(maintenanceRecords)
+      .where(eq(maintenanceRecords.assetId, assetId))
+      .orderBy(desc(maintenanceRecords.performedDate));
+  }
+
+  async createAsset(asset: InsertAsset): Promise<Asset> {
+    const [newAsset] = await db.insert(assets).values(asset).returning();
+    return newAsset;
+  }
+
+  async updateAsset(id: number, data: Partial<Asset>): Promise<Asset | undefined> {
+    const [updated] = await db.update(assets)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(assets.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAsset(id: number): Promise<boolean> {
+    const result = await db.delete(assets).where(eq(assets.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Department implementations
+  async getDepartments(active?: boolean): Promise<Department[]> {
+    if (active !== undefined) {
+      return await db.select().from(departments).where(eq(departments.isActive, active));
+    }
+    return await db.select().from(departments);
+  }
+
+  async getDepartment(id: number): Promise<Department | undefined> {
+    const [department] = await db.select().from(departments).where(eq(departments.id, id));
+    return department;
+  }
+
+  async createDepartment(department: InsertDepartment): Promise<Department> {
+    const [newDepartment] = await db.insert(departments).values(department).returning();
+    return newDepartment;
+  }
+
+  async updateDepartment(id: number, data: Partial<Department>): Promise<Department | undefined> {
+    const [updated] = await db.update(departments)
+      .set(data)
+      .where(eq(departments.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDepartment(id: number): Promise<boolean> {
+    const [updated] = await db.update(departments)
+      .set({ isActive: false })
+      .where(eq(departments.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Employee Profile implementations
+  async getEmployeeProfiles(departmentId?: number): Promise<EmployeeProfile[]> {
+    if (departmentId) {
+      return await db.select().from(employeeProfiles)
+        .where(and(eq(employeeProfiles.departmentId, departmentId), eq(employeeProfiles.isActive, true)));
+    }
+    return await db.select().from(employeeProfiles).where(eq(employeeProfiles.isActive, true));
+  }
+
+  async getEmployeeProfile(id: number): Promise<EmployeeProfile | undefined> {
+    const [profile] = await db.select().from(employeeProfiles).where(eq(employeeProfiles.id, id));
+    return profile;
+  }
+
+  async getEmployeeByUserId(userId: number): Promise<EmployeeProfile | undefined> {
+    const [profile] = await db.select().from(employeeProfiles).where(eq(employeeProfiles.userId, userId));
+    return profile;
+  }
+
+  async createEmployeeProfile(profile: InsertEmployeeProfile): Promise<EmployeeProfile> {
+    const [newProfile] = await db.insert(employeeProfiles).values(profile).returning();
+    return newProfile;
+  }
+
+  async updateEmployeeProfile(id: number, data: Partial<EmployeeProfile>): Promise<EmployeeProfile | undefined> {
+    const [updated] = await db.update(employeeProfiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(employeeProfiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteEmployeeProfile(id: number): Promise<boolean> {
+    const [updated] = await db.update(employeeProfiles)
+      .set({ isActive: false })
+      .where(eq(employeeProfiles.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Document implementations
+  async getDocuments(entityType?: string, entityId?: number): Promise<Document[]> {
+    let query = db.select().from(documents).where(eq(documents.isActive, true));
+    
+    if (entityType) {
+      query = query.where(eq(documents.entityType, entityType));
+    }
+    if (entityId) {
+      query = query.where(eq(documents.entityId, entityId));
+    }
+    
+    return await query.orderBy(desc(documents.uploadedAt));
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document;
+  }
+
+  async getDocumentTypes(): Promise<DocumentType[]> {
+    return await db.select().from(documentTypes).where(eq(documentTypes.isActive, true));
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [newDocument] = await db.insert(documents).values(document).returning();
+    return newDocument;
+  }
+
+  async updateDocument(id: number, data: Partial<Document>): Promise<Document | undefined> {
+    const [updated] = await db.update(documents)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(documents.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    const [updated] = await db.update(documents)
+      .set({ isActive: false })
+      .where(eq(documents.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  // Notification implementations
+  async getNotifications(userId: number, unreadOnly?: boolean): Promise<Notification[]> {
+    let query = db.select().from(notifications).where(eq(notifications.userId, userId));
+    
+    if (unreadOnly) {
+      query = query.where(eq(notifications.isRead, false));
+    }
+    
+    return await query.orderBy(desc(notifications.createdAt));
+  }
+
+  async getNotification(id: number): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification;
+  }
+
+  async getNotificationTemplates(): Promise<NotificationTemplate[]> {
+    return await db.select().from(notificationTemplates).where(eq(notificationTemplates.isActive, true));
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db.insert(notifications).values(notification).returning();
+    return newNotification;
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    const [updated] = await db.update(notifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(notifications.id, id))
+      .returning();
+    return updated !== undefined;
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    const result = await db.delete(notifications).where(eq(notifications.id, id)).returning();
     return result.length > 0;
   }
 }
