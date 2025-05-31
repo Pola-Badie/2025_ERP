@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save, FileText, Calendar, User } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, RotateCcw, Save, FileText, Calendar, User, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
@@ -155,6 +155,7 @@ const CreateInvoice = () => {
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
+  const [showOrderSelector, setShowOrderSelector] = useState(false);
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -305,6 +306,17 @@ const CreateInvoice = () => {
     queryKey: ['/api/quotations', '', 'all', 'all', 'all'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/quotations?query=&status=all&type=all&date=all');
+      return await res.json();
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch orders from order history
+  const { data: orders = [] } = useQuery<any[]>({
+    queryKey: ['/api/orders/production-history'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/orders/production-history');
       return await res.json();
     },
     staleTime: 60000,
@@ -696,6 +708,51 @@ const CreateInvoice = () => {
     toast({
       title: "Quotation Imported",
       description: `Items from quotation ${quotation.quotationNumber} have been imported`,
+    });
+  };
+
+  const handleOrderSelection = (order: any) => {
+    // Set customer from order
+    if (order.customerName) {
+      form.setValue('customer', {
+        id: order.id,
+        name: order.customerName,
+        company: order.customerCompany || order.customerName,
+        position: '',
+        email: '',
+        phone: '',
+        sector: '',
+        address: '',
+      });
+    }
+
+    // Clear existing items
+    fields.forEach((_, index) => {
+      if (index > 0) remove(index);
+    });
+
+    // Create invoice item from order data
+    // Remove the default empty item first
+    remove(0);
+    
+    // Add the target product as an invoice item
+    append({
+      productId: order.id,
+      productName: order.targetProduct || '',
+      category: 'Pharmaceutical',
+      batchNo: order.batchNumber || '',
+      gs1Code: '',
+      type: order.type || 'manufacturing',
+      quantity: 1,
+      unitPrice: order.revenue || order.totalCost || 0,
+      total: order.revenue || order.totalCost || 0,
+    });
+
+    setShowOrderSelector(false);
+    
+    toast({
+      title: "Order Imported",
+      description: `Order ${order.orderNumber} has been imported to invoice`,
     });
   };
 
@@ -1209,6 +1266,14 @@ const CreateInvoice = () => {
                 >
                   <FileText className="mr-2 h-4 w-4" />
                   Select from Quotations
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowOrderSelector(true)}
+                >
+                  <Package className="mr-2 h-4 w-4" />
+                  Select from Order History
                 </Button>
               </div>
               <div className="space-x-2">
