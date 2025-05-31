@@ -7101,19 +7101,18 @@ const Accounting: React.FC = () => {
             </div>
           </div>
 
-          <DialogFooter className="flex-shrink-0 mt-2 pt-2">
+          <DialogFooter className="flex-shrink-0 mt-4">
             <Button
               variant="outline"
               onClick={() => setIsAddPayDialogOpen(false)}
-              className="h-8 px-3 text-sm"
             >
               Cancel
             </Button>
             <Button
               onClick={handleAddPaySubmit}
-              className="bg-blue-600 hover:bg-blue-700 h-8 px-3 text-sm"
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              <DollarSign className="h-3 w-3 mr-1" />
+              <DollarSign className="h-4 w-4 mr-2" />
               Add Pay
             </Button>
           </DialogFooter>
