@@ -43,65 +43,15 @@ const PageNavigation: React.FC = () => {
   };
 
   return (
-    <div className={`flex items-center justify-between mb-6 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-      {/* Previous Page Button */}
-      <div className="flex-1">
-        {previousPage && (
-          <Button
-            variant="outline"
-            onClick={() => handleNavigation(previousPage.path)}
-            className={`flex items-center gap-2 text-sm hover:bg-blue-50 border-blue-200 ${
-              language === 'ar' ? 'flex-row-reverse' : ''
-            }`}
-          >
-            {language === 'ar' ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">
-              {t(previousPage.key) || previousPage.name}
-            </span>
-            <span className="sm:hidden">
-              {language === 'ar' ? 'التالي' : 'Prev'}
-            </span>
-          </Button>
-        )}
-      </div>
-
+    <div className={`flex items-center justify-center mb-6 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
       {/* Current Page Indicator */}
-      <div className="flex-2 text-center px-4">
+      <div className="text-center px-4">
         <div className="text-sm text-muted-foreground">
           {currentIndex + 1} of {pages.length}
         </div>
         <div className="text-xs text-muted-foreground mt-1">
           {t(pages[currentIndex].key) || pages[currentIndex].name}
         </div>
-      </div>
-
-      {/* Next Page Button */}
-      <div className="flex-1 flex justify-end">
-        {nextPage && (
-          <Button
-            variant="outline"
-            onClick={() => handleNavigation(nextPage.path)}
-            className={`flex items-center gap-2 text-sm hover:bg-blue-50 border-blue-200 ${
-              language === 'ar' ? 'flex-row-reverse' : ''
-            }`}
-          >
-            <span className="hidden sm:inline">
-              {t(nextPage.key) || nextPage.name}
-            </span>
-            <span className="sm:hidden">
-              {language === 'ar' ? 'السابق' : 'Next'}
-            </span>
-            {language === 'ar' ? (
-              <ChevronLeft className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        )}
       </div>
     </div>
   );
