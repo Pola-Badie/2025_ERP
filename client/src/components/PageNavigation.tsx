@@ -42,19 +42,7 @@ const PageNavigation: React.FC = () => {
     setLocation(path);
   };
 
-  return (
-    <div className={`flex items-center justify-center mb-6 ${language === 'ar' ? 'flex-row-reverse' : ''}`}>
-      {/* Current Page Indicator */}
-      <div className="text-center px-4">
-        <div className="text-sm text-muted-foreground">
-          {currentIndex + 1} of {pages.length}
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-          {t(pages[currentIndex].key) || pages[currentIndex].name}
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export default PageNavigation;
