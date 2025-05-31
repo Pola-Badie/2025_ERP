@@ -502,6 +502,28 @@ const LabelGenerator: React.FC = () => {
           }
           break;
         }
+
+        case '21_per_a4': {
+          // Use full page divided into 3 columns x 7 rows = 21 labels
+          const availableWidth = 200; // Full width minus margins
+          const availableHeight = 287; // Full height minus margins
+          const columnSpacing = 1; // Minimal gap between columns
+          const rowSpacing = 1; // Minimal gap between rows
+          
+          // Calculate dimensions for 3x7 grid using full page
+          imgWidth = (availableWidth - 2 * columnSpacing) / 3;
+          imgHeight = (availableHeight - 6 * rowSpacing) / 7;
+          
+          // 3 columns x 7 rows = 21 labels using full page
+          for (let row = 0; row < 7; row++) {
+            for (let col = 0; col < 3; col++) {
+              const xPos = 5 + col * (imgWidth + columnSpacing);
+              const yPos = 5 + row * (imgHeight + rowSpacing);
+              pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight);
+            }
+          }
+          break;
+        }
           
         default:
           imgWidth = 190;
@@ -1185,6 +1207,7 @@ const LabelGenerator: React.FC = () => {
                           <SelectItem value="2_per_a4">2 PER A4</SelectItem>
                           <SelectItem value="3_per_a4">3 PER A4</SelectItem>
                           <SelectItem value="6_per_a4">6 PER A4</SelectItem>
+                          <SelectItem value="21_per_a4">21 PER A4</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
