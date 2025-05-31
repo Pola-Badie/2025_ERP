@@ -38,7 +38,9 @@ import {
   SortAsc,
   RefreshCw,
   Settings,
-  Plus
+  Plus,
+  Edit,
+  X
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
@@ -99,9 +101,66 @@ const Payroll = () => {
   const [isConfigPayrollDialogOpen, setIsConfigPayrollDialogOpen] = useState(false);
   const [isConfigAttendanceDialogOpen, setIsConfigAttendanceDialogOpen] = useState(false);
   const [isGeneralSettingsDialogOpen, setIsGeneralSettingsDialogOpen] = useState(false);
+  
+  // Department management state
+  const [departments, setDepartments] = useState([
+    'Production',
+    'Quality Control', 
+    'Sales',
+    'Accounting'
+  ]);
+  const [newDepartment, setNewDepartment] = useState('');
+  const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
+  const [editDepartmentValue, setEditDepartmentValue] = useState('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Department management functions
+  const addDepartment = () => {
+    if (newDepartment.trim() && !departments.includes(newDepartment.trim())) {
+      setDepartments([...departments, newDepartment.trim()]);
+      setNewDepartment('');
+      toast({
+        title: "Department Added",
+        description: `${newDepartment.trim()} has been added to the departments list.`,
+      });
+    }
+  };
+
+  const startEditDepartment = (index: number) => {
+    setEditingDepartment(index);
+    setEditDepartmentValue(departments[index]);
+  };
+
+  const saveEditDepartment = () => {
+    if (editingDepartment !== null && editDepartmentValue.trim()) {
+      const updatedDepartments = [...departments];
+      updatedDepartments[editingDepartment] = editDepartmentValue.trim();
+      setDepartments(updatedDepartments);
+      setEditingDepartment(null);
+      setEditDepartmentValue('');
+      toast({
+        title: "Department Updated",
+        description: "Department name has been updated successfully.",
+      });
+    }
+  };
+
+  const cancelEditDepartment = () => {
+    setEditingDepartment(null);
+    setEditDepartmentValue('');
+  };
+
+  const removeDepartment = (index: number) => {
+    const departmentName = departments[index];
+    const updatedDepartments = departments.filter((_, i) => i !== index);
+    setDepartments(updatedDepartments);
+    toast({
+      title: "Department Removed",
+      description: `${departmentName} has been removed from the departments list.`,
+    });
+  };
 
   // Mock data - in real implementation, this would come from API
   const employees: Employee[] = [
@@ -943,18 +1002,84 @@ const Payroll = () => {
             
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Department Configuration</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="departments">Available Departments</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input placeholder="Production" />
-                  <Input placeholder="Quality Control" />
-                  <Input placeholder="Sales" />
-                  <Input placeholder="Accounting" />
+                
+                {/* Existing Departments List */}
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {departments.map((dept, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded-md bg-gray-50">
+                      {editingDepartment === index ? (
+                        <>
+                          <Input 
+                            value={editDepartmentValue}
+                            onChange={(e) => setEditDepartmentValue(e.target.value)}
+                            className="flex-1"
+                            onKeyPress={(e) => e.key === 'Enter' && saveEditDepartment()}
+                          />
+                          <Button size="sm" onClick={saveEditDepartment} className="px-2">
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={cancelEditDepartment} className="px-2">
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="flex-1 text-sm font-medium">{dept}</span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => startEditDepartment(index)}
+                            className="px-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => removeDepartment(index)}
+                            className="px-2 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <Button variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Department
-                </Button>
+
+                {/* Add New Department */}
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Enter new department name"
+                    value={newDepartment}
+                    onChange={(e) => setNewDepartment(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addDepartment()}
+                    className="flex-1"
+                  />
+                  <Button onClick={addDepartment} variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {/* Department Selection Preview */}
+                <div className="mt-4">
+                  <Label className="text-sm text-gray-600">Department Dropdown Preview:</Label>
+                  <Select>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map((dept, index) => (
+                        <SelectItem key={index} value={dept.toLowerCase().replace(/\s+/g, '-')}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
