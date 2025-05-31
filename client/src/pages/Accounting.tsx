@@ -124,6 +124,8 @@ const Accounting: React.FC = () => {
   const [addPayForm, setAddPayForm] = useState({
     employeeId: '',
     employeeName: '',
+    department: '',
+    position: '',
     basicSalary: '',
     overtime: '',
     bonuses: '',
@@ -225,6 +227,8 @@ const Accounting: React.FC = () => {
         ...prev,
         employeeId: selectedEmployee.id,
         employeeName: selectedEmployee.name,
+        department: selectedEmployee.department,
+        position: selectedEmployee.position,
         basicSalary: selectedEmployee.basicSalary
       }));
     }
@@ -255,6 +259,8 @@ const Accounting: React.FC = () => {
     setAddPayForm({
       employeeId: '',
       employeeName: '',
+      department: '',
+      position: '',
       basicSalary: '',
       overtime: '',
       bonuses: '',
@@ -6945,8 +6951,8 @@ const Accounting: React.FC = () => {
 
       {/* Add Pay Dialog */}
       <Dialog open={isAddPayDialogOpen} onOpenChange={setIsAddPayDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-blue-600" />
               Add Employee Pay
@@ -6956,7 +6962,7 @@ const Accounting: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto flex-1 pr-2">
             {/* Employee Selection */}
             <div className="space-y-2">
               <Label htmlFor="employee">Select Employee *</Label>
@@ -6982,7 +6988,7 @@ const Accounting: React.FC = () => {
               </Select>
             </div>
 
-            {/* Pay Period */}
+            {/* Pay Period and Department */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="payPeriod">Pay Period</Label>
@@ -6995,6 +7001,17 @@ const Accounting: React.FC = () => {
                   }
                 />
               </div>
+              {addPayForm.department && (
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <div className="bg-gray-50 rounded-md p-3 border border-gray-200">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-gray-900">{addPayForm.department}</span>
+                      <span className="text-sm text-gray-600">{addPayForm.position}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Salary Details */}
@@ -7084,7 +7101,7 @@ const Accounting: React.FC = () => {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 mt-4">
             <Button
               variant="outline"
               onClick={() => setIsAddPayDialogOpen(false)}
