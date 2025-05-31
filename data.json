@@ -83,7 +83,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Chemical Storage Tank Cleaning & Sanitization",
-      "amount": 1,950.00,
+      "amount": 1950.00,
       "paymentMethod": "Bank Transfer",
       "costCenter": "Production"
     },
@@ -93,7 +93,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "HVAC System Maintenance - Clean Room Environment",
-      "amount": 2,340.75,
+      "amount": 2340.75,
       "paymentMethod": "Credit Card",
       "costCenter": "Facilities"
     },
@@ -103,7 +103,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Staff Training - GMP Compliance & Safety Protocols",
-      "amount": 1,680.00,
+      "amount": 1680.00,
       "paymentMethod": "Bank Transfer",
       "costCenter": "Human Resources"
     },
