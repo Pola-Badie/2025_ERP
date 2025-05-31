@@ -78,6 +78,7 @@ export default function UserManagement() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isAddPermissionOpen, setIsAddPermissionOpen] = useState(false);
+  const [isManagePermissionsOpen, setIsManagePermissionsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { toast } = useToast();
 
@@ -293,6 +294,12 @@ export default function UserManagement() {
     setActiveTab("permissions");
   };
 
+  // Handle manage permissions dialog opening
+  const handleManagePermissions = (user: User) => {
+    setSelectedUser(user);
+    setIsManagePermissionsOpen(true);
+  };
+
   // Handle editing a user
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -405,7 +412,7 @@ export default function UserManagement() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleUserSelect(user)}>
+                              <DropdownMenuItem onClick={() => handleManagePermissions(user)}>
                                 <ShieldCheck className="mr-2 h-4 w-4" />
                                 Manage Permissions
                               </DropdownMenuItem>
@@ -821,6 +828,85 @@ export default function UserManagement() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Permissions Dialog */}
+      <Dialog open={isManagePermissionsOpen} onOpenChange={setIsManagePermissionsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Manage Permissions</DialogTitle>
+            <DialogDescription>
+              Manage module permissions for {selectedUser?.name} ({selectedUser?.username})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Current Permissions</span>
+              <Button 
+                onClick={() => setIsAddPermissionOpen(true)}
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Permission
+              </Button>
+            </div>
+            
+            {isLoadingPermissions ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="max-h-[400px] overflow-y-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Module</TableHead>
+                      <TableHead>Access</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {permissions?.map((permission) => (
+                      <TableRow key={`${permission.userId}-${permission.moduleName}`}>
+                        <TableCell className="font-medium">{permission.moduleName}</TableCell>
+                        <TableCell>
+                          <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
+                            {permission.accessGranted ? "Granted" : "Denied"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletePermission(permission)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {permissions?.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                          No permissions assigned yet
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsManagePermissionsOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
