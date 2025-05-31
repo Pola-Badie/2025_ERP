@@ -205,16 +205,16 @@ const Accounting: React.FC = () => {
     });
   };
 
-  // Employee list for dropdown
+  // Employee list for dropdown with salary information
   const employeeList = [
-    { id: 'EMP001', name: 'Ahmed Hassan', department: 'Production', position: 'Chemical Engineer' },
-    { id: 'EMP002', name: 'Fatima Al-Zahra', department: 'Quality Control', position: 'Lab Technician' },
-    { id: 'EMP003', name: 'Omar Mahmoud', department: 'Sales', position: 'Sales Manager' },
-    { id: 'EMP004', name: 'Nour Abdel Rahman', department: 'Accounting', position: 'Financial Analyst' },
-    { id: 'EMP005', name: 'Yasmin Khalil', department: 'Production', position: 'Process Engineer' },
-    { id: 'EMP006', name: 'Hassan Ali', department: 'Quality Control', position: 'QC Supervisor' },
-    { id: 'EMP007', name: 'Layla Ibrahim', department: 'HR', position: 'HR Coordinator' },
-    { id: 'EMP008', name: 'Karim Farouk', department: 'Maintenance', position: 'Maintenance Technician' }
+    { id: 'EMP001', name: 'Ahmed Hassan', department: 'Production', position: 'Chemical Engineer', basicSalary: '5500' },
+    { id: 'EMP002', name: 'Fatima Al-Zahra', department: 'Quality Control', position: 'Lab Technician', basicSalary: '3200' },
+    { id: 'EMP003', name: 'Omar Mahmoud', department: 'Sales', position: 'Sales Manager', basicSalary: '6800' },
+    { id: 'EMP004', name: 'Nour Abdel Rahman', department: 'Accounting', position: 'Financial Analyst', basicSalary: '4200' },
+    { id: 'EMP005', name: 'Yasmin Khalil', department: 'Production', position: 'Process Engineer', basicSalary: '4800' },
+    { id: 'EMP006', name: 'Hassan Ali', department: 'Quality Control', position: 'QC Supervisor', basicSalary: '4500' },
+    { id: 'EMP007', name: 'Layla Ibrahim', department: 'HR', position: 'HR Coordinator', basicSalary: '3800' },
+    { id: 'EMP008', name: 'Karim Farouk', department: 'Maintenance', position: 'Maintenance Technician', basicSalary: '3500' }
   ];
 
   // Handle employee selection for Add Pay
@@ -224,7 +224,8 @@ const Accounting: React.FC = () => {
       setAddPayForm(prev => ({
         ...prev,
         employeeId: selectedEmployee.id,
-        employeeName: selectedEmployee.name
+        employeeName: selectedEmployee.name,
+        basicSalary: selectedEmployee.basicSalary
       }));
     }
   };
