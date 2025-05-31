@@ -123,7 +123,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Waste Management - Hazardous Chemical Disposal",
-      "amount": 1,125.50,
+      "amount": 1125.50,
       "paymentMethod": "Credit Card",
       "costCenter": "Environmental"
     },
