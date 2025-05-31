@@ -156,6 +156,7 @@ const CreateInvoice = () => {
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -246,10 +247,15 @@ const CreateInvoice = () => {
     });
   };
 
-  // Set up the form
+  // Set up the form with memoized default values
+  const formDefaultValues = useMemo(() => {
+    const currentDraft = invoiceDrafts.find(draft => draft.id === activeInvoiceId);
+    return currentDraft?.data || defaultFormValues;
+  }, [invoiceDrafts, activeInvoiceId]);
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: getCurrentDraft()?.data || defaultFormValues,
+    defaultValues: formDefaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -712,8 +718,19 @@ const CreateInvoice = () => {
   };
 
   const handleOrderSelection = (order: any) => {
-    // Set customer from order
-    if (order.customerName) {
+    // Check if order is already selected
+    if (selectedOrderIds.includes(order.id)) {
+      toast({
+        title: "Order Already Added",
+        description: `Order ${order.orderNumber} has already been added to this invoice.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set customer from the first order if no customer is set yet
+    const currentCustomer = form.watch('customer');
+    if (order.customerName && (!currentCustomer?.name || currentCustomer.name === '')) {
       form.setValue('customer', {
         id: order.id,
         name: order.customerName,
@@ -726,33 +743,46 @@ const CreateInvoice = () => {
       });
     }
 
-    // Clear existing items
-    fields.forEach((_, index) => {
-      if (index > 0) remove(index);
-    });
+    // Check if this is the first item and it's empty, then replace it
+    const currentItems = form.watch('items') || [];
+    const hasEmptyFirstItem = currentItems.length === 1 && 
+      !currentItems[0]?.productName && 
+      currentItems[0]?.quantity <= 0;
 
-    // Create invoice item from order data
-    // Remove the default empty item first
-    remove(0);
-    
-    // Add the target product as an invoice item
-    append({
-      productId: order.id,
-      productName: order.targetProduct || '',
-      category: 'Pharmaceutical',
-      batchNo: order.batchNumber || '',
-      gs1Code: '',
-      type: order.type || 'manufacturing',
-      quantity: 1,
-      unitPrice: order.revenue || order.totalCost || 0,
-      total: order.revenue || order.totalCost || 0,
-    });
+    if (hasEmptyFirstItem) {
+      // Replace the empty first item
+      form.setValue('items.0', {
+        productId: order.id,
+        productName: order.targetProduct || '',
+        category: 'Pharmaceutical',
+        batchNo: order.batchNumber || '',
+        gs1Code: '',
+        type: order.type || 'manufacturing',
+        quantity: 1,
+        unitPrice: order.revenue || order.totalCost || 0,
+        total: order.revenue || order.totalCost || 0,
+      });
+    } else {
+      // Add as a new item
+      append({
+        productId: order.id,
+        productName: order.targetProduct || '',
+        category: 'Pharmaceutical',
+        batchNo: order.batchNumber || '',
+        gs1Code: '',
+        type: order.type || 'manufacturing',
+        quantity: 1,
+        unitPrice: order.revenue || order.totalCost || 0,
+        total: order.revenue || order.totalCost || 0,
+      });
+    }
 
-    setShowOrderSelector(false);
-    
+    // Track selected order
+    setSelectedOrderIds(prev => [...prev, order.id]);
+
     toast({
-      title: "Order Imported",
-      description: `Order ${order.orderNumber} has been imported to invoice`,
+      title: "Order Added",
+      description: `Order ${order.orderNumber} has been added to invoice. You can select more orders or click Done when finished.`,
     });
   };
 
@@ -1270,7 +1300,10 @@ const CreateInvoice = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowOrderSelector(true)}
+                  onClick={() => {
+                    setSelectedOrderIds([]);
+                    setShowOrderSelector(true);
+                  }}
                 >
                   <Package className="mr-2 h-4 w-4" />
                   Select from Order History
@@ -1959,73 +1992,101 @@ const CreateInvoice = () => {
               </div>
             ) : (
               <div className="grid gap-4">
-                {orders.map((order) => (
-                  <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => handleOrderSelection(order)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <Package className="w-5 h-5 text-blue-600" />
-                            <div>
-                              <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {order.targetProduct}
+                {orders.map((order) => {
+                  const isSelected = selectedOrderIds.includes(order.id);
+                  return (
+                    <Card key={order.id} className={`transition-all cursor-pointer ${
+                      isSelected 
+                        ? 'ring-2 ring-green-500 bg-green-50 border-green-200' 
+                        : 'hover:shadow-md border-gray-200'
+                    }`}
+                          onClick={() => handleOrderSelection(order)}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <Package className={`w-5 h-5 ${isSelected ? 'text-green-600' : 'text-blue-600'}`} />
+                              <div>
+                                <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {order.targetProduct}
+                                </p>
+                              </div>
+                              <div className="ml-auto flex items-center space-x-2">
+                                {isSelected && (
+                                  <div className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    ✓ Added
+                                  </div>
+                                )}
+                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                  order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {order.status}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-2">
+                                  <User className="w-4 h-4" />
+                                  <span>{order.customerName}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Calendar className="w-4 h-4" />
+                                  <span>{new Date(order.orderDate).toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <FileText className="w-4 h-4" />
+                                  <span>Batch: {order.batchNumber}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-3">
+                              <p className="text-sm font-medium text-green-600">
+                                Revenue: {new Intl.NumberFormat('en-US', {
+                                  style: 'currency',
+                                  currency: 'USD'
+                                }).format(order.revenue || order.totalCost || 0)}
                               </p>
                             </div>
-                            <div className="ml-auto flex items-center space-x-2">
-                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                                'bg-gray-100 text-gray-700'
-                              }`}>
-                                {order.status}
-                              </div>
-                            </div>
                           </div>
                           
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <div className="flex items-center space-x-4">
-                              <div className="flex items-center space-x-2">
-                                <User className="w-4 h-4" />
-                                <span>{order.customerName}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>{new Date(order.orderDate).toLocaleDateString()}</span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <FileText className="w-4 h-4" />
-                                <span>Batch: {order.batchNumber}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-3">
-                            <p className="text-sm font-medium text-green-600">
-                              Revenue: {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(order.revenue || order.totalCost || 0)}
-                            </p>
-                          </div>
+                          <Button variant={isSelected ? "default" : "outline"} size="sm">
+                            {isSelected ? "Added" : "Import"}
+                          </Button>
                         </div>
-                        
-                        <Button variant="outline" size="sm">
-                          Import
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowOrderSelector(false)}>
-              Cancel
-            </Button>
+          <DialogFooter className="flex justify-between">
+            <div className="text-sm text-muted-foreground">
+              {selectedOrderIds.length > 0 && (
+                <span>{selectedOrderIds.length} order{selectedOrderIds.length !== 1 ? 's' : ''} selected</span>
+              )}
+            </div>
+            <div className="space-x-2">
+              <Button variant="outline" onClick={() => {
+                setSelectedOrderIds([]);
+                setShowOrderSelector(false);
+              }}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                setSelectedOrderIds([]);
+                setShowOrderSelector(false);
+              }}>
+                Done
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
