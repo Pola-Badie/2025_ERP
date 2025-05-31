@@ -224,36 +224,24 @@ const LabelGenerator: React.FC = () => {
 
   // Handle PDF download
   const handleDownloadPDF = async () => {
-    console.log('Download PDF clicked');
-    console.log('labelRef.current:', labelRef.current);
-    console.log('selectedProduct:', selectedProduct);
-    
-    if (!labelRef.current || !selectedProduct) {
-      console.log('Missing labelRef or selectedProduct');
-      return;
-    }
+    if (!labelRef.current || !selectedProduct) return;
 
     setIsGenerating(true);
 
     try {
-      console.log('Starting html2canvas...');
       const canvas = await html2canvas(labelRef.current, {
         scale: 3, // Increase resolution
         useCORS: true,
         logging: false,
       });
 
-      console.log('Canvas created:', canvas.width, 'x', canvas.height);
       const imgData = canvas.toDataURL('image/png');
-      console.log('Image data created');
-      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: [selectedFormat.width + 10, selectedFormat.height + 10],
       });
 
-      console.log('PDF instance created');
       pdf.addImage(imgData, 'PNG', 5, 5, selectedFormat.width, selectedFormat.height);
       
       if (showMultiple && quantity > 1) {
@@ -263,7 +251,6 @@ const LabelGenerator: React.FC = () => {
         }
       }
 
-      console.log('Saving PDF...');
       pdf.save(`${selectedProduct.name}-Label.pdf`);
 
       toast({
@@ -271,10 +258,9 @@ const LabelGenerator: React.FC = () => {
         description: 'Label has been saved as PDF',
       });
     } catch (error) {
-      console.error('PDF generation error:', error);
       toast({
         title: 'Error',
-        description: `Failed to generate PDF: ${error.message}`,
+        description: 'Failed to generate PDF',
         variant: 'destructive',
       });
     } finally {
@@ -449,49 +435,33 @@ const LabelGenerator: React.FC = () => {
         }
 
         case '2_per_a4': {
-          // Calculate proper dimensions to maintain aspect ratio
-          const labelAspectRatio = canvas.width / canvas.height;
-          const availableHeight = 287; // A4 height minus margins
-          const labelSpacing = 10;
+          imgWidth = 200; // Full width edge to edge
+          const originalHeight = (canvas.height * imgWidth) / canvas.width;
+          const availableHeight = 287; // A4 height minus minimal margins
+          const maxLabelHeight = (availableHeight - 5) / 2; // Space for 2 labels with small gap
+          imgHeight = Math.min(originalHeight, maxLabelHeight);
           
-          // Calculate maximum height for 2 labels with spacing
-          const maxLabelHeight = (availableHeight - labelSpacing) / 2;
-          
-          // Use label's natural proportions, but limit to reasonable size
-          imgHeight = Math.min(maxLabelHeight, 130); // Max 130mm height per label
-          imgWidth = imgHeight * labelAspectRatio;
-          
-          // Center labels horizontally if they're smaller than page width
-          const pageWidth = 200; // A4 width minus margins
-          const xOffset = Math.max(5, (pageWidth - imgWidth) / 2 + 5);
-          
-          // Place 2 labels vertically with proper spacing
-          pdf.addImage(imgData, 'PNG', xOffset, 5, imgWidth, imgHeight);
-          pdf.addImage(imgData, 'PNG', xOffset, 5 + imgHeight + labelSpacing, imgWidth, imgHeight);
+          // First label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, imgHeight);
+          // Second label with minimal spacing
+          pdf.addImage(imgData, 'PNG', 5, 5 + imgHeight + 5, imgWidth, imgHeight);
           break;
         }
           
         case '3_per_a4': {
-          // Calculate proper dimensions to maintain aspect ratio
-          const labelAspectRatio = canvas.width / canvas.height;
-          const availableHeight = 287; // A4 height minus margins
-          const labelSpacing = 8;
+          imgWidth = 200; // Full width edge to edge
+          imgHeight = (canvas.height * imgWidth) / canvas.width;
+          // Add 3 labels per page - vertically stacked using full width
+          const labelSpacing = 5;
+          const availableHeight3 = 287; // A4 height minus minimal margins
+          const labelHeight = Math.min(imgHeight, (availableHeight3 - 2 * labelSpacing) / 3);
           
-          // Calculate maximum height for 3 labels with spacing
-          const maxLabelHeight = (availableHeight - 2 * labelSpacing) / 3;
-          
-          // Use label's natural proportions, but limit to reasonable size
-          imgHeight = Math.min(maxLabelHeight, 90); // Max 90mm height per label
-          imgWidth = imgHeight * labelAspectRatio;
-          
-          // Center labels horizontally if they're smaller than page width
-          const pageWidth = 200; // A4 width minus margins
-          const xOffset = Math.max(5, (pageWidth - imgWidth) / 2 + 5);
-          
-          // Place 3 labels vertically with proper spacing
-          pdf.addImage(imgData, 'PNG', xOffset, 5, imgWidth, imgHeight);
-          pdf.addImage(imgData, 'PNG', xOffset, 5 + imgHeight + labelSpacing, imgWidth, imgHeight);
-          pdf.addImage(imgData, 'PNG', xOffset, 5 + 2 * (imgHeight + labelSpacing), imgWidth, imgHeight);
+          // First label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, labelHeight);
+          // Second label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5 + labelHeight + labelSpacing, imgWidth, labelHeight);
+          // Third label - full width
+          pdf.addImage(imgData, 'PNG', 5, 5 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
           break;
         }
           
