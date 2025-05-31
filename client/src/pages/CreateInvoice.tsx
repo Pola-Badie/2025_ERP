@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -247,15 +247,10 @@ const CreateInvoice = () => {
     });
   };
 
-  // Set up the form with memoized default values
-  const formDefaultValues = useMemo(() => {
-    const currentDraft = invoiceDrafts.find(draft => draft.id === activeInvoiceId);
-    return currentDraft?.data || defaultFormValues;
-  }, [invoiceDrafts, activeInvoiceId]);
-
+  // Set up the form
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: formDefaultValues,
+    defaultValues: defaultFormValues,
   });
 
   const { fields, append, remove } = useFieldArray({
