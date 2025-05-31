@@ -1937,6 +1937,98 @@ const CreateInvoice = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Order Selector Dialog */}
+      <Dialog open={showOrderSelector} onOpenChange={setShowOrderSelector}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select from Order History</DialogTitle>
+            <DialogDescription>
+              Choose a completed order to import its details into this invoice
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {orders.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Orders Found</h3>
+                <p className="text-muted-foreground">
+                  There are no completed orders available to import from.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {orders.map((order) => (
+                  <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleOrderSelection(order)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Package className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {order.targetProduct}
+                              </p>
+                            </div>
+                            <div className="ml-auto flex items-center space-x-2">
+                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {order.status}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <User className="w-4 h-4" />
+                                <span>{order.customerName}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-4 h-4" />
+                                <span>{new Date(order.orderDate).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4" />
+                                <span>Batch: {order.batchNumber}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-medium text-green-600">
+                              Revenue: {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(order.revenue || order.totalCost || 0)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <Button variant="outline" size="sm">
+                          Import
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowOrderSelector(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
