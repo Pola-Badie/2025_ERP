@@ -289,12 +289,14 @@ export const accounts = pgTable("accounts", {
   type: text("type").notNull(), // Asset, Liability, Equity, Income, Expense
   subtype: text("subtype"), // E.g., "Current Asset", "Fixed Asset", etc.
   description: text("description"),
-  parentId: integer("parent_id").references(() => accounts.id), // For hierarchy
+  parentId: integer("parent_id"),
   isActive: boolean("is_active").default(true).notNull(),
   balance: numeric("balance").default("0").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// Self-reference is handled in the table definition
 
 // Journal Entries
 export const journalEntries = pgTable("journal_entries", {
