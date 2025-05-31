@@ -87,7 +87,7 @@ const ProfitAndLoss: React.FC = () => {
         throw error;
       }
     },
-    enabled: true,
+    enabled: false, // Start disabled, generate on button click
   });
 
   // Handle date range change
