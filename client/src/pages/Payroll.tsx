@@ -344,9 +344,32 @@ const Payroll = () => {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Users className="h-4 w-4 mr-2" />
+                  Configure Employees
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Configure Payroll Records
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Configure Attendance Pages
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Settings className="h-4 w-4 mr-2" />
+                  General Settings
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
