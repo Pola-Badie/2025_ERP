@@ -15,7 +15,7 @@ import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
 import SystemPreferences from "@/pages/SystemPreferences";
-import CreateInvoice from "@/pages/CreateInvoiceNew";
+import CreateInvoice from "@/pages/CreateInvoice";
 import CreateQuotation from "@/pages/CreateQuotation";
 import InvoiceHistory from "@/pages/InvoiceHistory";
 import QuotationHistory from "@/pages/QuotationHistory";
