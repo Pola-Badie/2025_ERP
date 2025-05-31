@@ -158,94 +158,7 @@ const CreateInvoice = () => {
   const [showOrderSelector, setShowOrderSelector] = useState(false);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   
-  // Multi-invoice state
-  // Store last active invoice ID in localStorage too
-  const getInitialActiveInvoiceId = () => {
-    const savedActiveId = localStorage.getItem('activeInvoiceId');
-    return savedActiveId || "draft-1";
-  };
-  
-  const [activeInvoiceId, setActiveInvoiceId] = useState<string>(getInitialActiveInvoiceId);
-  
-  // Update localStorage when active invoice changes
-  const updateActiveInvoiceId = (newId: string) => {
-    setActiveInvoiceId(newId);
-    localStorage.setItem('activeInvoiceId', newId);
-  };
-  
-  const [invoiceDrafts, setInvoiceDrafts] = useState<InvoiceDraft[]>(() => {
-    try {
-      const savedDrafts = localStorage.getItem('invoiceDrafts');
-      if (savedDrafts) {
-        const parsed = JSON.parse(savedDrafts);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Don't change activeInvoiceId here - it's already set from localStorage
-          return parsed;
-        }
-      }
-    } catch (e) {
-      console.error('Error loading invoice drafts:', e);
-    }
-    
-    // Default to one invoice draft if nothing valid is saved
-    return [{
-      id: 'draft-1',
-      name: 'Invoice 1',
-      data: defaultFormValues,
-      lastUpdated: new Date().toISOString()
-    }];
-  });
-
-  // Function to save drafts to localStorage
-  const saveDrafts = (drafts: InvoiceDraft[]) => {
-    localStorage.setItem('invoiceDrafts', JSON.stringify(drafts));
-  };
-  
-  // Reset all invoices to start with a single "Invoice 1" draft
-  const resetAllInvoices = () => {
-    // Create a fresh Invoice 1
-    const newDraft: InvoiceDraft = {
-      id: 'draft-1',
-      name: 'Invoice 1',
-      data: defaultFormValues,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Set our invoices array to just this one draft
-    setInvoiceDrafts([newDraft]);
-    
-    // Save to localStorage
-    saveDrafts([newDraft]);
-    
-    // Set the active invoice to this one
-    updateActiveInvoiceId('draft-1');
-    
-    // Reset the form with default values
-    form.reset(defaultFormValues);
-    
-    toast({
-      title: "Invoices reset",
-      description: "All invoice drafts have been cleared. Starting fresh with Invoice 1.",
-    });
-  };
-
-  // Get the currently active draft
-  const getCurrentDraft = (): InvoiceDraft | undefined => {
-    return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
-  };
-  
-  // Refresh only product and customer data, not invoice drafts
-  const refreshInvoiceData = () => {
-    // Refresh customers and products data without affecting invoiceDrafts state
-    queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-    
-    // Don't reset the activeInvoiceId or invoice drafts
-    toast({
-      title: "Data refreshed",
-      description: "Customer and product data has been refreshed. Your invoice drafts remain unchanged.",
-    });
-  };
+  // Simplified state management without complex multi-invoice logic
 
   // Set up the form
   const form = useForm<InvoiceFormValues>({
@@ -557,57 +470,7 @@ const CreateInvoice = () => {
     });
   };
 
-  // Add a new invoice draft
-  const addNewDraft = () => {
-    if (invoiceDrafts.length >= 4) {
-      toast({
-        title: "Maximum invoices reached",
-        description: "You can only work on up to 4 invoices at a time.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newId = `draft-${Date.now()}`;
-    const newDraft: InvoiceDraft = {
-      id: newId,
-      name: `Invoice ${invoiceDrafts.length + 1}`,
-      data: defaultFormValues,
-      lastUpdated: new Date().toISOString()
-    };
-    
-    setInvoiceDrafts(prev => {
-      const updated = [...prev, newDraft];
-      saveDrafts(updated);
-      return updated;
-    });
-    
-    updateActiveInvoiceId(newId);
-  };
-  
-  // Remove an invoice draft
-  const removeDraft = (draftId: string) => {
-    if (invoiceDrafts.length <= 1) {
-      toast({
-        title: "Cannot remove draft",
-        description: "You need at least one invoice draft.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setInvoiceDrafts(prev => {
-      const updated = prev.filter(draft => draft.id !== draftId);
-      saveDrafts(updated);
-      
-      // If removing the active draft, switch to another one
-      if (activeInvoiceId === draftId) {
-        updateActiveInvoiceId(updated[0].id);
-      }
-      
-      return updated;
-    });
-  };
+
 
   // Handle product selection
   const handleProductSelection = (productId: number, index: number) => {
