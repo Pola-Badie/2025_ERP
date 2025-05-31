@@ -527,31 +527,49 @@ export function registerAccountingRoutes(app: Express) {
       const { loadFinancialData } = await import('./financial-seed-data');
       const financialData = loadFinancialData();
       
-      // Generate P&L data from mock data
+      // Generate P&L data from all financial sources
       const salesData = financialData.dueInvoices.filter(invoice => 
         new Date(invoice.invoiceDate) >= start && new Date(invoice.invoiceDate) <= end
       );
       
-      const cogsData = financialData.purchases.filter(purchase => 
-        new Date(purchase.date) >= start && new Date(purchase.date) <= end
+      // COGS from purchases and direct material costs
+      const directMaterialPurchases = financialData.purchases.filter(purchase => 
+        new Date(purchase.date) >= start && new Date(purchase.date) <= end &&
+        (purchase.item.toLowerCase().includes('pharmaceutical') || 
+         purchase.item.toLowerCase().includes('active') ||
+         purchase.item.toLowerCase().includes('ingredient') ||
+         purchase.item.toLowerCase().includes('material'))
       );
       
-      const expensesData = financialData.expenses.filter(expense => 
-        new Date(expense.date) >= start && new Date(expense.date) <= end
-      );
+      // Operating expenses from both purchases and general expenses
+      const operatingExpenses = [
+        ...financialData.expenses.filter(expense => 
+          new Date(expense.date) >= start && new Date(expense.date) <= end
+        ),
+        ...financialData.purchases.filter(purchase => 
+          new Date(purchase.date) >= start && new Date(purchase.date) <= end &&
+          !(purchase.item.toLowerCase().includes('pharmaceutical') || 
+            purchase.item.toLowerCase().includes('active') ||
+            purchase.item.toLowerCase().includes('ingredient') ||
+            purchase.item.toLowerCase().includes('material'))
+        )
+      ];
       
       // Calculate totals
       const currentRevenueTotal = salesData.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
-      const currentCogsTotal = cogsData.reduce((sum, purchase) => sum + purchase.total, 0);
-      const currentExpensesTotal = expensesData.reduce((sum, expense) => sum + expense.amount, 0);
+      const currentCogsTotal = directMaterialPurchases.reduce((sum, purchase) => sum + purchase.total, 0);
+      const currentExpensesTotal = operatingExpenses.reduce((sum, item) => {
+        return sum + ('amount' in item ? item.amount : item.total);
+      }, 0);
       
       // Group expenses by cost center for breakdown
-      const expensesByCategory = {};
-      expensesData.forEach(expense => {
-        if (!expensesByCategory[expense.costCenter]) {
-          expensesByCategory[expense.costCenter] = [];
+      const expensesByCategory: { [key: string]: any[] } = {};
+      operatingExpenses.forEach(item => {
+        const costCenter = 'costCenter' in item ? (item as any).costCenter : 'Operations';
+        if (!expensesByCategory[costCenter]) {
+          expensesByCategory[costCenter] = [];
         }
-        expensesByCategory[expense.costCenter].push(expense);
+        expensesByCategory[costCenter].push(item);
       });
       
       // Calculate previous period (YTD) by taking a larger date range
@@ -561,27 +579,44 @@ export function registerAccountingRoutes(app: Express) {
         .filter(invoice => new Date(invoice.invoiceDate) >= yearStart && new Date(invoice.invoiceDate) <= end)
         .reduce((sum, invoice) => sum + invoice.totalAmount, 0);
       
-      const ytdCogsTotal = financialData.purchases
-        .filter(purchase => new Date(purchase.date) >= yearStart && new Date(purchase.date) <= end)
+      const ytdDirectMaterials = financialData.purchases
+        .filter(purchase => 
+          new Date(purchase.date) >= yearStart && new Date(purchase.date) <= end &&
+          (purchase.item.toLowerCase().includes('pharmaceutical') || 
+           purchase.item.toLowerCase().includes('active') ||
+           purchase.item.toLowerCase().includes('ingredient') ||
+           purchase.item.toLowerCase().includes('material'))
+        )
         .reduce((sum, purchase) => sum + purchase.total, 0);
       
-      const ytdExpensesTotal = financialData.expenses
-        .filter(expense => new Date(expense.date) >= yearStart && new Date(expense.date) <= end)
-        .reduce((sum, expense) => sum + expense.amount, 0);
+      const ytdOperatingExpenses = [
+        ...financialData.expenses.filter(expense => 
+          new Date(expense.date) >= yearStart && new Date(expense.date) <= end
+        ),
+        ...financialData.purchases.filter(purchase => 
+          new Date(purchase.date) >= yearStart && new Date(purchase.date) <= end &&
+          !(purchase.item.toLowerCase().includes('pharmaceutical') || 
+            purchase.item.toLowerCase().includes('active') ||
+            purchase.item.toLowerCase().includes('ingredient') ||
+            purchase.item.toLowerCase().includes('material'))
+        )
+      ].reduce((sum, item) => {
+        return sum + ('amount' in item ? item.amount : item.total);
+      }, 0);
       
       // Calculate variance (as percentage change, or 0 if previous period is 0)
-      const calculateVariance = (current, previous) => {
+      const calculateVariance = (current: number, previous: number) => {
         if (previous === 0) return 0;
         return ((current - previous) / previous) * 100;
       };
       
       // Calculate gross profit
       const currentGrossProfit = currentRevenueTotal - currentCogsTotal;
-      const ytdGrossProfit = ytdSalesTotal - ytdCogsTotal;
+      const ytdGrossProfit = ytdSalesTotal - ytdDirectMaterials;
       
       // Calculate net profit
       const currentNetProfit = currentGrossProfit - currentExpensesTotal;
-      const ytdNetProfit = ytdGrossProfit - ytdExpensesTotal;
+      const ytdNetProfit = ytdGrossProfit - ytdOperatingExpenses;
       
       // Prepare P&L report with detailed breakdown
       res.json({

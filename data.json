@@ -63,7 +63,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Quality Control Testing - Microbial Analysis & Sterility Testing",
-      "amount": 3,420.00,
+      "amount": 3420.00,
       "paymentMethod": "Bank Transfer",
       "costCenter": "Quality Control"
     },
