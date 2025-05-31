@@ -300,11 +300,11 @@ const CreateInvoice = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch quotations
+  // Fetch quotations from quotations history
   const { data: quotations = [] } = useQuery<any[]>({
-    queryKey: ['/api/quotations'],
+    queryKey: ['/api/quotations', '', 'all', 'all', 'all'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/quotations');
+      const res = await apiRequest('GET', '/api/quotations?query=&status=all&type=all&date=all');
       return await res.json();
     },
     staleTime: 60000,
@@ -652,17 +652,17 @@ const CreateInvoice = () => {
 
   // Handle quotation selection and import items
   const handleQuotationSelection = (quotation: any) => {
-    // Set customer if exists in quotation
-    if (quotation.customer) {
+    // Set customer if exists in quotation (using quotations history structure)
+    if (quotation.customerName) {
       form.setValue('customer', {
-        id: quotation.customer.id,
-        name: quotation.customer.name,
-        company: quotation.customer.company || '',
-        position: quotation.customer.position || '',
-        email: quotation.customer.email || '',
-        phone: quotation.customer.phone || '',
-        sector: quotation.customer.sector || '',
-        address: quotation.customer.address || '',
+        id: quotation.customerId,
+        name: quotation.customerName,
+        company: quotation.customerName,
+        position: '',
+        email: '',
+        phone: '',
+        sector: '',
+        address: '',
       });
     }
 
@@ -671,22 +671,22 @@ const CreateInvoice = () => {
       if (index > 0) remove(index);
     });
 
-    // Import quotation items
+    // Import quotation items (using quotations history structure)
     if (quotation.items && quotation.items.length > 0) {
       // Remove the default empty item first
       remove(0);
       
       quotation.items.forEach((item: any) => {
         append({
-          productId: item.productId,
-          productName: item.productName,
-          category: item.category || '',
-          batchNo: item.batchNo || '',
-          gs1Code: item.gs1Code || '',
+          productId: item.id || 0,
+          productName: item.productName || item.name || '',
+          category: item.qualityGrade || '',
+          batchNo: '',
+          gs1Code: '',
           type: item.type || '',
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.total,
+          quantity: item.quantity || 1,
+          unitPrice: item.unitPrice || 0,
+          total: item.total || 0,
         });
       });
     }
@@ -1829,7 +1829,7 @@ const CreateInvoice = () => {
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center space-x-2">
                                 <User className="w-4 h-4" />
-                                <span>{quotation.customer?.name || 'No Customer'}</span>
+                                <span>{quotation.customerName || 'No Customer'}</span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Calendar className="w-4 h-4" />
