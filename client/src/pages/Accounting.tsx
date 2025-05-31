@@ -118,6 +118,19 @@ const Accounting: React.FC = () => {
   // Invoice action dialogs state
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isAddPayDialogOpen, setIsAddPayDialogOpen] = useState(false);
+  
+  // Add Pay form state
+  const [addPayForm, setAddPayForm] = useState({
+    employeeId: '',
+    employeeName: '',
+    basicSalary: '',
+    overtime: '',
+    bonuses: '',
+    deductions: '',
+    payPeriod: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
   const [isInvoiceViewOpen, setIsInvoiceViewOpen] = useState(false);
   const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
@@ -190,6 +203,65 @@ const Accounting: React.FC = () => {
       title: "Edit Payroll",
       description: `Opening edit form for ${employeeName}'s payroll`,
     });
+  };
+
+  // Employee list for dropdown
+  const employeeList = [
+    { id: 'EMP001', name: 'Ahmed Hassan', department: 'Production', position: 'Chemical Engineer' },
+    { id: 'EMP002', name: 'Fatima Al-Zahra', department: 'Quality Control', position: 'Lab Technician' },
+    { id: 'EMP003', name: 'Omar Mahmoud', department: 'Sales', position: 'Sales Manager' },
+    { id: 'EMP004', name: 'Nour Abdel Rahman', department: 'Accounting', position: 'Financial Analyst' },
+    { id: 'EMP005', name: 'Yasmin Khalil', department: 'Production', position: 'Process Engineer' },
+    { id: 'EMP006', name: 'Hassan Ali', department: 'Quality Control', position: 'QC Supervisor' },
+    { id: 'EMP007', name: 'Layla Ibrahim', department: 'HR', position: 'HR Coordinator' },
+    { id: 'EMP008', name: 'Karim Farouk', department: 'Maintenance', position: 'Maintenance Technician' }
+  ];
+
+  // Handle employee selection for Add Pay
+  const handleEmployeeSelect = (employeeId: string) => {
+    const selectedEmployee = employeeList.find(emp => emp.id === employeeId);
+    if (selectedEmployee) {
+      setAddPayForm(prev => ({
+        ...prev,
+        employeeId: selectedEmployee.id,
+        employeeName: selectedEmployee.name
+      }));
+    }
+  };
+
+  // Handle Add Pay form submission
+  const handleAddPaySubmit = () => {
+    if (!addPayForm.employeeId || !addPayForm.basicSalary) {
+      toast({
+        title: "Error",
+        description: "Please select an employee and enter basic salary",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const netPay = parseFloat(addPayForm.basicSalary) + 
+                   parseFloat(addPayForm.overtime || '0') + 
+                   parseFloat(addPayForm.bonuses || '0') - 
+                   parseFloat(addPayForm.deductions || '0');
+
+    toast({
+      title: "Payroll Added Successfully",
+      description: `Added payroll for ${addPayForm.employeeName} - Net Pay: $${netPay.toFixed(2)}`,
+    });
+
+    // Reset form and close dialog
+    setAddPayForm({
+      employeeId: '',
+      employeeName: '',
+      basicSalary: '',
+      overtime: '',
+      bonuses: '',
+      deductions: '',
+      payPeriod: new Date().toISOString().split('T')[0],
+      notes: ''
+    });
+    setIsAddPayDialogOpen(false);
   };
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = useState(false);
@@ -1209,6 +1281,14 @@ const Accounting: React.FC = () => {
                   <span>Payroll Management</span>
                 </div>
                 <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => setIsAddPayDialogOpen(true)}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" /> 
+                    Add Pay
+                  </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
