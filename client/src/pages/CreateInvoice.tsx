@@ -676,14 +676,14 @@ const CreateInvoice = () => {
       // Remove the default empty item first
       remove(0);
       
-      quotation.items.forEach((item: any) => {
+      quotation.items.forEach((item: any, index: number) => {
         append({
-          productId: item.id || 0,
-          productName: item.productName || item.name || '',
-          category: item.qualityGrade || '',
+          productId: index + 1,
+          productName: item.productName || '',
+          category: item.specifications || '',
           batchNo: '',
           gs1Code: '',
-          type: item.type || '',
+          type: quotation.type || '',
           quantity: item.quantity || 1,
           unitPrice: item.unitPrice || 0,
           total: item.total || 0,
@@ -1848,7 +1848,7 @@ const CreateInvoice = () => {
                                 Total: {new Intl.NumberFormat('en-US', {
                                   style: 'currency',
                                   currency: 'USD'
-                                }).format(quotation.grandTotal || 0)}
+                                }).format(quotation.total || quotation.amount || 0)}
                               </p>
                             </div>
                           )}
