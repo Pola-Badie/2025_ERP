@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric, primaryKey } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -870,6 +871,824 @@ export type OrderItem = typeof orderItems.$inferSelect;
 
 export type InsertOrderFee = z.infer<typeof insertOrderFeeSchema>;
 export type OrderFee = typeof orderFees.$inferSelect;
+
+// Pharmaceutical-specific tables
+
+// Batch Management for pharmaceutical tracking
+export const batches = pgTable("batches", {
+  id: serial("id").primaryKey(),
+  batchNumber: text("batch_number").notNull().unique(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  manufactureDate: date("manufacture_date").notNull(),
+  expiryDate: date("expiry_date").notNull(),
+  quantity: numeric("quantity").notNull(),
+  remainingQuantity: numeric("remaining_quantity").notNull(),
+  lotNumber: text("lot_number"),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  storageLocation: text("storage_location"),
+  status: text("status").default("active").notNull(), // active, expired, recalled, quarantine
+  qualityTestResults: jsonb("quality_test_results"), // Store test results as JSON
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Product Formulations (for chemical compositions)
+export const productFormulations = pgTable("product_formulations", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  ingredientId: integer("ingredient_id").references(() => products.id).notNull(), // Raw material reference
+  concentration: numeric("concentration"), // Percentage or amount
+  unit: text("unit").notNull(), // mg, ml, g, kg, etc.
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Safety and Regulatory Information
+export const productSafety = pgTable("product_safety", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  hazardSymbols: text("hazard_symbols").array(), // Array of hazard symbol codes
+  safetyDataSheet: text("safety_data_sheet"), // File path to SDS
+  storageConditions: text("storage_conditions"),
+  handlingInstructions: text("handling_instructions"),
+  emergencyProcedures: text("emergency_procedures"),
+  regulatoryNumbers: jsonb("regulatory_numbers"), // FDA, EMA numbers etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Quality Control Tests
+export const qualityTests = pgTable("quality_tests", {
+  id: serial("id").primaryKey(),
+  batchId: integer("batch_id").references(() => batches.id).notNull(),
+  testType: text("test_type").notNull(), // purity, potency, dissolution, etc.
+  testDate: timestamp("test_date").defaultNow().notNull(),
+  testResults: jsonb("test_results"), // Store complex test data
+  passedTest: boolean("passed_test").notNull(),
+  testedBy: integer("tested_by").references(() => users.id).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Production Orders (manufacturing)
+export const productionOrders = pgTable("production_orders", {
+  id: serial("id").primaryKey(),
+  orderNumber: text("order_number").notNull().unique(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  plannedQuantity: numeric("planned_quantity").notNull(),
+  actualQuantity: numeric("actual_quantity").default("0"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status").default("planned").notNull(), // planned, in_progress, completed, cancelled
+  priority: text("priority").default("normal").notNull(), // low, normal, high, urgent
+  supervisorId: integer("supervisor_id").references(() => users.id).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Production Order Materials (BOM - Bill of Materials)
+export const productionMaterials = pgTable("production_materials", {
+  id: serial("id").primaryKey(),
+  productionOrderId: integer("production_order_id").references(() => productionOrders.id).notNull(),
+  materialId: integer("material_id").references(() => products.id).notNull(),
+  plannedQuantity: numeric("planned_quantity").notNull(),
+  actualQuantity: numeric("actual_quantity").default("0"),
+  batchId: integer("batch_id").references(() => batches.id), // Track which batch was used
+  unitCost: numeric("unit_cost").notNull(),
+});
+
+// GS1 Barcodes and Labels
+export const productLabels = pgTable("product_labels", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  batchId: integer("batch_id").references(() => batches.id),
+  gs1Code: text("gs1_code").notNull().unique(),
+  qrCodeData: text("qr_code_data"), // JSON string with product info
+  labelTemplate: text("label_template").notNull(), // Template name
+  printedCount: integer("printed_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Regulatory Compliance
+export const regulatorySubmissions = pgTable("regulatory_submissions", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  submissionType: text("submission_type").notNull(), // ETA, FDA, EMA, etc.
+  submissionDate: timestamp("submission_date").notNull(),
+  approvalDate: timestamp("approval_date"),
+  status: text("status").default("submitted").notNull(), // submitted, under_review, approved, rejected
+  referenceNumber: text("reference_number"),
+  documents: text("documents").array(), // File paths to documents
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Inventory Adjustments
+export const inventoryAdjustments = pgTable("inventory_adjustments", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  batchId: integer("batch_id").references(() => batches.id),
+  adjustmentType: text("adjustment_type").notNull(), // increase, decrease, recount
+  previousQuantity: numeric("previous_quantity").notNull(),
+  adjustedQuantity: numeric("adjusted_quantity").notNull(),
+  difference: numeric("difference").notNull(),
+  reason: text("reason").notNull(),
+  approvedBy: integer("approved_by").references(() => users.id).notNull(),
+  adjustedBy: integer("adjusted_by").references(() => users.id).notNull(),
+  adjustmentDate: timestamp("adjustment_date").defaultNow().notNull(),
+  notes: text("notes"),
+});
+
+// Warehouse Management
+export const warehouses = pgTable("warehouses", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(),
+  address: text("address"),
+  managerId: integer("manager_id").references(() => users.id),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const warehouseLocations = pgTable("warehouse_locations", {
+  id: serial("id").primaryKey(),
+  warehouseId: integer("warehouse_id").references(() => warehouses.id).notNull(),
+  aisle: text("aisle"),
+  rack: text("rack"),
+  shelf: text("shelf"),
+  bin: text("bin"),
+  locationCode: text("location_code").notNull().unique(),
+  maxCapacity: numeric("max_capacity"),
+  currentCapacity: numeric("current_capacity").default("0"),
+  temperatureControlled: boolean("temperature_controlled").default(false),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// Stock Movements
+export const stockMovements = pgTable("stock_movements", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  batchId: integer("batch_id").references(() => batches.id),
+  fromLocationId: integer("from_location_id").references(() => warehouseLocations.id),
+  toLocationId: integer("to_location_id").references(() => warehouseLocations.id),
+  movementType: text("movement_type").notNull(), // receive, ship, transfer, adjust
+  quantity: numeric("quantity").notNull(),
+  referenceType: text("reference_type"), // sale, purchase, production, adjustment
+  referenceId: integer("reference_id"),
+  movedBy: integer("moved_by").references(() => users.id).notNull(),
+  movementDate: timestamp("movement_date").defaultNow().notNull(),
+  notes: text("notes"),
+});
+
+// Advanced Financial Tables
+
+// Tax Management
+export const taxRates = pgTable("tax_rates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  rate: numeric("rate").notNull(), // Percentage
+  type: text("type").notNull(), // VAT, sales_tax, excise, etc.
+  jurisdiction: text("jurisdiction"), // Country, state, etc.
+  isActive: boolean("is_active").default(true).notNull(),
+  effectiveFrom: date("effective_from").notNull(),
+  effectiveTo: date("effective_to"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Currency Management
+export const currencies = pgTable("currencies", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(), // USD, EUR, EGP, etc.
+  name: text("name").notNull(),
+  symbol: text("symbol").notNull(),
+  exchangeRate: numeric("exchange_rate").notNull(), // Against base currency
+  isBaseCurrency: boolean("is_base_currency").default(false).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
+// Bank Accounts
+export const bankAccounts = pgTable("bank_accounts", {
+  id: serial("id").primaryKey(),
+  accountName: text("account_name").notNull(),
+  accountNumber: text("account_number").notNull(),
+  bankName: text("bank_name").notNull(),
+  routingNumber: text("routing_number"),
+  iban: text("iban"),
+  swiftCode: text("swift_code"),
+  currencyId: integer("currency_id").references(() => currencies.id).notNull(),
+  accountType: text("account_type").notNull(), // checking, savings, credit
+  currentBalance: numeric("current_balance").default("0"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Budget Management
+export const budgets = pgTable("budgets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  budgetYear: integer("budget_year").notNull(),
+  totalBudget: numeric("total_budget").notNull(),
+  spentAmount: numeric("spent_amount").default("0"),
+  remainingAmount: numeric("remaining_amount").notNull(),
+  status: text("status").default("active").notNull(), // active, closed, draft
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const budgetCategories = pgTable("budget_categories", {
+  id: serial("id").primaryKey(),
+  budgetId: integer("budget_id").references(() => budgets.id).notNull(),
+  categoryName: text("category_name").notNull(),
+  allocatedAmount: numeric("allocated_amount").notNull(),
+  spentAmount: numeric("spent_amount").default("0"),
+  remainingAmount: numeric("remaining_amount").notNull(),
+});
+
+// Asset Management
+export const assets = pgTable("assets", {
+  id: serial("id").primaryKey(),
+  assetNumber: text("asset_number").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // equipment, vehicle, building, etc.
+  purchaseDate: date("purchase_date").notNull(),
+  purchasePrice: numeric("purchase_price").notNull(),
+  currentValue: numeric("current_value").notNull(),
+  depreciationMethod: text("depreciation_method"), // straight_line, declining_balance
+  usefulLife: integer("useful_life"), // Years
+  location: text("location"),
+  custodian: integer("custodian").references(() => users.id),
+  status: text("status").default("active").notNull(), // active, disposed, maintenance
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Maintenance Records
+export const maintenanceRecords = pgTable("maintenance_records", {
+  id: serial("id").primaryKey(),
+  assetId: integer("asset_id").references(() => assets.id).notNull(),
+  maintenanceType: text("maintenance_type").notNull(), // preventive, corrective, emergency
+  description: text("description").notNull(),
+  cost: numeric("cost").notNull(),
+  performedBy: text("performed_by"), // Internal or external
+  performedDate: date("performed_date").notNull(),
+  nextMaintenanceDate: date("next_maintenance_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Employee Management Extension
+export const departments = pgTable("departments", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  managerId: integer("manager_id").references(() => users.id),
+  budgetId: integer("budget_id").references(() => budgets.id),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const employeeProfiles = pgTable("employee_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  employeeId: text("employee_id").notNull().unique(),
+  departmentId: integer("department_id").references(() => departments.id),
+  position: text("position"),
+  hireDate: date("hire_date").notNull(),
+  salary: numeric("salary"),
+  emergencyContactName: text("emergency_contact_name"),
+  emergencyContactPhone: text("emergency_contact_phone"),
+  address: text("address"),
+  birthDate: date("birth_date"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document Management
+export const documentTypes = pgTable("document_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  requiredFields: jsonb("required_fields"), // JSON array of required field names
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  documentNumber: text("document_number").notNull().unique(),
+  typeId: integer("type_id").references(() => documentTypes.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  entityType: text("entity_type"), // product, customer, supplier, etc.
+  entityId: integer("entity_id"), // ID of the related entity
+  version: integer("version").default(1),
+  isActive: boolean("is_active").default(true).notNull(),
+  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Audit Trail
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  tableName: text("table_name").notNull(),
+  recordId: integer("record_id").notNull(),
+  action: text("action").notNull(), // INSERT, UPDATE, DELETE
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  changedBy: integer("changed_by").references(() => users.id).notNull(),
+  changedAt: timestamp("changed_at").defaultNow().notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+});
+
+// Notifications System
+export const notificationTemplates = pgTable("notification_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  type: text("type").notNull(), // email, sms, push, in_app
+  category: text("category").notNull(), // stock_alert, payment_due, etc.
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  templateId: integer("template_id").references(() => notificationTemplates.id),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // info, warning, error, success
+  category: text("category").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  data: jsonb("data"), // Additional data for the notification
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readAt: timestamp("read_at"),
+});
+
+// Reports and Analytics
+export const reportDefinitions = pgTable("report_definitions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // financial, inventory, sales, etc.
+  sqlQuery: text("sql_query").notNull(),
+  parameters: jsonb("parameters"), // JSON array of parameter definitions
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const reportInstances = pgTable("report_instances", {
+  id: serial("id").primaryKey(),
+  definitionId: integer("definition_id").references(() => reportDefinitions.id).notNull(),
+  name: text("name").notNull(),
+  parameters: jsonb("parameters"), // Actual parameter values used
+  generatedData: jsonb("generated_data"), // The report results
+  generatedBy: integer("generated_by").references(() => users.id).notNull(),
+  generatedAt: timestamp("generated_at").defaultNow().notNull(),
+});
+
+// Integration with External Systems
+export const integrationConfigs = pgTable("integration_configs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  type: text("type").notNull(), // api, ftp, email, etc.
+  endpoint: text("endpoint"),
+  credentials: jsonb("credentials"), // Encrypted credentials
+  settings: jsonb("settings"), // Configuration settings
+  isActive: boolean("is_active").default(true).notNull(),
+  lastSync: timestamp("last_sync"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const syncLogs = pgTable("sync_logs", {
+  id: serial("id").primaryKey(),
+  integrationId: integer("integration_id").references(() => integrationConfigs.id).notNull(),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  status: text("status").notNull(), // success, failed, in_progress
+  recordsProcessed: integer("records_processed").default(0),
+  errorMessage: text("error_message"),
+  details: jsonb("details"),
+});
+
+// Drizzle Relations for better query optimization
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  permissions: many(userPermissions),
+  sales: many(sales),
+  quotations: many(quotations),
+  orders: many(orders),
+  productionOrders: many(productionOrders),
+  employeeProfile: one(employeeProfiles, {
+    fields: [users.id],
+    references: [employeeProfiles.userId],
+  }),
+  department: one(departments, {
+    fields: [users.id],
+    references: [departments.managerId],
+  }),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(productCategories, {
+    fields: [products.categoryId],
+    references: [productCategories.id],
+  }),
+  batches: many(batches),
+  formulations: many(productFormulations),
+  safety: one(productSafety),
+  labels: many(productLabels),
+  saleItems: many(saleItems),
+  quotationItems: many(quotationItems),
+  orderItems: many(orderItems),
+}));
+
+export const batchesRelations = relations(batches, ({ one, many }) => ({
+  product: one(products, {
+    fields: [batches.productId],
+    references: [products.id],
+  }),
+  supplier: one(suppliers, {
+    fields: [batches.supplierId],
+    references: [suppliers.id],
+  }),
+  qualityTests: many(qualityTests),
+  labels: many(productLabels),
+}));
+
+export const customersRelations = relations(customers, ({ many }) => ({
+  sales: many(sales),
+  quotations: many(quotations),
+  orders: many(orders),
+  payments: many(customerPayments),
+  receivables: many(accountsReceivable),
+}));
+
+export const suppliersRelations = relations(suppliers, ({ many }) => ({
+  purchaseOrders: many(purchaseOrders),
+  batches: many(batches),
+  payables: many(accountsPayable),
+}));
+
+export const salesRelations = relations(sales, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [sales.customerId],
+    references: [customers.id],
+  }),
+  user: one(users, {
+    fields: [sales.userId],
+    references: [users.id],
+  }),
+  items: many(saleItems),
+  invoice: one(invoices),
+}));
+
+export const quotationsRelations = relations(quotations, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [quotations.customerId],
+    references: [customers.id],
+  }),
+  user: one(users, {
+    fields: [quotations.userId],
+    references: [users.id],
+  }),
+  items: many(quotationItems),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [orders.customerId],
+    references: [customers.id],
+  }),
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+  targetProduct: one(products, {
+    fields: [orders.targetProductId],
+    references: [products.id],
+  }),
+  items: many(orderItems),
+  fees: many(orderFees),
+}));
+
+// Additional Insert Schemas for new tables
+export const insertBatchSchema = createInsertSchema(batches).pick({
+  batchNumber: true,
+  productId: true,
+  manufactureDate: true,
+  expiryDate: true,
+  quantity: true,
+  remainingQuantity: true,
+  lotNumber: true,
+  supplierId: true,
+  storageLocation: true,
+  status: true,
+  qualityTestResults: true,
+});
+
+export const insertProductFormulationSchema = createInsertSchema(productFormulations).pick({
+  productId: true,
+  ingredientId: true,
+  concentration: true,
+  unit: true,
+  isActive: true,
+});
+
+export const insertProductSafetySchema = createInsertSchema(productSafety).pick({
+  productId: true,
+  hazardSymbols: true,
+  safetyDataSheet: true,
+  storageConditions: true,
+  handlingInstructions: true,
+  emergencyProcedures: true,
+  regulatoryNumbers: true,
+});
+
+export const insertQualityTestSchema = createInsertSchema(qualityTests).pick({
+  batchId: true,
+  testType: true,
+  testDate: true,
+  testResults: true,
+  passedTest: true,
+  testedBy: true,
+  notes: true,
+});
+
+export const insertProductionOrderSchema = createInsertSchema(productionOrders).pick({
+  orderNumber: true,
+  productId: true,
+  plannedQuantity: true,
+  actualQuantity: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+  priority: true,
+  supervisorId: true,
+  notes: true,
+});
+
+export const insertProductLabelSchema = createInsertSchema(productLabels).pick({
+  productId: true,
+  batchId: true,
+  gs1Code: true,
+  qrCodeData: true,
+  labelTemplate: true,
+  printedCount: true,
+});
+
+export const insertRegulatorySubmissionSchema = createInsertSchema(regulatorySubmissions).pick({
+  productId: true,
+  submissionType: true,
+  submissionDate: true,
+  approvalDate: true,
+  status: true,
+  referenceNumber: true,
+  documents: true,
+  notes: true,
+});
+
+export const insertInventoryAdjustmentSchema = createInsertSchema(inventoryAdjustments).pick({
+  productId: true,
+  batchId: true,
+  adjustmentType: true,
+  previousQuantity: true,
+  adjustedQuantity: true,
+  difference: true,
+  reason: true,
+  approvedBy: true,
+  adjustedBy: true,
+  adjustmentDate: true,
+  notes: true,
+});
+
+export const insertWarehouseSchema = createInsertSchema(warehouses).pick({
+  name: true,
+  code: true,
+  address: true,
+  managerId: true,
+  isActive: true,
+});
+
+export const insertWarehouseLocationSchema = createInsertSchema(warehouseLocations).pick({
+  warehouseId: true,
+  aisle: true,
+  rack: true,
+  shelf: true,
+  bin: true,
+  locationCode: true,
+  maxCapacity: true,
+  currentCapacity: true,
+  temperatureControlled: true,
+  isActive: true,
+});
+
+export const insertStockMovementSchema = createInsertSchema(stockMovements).pick({
+  productId: true,
+  batchId: true,
+  fromLocationId: true,
+  toLocationId: true,
+  movementType: true,
+  quantity: true,
+  referenceType: true,
+  referenceId: true,
+  movedBy: true,
+  movementDate: true,
+  notes: true,
+});
+
+export const insertTaxRateSchema = createInsertSchema(taxRates).pick({
+  name: true,
+  rate: true,
+  type: true,
+  jurisdiction: true,
+  isActive: true,
+  effectiveFrom: true,
+  effectiveTo: true,
+});
+
+export const insertCurrencySchema = createInsertSchema(currencies).pick({
+  code: true,
+  name: true,
+  symbol: true,
+  exchangeRate: true,
+  isBaseCurrency: true,
+  isActive: true,
+});
+
+export const insertBankAccountSchema = createInsertSchema(bankAccounts).pick({
+  accountName: true,
+  accountNumber: true,
+  bankName: true,
+  routingNumber: true,
+  iban: true,
+  swiftCode: true,
+  currencyId: true,
+  accountType: true,
+  currentBalance: true,
+  isActive: true,
+});
+
+export const insertBudgetSchema = createInsertSchema(budgets).pick({
+  name: true,
+  description: true,
+  budgetYear: true,
+  totalBudget: true,
+  spentAmount: true,
+  remainingAmount: true,
+  status: true,
+  createdBy: true,
+});
+
+export const insertAssetSchema = createInsertSchema(assets).pick({
+  assetNumber: true,
+  name: true,
+  description: true,
+  category: true,
+  purchaseDate: true,
+  purchasePrice: true,
+  currentValue: true,
+  depreciationMethod: true,
+  usefulLife: true,
+  location: true,
+  custodian: true,
+  status: true,
+});
+
+export const insertDepartmentSchema = createInsertSchema(departments).pick({
+  name: true,
+  description: true,
+  managerId: true,
+  budgetId: true,
+  isActive: true,
+});
+
+export const insertEmployeeProfileSchema = createInsertSchema(employeeProfiles).pick({
+  userId: true,
+  employeeId: true,
+  departmentId: true,
+  position: true,
+  hireDate: true,
+  salary: true,
+  emergencyContactName: true,
+  emergencyContactPhone: true,
+  address: true,
+  birthDate: true,
+  isActive: true,
+});
+
+export const insertDocumentSchema = createInsertSchema(documents).pick({
+  documentNumber: true,
+  typeId: true,
+  title: true,
+  description: true,
+  filePath: true,
+  fileSize: true,
+  mimeType: true,
+  entityType: true,
+  entityId: true,
+  version: true,
+  isActive: true,
+  uploadedBy: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).pick({
+  userId: true,
+  templateId: true,
+  title: true,
+  message: true,
+  type: true,
+  category: true,
+  isRead: true,
+  data: true,
+});
+
+// Additional Type Exports
+export type InsertBatch = z.infer<typeof insertBatchSchema>;
+export type Batch = typeof batches.$inferSelect;
+
+export type InsertProductFormulation = z.infer<typeof insertProductFormulationSchema>;
+export type ProductFormulation = typeof productFormulations.$inferSelect;
+
+export type InsertProductSafety = z.infer<typeof insertProductSafetySchema>;
+export type ProductSafety = typeof productSafety.$inferSelect;
+
+export type InsertQualityTest = z.infer<typeof insertQualityTestSchema>;
+export type QualityTest = typeof qualityTests.$inferSelect;
+
+export type InsertProductionOrder = z.infer<typeof insertProductionOrderSchema>;
+export type ProductionOrder = typeof productionOrders.$inferSelect;
+
+export type InsertProductLabel = z.infer<typeof insertProductLabelSchema>;
+export type ProductLabel = typeof productLabels.$inferSelect;
+
+export type InsertRegulatorySubmission = z.infer<typeof insertRegulatorySubmissionSchema>;
+export type RegulatorySubmission = typeof regulatorySubmissions.$inferSelect;
+
+export type InsertInventoryAdjustment = z.infer<typeof insertInventoryAdjustmentSchema>;
+export type InventoryAdjustment = typeof inventoryAdjustments.$inferSelect;
+
+export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
+export type Warehouse = typeof warehouses.$inferSelect;
+
+export type InsertWarehouseLocation = z.infer<typeof insertWarehouseLocationSchema>;
+export type WarehouseLocation = typeof warehouseLocations.$inferSelect;
+
+export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;
+export type StockMovement = typeof stockMovements.$inferSelect;
+
+export type InsertTaxRate = z.infer<typeof insertTaxRateSchema>;
+export type TaxRate = typeof taxRates.$inferSelect;
+
+export type InsertCurrency = z.infer<typeof insertCurrencySchema>;
+export type Currency = typeof currencies.$inferSelect;
+
+export type InsertBankAccount = z.infer<typeof insertBankAccountSchema>;
+export type BankAccount = typeof bankAccounts.$inferSelect;
+
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
+export type Budget = typeof budgets.$inferSelect;
+
+export type InsertAsset = z.infer<typeof insertAssetSchema>;
+export type Asset = typeof assets.$inferSelect;
+
+export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
+export type Department = typeof departments.$inferSelect;
+
+export type InsertEmployeeProfile = z.infer<typeof insertEmployeeProfileSchema>;
+export type EmployeeProfile = typeof employeeProfiles.$inferSelect;
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
+
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+export type Notification = typeof notifications.$inferSelect;
+
+export type MaintenanceRecord = typeof maintenanceRecords.$inferSelect;
+export type BudgetCategory = typeof budgetCategories.$inferSelect;
+export type DocumentType = typeof documentTypes.$inferSelect;
+export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
+export type ReportDefinition = typeof reportDefinitions.$inferSelect;
+export type ReportInstance = typeof reportInstances.$inferSelect;
+export type IntegrationConfig = typeof integrationConfigs.$inferSelect;
+export type SyncLog = typeof syncLogs.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type ProductionMaterial = typeof productionMaterials.$inferSelect;
 
 // Expense schema and types
 export const insertExpenseSchema = createInsertSchema(expenses).pick({
