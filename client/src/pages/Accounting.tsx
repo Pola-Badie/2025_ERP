@@ -6941,6 +6941,165 @@ const Accounting: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Pay Dialog */}
+      <Dialog open={isAddPayDialogOpen} onOpenChange={setIsAddPayDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              Add Employee Pay
+            </DialogTitle>
+            <DialogDescription>
+              Process payroll for an employee. Select an employee and enter salary details.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Employee Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="employee">Select Employee *</Label>
+              <Select
+                value={addPayForm.employeeId}
+                onValueChange={handleEmployeeSelect}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose an employee..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {employeeList.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{employee.name}</span>
+                        <span className="text-sm text-gray-500">
+                          {employee.department} - {employee.position}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Pay Period */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="payPeriod">Pay Period</Label>
+                <Input
+                  id="payPeriod"
+                  type="date"
+                  value={addPayForm.payPeriod}
+                  onChange={(e) =>
+                    setAddPayForm(prev => ({ ...prev, payPeriod: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Salary Details */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="basicSalary">Basic Salary *</Label>
+                <Input
+                  id="basicSalary"
+                  type="number"
+                  placeholder="0.00"
+                  value={addPayForm.basicSalary}
+                  onChange={(e) =>
+                    setAddPayForm(prev => ({ ...prev, basicSalary: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="overtime">Overtime Pay</Label>
+                <Input
+                  id="overtime"
+                  type="number"
+                  placeholder="0.00"
+                  value={addPayForm.overtime}
+                  onChange={(e) =>
+                    setAddPayForm(prev => ({ ...prev, overtime: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="bonuses">Bonuses & Allowances</Label>
+                <Input
+                  id="bonuses"
+                  type="number"
+                  placeholder="0.00"
+                  value={addPayForm.bonuses}
+                  onChange={(e) =>
+                    setAddPayForm(prev => ({ ...prev, bonuses: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="deductions">Deductions</Label>
+                <Input
+                  id="deductions"
+                  type="number"
+                  placeholder="0.00"
+                  value={addPayForm.deductions}
+                  onChange={(e) =>
+                    setAddPayForm(prev => ({ ...prev, deductions: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
+            {/* Net Pay Calculation */}
+            {addPayForm.basicSalary && (
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-blue-900">Net Pay:</span>
+                  <span className="text-lg font-bold text-blue-900">
+                    ${(
+                      parseFloat(addPayForm.basicSalary || '0') +
+                      parseFloat(addPayForm.overtime || '0') +
+                      parseFloat(addPayForm.bonuses || '0') -
+                      parseFloat(addPayForm.deductions || '0')
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add any additional notes about this payroll entry..."
+                value={addPayForm.notes}
+                onChange={(e) =>
+                  setAddPayForm(prev => ({ ...prev, notes: e.target.value }))
+                }
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddPayDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddPaySubmit}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <DollarSign className="h-4 w-4 mr-2" />
+              Add Pay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
