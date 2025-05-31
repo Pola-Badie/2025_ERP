@@ -289,7 +289,7 @@ export const accounts = pgTable("accounts", {
   type: text("type").notNull(), // Asset, Liability, Equity, Income, Expense
   subtype: text("subtype"), // E.g., "Current Asset", "Fixed Asset", etc.
   description: text("description"),
-  parentId: integer("parent_id"),
+  parentId: integer("parent_id").references((): any => accounts.id),
   isActive: boolean("is_active").default(true).notNull(),
   balance: numeric("balance").default("0").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
