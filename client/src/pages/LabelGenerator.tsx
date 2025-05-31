@@ -435,33 +435,58 @@ const LabelGenerator: React.FC = () => {
         }
 
         case '2_per_a4': {
-          imgWidth = 200; // Full width edge to edge
-          const originalHeight = (canvas.height * imgWidth) / canvas.width;
-          const availableHeight = 287; // A4 height minus minimal margins
-          const maxLabelHeight = (availableHeight - 5) / 2; // Space for 2 labels with small gap
-          imgHeight = Math.min(originalHeight, maxLabelHeight);
+          // Calculate proportional sizing to maintain aspect ratio
+          const originalAspectRatio = canvas.width / canvas.height;
+          const labelSpacing = 10;
+          const availableHeight = 287; // A4 height minus margins
+          const maxLabelHeight = (availableHeight - labelSpacing) / 2; // Space for 2 labels
           
-          // First label - full width
-          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, imgHeight);
-          // Second label with minimal spacing
-          pdf.addImage(imgData, 'PNG', 5, 5 + imgHeight + 5, imgWidth, imgHeight);
+          // Calculate width based on height to maintain aspect ratio
+          imgHeight = maxLabelHeight;
+          imgWidth = imgHeight * originalAspectRatio;
+          
+          // Center labels horizontally if they don't fill the width
+          const maxWidth = 200; // A4 width minus margins
+          if (imgWidth > maxWidth) {
+            imgWidth = maxWidth;
+            imgHeight = imgWidth / originalAspectRatio;
+          }
+          
+          const xOffset = (210 - imgWidth) / 2; // Center horizontally on A4
+          
+          // First label
+          pdf.addImage(imgData, 'PNG', xOffset, 5, imgWidth, imgHeight);
+          // Second label
+          pdf.addImage(imgData, 'PNG', xOffset, 5 + imgHeight + labelSpacing, imgWidth, imgHeight);
           break;
         }
           
         case '3_per_a4': {
-          imgWidth = 200; // Full width edge to edge
-          imgHeight = (canvas.height * imgWidth) / canvas.width;
-          // Add 3 labels per page - vertically stacked using full width
-          const labelSpacing = 5;
-          const availableHeight3 = 287; // A4 height minus minimal margins
-          const labelHeight = Math.min(imgHeight, (availableHeight3 - 2 * labelSpacing) / 3);
+          // Calculate proportional sizing to maintain aspect ratio
+          const originalAspectRatio = canvas.width / canvas.height;
+          const labelSpacing = 8;
+          const availableHeight3 = 287; // A4 height minus margins
+          const maxLabelHeight = (availableHeight3 - 2 * labelSpacing) / 3; // Space for 3 labels
           
-          // First label - full width
-          pdf.addImage(imgData, 'PNG', 5, 5, imgWidth, labelHeight);
-          // Second label - full width
-          pdf.addImage(imgData, 'PNG', 5, 5 + labelHeight + labelSpacing, imgWidth, labelHeight);
-          // Third label - full width
-          pdf.addImage(imgData, 'PNG', 5, 5 + 2 * (labelHeight + labelSpacing), imgWidth, labelHeight);
+          // Calculate width based on height to maintain aspect ratio
+          imgHeight = maxLabelHeight;
+          imgWidth = imgHeight * originalAspectRatio;
+          
+          // Center labels horizontally if they don't fill the width
+          const maxWidth = 200; // A4 width minus margins
+          if (imgWidth > maxWidth) {
+            imgWidth = maxWidth;
+            imgHeight = imgWidth / originalAspectRatio;
+          }
+          
+          const xOffset = (210 - imgWidth) / 2; // Center horizontally on A4
+          
+          // First label
+          pdf.addImage(imgData, 'PNG', xOffset, 5, imgWidth, imgHeight);
+          // Second label
+          pdf.addImage(imgData, 'PNG', xOffset, 5 + imgHeight + labelSpacing, imgWidth, imgHeight);
+          // Third label
+          pdf.addImage(imgData, 'PNG', xOffset, 5 + 2 * (imgHeight + labelSpacing), imgWidth, imgHeight);
           break;
         }
           
