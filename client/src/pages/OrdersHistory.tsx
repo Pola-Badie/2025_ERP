@@ -209,6 +209,10 @@ const OrdersHistory: React.FC = () => {
     }
   ];
 
+  // Debug logging
+  console.log('orderHistory data:', orderHistory);
+  console.log('orderHistory length:', orderHistory.length);
+
   // Filter orders based on search and filters
   const filteredOrders = orderHistory.filter(order => {
     const matchesSearch = 
