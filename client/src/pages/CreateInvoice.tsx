@@ -340,51 +340,66 @@ const CreateInvoice = () => {
   // Calculate totals automatically when form values change
   useEffect(() => {
     const subscription = form.watch((value) => {
-      if (value.items) {
+      if (value.items && Array.isArray(value.items)) {
+        let hasChanges = false;
+        const updates: any = {};
+
         // Calculate line totals
         value.items.forEach((item, index) => {
           if (item && typeof item.quantity === 'number' && typeof item.unitPrice === 'number') {
-            const lineTotal = item.quantity * item.unitPrice;
-            if (lineTotal !== item.total) {
-              form.setValue(`items.${index}.total`, lineTotal);
+            const lineTotal = Number((item.quantity * item.unitPrice).toFixed(2));
+            if (Math.abs(lineTotal - (item.total || 0)) > 0.01) {
+              updates[`items.${index}.total`] = lineTotal;
+              hasChanges = true;
             }
           }
         });
 
         // Calculate subtotal
-        const subtotal = value.items.reduce((sum, item) => {
+        const subtotal = Number(value.items.reduce((sum, item) => {
           return sum + (item?.total || 0);
-        }, 0);
+        }, 0).toFixed(2));
         
-        if (subtotal !== value.subtotal) {
-          form.setValue('subtotal', subtotal);
+        if (Math.abs(subtotal - (value.subtotal || 0)) > 0.01) {
+          updates.subtotal = subtotal;
+          hasChanges = true;
         }
 
         // Calculate discount amount
         let discountAmount = 0;
         if (value.discountType === 'percentage' && value.discountValue) {
-          discountAmount = (subtotal * value.discountValue) / 100;
+          discountAmount = Number(((subtotal * value.discountValue) / 100).toFixed(2));
         } else if (value.discountType === 'amount' && value.discountValue) {
-          discountAmount = value.discountValue;
+          discountAmount = Number(value.discountValue);
         }
         
-        if (discountAmount !== value.discountAmount) {
-          form.setValue('discountAmount', discountAmount);
+        if (Math.abs(discountAmount - (value.discountAmount || 0)) > 0.01) {
+          updates.discountAmount = discountAmount;
+          hasChanges = true;
         }
 
         // Calculate tax amount
         const taxableAmount = subtotal - discountAmount;
-        const taxAmount = value.taxRate ? (taxableAmount * value.taxRate) / 100 : 0;
+        const taxAmount = value.taxRate ? Number(((taxableAmount * value.taxRate) / 100).toFixed(2)) : 0;
         
-        if (taxAmount !== value.taxAmount) {
-          form.setValue('taxAmount', taxAmount);
+        if (Math.abs(taxAmount - (value.taxAmount || 0)) > 0.01) {
+          updates.taxAmount = taxAmount;
+          hasChanges = true;
         }
 
         // Calculate grand total
-        const grandTotal = taxableAmount + taxAmount;
+        const grandTotal = Number((taxableAmount + taxAmount).toFixed(2));
         
-        if (grandTotal !== value.grandTotal) {
-          form.setValue('grandTotal', grandTotal);
+        if (Math.abs(grandTotal - (value.grandTotal || 0)) > 0.01) {
+          updates.grandTotal = grandTotal;
+          hasChanges = true;
+        }
+
+        // Apply all updates at once to prevent multiple re-renders
+        if (hasChanges) {
+          Object.entries(updates).forEach(([path, value]) => {
+            form.setValue(path as any, value, { shouldValidate: false });
+          });
         }
       }
     });
@@ -481,43 +496,8 @@ const CreateInvoice = () => {
     }
   }, [activeInvoiceId, form]);
 
-  // Calculate totals whenever items, discount, or tax rate changes
+  // Save draft periodically (separated from calculations to prevent loops)
   useEffect(() => {
-    if (watchItems) {
-      // Calculate item totals
-      watchItems.forEach((item, index) => {
-        const total = item.quantity * item.unitPrice;
-        form.setValue(`items.${index}.total`, total);
-      });
-
-      // Calculate subtotal
-      const subtotal = watchItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-      form.setValue('subtotal', subtotal);
-      
-      // Calculate discount
-      let discountAmount = 0;
-      if (watchDiscountType === 'percentage' && watchDiscountValue > 0) {
-        discountAmount = (subtotal * watchDiscountValue) / 100;
-      } else if (watchDiscountType === 'amount' && watchDiscountValue > 0) {
-        discountAmount = Math.min(watchDiscountValue, subtotal); // Can't discount more than subtotal
-      }
-      form.setValue('discountAmount', discountAmount);
-      
-      // Calculate tax and grand total
-      const subtotalAfterDiscount = subtotal - discountAmount;
-      const taxAmount = (subtotalAfterDiscount * watchTaxRate) / 100;
-      const grandTotal = subtotalAfterDiscount + taxAmount;
-
-      form.setValue('taxAmount', taxAmount);
-      form.setValue('grandTotal', grandTotal);
-      
-      // If payment status is 'paid', update amount paid
-      if (form.getValues('paymentStatus') === 'paid') {
-        form.setValue('amountPaid', grandTotal);
-      }
-    }
-    
-    // Save the current draft with a small delay to avoid too frequent updates
     const timer = setTimeout(() => {
       const currentFormData = form.getValues();
       setInvoiceDrafts(prev => {
@@ -533,22 +513,28 @@ const CreateInvoice = () => {
         saveDrafts(updated);
         return updated;
       });
-    }, 500);
+    }, 1000); // Increased delay to reduce frequency
     
     return () => clearTimeout(timer);
-  }, [watchItems, watchTaxRate, form, activeInvoiceId]);
+  }, [watchItems, watchTaxRate, watchDiscountType, watchDiscountValue, activeInvoiceId]);
 
   // Update amount paid based on payment status
   useEffect(() => {
-    const grandTotal = form.getValues('grandTotal');
+    const grandTotal = form.getValues('grandTotal') || 0;
     
-    if (watchPaymentStatus === 'paid') {
-      form.setValue('amountPaid', grandTotal);
+    if (watchPaymentStatus === 'paid' && grandTotal > 0) {
+      const currentAmountPaid = form.getValues('amountPaid') || 0;
+      if (Math.abs(grandTotal - currentAmountPaid) > 0.01) {
+        form.setValue('amountPaid', grandTotal, { shouldValidate: false });
+      }
     } else if (watchPaymentStatus === 'unpaid') {
-      form.setValue('amountPaid', 0);
+      const currentAmountPaid = form.getValues('amountPaid') || 0;
+      if (currentAmountPaid !== 0) {
+        form.setValue('amountPaid', 0, { shouldValidate: false });
+      }
     }
     // If partial, leave the amount as is for user to specify
-  }, [watchPaymentStatus, form]);
+  }, [watchPaymentStatus]);
 
   // Add new product row
   const addProductRow = () => {
