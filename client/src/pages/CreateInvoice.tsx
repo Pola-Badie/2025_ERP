@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -156,14 +156,100 @@ const CreateInvoice = () => {
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
-  const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   
-  // Simplified state management without complex multi-invoice logic
+  // Multi-invoice state
+  // Store last active invoice ID in localStorage too
+  const getInitialActiveInvoiceId = () => {
+    const savedActiveId = localStorage.getItem('activeInvoiceId');
+    return savedActiveId || "draft-1";
+  };
+  
+  const [activeInvoiceId, setActiveInvoiceId] = useState<string>(getInitialActiveInvoiceId);
+  
+  // Update localStorage when active invoice changes
+  const updateActiveInvoiceId = (newId: string) => {
+    setActiveInvoiceId(newId);
+    localStorage.setItem('activeInvoiceId', newId);
+  };
+  
+  const [invoiceDrafts, setInvoiceDrafts] = useState<InvoiceDraft[]>(() => {
+    try {
+      const savedDrafts = localStorage.getItem('invoiceDrafts');
+      if (savedDrafts) {
+        const parsed = JSON.parse(savedDrafts);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Don't change activeInvoiceId here - it's already set from localStorage
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error('Error loading invoice drafts:', e);
+    }
+    
+    // Default to one invoice draft if nothing valid is saved
+    return [{
+      id: 'draft-1',
+      name: 'Invoice 1',
+      data: defaultFormValues,
+      lastUpdated: new Date().toISOString()
+    }];
+  });
+
+  // Function to save drafts to localStorage
+  const saveDrafts = (drafts: InvoiceDraft[]) => {
+    localStorage.setItem('invoiceDrafts', JSON.stringify(drafts));
+  };
+  
+  // Reset all invoices to start with a single "Invoice 1" draft
+  const resetAllInvoices = () => {
+    // Create a fresh Invoice 1
+    const newDraft: InvoiceDraft = {
+      id: 'draft-1',
+      name: 'Invoice 1',
+      data: defaultFormValues,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Set our invoices array to just this one draft
+    setInvoiceDrafts([newDraft]);
+    
+    // Save to localStorage
+    saveDrafts([newDraft]);
+    
+    // Set the active invoice to this one
+    updateActiveInvoiceId('draft-1');
+    
+    // Reset the form with default values
+    form.reset(defaultFormValues);
+    
+    toast({
+      title: "Invoices reset",
+      description: "All invoice drafts have been cleared. Starting fresh with Invoice 1.",
+    });
+  };
+
+  // Get the currently active draft
+  const getCurrentDraft = (): InvoiceDraft | undefined => {
+    return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
+  };
+  
+  // Refresh only product and customer data, not invoice drafts
+  const refreshInvoiceData = () => {
+    // Refresh customers and products data without affecting invoiceDrafts state
+    queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+    
+    // Don't reset the activeInvoiceId or invoice drafts
+    toast({
+      title: "Data refreshed",
+      description: "Customer and product data has been refreshed. Your invoice drafts remain unchanged.",
+    });
+  };
 
   // Set up the form
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: getCurrentDraft()?.data || defaultFormValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -470,7 +556,57 @@ const CreateInvoice = () => {
     });
   };
 
-
+  // Add a new invoice draft
+  const addNewDraft = () => {
+    if (invoiceDrafts.length >= 4) {
+      toast({
+        title: "Maximum invoices reached",
+        description: "You can only work on up to 4 invoices at a time.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const newId = `draft-${Date.now()}`;
+    const newDraft: InvoiceDraft = {
+      id: newId,
+      name: `Invoice ${invoiceDrafts.length + 1}`,
+      data: defaultFormValues,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    setInvoiceDrafts(prev => {
+      const updated = [...prev, newDraft];
+      saveDrafts(updated);
+      return updated;
+    });
+    
+    updateActiveInvoiceId(newId);
+  };
+  
+  // Remove an invoice draft
+  const removeDraft = (draftId: string) => {
+    if (invoiceDrafts.length <= 1) {
+      toast({
+        title: "Cannot remove draft",
+        description: "You need at least one invoice draft.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setInvoiceDrafts(prev => {
+      const updated = prev.filter(draft => draft.id !== draftId);
+      saveDrafts(updated);
+      
+      // If removing the active draft, switch to another one
+      if (activeInvoiceId === draftId) {
+        updateActiveInvoiceId(updated[0].id);
+      }
+      
+      return updated;
+    });
+  };
 
   // Handle product selection
   const handleProductSelection = (productId: number, index: number) => {
@@ -576,19 +712,8 @@ const CreateInvoice = () => {
   };
 
   const handleOrderSelection = (order: any) => {
-    // Check if order is already selected
-    if (selectedOrderIds.includes(order.id)) {
-      toast({
-        title: "Order Already Added",
-        description: `Order ${order.orderNumber} has already been added to this invoice.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Set customer from the first order if no customer is set yet
-    const currentCustomer = form.watch('customer');
-    if (order.customerName && (!currentCustomer?.name || currentCustomer.name === '')) {
+    // Set customer from order
+    if (order.customerName) {
       form.setValue('customer', {
         id: order.id,
         name: order.customerName,
@@ -601,46 +726,33 @@ const CreateInvoice = () => {
       });
     }
 
-    // Check if this is the first item and it's empty, then replace it
-    const currentItems = form.watch('items') || [];
-    const hasEmptyFirstItem = currentItems.length === 1 && 
-      !currentItems[0]?.productName && 
-      currentItems[0]?.quantity <= 0;
+    // Clear existing items
+    fields.forEach((_, index) => {
+      if (index > 0) remove(index);
+    });
 
-    if (hasEmptyFirstItem) {
-      // Replace the empty first item
-      form.setValue('items.0', {
-        productId: order.id,
-        productName: order.targetProduct || '',
-        category: 'Pharmaceutical',
-        batchNo: order.batchNumber || '',
-        gs1Code: '',
-        type: order.type || 'manufacturing',
-        quantity: 1,
-        unitPrice: order.revenue || order.totalCost || 0,
-        total: order.revenue || order.totalCost || 0,
-      });
-    } else {
-      // Add as a new item
-      append({
-        productId: order.id,
-        productName: order.targetProduct || '',
-        category: 'Pharmaceutical',
-        batchNo: order.batchNumber || '',
-        gs1Code: '',
-        type: order.type || 'manufacturing',
-        quantity: 1,
-        unitPrice: order.revenue || order.totalCost || 0,
-        total: order.revenue || order.totalCost || 0,
-      });
-    }
+    // Create invoice item from order data
+    // Remove the default empty item first
+    remove(0);
+    
+    // Add the target product as an invoice item
+    append({
+      productId: order.id,
+      productName: order.targetProduct || '',
+      category: 'Pharmaceutical',
+      batchNo: order.batchNumber || '',
+      gs1Code: '',
+      type: order.type || 'manufacturing',
+      quantity: 1,
+      unitPrice: order.revenue || order.totalCost || 0,
+      total: order.revenue || order.totalCost || 0,
+    });
 
-    // Track selected order
-    setSelectedOrderIds(prev => [...prev, order.id]);
-
+    setShowOrderSelector(false);
+    
     toast({
-      title: "Order Added",
-      description: `Order ${order.orderNumber} has been added to invoice. You can select more orders or click Done when finished.`,
+      title: "Order Imported",
+      description: `Order ${order.orderNumber} has been imported to invoice`,
     });
   };
 
@@ -1158,10 +1270,7 @@ const CreateInvoice = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setSelectedOrderIds([]);
-                    setShowOrderSelector(true);
-                  }}
+                  onClick={() => setShowOrderSelector(true)}
                 >
                   <Package className="mr-2 h-4 w-4" />
                   Select from Order History
@@ -1850,101 +1959,73 @@ const CreateInvoice = () => {
               </div>
             ) : (
               <div className="grid gap-4">
-                {orders.map((order) => {
-                  const isSelected = selectedOrderIds.includes(order.id);
-                  return (
-                    <Card key={order.id} className={`transition-all cursor-pointer ${
-                      isSelected 
-                        ? 'ring-2 ring-green-500 bg-green-50 border-green-200' 
-                        : 'hover:shadow-md border-gray-200'
-                    }`}
-                          onClick={() => handleOrderSelection(order)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <Package className={`w-5 h-5 ${isSelected ? 'text-green-600' : 'text-blue-600'}`} />
-                              <div>
-                                <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {order.targetProduct}
-                                </p>
-                              </div>
-                              <div className="ml-auto flex items-center space-x-2">
-                                {isSelected && (
-                                  <div className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                    ✓ Added
-                                  </div>
-                                )}
-                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  order.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                  order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {order.status}
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-1 text-sm text-muted-foreground">
-                              <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                  <User className="w-4 h-4" />
-                                  <span>{order.customerName}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <Calendar className="w-4 h-4" />
-                                  <span>{new Date(order.orderDate).toLocaleDateString()}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <FileText className="w-4 h-4" />
-                                  <span>Batch: {order.batchNumber}</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-3">
-                              <p className="text-sm font-medium text-green-600">
-                                Revenue: {new Intl.NumberFormat('en-US', {
-                                  style: 'currency',
-                                  currency: 'USD'
-                                }).format(order.revenue || order.totalCost || 0)}
+                {orders.map((order) => (
+                  <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleOrderSelection(order)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Package className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <h3 className="font-semibold text-lg">{order.orderNumber}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {order.targetProduct}
                               </p>
+                            </div>
+                            <div className="ml-auto flex items-center space-x-2">
+                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                order.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {order.status}
+                              </div>
                             </div>
                           </div>
                           
-                          <Button variant={isSelected ? "default" : "outline"} size="sm">
-                            {isSelected ? "Added" : "Import"}
-                          </Button>
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <User className="w-4 h-4" />
+                                <span>{order.customerName}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-4 h-4" />
+                                <span>{new Date(order.orderDate).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4" />
+                                <span>Batch: {order.batchNumber}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-3">
+                            <p className="text-sm font-medium text-green-600">
+                              Revenue: {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'USD'
+                              }).format(order.revenue || order.totalCost || 0)}
+                            </p>
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        
+                        <Button variant="outline" size="sm">
+                          Import
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </div>
           
-          <DialogFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              {selectedOrderIds.length > 0 && (
-                <span>{selectedOrderIds.length} order{selectedOrderIds.length !== 1 ? 's' : ''} selected</span>
-              )}
-            </div>
-            <div className="space-x-2">
-              <Button variant="outline" onClick={() => {
-                setSelectedOrderIds([]);
-                setShowOrderSelector(false);
-              }}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                setSelectedOrderIds([]);
-                setShowOrderSelector(false);
-              }}>
-                Done
-              </Button>
-            </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowOrderSelector(false)}>
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
