@@ -472,26 +472,23 @@ const LabelGenerator: React.FC = () => {
         }
           
         case '3_per_a4': {
-          // Use full width of A4 paper from edge to edge
-          const availableWidth = 200; // A4 width minus minimal margins (210mm - 10mm)
+          // Calculate proper dimensions to maintain aspect ratio
+          const labelAspectRatio = canvas.width / canvas.height;
           const availableHeight = 287; // A4 height minus margins
           const labelSpacing = 8;
           
           // Calculate maximum height for 3 labels with spacing
           const maxLabelHeight = (availableHeight - 2 * labelSpacing) / 3;
           
-          // Set width to use full page width
-          imgWidth = availableWidth;
+          // Use label's natural proportions, but limit to reasonable size
+          imgHeight = Math.min(maxLabelHeight, 90); // Max 90mm height per label
+          imgWidth = imgHeight * labelAspectRatio;
           
-          // Calculate height based on original aspect ratio, but limit to fit 3 labels
-          const originalAspectRatio = canvas.width / canvas.height;
-          let calculatedHeight = imgWidth / originalAspectRatio;
-          imgHeight = Math.min(calculatedHeight, maxLabelHeight, 90);
+          // Center labels horizontally if they're smaller than page width
+          const pageWidth = 200; // A4 width minus margins
+          const xOffset = Math.max(5, (pageWidth - imgWidth) / 2 + 5);
           
-          // Position labels to use full width from edge to edge
-          const xOffset = 5; // Minimal left margin
-          
-          // Place 3 labels vertically using full width
+          // Place 3 labels vertically with proper spacing
           pdf.addImage(imgData, 'PNG', xOffset, 5, imgWidth, imgHeight);
           pdf.addImage(imgData, 'PNG', xOffset, 5 + imgHeight + labelSpacing, imgWidth, imgHeight);
           pdf.addImage(imgData, 'PNG', xOffset, 5 + 2 * (imgHeight + labelSpacing), imgWidth, imgHeight);
