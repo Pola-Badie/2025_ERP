@@ -90,8 +90,17 @@ const BalanceSheet: React.FC = () => {
         throw error;
       }
     },
-    enabled: true,
+    enabled: false, // Start disabled, generate on button click
   });
+
+  // Generate report function
+  const generateReport = () => {
+    refetch();
+    toast({
+      title: "Generating Balance Sheet",
+      description: `Generating report as of ${format(new Date(reportDate), 'MMMM dd, yyyy')}`,
+    });
+  };
 
   // Generate PDF
   const generatePDF = async () => {
@@ -208,9 +217,9 @@ const BalanceSheet: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => refetch()}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Generate Report
+            <Button onClick={generateReport} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Generating...' : 'Generate Report'}
             </Button>
           </div>
         </CardContent>
