@@ -84,7 +84,9 @@ const OrdersHistory: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to fetch production order history');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('API response data:', data);
+      return data;
     }
   });
 
@@ -233,6 +235,8 @@ const OrdersHistory: React.FC = () => {
         return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
       case 'in-progress':
         return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
       case 'cancelled':
         return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
       default:
@@ -243,7 +247,8 @@ const OrdersHistory: React.FC = () => {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case 'production':
-        return <Badge className="bg-purple-100 text-purple-800"><Factory className="w-3 h-3 mr-1" />Production</Badge>;
+      case 'manufacturing':
+        return <Badge className="bg-purple-100 text-purple-800"><Factory className="w-3 h-3 mr-1" />Manufacturing</Badge>;
       case 'refining':
         return <Badge className="bg-orange-100 text-orange-800"><Settings className="w-3 h-3 mr-1" />Refining</Badge>;
       default:
