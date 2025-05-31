@@ -98,6 +98,39 @@ const ProfitAndLoss: React.FC = () => {
     }));
   };
 
+  // Handle period type change and auto-adjust dates
+  const handlePeriodTypeChange = (value: "monthly" | "quarterly" | "yearly") => {
+    setPeriodType(value);
+    const now = new Date();
+    let startDate: Date;
+    let endDate = new Date();
+
+    switch (value) {
+      case "monthly":
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case "quarterly":
+        const quarter = Math.floor(now.getMonth() / 3);
+        startDate = new Date(now.getFullYear(), quarter * 3, 1);
+        break;
+      case "yearly":
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    setDateRange({
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    });
+  };
+
+  // Generate report with current form values
+  const handleGenerateReport = () => {
+    refetch();
+  };
+
   // Generate PDF
   const generatePDF = async () => {
     const reportElement = document.getElementById('pnl-report');
@@ -210,7 +243,7 @@ const ProfitAndLoss: React.FC = () => {
             </div>
             <div className="grid w-full max-w-xs items-center gap-1.5">
               <label htmlFor="periodType" className="text-sm font-medium">Period Type</label>
-              <Select value={periodType} onValueChange={(value: any) => setPeriodType(value)}>
+              <Select value={periodType} onValueChange={handlePeriodTypeChange}>
                 <SelectTrigger id="periodType">
                   <SelectValue placeholder="Select period type" />
                 </SelectTrigger>
@@ -221,7 +254,7 @@ const ProfitAndLoss: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => refetch()}>
+            <Button onClick={handleGenerateReport}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
