@@ -113,7 +113,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Regulatory Compliance Audit - FDA Documentation Review",
-      "amount": 4,250.00,
+      "amount": 4250.00,
       "paymentMethod": "Bank Transfer",
       "costCenter": "Regulatory Affairs"
     },

@@ -843,29 +843,9 @@ export function registerAccountingRoutes(app: Express) {
                   id: 6,
                   code: "300100",
                   name: "Retained Earnings",
-                  openingBalance: accountsPayableBalance * 0.6, // Simulated opening balance
-                  debits: accountsPayableBalance * 0.2, // Simulated debits 
-                  credits: accountsPayableBalance * 0.6, // Simulated credits
-                  closingBalance: accountsPayableBalance
-                }
-              ]
-            }
-          ]
-        },
-        equity: {
-          total: equityBalance,
-          byCategory: [
-            {
-              name: "Equity",
-              total: equityBalance,
-              accounts: [
-                {
-                  id: 4,
-                  code: "300100",
-                  name: "Equity",
-                  openingBalance: equityBalance * 0.8, // Simulated opening balance
-                  debits: Math.max(0, equityBalance * -0.1), // Simulated debits (if negative)
-                  credits: Math.max(0, equityBalance * 0.3), // Simulated credits (if positive)
+                  openingBalance: 0,
+                  debits: 0,
+                  credits: equityBalance,
                   closingBalance: equityBalance
                 }
               ]
