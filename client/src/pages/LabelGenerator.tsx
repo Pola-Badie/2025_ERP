@@ -224,24 +224,36 @@ const LabelGenerator: React.FC = () => {
 
   // Handle PDF download
   const handleDownloadPDF = async () => {
-    if (!labelRef.current || !selectedProduct) return;
+    console.log('Download PDF clicked');
+    console.log('labelRef.current:', labelRef.current);
+    console.log('selectedProduct:', selectedProduct);
+    
+    if (!labelRef.current || !selectedProduct) {
+      console.log('Missing labelRef or selectedProduct');
+      return;
+    }
 
     setIsGenerating(true);
 
     try {
+      console.log('Starting html2canvas...');
       const canvas = await html2canvas(labelRef.current, {
         scale: 3, // Increase resolution
         useCORS: true,
         logging: false,
       });
 
+      console.log('Canvas created:', canvas.width, 'x', canvas.height);
       const imgData = canvas.toDataURL('image/png');
+      console.log('Image data created');
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: [selectedFormat.width + 10, selectedFormat.height + 10],
       });
 
+      console.log('PDF instance created');
       pdf.addImage(imgData, 'PNG', 5, 5, selectedFormat.width, selectedFormat.height);
       
       if (showMultiple && quantity > 1) {
@@ -251,6 +263,7 @@ const LabelGenerator: React.FC = () => {
         }
       }
 
+      console.log('Saving PDF...');
       pdf.save(`${selectedProduct.name}-Label.pdf`);
 
       toast({
@@ -258,9 +271,10 @@ const LabelGenerator: React.FC = () => {
         description: 'Label has been saved as PDF',
       });
     } catch (error) {
+      console.error('PDF generation error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to generate PDF',
+        description: `Failed to generate PDF: ${error.message}`,
         variant: 'destructive',
       });
     } finally {
