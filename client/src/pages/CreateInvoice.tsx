@@ -154,6 +154,7 @@ const CreateInvoice = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
+  const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -293,6 +294,17 @@ const CreateInvoice = () => {
     queryKey: ['/api/categories'],
     queryFn: async () => {
       const res = await apiRequest('GET', '/api/categories');
+      return await res.json();
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch quotations
+  const { data: quotations = [] } = useQuery<any[]>({
+    queryKey: ['/api/quotations'],
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/quotations');
       return await res.json();
     },
     staleTime: 60000,
@@ -635,6 +647,55 @@ const CreateInvoice = () => {
       phone: data.customer.phone,
       sector: data.customer.sector,
       address: data.customer.address,
+    });
+  };
+
+  // Handle quotation selection and import items
+  const handleQuotationSelection = (quotation: any) => {
+    // Set customer if exists in quotation
+    if (quotation.customer) {
+      form.setValue('customer', {
+        id: quotation.customer.id,
+        name: quotation.customer.name,
+        company: quotation.customer.company || '',
+        position: quotation.customer.position || '',
+        email: quotation.customer.email || '',
+        phone: quotation.customer.phone || '',
+        sector: quotation.customer.sector || '',
+        address: quotation.customer.address || '',
+      });
+    }
+
+    // Clear existing items
+    fields.forEach((_, index) => {
+      if (index > 0) remove(index);
+    });
+
+    // Import quotation items
+    if (quotation.items && quotation.items.length > 0) {
+      // Remove the default empty item first
+      remove(0);
+      
+      quotation.items.forEach((item: any) => {
+        append({
+          productId: item.productId,
+          productName: item.productName,
+          category: item.category || '',
+          batchNo: item.batchNo || '',
+          gs1Code: item.gs1Code || '',
+          type: item.type || '',
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.total,
+        });
+      });
+    }
+
+    setShowQuotationSelector(false);
+    
+    toast({
+      title: "Quotation Imported",
+      description: `Items from quotation ${quotation.quotationNumber} have been imported`,
     });
   };
 
@@ -1140,6 +1201,14 @@ const CreateInvoice = () => {
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Item
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowQuotationSelector(true)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Select from Quotations
                 </Button>
               </div>
               <div className="space-x-2">
@@ -1717,6 +1786,92 @@ const CreateInvoice = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Quotation Selector Dialog */}
+      <Dialog open={showQuotationSelector} onOpenChange={setShowQuotationSelector}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select from Quotations</DialogTitle>
+            <DialogDescription>
+              Choose a quotation to import its items and customer information into this invoice
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {quotations.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Quotations Found</h3>
+                <p className="text-muted-foreground">
+                  There are no quotations available to import from.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {quotations.map((quotation) => (
+                  <Card key={quotation.id} className="hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleQuotationSelection(quotation)}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="font-medium">{quotation.quotationNumber}</h3>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              quotation.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              quotation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {quotation.status}
+                            </span>
+                          </div>
+                          
+                          <div className="space-y-1 text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <User className="w-4 h-4" />
+                                <span>{quotation.customer?.name || 'No Customer'}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-4 h-4" />
+                                <span>{new Date(quotation.date).toLocaleDateString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4" />
+                                <span>{quotation.items?.length || 0} items</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {quotation.items && quotation.items.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-sm font-medium text-blue-600">
+                                Total: {new Intl.NumberFormat('en-US', {
+                                  style: 'currency',
+                                  currency: 'USD'
+                                }).format(quotation.grandTotal || 0)}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <Button variant="outline" size="sm">
+                          Import
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowQuotationSelector(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
