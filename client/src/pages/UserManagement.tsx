@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine } from "lucide-react";
+import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -25,6 +25,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 // Define form schemas
 const userFormSchema = z.object({
@@ -389,32 +396,34 @@ export default function UserManagement() {
                             {user.status || "active"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUserSelect(user)}
-                          >
-                            <ShieldCheck className="h-4 w-4 mr-1" />
-                            Permissions
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <PencilLine className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeactivateUser(user)}
-                            disabled={user.status === "inactive"}
-                          >
-                            <UserX className="h-4 w-4 mr-1" />
-                            Deactivate
-                          </Button>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleUserSelect(user)}>
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                Manage Permissions
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                                <PencilLine className="mr-2 h-4 w-4" />
+                                Edit User
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDeactivateUser(user)}
+                                disabled={user.status === "inactive"}
+                                className="text-red-600"
+                              >
+                                <UserX className="mr-2 h-4 w-4" />
+                                Deactivate User
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
