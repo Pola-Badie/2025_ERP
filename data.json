@@ -53,7 +53,7 @@
       "accountCode": "600100",
       "accountName": "Operating Expenses",
       "description": "Raw Material Purchase - Pharmaceutical Grade Acetone (25L)",
-      "amount": 1,275.50,
+      "amount": 1275.50,
       "paymentMethod": "Credit Card",
       "costCenter": "Production"
     },
