@@ -247,11 +247,6 @@ const CreateInvoice = () => {
   };
 
   // Set up the form with stable default values
-  const getFormDefaults = () => {
-    const currentDraft = invoiceDrafts.find(draft => draft.id === activeInvoiceId);
-    return currentDraft?.data || defaultFormValues;
-  };
-
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: defaultFormValues,
