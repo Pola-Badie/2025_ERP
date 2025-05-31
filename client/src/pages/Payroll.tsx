@@ -37,7 +37,8 @@ import {
   AlertCircle,
   XCircle,
   SortAsc,
-  RefreshCw
+  RefreshCw,
+  Settings
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
@@ -343,9 +344,8 @@ const Payroll = () => {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Settings
+            <Button variant="outline" size="icon">
+              <Settings className="h-4 w-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
