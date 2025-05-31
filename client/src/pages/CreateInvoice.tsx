@@ -1419,7 +1419,11 @@ const CreateInvoice = () => {
                           variant="ghost"
                           size="icon"
                           disabled={fields.length === 1}
-                          onClick={() => remove(index)}
+                          onClick={() => {
+                            if (fields.length > 1) {
+                              remove(index);
+                            }
+                          }}
                         >
                           <Trash className="h-4 w-4" />
                         </Button>
