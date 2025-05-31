@@ -128,6 +128,10 @@ const ProfitAndLoss: React.FC = () => {
 
   // Generate report with current form values
   const handleGenerateReport = () => {
+    toast({
+      title: "Generating Report",
+      description: "Fetching P&L data...",
+    });
     refetch();
   };
 
@@ -254,9 +258,9 @@ const ProfitAndLoss: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerateReport}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Generate Report
+            <Button onClick={handleGenerateReport} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Generating...' : 'Generate Report'}
             </Button>
           </div>
         </CardContent>
