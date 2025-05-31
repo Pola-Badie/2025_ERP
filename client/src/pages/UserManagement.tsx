@@ -187,7 +187,10 @@ export default function UserManagement() {
         title: "Permission added",
         description: "The permission has been added successfully.",
       });
-      permissionForm.reset();
+      permissionForm.reset({
+        moduleName: "",
+        accessGranted: true,
+      });
     },
     onError: (error) => {
       toast({
