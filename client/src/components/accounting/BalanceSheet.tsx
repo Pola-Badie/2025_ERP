@@ -155,36 +155,8 @@ const BalanceSheet: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div>
         <h3 className="text-lg font-medium">Balance Sheet</h3>
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              const csvContent = "data:text/csv;charset=utf-8,";
-              // CSV generation logic would go here
-              const encodedUri = encodeURI(csvContent);
-              const link = document.createElement("a");
-              link.setAttribute("href", encodedUri);
-              link.setAttribute("download", `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.csv`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-            disabled={isLoading || !data}
-          >
-            <FileDown className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={generatePDF}
-            disabled={isLoading || !data || isPrinting}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {isPrinting ? "Generating PDF..." : "Export PDF"}
-          </Button>
-        </div>
       </div>
 
       <Card>
