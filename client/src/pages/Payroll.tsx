@@ -343,6 +343,41 @@ const Payroll = () => {
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
+            <Button variant="outline">
+              <Filter className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Import Employees
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Bulk Payroll
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Generate Reports
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Payroll Calendar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Filter className="h-4 w-4 mr-2" />
+                  Advanced Filters
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
