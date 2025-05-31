@@ -1285,7 +1285,7 @@ const CreateInvoice = () => {
                     <TableHead className="w-[100px] text-right">Quantity</TableHead>
                     <TableHead className="w-[120px] text-right">Unit Price</TableHead>
                     <TableHead className="w-[120px] text-right">Total</TableHead>
-                    <TableHead className="w-[60px]"></TableHead>
+                    <TableHead className="w-[60px]">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
