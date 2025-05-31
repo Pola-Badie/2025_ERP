@@ -95,6 +95,10 @@ const Payroll = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDepartment, setFilterDepartment] = useState('all');
+  const [isConfigEmployeesDialogOpen, setIsConfigEmployeesDialogOpen] = useState(false);
+  const [isConfigPayrollDialogOpen, setIsConfigPayrollDialogOpen] = useState(false);
+  const [isConfigAttendanceDialogOpen, setIsConfigAttendanceDialogOpen] = useState(false);
+  const [isGeneralSettingsDialogOpen, setIsGeneralSettingsDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -305,6 +309,22 @@ const Payroll = () => {
     setIsPayrollDialogOpen(true);
   };
 
+  const handleConfigureEmployees = () => {
+    setIsConfigEmployeesDialogOpen(true);
+  };
+
+  const handleConfigurePayroll = () => {
+    setIsConfigPayrollDialogOpen(true);
+  };
+
+  const handleConfigureAttendance = () => {
+    setIsConfigAttendanceDialogOpen(true);
+  };
+
+  const handleGeneralSettings = () => {
+    setIsGeneralSettingsDialogOpen(true);
+  };
+
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -351,20 +371,20 @@ const Payroll = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleConfigureEmployees}>
                   <Users className="h-4 w-4 mr-2" />
                   Configure Employees
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleConfigurePayroll}>
                   <Calculator className="h-4 w-4 mr-2" />
                   Configure Payroll Records
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleConfigureAttendance}>
                   <Clock className="h-4 w-4 mr-2" />
                   Configure Attendance Pages
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleGeneralSettings}>
                   <Settings className="h-4 w-4 mr-2" />
                   General Settings
                 </DropdownMenuItem>
@@ -857,6 +877,343 @@ const Payroll = () => {
             </Button>
             <Button className="bg-green-600 hover:bg-green-700">
               Process Payroll
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Employees Dialog */}
+      <Dialog open={isConfigEmployeesDialogOpen} onOpenChange={setIsConfigEmployeesDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Employee Settings</DialogTitle>
+            <DialogDescription>
+              Configure employee-related settings and preferences
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Employee Fields Configuration</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Required Fields</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="req-name" defaultChecked />
+                      <Label htmlFor="req-name">Full Name</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="req-email" defaultChecked />
+                      <Label htmlFor="req-email">Email Address</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="req-dept" defaultChecked />
+                      <Label htmlFor="req-dept">Department</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="req-salary" defaultChecked />
+                      <Label htmlFor="req-salary">Salary Information</Label>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Optional Fields</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="opt-bank" />
+                      <Label htmlFor="opt-bank">Bank Account</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="opt-tax" />
+                      <Label htmlFor="opt-tax">Tax ID</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="opt-phone" />
+                      <Label htmlFor="opt-phone">Phone Number</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="opt-address" />
+                      <Label htmlFor="opt-address">Address</Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Department Configuration</h3>
+              <div className="space-y-2">
+                <Label htmlFor="departments">Available Departments</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="Production" />
+                  <Input placeholder="Quality Control" />
+                  <Input placeholder="Sales" />
+                  <Input placeholder="Accounting" />
+                </div>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Department
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfigEmployeesDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              Save Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Payroll Records Dialog */}
+      <Dialog open={isConfigPayrollDialogOpen} onOpenChange={setIsConfigPayrollDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Payroll Settings</DialogTitle>
+            <DialogDescription>
+              Configure payroll calculation rules and settings
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Payroll Calculation Rules</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="overtime-rate">Overtime Rate (%)</Label>
+                  <Input id="overtime-rate" type="number" placeholder="150" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tax-rate">Default Tax Rate (%)</Label>
+                  <Input id="tax-rate" type="number" placeholder="14" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Deductions Configuration</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-insurance" defaultChecked />
+                  <Label htmlFor="auto-insurance">Automatic Insurance Deduction</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-pension" defaultChecked />
+                  <Label htmlFor="auto-pension">Automatic Pension Contribution</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-social" defaultChecked />
+                  <Label htmlFor="auto-social">Social Security Deduction</Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Pay Period Settings</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pay-frequency">Pay Frequency</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pay-day">Pay Day</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="last-day">Last Day of Month</SelectItem>
+                      <SelectItem value="first-day">First Day of Month</SelectItem>
+                      <SelectItem value="15th">15th of Month</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfigPayrollDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700">
+              Save Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Attendance Dialog */}
+      <Dialog open={isConfigAttendanceDialogOpen} onOpenChange={setIsConfigAttendanceDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Attendance Settings</DialogTitle>
+            <DialogDescription>
+              Configure attendance tracking and time management settings
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Working Hours</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-time">Standard Start Time</Label>
+                  <Input id="start-time" type="time" defaultValue="08:00" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-time">Standard End Time</Label>
+                  <Input id="end-time" type="time" defaultValue="17:00" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Attendance Rules</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="late-threshold">Late Threshold (minutes)</Label>
+                  <Input id="late-threshold" type="number" placeholder="15" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="break-duration">Break Duration (minutes)</Label>
+                  <Input id="break-duration" type="number" placeholder="60" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Overtime Settings</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-overtime" defaultChecked />
+                  <Label htmlFor="auto-overtime">Automatic Overtime Calculation</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="overtime-start">Overtime Starts After (hours)</Label>
+                    <Input id="overtime-start" type="number" placeholder="8" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weekend-rate">Weekend Rate Multiplier</Label>
+                    <Input id="weekend-rate" type="number" placeholder="2.0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfigAttendanceDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700">
+              Save Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* General Settings Dialog */}
+      <Dialog open={isGeneralSettingsDialogOpen} onOpenChange={setIsGeneralSettingsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>General Settings</DialogTitle>
+            <DialogDescription>
+              Configure general payroll system settings and preferences
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">System Configuration</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Default Currency</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EGP">Egyptian Pound (EGP)</SelectItem>
+                      <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                      <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date-format">Date Format</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="mm/dd/yyyy">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Notifications</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="email-notifications" defaultChecked />
+                  <Label htmlFor="email-notifications">Email Notifications</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="payroll-reminders" defaultChecked />
+                  <Label htmlFor="payroll-reminders">Payroll Processing Reminders</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="late-alerts" />
+                  <Label htmlFor="late-alerts">Late Attendance Alerts</Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Security Settings</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="require-approval" defaultChecked />
+                  <Label htmlFor="require-approval">Require Approval for Payroll Processing</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="audit-trail" defaultChecked />
+                  <Label htmlFor="audit-trail">Enable Audit Trail</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="backup-auto" defaultChecked />
+                  <Label htmlFor="backup-auto">Automatic Data Backup</Label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGeneralSettingsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-gray-600 hover:bg-gray-700">
+              Save Settings
             </Button>
           </DialogFooter>
         </DialogContent>
