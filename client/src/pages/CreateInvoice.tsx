@@ -229,7 +229,7 @@ const CreateInvoice = () => {
   };
 
   // Get the currently active draft
-  const getCurrentDraft = (): InvoiceDraft | undefined => {
+  const getCurrentDraft = () => {
     return invoiceDrafts.find(draft => draft.id === activeInvoiceId);
   };
   
@@ -246,10 +246,15 @@ const CreateInvoice = () => {
     });
   };
 
-  // Set up the form
+  // Set up the form with stable default values
+  const getFormDefaults = () => {
+    const currentDraft = invoiceDrafts.find(draft => draft.id === activeInvoiceId);
+    return currentDraft?.data || defaultFormValues;
+  };
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: getCurrentDraft()?.data || defaultFormValues,
+    defaultValues: defaultFormValues,
   });
 
   const { fields, append, remove } = useFieldArray({
