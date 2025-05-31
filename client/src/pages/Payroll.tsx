@@ -21,7 +21,6 @@ import {
   DollarSign, 
   Calendar, 
   TrendingUp, 
-  Plus, 
   Search, 
   Filter,
   Download,
@@ -38,7 +37,8 @@ import {
   XCircle,
   SortAsc,
   RefreshCw,
-  Settings
+  Settings,
+  Plus
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
