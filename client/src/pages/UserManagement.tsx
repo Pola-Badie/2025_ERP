@@ -993,6 +993,42 @@ export default function UserManagement() {
               </div>
             )}
           </div>
+          
+          {/* Available Modules Section */}
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Available Modules</span>
+              <span className="text-xs text-muted-foreground">{availableModules.length} modules</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {availableModules.map((module) => {
+                const hasPermission = permissions?.some(p => p.moduleName === module);
+                return (
+                  <div
+                    key={module}
+                    className={`p-2 rounded-lg border text-center text-sm ${
+                      hasPermission 
+                        ? 'bg-green-50 border-green-200 text-green-700' 
+                        : 'bg-gray-50 border-gray-200 text-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      {hasPermission ? (
+                        <ShieldCheck className="h-3 w-3" />
+                      ) : (
+                        <div className="h-3 w-3 rounded-full border border-gray-300" />
+                      )}
+                      <span className="capitalize">{module}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Green modules have been assigned permissions. Click "Add Permission" to assign access to unassigned modules.
+            </p>
+          </div>
+
           <div className="flex justify-end pt-4">
             <Button
               variant="outline"
