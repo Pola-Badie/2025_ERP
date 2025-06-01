@@ -1460,9 +1460,6 @@ export default function UserManagement() {
                       }`}>
                         {formatModuleName(module)}
                       </span>
-                      <Badge variant={hasPermission ? "default" : "secondary"} className="text-xs">
-                        {hasPermission ? "Assigned" : "Available"}
-                      </Badge>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1599,16 +1596,6 @@ export default function UserManagement() {
                                 <div className="flex-1 space-y-1">
                                   <div className="flex items-center gap-2">
                                     <p className="text-sm font-medium text-gray-900">{feature.label}</p>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-xs ${
-                                        modulePermissionFeatures[feature.key] ?? true 
-                                          ? 'bg-green-50 text-green-700 border-green-200' 
-                                          : 'bg-red-50 text-red-700 border-red-200'
-                                      }`}
-                                    >
-                                      {modulePermissionFeatures[feature.key] ?? true ? 'Enabled' : 'Disabled'}
-                                    </Badge>
                                   </div>
                                   <p className="text-xs text-muted-foreground">
                                     {feature.description || "Controls visibility and access to this feature"}
