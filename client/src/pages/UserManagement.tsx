@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User, UserPermission } from "@shared/schema";
+import { User as UserType, UserPermission } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings } from "lucide-react";
+import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings, UserCheck, Shield, User } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -997,74 +997,118 @@ export default function UserManagement() {
 
       {/* Manage Permissions Dialog */}
       <Dialog open={isManagePermissionsOpen} onOpenChange={setIsManagePermissionsOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>Manage Permissions</DialogTitle>
-            <DialogDescription>
-              Manage module permissions for {selectedUser?.name} ({selectedUser?.username})
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Current Permissions</span>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <UserCheck className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Permission Management</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  {selectedUser ? `Configure module access and permissions for ${selectedUser.name} (${selectedUser.username})` : 'Loading user details...'}
+                </p>
+              </div>
             </div>
-            
-            {isLoadingPermissions ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* User Information Section */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  User Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Full Name</label>
+                    <div className="text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200">
+                      {selectedUser.name}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Username</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono">
+                      {selectedUser.username}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-blue-700">Role</label>
+                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                      {selectedUser.role}
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="max-h-[400px] overflow-y-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Module</TableHead>
-                      <TableHead>Access</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {permissions?.map((permission, index) => (
-                      <TableRow key={`permission-${permission.id || index}-${permission.moduleName}`}>
-                        <TableCell className="font-medium">{formatModuleName(permission.moduleName)}</TableCell>
-                        <TableCell>
-                          <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
-                            {permission.accessGranted ? "Granted" : "Denied"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex gap-2 justify-end">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleConfigurePermissions(permission)}
-                            >
-                              <Settings className="h-4 w-4 mr-1" />
-                              Configure
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeletePermission(permission)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Remove
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {permissions?.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
-                          No permissions assigned yet
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+
+              {/* Current Permissions Section */}
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                  <Shield className="h-5 w-5 mr-2" />
+                  Current Permissions ({permissions?.length || 0} modules assigned)
+                </h3>
+                
+                {isLoadingPermissions ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : (
+                  <div className="max-h-[300px] overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Module</TableHead>
+                          <TableHead>Access</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {permissions?.map((permission, index) => (
+                          <TableRow key={`permission-${permission.id || index}-${permission.moduleName}`} className="bg-white">
+                            <TableCell className="font-medium">{formatModuleName(permission.moduleName)}</TableCell>
+                            <TableCell>
+                              <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
+                                {permission.accessGranted ? "Granted" : "Denied"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex gap-2 justify-end">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleConfigurePermissions(permission)}
+                                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                                >
+                                  <Settings className="h-4 w-4 mr-1" />
+                                  Configure
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeletePermission(permission)}
+                                  className="border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Remove
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {permissions?.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center py-6 text-muted-foreground bg-white">
+                              No permissions assigned yet
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
           </div>
           
           {/* Available Modules Section */}
