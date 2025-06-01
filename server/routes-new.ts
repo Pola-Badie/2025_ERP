@@ -63,6 +63,7 @@ const cronJobs: Record<string, cron.ScheduledTask | null> = {
 
 import { registerAccountingRoutes } from "./routes-accounting";
 import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
+import userRoutes from "./routes-user";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register chemical-specific routes
@@ -70,6 +71,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register ETA routes for Egyptian Tax Authority integration
   registerETARoutes(app);
+  
+  // Register user and permissions routes
+  app.use("/api", userRoutes);
   // Get all suppliers
   app.get("/api/suppliers", async (_req: Request, res: Response) => {
     try {
