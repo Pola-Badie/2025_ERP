@@ -260,6 +260,27 @@ export default function UserManagement() {
       const response = await apiRequest("POST", `/api/users/${data.userId}/permissions`, data.permission);
       return await response.json() as UserPermission;
     },
+    onMutate: async (data) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/users", data.userId, "permissions"] });
+      
+      // Snapshot the previous value
+      const previousPermissions = queryClient.getQueryData(["/api/users", data.userId, "permissions"]);
+      
+      // Optimistically update to the new value
+      const newPermission = {
+        id: Date.now(), // Temporary ID
+        userId: data.userId,
+        moduleName: data.permission.moduleName,
+        accessGranted: data.permission.accessGranted
+      };
+      
+      queryClient.setQueryData(["/api/users", data.userId, "permissions"], (old: any) => 
+        [...(old || []), newPermission]
+      );
+      
+      return { previousPermissions };
+    },
     onSuccess: () => {
       if (selectedUser) {
         queryClient.invalidateQueries({ queryKey: ["/api/users", selectedUser.id, "permissions"] });
@@ -274,7 +295,12 @@ export default function UserManagement() {
         accessGranted: true,
       });
     },
-    onError: (error) => {
+    onError: (error: any, data, context) => {
+      // Rollback optimistic update
+      if (context?.previousPermissions && selectedUser) {
+        queryClient.setQueryData(["/api/users", selectedUser.id, "permissions"], context.previousPermissions);
+      }
+      
       toast({
         title: "Error",
         description: `Failed to add permission: ${error.message}`,
@@ -288,21 +314,43 @@ export default function UserManagement() {
     mutationFn: async (data: { userId: number; moduleName: string }) => {
       await apiRequest("DELETE", `/api/users/${data.userId}/permissions/${data.moduleName}`);
     },
+    onMutate: async (data) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/users", data.userId, "permissions"] });
+      
+      // Snapshot the previous value
+      const previousPermissions = queryClient.getQueryData(["/api/users", data.userId, "permissions"]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(["/api/users", data.userId, "permissions"], (old: any) => 
+        old?.filter((p: any) => p.moduleName !== data.moduleName) || []
+      );
+      
+      return { previousPermissions };
+    },
     onSuccess: () => {
       if (selectedUser) {
         queryClient.invalidateQueries({ queryKey: ["/api/users", selectedUser.id, "permissions"] });
       }
       toast({
-        title: "Permission deleted",
-        description: "The permission has been deleted successfully.",
+        title: "Permission removed",
+        description: "The permission has been removed successfully.",
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to delete permission: ${error.message}`,
-        variant: "destructive",
-      });
+    onError: (error: any, data, context) => {
+      // Rollback optimistic update
+      if (context?.previousPermissions && selectedUser) {
+        queryClient.setQueryData(["/api/users", selectedUser.id, "permissions"], context.previousPermissions);
+      }
+      
+      // Only show error if it's not a 404 (permission already deleted)
+      if (!error.message?.includes('404') && !error.message?.includes('not found')) {
+        toast({
+          title: "Error",
+          description: `Failed to delete permission: ${error.message}`,
+          variant: "destructive",
+        });
+      }
     },
   });
 
