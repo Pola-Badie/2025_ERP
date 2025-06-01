@@ -93,62 +93,62 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 md:grid-cols-8 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="users" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('users')}
-                <span className="hidden md:inline">Users</span>
+                <span className="hidden sm:inline ml-1 truncate">Users</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="inventory" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('inventory')}
-                <span className="hidden md:inline">Inventory</span>
+                <span className="hidden sm:inline ml-1 truncate">Inventory</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="financial" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('financial')}
-                <span className="hidden md:inline">Financial</span>
+                <span className="hidden sm:inline ml-1 truncate">Financial</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="security" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('security')}
-                <span className="hidden md:inline">Security</span>
+                <span className="hidden sm:inline ml-1 truncate">Security</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="communication" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('communication')}
-                <span className="hidden md:inline">Communication</span>
+                <span className="hidden lg:inline ml-1 truncate">Comm</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="backup" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('backup')}
-                <span className="hidden md:inline">Backup</span>
+                <span className="hidden lg:inline ml-1 truncate">Backup</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="eta" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('eta')}
-                <span className="hidden md:inline">ETA</span>
+                <span className="hidden lg:inline ml-1 truncate">ETA</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="modules" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('modules')}
-                <span className="hidden md:inline">Modules</span>
+                <span className="hidden lg:inline ml-1 truncate">Modules</span>
               </TabsTrigger>
             </TabsList>
             
