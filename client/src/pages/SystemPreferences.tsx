@@ -5,26 +5,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import {
   UsersIcon,
-  BoxIcon,
+  PackageIcon,
   DollarSignIcon,
   ShieldIcon,
-  BellIcon,
-  BuildingIcon,
-  CloudIcon,
-  FileTextIcon,
+  MessageSquareIcon,
   SettingsIcon
 } from 'lucide-react';
 
 // Import tab components
 import UserManagementTab from '@/components/system-preferences/UserManagementTab-new';
 import InventorySettingsTab from '@/components/system-preferences/InventorySettingsTab';
-import FinancialSettingsTab from '@/components/system-preferences/FinancialSettingsTab';
-import AccessControlTab from '@/components/system-preferences/AccessControlTab';
-import NotificationsTab from '@/components/system-preferences/NotificationsTab';
-import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
-import BackupTab from '@/components/system-preferences/BackupTab';
-import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
-import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
+import FinancialConfigurationTab from '@/components/system-preferences/FinancialConfigurationTab';
+import SecuritySettingsTab from '@/components/system-preferences/SecuritySettingsTab';
+import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -42,19 +35,13 @@ const SystemPreferences: React.FC = () => {
       case 'users':
         return <UsersIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'inventory':
-        return <BoxIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+        return <PackageIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'financial':
         return <DollarSignIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'access':
+      case 'security':
         return <ShieldIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'notifications':
-        return <BellIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'company':
-        return <BuildingIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'backup':
-        return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'eta':
-        return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'communication':
+        return <MessageSquareIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
@@ -98,7 +85,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 md:grid-cols-9 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-3 md:grid-cols-6 border-b rounded-none h-auto">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -121,39 +108,18 @@ const SystemPreferences: React.FC = () => {
                 <span className="hidden md:inline">Financial</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="access" 
+                value="security" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
               >
-                {renderTabIcon('access')}
-                <span className="hidden md:inline">Access</span>
+                {renderTabIcon('security')}
+                <span className="hidden md:inline">Security</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="notifications" 
+                value="communication" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
               >
-                {renderTabIcon('notifications')}
-                <span className="hidden md:inline">Notifications</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="company" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-              >
-                {renderTabIcon('company')}
-                <span className="hidden md:inline">Company</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="backup" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-              >
-                {renderTabIcon('backup')}
-                <span className="hidden md:inline">Backup</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="eta" 
-                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
-              >
-                {renderTabIcon('eta')}
-                <span className="hidden md:inline">ETA</span>
+                {renderTabIcon('communication')}
+                <span className="hidden md:inline">Communication</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="modules" 
@@ -174,31 +140,24 @@ const SystemPreferences: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="financial" className="mt-0">
-                <FinancialSettingsTab preferences={preferences} refetch={refetch} />
+                <FinancialConfigurationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
-              <TabsContent value="access" className="mt-0">
-                <AccessControlTab preferences={preferences} refetch={refetch} />
+              <TabsContent value="security" className="mt-0">
+                <SecuritySettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
-              <TabsContent value="notifications" className="mt-0">
-                <NotificationsTab preferences={preferences} refetch={refetch} />
-              </TabsContent>
-              
-              <TabsContent value="company" className="mt-0">
-                <CompanyInfoTab preferences={preferences} refetch={refetch} />
-              </TabsContent>
-              
-              <TabsContent value="backup" className="mt-0">
-                <BackupTab preferences={preferences} refetch={refetch} />
-              </TabsContent>
-              
-              <TabsContent value="eta" className="mt-0">
-                <ETAIntegrationTab preferences={preferences} refetch={refetch} />
+              <TabsContent value="communication" className="mt-0">
+                <CommunicationSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="modules" className="mt-0">
-                <ModuleConfigurationTab preferences={preferences} refetch={refetch} />
+                <div className="text-center py-8">
+                  <h3 className="text-lg font-semibold mb-2">Module Configuration</h3>
+                  <p className="text-muted-foreground">
+                    Advanced module configuration will be available in the next update.
+                  </p>
+                </div>
               </TabsContent>
             </div>
           </Tabs>
