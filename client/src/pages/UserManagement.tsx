@@ -1030,6 +1030,7 @@ export default function UserManagement() {
                       <div onClick={(e) => e.stopPropagation()}>
                         <Switch
                           checked={hasPermission}
+                          disabled={addPermissionMutation.isPending || deletePermissionMutation.isPending}
                           onCheckedChange={(checked) => {
                             if (checked && !hasPermission) {
                               // Grant access
@@ -1041,8 +1042,12 @@ export default function UserManagement() {
                               }
                             } else if (!checked && hasPermission) {
                               // Remove access
-                              const permission = permissions?.find(p => p.moduleName === module);
-                              if (permission) handleDeletePermission(permission);
+                              if (selectedUser) {
+                                deletePermissionMutation.mutate({
+                                  userId: selectedUser.id,
+                                  moduleName: module
+                                });
+                              }
                             }
                           }}
                         />
