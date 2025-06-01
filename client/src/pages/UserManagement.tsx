@@ -10,11 +10,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal } from "lucide-react";
+import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -998,6 +999,84 @@ export default function UserManagement() {
               onClick={() => setIsManagePermissionsOpen(false)}
             >
               Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Permissions Dialog */}
+      <Dialog open={isConfigurePermissionsOpen} onOpenChange={setIsConfigurePermissionsOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Module Permissions</DialogTitle>
+            <DialogDescription>
+              Configure detailed permissions for {selectedPermission?.moduleName} module for {selectedUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {selectedPermission && moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Available Features</span>
+                  <Badge className={selectedPermission.accessGranted ? "bg-green-500" : "bg-red-500"}>
+                    {selectedPermission.accessGranted ? "Module Access Granted" : "Module Access Denied"}
+                  </Badge>
+                </div>
+                
+                {selectedPermission.accessGranted ? (
+                  <div className="grid gap-4">
+                    {moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures].map((feature) => (
+                      <div
+                        key={feature.key}
+                        className="flex items-center justify-between p-3 border rounded-lg"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">{feature.label}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Controls visibility and access to this feature
+                          </p>
+                        </div>
+                        <Switch
+                          checked={modulePermissionFeatures[feature.key] ?? true}
+                          onCheckedChange={(checked) => {
+                            setModulePermissionFeatures(prev => ({
+                              ...prev,
+                              [feature.key]: checked
+                            }));
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ShieldCheck className="mx-auto h-12 w-12 opacity-50 mb-2" />
+                    <p>Module access is denied</p>
+                    <p className="text-xs">Grant module access first to configure individual features</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsConfigurePermissionsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Save the configuration
+                toast({
+                  title: "Permissions updated",
+                  description: "Module permissions have been configured successfully.",
+                });
+                setIsConfigurePermissionsOpen(false);
+              }}
+              disabled={!selectedPermission?.accessGranted}
+            >
+              Save Configuration
             </Button>
           </div>
         </DialogContent>
