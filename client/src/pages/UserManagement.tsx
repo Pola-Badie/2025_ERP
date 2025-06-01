@@ -1027,24 +1027,26 @@ export default function UserManagement() {
                     }}
                   >
                     <div className="flex items-center gap-3">
-                      <Switch
-                        checked={hasPermission}
-                        onCheckedChange={(checked) => {
-                          if (checked && !hasPermission) {
-                            // Grant access
-                            if (selectedUser) {
-                              addPermissionMutation.mutate({ 
-                                userId: selectedUser.id, 
-                                permission: { moduleName: module, accessGranted: true } 
-                              });
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Switch
+                          checked={hasPermission}
+                          onCheckedChange={(checked) => {
+                            if (checked && !hasPermission) {
+                              // Grant access
+                              if (selectedUser) {
+                                addPermissionMutation.mutate({ 
+                                  userId: selectedUser.id, 
+                                  permission: { moduleName: module, accessGranted: true } 
+                                });
+                              }
+                            } else if (!checked && hasPermission) {
+                              // Remove access
+                              const permission = permissions?.find(p => p.moduleName === module);
+                              if (permission) handleDeletePermission(permission);
                             }
-                          } else if (!checked && hasPermission) {
-                            // Remove access
-                            const permission = permissions?.find(p => p.moduleName === module);
-                            if (permission) handleDeletePermission(permission);
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      </div>
                       <span className={`text-sm font-medium capitalize ${
                         hasPermission ? 'text-green-700' : 'text-gray-600'
                       }`}>
