@@ -951,8 +951,8 @@ export default function UserManagement() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {permissions?.map((permission) => (
-                      <TableRow key={`${permission.userId}-${permission.moduleName}`}>
+                    {permissions?.map((permission, index) => (
+                      <TableRow key={`permission-${permission.id || index}-${permission.moduleName}`}>
                         <TableCell className="font-medium">{permission.moduleName}</TableCell>
                         <TableCell>
                           <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
