@@ -1026,12 +1026,25 @@ export default function UserManagement() {
                       }
                     }}
                   >
-                    <div className="flex items-center gap-2">
-                      {hasPermission ? (
-                        <ShieldCheck className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <div className="h-4 w-4 rounded-full border border-gray-300" />
-                      )}
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={hasPermission}
+                        onCheckedChange={(checked) => {
+                          if (checked && !hasPermission) {
+                            // Grant access
+                            if (selectedUser) {
+                              addPermissionMutation.mutate({ 
+                                userId: selectedUser.id, 
+                                permission: { moduleName: module, accessGranted: true } 
+                              });
+                            }
+                          } else if (!checked && hasPermission) {
+                            // Remove access
+                            const permission = permissions?.find(p => p.moduleName === module);
+                            if (permission) handleDeletePermission(permission);
+                          }
+                        }}
+                      />
                       <span className={`text-sm font-medium capitalize ${
                         hasPermission ? 'text-green-700' : 'text-gray-600'
                       }`}>
