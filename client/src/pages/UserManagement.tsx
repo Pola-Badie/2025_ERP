@@ -1046,7 +1046,36 @@ export default function UserManagement() {
           <div className="space-y-4 border-t pt-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Available Modules</span>
-              <span className="text-xs text-muted-foreground">{availableModules.length} modules</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (selectedUser) {
+                      // Grant access to all modules that don't already have permissions
+                      const modulesToGrant = availableModules.filter(module => 
+                        !permissions?.some(p => p.moduleName === module)
+                      );
+                      
+                      modulesToGrant.forEach(module => {
+                        addPermissionMutation.mutate({ 
+                          userId: selectedUser.id, 
+                          permission: { moduleName: module, accessGranted: true } 
+                        });
+                      });
+                      
+                      toast({
+                        title: "All modules granted",
+                        description: `Access granted to ${modulesToGrant.length} modules.`,
+                      });
+                    }
+                  }}
+                  disabled={addPermissionMutation.isPending || deletePermissionMutation.isPending}
+                >
+                  Grant All
+                </Button>
+                <span className="text-xs text-muted-foreground">{availableModules.length} modules</span>
+              </div>
             </div>
             <div className="space-y-1">
               {availableModules.map((module) => {
