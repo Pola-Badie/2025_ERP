@@ -1016,12 +1016,13 @@ export default function UserManagement() {
                         const permission = permissions?.find(p => p.moduleName === module);
                         if (permission) handleConfigurePermissions(permission);
                       } else {
-                        // For unassigned modules, show customize options directly
-                        toast({
-                          title: "Module not assigned",
-                          description: "Grant access to this module first to customize its features.",
-                          variant: "destructive",
-                        });
+                        // Grant access automatically when clicking unassigned module
+                        if (selectedUser) {
+                          addPermissionMutation.mutate({ 
+                            userId: selectedUser.id, 
+                            permission: { moduleName: module, accessGranted: true } 
+                          });
+                        }
                       }
                     }}
                   >
@@ -1084,12 +1085,23 @@ export default function UserManagement() {
             </p>
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end gap-2 pt-4">
             <Button
               variant="outline"
               onClick={() => setIsManagePermissionsOpen(false)}
             >
               Close
+            </Button>
+            <Button
+              onClick={() => {
+                toast({
+                  title: "Permissions saved",
+                  description: "All permission changes have been saved successfully.",
+                });
+                setIsManagePermissionsOpen(false);
+              }}
+            >
+              Save Changes
             </Button>
           </div>
         </DialogContent>
