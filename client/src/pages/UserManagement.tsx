@@ -60,15 +60,22 @@ type PermissionFormValues = z.infer<typeof permissionFormSchema>;
 // Module list for permissions
 const availableModules = [
   "dashboard",
-  "inventory",
-  "sales",
-  "purchases",
-  "customers",
-  "suppliers",
+  "products",
+  "expenses", 
   "accounting",
+  "suppliers",
+  "customers",
+  "createInvoice",
+  "createQuotation", 
+  "invoiceHistory",
+  "quotationHistory",
+  "orderManagement",
+  "ordersHistory",
+  "label",
   "reports",
-  "users",
-  "settings",
+  "userManagement", 
+  "systemPreferences",
+  "procurement"
 ];
 
 // Define configurable features for each module
