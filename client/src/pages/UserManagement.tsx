@@ -70,6 +70,77 @@ const availableModules = [
   "settings",
 ];
 
+// Define configurable features for each module
+const moduleFeatures = {
+  dashboard: [
+    { key: "viewSales", label: "View Sales Summary" },
+    { key: "viewInventory", label: "View Inventory Summary" },
+    { key: "viewFinancials", label: "View Financial Summary" },
+    { key: "viewReports", label: "View Reports Section" },
+  ],
+  inventory: [
+    { key: "viewProducts", label: "View Products" },
+    { key: "addProducts", label: "Add Products" },
+    { key: "editProducts", label: "Edit Products" },
+    { key: "deleteProducts", label: "Delete Products" },
+    { key: "viewStock", label: "View Stock Levels" },
+    { key: "manageCategories", label: "Manage Categories" },
+  ],
+  sales: [
+    { key: "viewInvoices", label: "View Invoices" },
+    { key: "createInvoices", label: "Create Invoices" },
+    { key: "editInvoices", label: "Edit Invoices" },
+    { key: "viewQuotations", label: "View Quotations" },
+    { key: "createQuotations", label: "Create Quotations" },
+    { key: "viewOrders", label: "View Orders" },
+  ],
+  purchases: [
+    { key: "viewPurchases", label: "View Purchase Orders" },
+    { key: "createPurchases", label: "Create Purchase Orders" },
+    { key: "editPurchases", label: "Edit Purchase Orders" },
+    { key: "approvePurchases", label: "Approve Purchase Orders" },
+  ],
+  customers: [
+    { key: "viewCustomers", label: "View Customers" },
+    { key: "addCustomers", label: "Add Customers" },
+    { key: "editCustomers", label: "Edit Customers" },
+    { key: "deleteCustomers", label: "Delete Customers" },
+    { key: "viewPayments", label: "View Customer Payments" },
+  ],
+  suppliers: [
+    { key: "viewSuppliers", label: "View Suppliers" },
+    { key: "addSuppliers", label: "Add Suppliers" },
+    { key: "editSuppliers", label: "Edit Suppliers" },
+    { key: "deleteSuppliers", label: "Delete Suppliers" },
+  ],
+  accounting: [
+    { key: "viewAccounts", label: "View Chart of Accounts" },
+    { key: "manageAccounts", label: "Manage Accounts" },
+    { key: "viewJournalEntries", label: "View Journal Entries" },
+    { key: "createJournalEntries", label: "Create Journal Entries" },
+    { key: "viewReports", label: "View Financial Reports" },
+    { key: "managePayments", label: "Manage Payments" },
+  ],
+  reports: [
+    { key: "viewSalesReports", label: "View Sales Reports" },
+    { key: "viewInventoryReports", label: "View Inventory Reports" },
+    { key: "viewFinancialReports", label: "View Financial Reports" },
+    { key: "exportReports", label: "Export Reports" },
+  ],
+  users: [
+    { key: "viewUsers", label: "View Users" },
+    { key: "addUsers", label: "Add Users" },
+    { key: "editUsers", label: "Edit Users" },
+    { key: "managePermissions", label: "Manage User Permissions" },
+  ],
+  settings: [
+    { key: "viewSettings", label: "View System Settings" },
+    { key: "editSettings", label: "Edit System Settings" },
+    { key: "manageBackups", label: "Manage Backups" },
+    { key: "viewLogs", label: "View System Logs" },
+  ],
+};
+
 type Role = "admin" | "manager" | "sales" | "inventory" | "accountant";
 
 // Component for the users page
@@ -79,7 +150,10 @@ export default function UserManagement() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isAddPermissionOpen, setIsAddPermissionOpen] = useState(false);
   const [isManagePermissionsOpen, setIsManagePermissionsOpen] = useState(false);
+  const [isConfigurePermissionsOpen, setIsConfigurePermissionsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedPermission, setSelectedPermission] = useState<UserPermission | null>(null);
+  const [modulePermissionFeatures, setModulePermissionFeatures] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   // Fetch users
@@ -301,6 +375,12 @@ export default function UserManagement() {
   const handleManagePermissions = (user: User) => {
     setSelectedUser(user);
     setIsManagePermissionsOpen(true);
+  };
+
+  // Handle configure permissions dialog opening
+  const handleConfigurePermissions = (permission: UserPermission) => {
+    setSelectedPermission(permission);
+    setIsConfigurePermissionsOpen(true);
   };
 
   // Handle editing a user
@@ -879,14 +959,24 @@ export default function UserManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeletePermission(permission)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
-                          </Button>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleConfigurePermissions(permission)}
+                            >
+                              <Settings className="h-4 w-4 mr-1" />
+                              Configure
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletePermission(permission)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Remove
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
