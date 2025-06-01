@@ -78,6 +78,31 @@ const availableModules = [
   "procurement"
 ];
 
+// Function to format module names for display
+const formatModuleName = (moduleName: string): string => {
+  const moduleDisplayNames: Record<string, string> = {
+    dashboard: "Dashboard",
+    products: "Products",
+    expenses: "Expenses",
+    accounting: "Accounting",
+    suppliers: "Suppliers", 
+    customers: "Customers",
+    createInvoice: "Create Invoice",
+    createQuotation: "Create Quotation",
+    invoiceHistory: "Invoice History",
+    quotationHistory: "Quotation History",
+    orderManagement: "Order Management",
+    ordersHistory: "Orders History",
+    label: "Label Generation",
+    reports: "Reports",
+    userManagement: "User Management",
+    systemPreferences: "System Preferences",
+    procurement: "Procurement"
+  };
+  
+  return moduleDisplayNames[moduleName] || moduleName;
+};
+
 // Define configurable features for each module
 const moduleFeatures = {
   dashboard: [
@@ -615,7 +640,7 @@ export default function UserManagement() {
                     <TableBody>
                       {permissions?.map((permission) => (
                         <TableRow key={`${permission.userId}-${permission.moduleName}`}>
-                          <TableCell className="font-medium">{permission.moduleName}</TableCell>
+                          <TableCell className="font-medium">{formatModuleName(permission.moduleName)}</TableCell>
                           <TableCell>
                             <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
                               {permission.accessGranted ? "Granted" : "Denied"}
@@ -1001,7 +1026,7 @@ export default function UserManagement() {
                   <TableBody>
                     {permissions?.map((permission, index) => (
                       <TableRow key={`permission-${permission.id || index}-${permission.moduleName}`}>
-                        <TableCell className="font-medium">{permission.moduleName}</TableCell>
+                        <TableCell className="font-medium">{formatModuleName(permission.moduleName)}</TableCell>
                         <TableCell>
                           <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
                             {permission.accessGranted ? "Granted" : "Denied"}
@@ -1128,10 +1153,10 @@ export default function UserManagement() {
                           }}
                         />
                       </div>
-                      <span className={`text-sm font-medium capitalize ${
+                      <span className={`text-sm font-medium ${
                         hasPermission ? 'text-green-700' : 'text-gray-600'
                       }`}>
-                        {module}
+                        {formatModuleName(module)}
                       </span>
                       <Badge variant={hasPermission ? "default" : "secondary"} className="text-xs">
                         {hasPermission ? "Assigned" : "Available"}
