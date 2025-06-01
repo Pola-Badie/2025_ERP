@@ -1,395 +1,465 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  CheckCircleIcon,
-  AlertTriangleIcon,
-  XCircleIcon,
-  RefreshCwIcon,
-  FileTextIcon,
-  CreditCardIcon,
-  DownloadIcon,
-  UploadIcon,
-  ExternalLinkIcon
-} from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { FileTextIcon, CheckCircleIcon, XCircleIcon, AlertCircleIcon, SyncIcon, KeyIcon } from 'lucide-react';
 
 interface ETAIntegrationTabProps {
-  preferences: any[];
+  preferences: any;
   refetch: () => void;
 }
 
-const etaLoginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-  clientId: z.string().min(1, "Client ID is required"),
-  clientSecret: z.string().min(1, "Client Secret is required"),
-});
-
 const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refetch }) => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
-  const [lastSync, setLastSync] = useState<string | null>(null);
-  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const { toast } = useToast();
+  
+  const [settings, setSettings] = useState({
+    etaEnabled: false,
+    environment: 'sandbox',
+    clientId: '',
+    clientSecret: '',
+    username: '',
+    pin: '',
+    apiKey: '',
+    autoSubmit: false,
+    testMode: true,
+    taxNumber: '',
+    branchId: '',
+    activityCode: '',
+  });
 
-  const form = useForm<z.infer<typeof etaLoginSchema>>({
-    resolver: zodResolver(etaLoginSchema),
-    defaultValues: {
-      username: '',
-      password: '',
-      clientId: '',
-      clientSecret: '',
+  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+
+  useEffect(() => {
+    if (preferences) {
+      const etaPrefs = preferences.filter((pref: any) => pref.category === 'eta');
+      if (etaPrefs.length) {
+        const prefsObj: any = {};
+        etaPrefs.forEach((pref: any) => {
+          prefsObj[pref.key.replace('eta_', '')] = pref.value;
+        });
+        
+        setSettings({
+          etaEnabled: prefsObj.etaEnabled || false,
+          environment: prefsObj.environment || 'sandbox',
+          clientId: prefsObj.clientId || '',
+          clientSecret: prefsObj.clientSecret || '',
+          username: prefsObj.username || '',
+          pin: prefsObj.pin || '',
+          apiKey: prefsObj.apiKey || '',
+          autoSubmit: prefsObj.autoSubmit || false,
+          testMode: prefsObj.testMode !== false,
+          taxNumber: prefsObj.taxNumber || '',
+          branchId: prefsObj.branchId || '',
+          activityCode: prefsObj.activityCode || '',
+        });
+      }
+    }
+  }, [preferences]);
+
+  const updatePreferenceMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string, value: any }) => {
+      return apiRequest('PATCH', `/api/system-preferences/${key}`, { value });
+    },
+    onSuccess: () => {
+      refetch();
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update ETA setting.',
+        variant: 'destructive',
+      });
     },
   });
 
-  const handleETALogin = async (values: z.infer<typeof etaLoginSchema>) => {
-    setIsConnecting(true);
-    setConnectionStatus('connecting');
-    
-    try {
-      // Call real ETA authentication API
-      const response = await fetch('/api/eta/authenticate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId: values.clientId,
-          clientSecret: values.clientSecret,
-          username: values.username,
-          pin: values.password, // Using password field as PIN
-          apiKey: 'YOUR_ETA_API_KEY', // This should be provided by user
-          environment: 'production'
-        })
+  const createPreferenceMutation = useMutation({
+    mutationFn: async (preference: any) => {
+      return apiRequest('POST', `/api/system-preferences`, preference);
+    },
+    onSuccess: () => {
+      refetch();
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create ETA setting.',
+        variant: 'destructive',
       });
+    },
+  });
 
-      const data = await response.json();
+  const handleChangeSetting = (key: string, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
 
-      if (data.success) {
-        setIsConnected(true);
+    const fullKey = `eta_${key}`;
+    const existingPref = preferences?.find((pref: any) => pref.key === fullKey);
+
+    if (existingPref) {
+      updatePreferenceMutation.mutate({ key: fullKey, value });
+    } else {
+      createPreferenceMutation.mutate({
+        key: fullKey,
+        value,
+        category: 'eta',
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+        description: `ETA setting for ${key}`,
+        dataType: typeof value === 'boolean' ? 'boolean' : 'string',
+      });
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setConnectionStatus('connecting');
+    try {
+      const response = await apiRequest('POST', '/api/eta/test-connection', {
+        environment: settings.environment,
+        clientId: settings.clientId,
+        clientSecret: settings.clientSecret,
+        username: settings.username,
+        pin: settings.pin,
+      });
+      
+      if (response.success) {
         setConnectionStatus('connected');
-        setLastSync(new Date().toLocaleString());
-        console.log('Connected to ETA successfully');
+        toast({
+          title: 'Connection Successful',
+          description: 'Successfully connected to ETA system.',
+        });
       } else {
-        throw new Error(data.message || 'Authentication failed');
+        setConnectionStatus('error');
+        toast({
+          title: 'Connection Failed',
+          description: response.message || 'Failed to connect to ETA system.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       setConnectionStatus('error');
-      setIsConnected(false);
-      console.error('ETA connection failed:', error);
-    } finally {
-      setIsConnecting(false);
+      toast({
+        title: 'Connection Error',
+        description: 'An error occurred while testing the connection.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleDisconnect = () => {
-    setIsConnected(false);
-    setConnectionStatus('disconnected');
-    setLastSync(null);
-    form.reset();
-  };
-
-  const handleSyncInvoices = async () => {
-    setIsConnecting(true);
-    try {
-      // Simulate invoice sync
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setLastSync(new Date().toLocaleString());
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const getStatusBadge = () => {
+  const getStatusIcon = () => {
     switch (connectionStatus) {
       case 'connected':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircleIcon className="w-3 h-3 mr-1" />Connected</Badge>;
+        return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
       case 'connecting':
-        return <Badge variant="secondary"><RefreshCwIcon className="w-3 h-3 mr-1 animate-spin" />Connecting...</Badge>;
+        return <SyncIcon className="h-5 w-5 text-blue-600 animate-spin" />;
       case 'error':
-        return <Badge variant="destructive"><XCircleIcon className="w-3 h-3 mr-1" />Connection Failed</Badge>;
+        return <XCircleIcon className="h-5 w-5 text-red-600" />;
       default:
-        return <Badge variant="outline"><AlertTriangleIcon className="w-3 h-3 mr-1" />Not Connected</Badge>;
+        return <AlertCircleIcon className="h-5 w-5 text-gray-600" />;
     }
   };
 
-  // SVG for ETA Logo
-  const ETALogo = () => (
-    <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-      <div className="text-center">
-        <div className="text-sm font-bold">ETA</div>
-        <div className="text-xs">مصلحة الضرائب</div>
-      </div>
-    </div>
-  );
+  const getStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'Connected';
+      case 'connecting':
+        return 'Connecting...';
+      case 'error':
+        return 'Connection Failed';
+      default:
+        return 'Not Connected';
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header Card */}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">ETA Integration</h3>
+          <p className="text-sm text-muted-foreground">
+            Configure Egyptian Tax Authority electronic invoicing integration
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleTestConnection}>
+            Test Connection
+          </Button>
+          <Button variant="outline" size="sm">
+            View Documentation
+          </Button>
+        </div>
+      </div>
+
+      {/* ETA Status Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <FileTextIcon className="h-6 w-6 mx-auto text-blue-700 mb-1" />
+          <div className="text-sm text-blue-600">Status</div>
+          <div className="text-lg font-bold text-blue-700">
+            {settings.etaEnabled ? 'Enabled' : 'Disabled'}
+          </div>
+        </div>
+        <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex justify-center mb-1">{getStatusIcon()}</div>
+          <div className="text-sm text-green-600">Connection</div>
+          <div className="text-lg font-bold text-green-700">{getStatusText()}</div>
+        </div>
+        <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
+          <SyncIcon className="h-6 w-6 mx-auto text-purple-700 mb-1" />
+          <div className="text-sm text-purple-600">Environment</div>
+          <div className="text-lg font-bold text-purple-700">{settings.environment}</div>
+        </div>
+        <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <CheckCircleIcon className="h-6 w-6 mx-auto text-orange-700 mb-1" />
+          <div className="text-sm text-orange-600">Auto Submit</div>
+          <div className="text-lg font-bold text-orange-700">
+            {settings.autoSubmit ? 'On' : 'Off'}
+          </div>
+        </div>
+      </div>
+
+      {/* Basic Configuration */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <ETALogo />
-              <div>
-                <CardTitle className="text-xl">Egyptian Tax Authority Integration</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Connect to ETA for automated invoice submission and tax compliance
+          <div className="flex items-center gap-3">
+            <FileTextIcon className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Basic Configuration</CardTitle>
+              <CardDescription>Enable and configure ETA integration settings</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <FileTextIcon className="h-5 w-5 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="etaEnabled">Enable ETA Integration</Label>
+                <p className="text-sm text-muted-foreground">
+                  Connect to Egyptian Tax Authority for electronic invoicing
                 </p>
               </div>
             </div>
-            {getStatusBadge()}
+            <Switch
+              id="etaEnabled"
+              checked={settings.etaEnabled}
+              onCheckedChange={(checked) => handleChangeSetting('etaEnabled', checked)}
+            />
           </div>
-        </CardHeader>
-      </Card>
 
-      {/* Connection Status */}
-      {connectionStatus === 'connected' && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircleIcon className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            Successfully connected to Egyptian Tax Authority portal. Invoice submissions are now automated.
-            {lastSync && <span className="block mt-1 text-sm">Last sync: {lastSync}</span>}
-          </AlertDescription>
-        </Alert>
-      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="environment">Environment</Label>
+              <Select
+                value={settings.environment}
+                onValueChange={(value) => handleChangeSetting('environment', value)}
+                disabled={!settings.etaEnabled}
+              >
+                <SelectTrigger id="environment">
+                  <SelectValue placeholder="Select environment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Choose sandbox for testing or production for live invoices
+              </p>
+            </div>
 
-      {connectionStatus === 'error' && (
-        <Alert variant="destructive">
-          <XCircleIcon className="h-4 w-4" />
-          <AlertDescription>
-            Failed to connect to ETA portal. Please check your credentials and try again.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Login Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <CreditCardIcon className="w-5 h-5 mr-2" />
-              ETA Portal Credentials
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleETALogin)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ETA Username</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your ETA portal username" 
-                          {...field} 
-                          disabled={isConnected}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="testMode">Test Mode</Label>
+                <Switch
+                  id="testMode"
+                  checked={settings.testMode}
+                  onCheckedChange={(checked) => handleChangeSetting('testMode', checked)}
+                  disabled={!settings.etaEnabled}
                 />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enable test mode for development and testing
+              </p>
+            </div>
+          </div>
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ETA Password</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Enter your ETA portal password" 
-                          {...field} 
-                          disabled={isConnected}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="clientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client ID</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter ETA API Client ID" 
-                          {...field} 
-                          disabled={isConnected}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="clientSecret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Secret</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Enter ETA API Client Secret" 
-                          {...field} 
-                          disabled={isConnected}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex space-x-2 pt-4">
-                  {!isConnected ? (
-                    <Button 
-                      type="submit" 
-                      disabled={isConnecting}
-                      className="flex-1"
-                    >
-                      {isConnecting && <RefreshCwIcon className="w-4 h-4 mr-2 animate-spin" />}
-                      Connect to ETA
-                    </Button>
-                  ) : (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleDisconnect}
-                      className="flex-1"
-                    >
-                      Disconnect
-                    </Button>
-                  )}
-                  
-                  <Button type="button" variant="outline" asChild>
-                    <a href="https://sdk.invoicing.eta.gov.eg/api/" target="_blank" rel="noopener noreferrer">
-                      <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                      ETA API Docs
-                    </a>
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Integration Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileTextIcon className="w-5 h-5 mr-2" />
-              Integration Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <SyncIcon className="h-5 w-5 text-muted-foreground" />
               <div className="space-y-0.5">
-                <Label htmlFor="autoSync">Automatic Invoice Submission</Label>
+                <Label htmlFor="autoSubmit">Auto Submit Invoices</Label>
                 <p className="text-sm text-muted-foreground">
                   Automatically submit invoices to ETA when created
                 </p>
               </div>
-              <Switch
-                id="autoSync"
-                checked={autoSyncEnabled}
-                onCheckedChange={setAutoSyncEnabled}
-                disabled={!isConnected}
-              />
             </div>
+            <Switch
+              id="autoSubmit"
+              checked={settings.autoSubmit}
+              onCheckedChange={(checked) => handleChangeSetting('autoSubmit', checked)}
+              disabled={!settings.etaEnabled}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-            <Separator />
-
-            <div className="space-y-3">
-              <h4 className="font-medium">Invoice Actions</h4>
-              
-              <Button 
-                variant="outline" 
-                className="w-full justify-start" 
-                onClick={handleSyncInvoices}
-                disabled={!isConnected || isConnecting}
-              >
-                <UploadIcon className="w-4 h-4 mr-2" />
-                {isConnecting ? 'Syncing...' : 'Sync Pending Invoices'}
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                disabled={!isConnected}
-              >
-                <DownloadIcon className="w-4 h-4 mr-2" />
-                Download Tax Reports
-              </Button>
-
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                disabled={!isConnected}
-              >
-                <FileTextIcon className="w-4 h-4 mr-2" />
-                View Submission History
-              </Button>
-            </div>
-
-            {lastSync && (
-              <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">
-                  Last synchronization: <span className="font-medium">{lastSync}</span>
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Compliance Information */}
+      {/* API Credentials */}
       <Card>
         <CardHeader>
-          <CardTitle>Tax Compliance Information</CardTitle>
+          <div className="flex items-center gap-3">
+            <KeyIcon className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">API Credentials</CardTitle>
+              <CardDescription>Configure your ETA API authentication credentials</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <FileTextIcon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <h4 className="font-medium text-blue-800">Invoice Submissions</h4>
-              <p className="text-sm text-blue-600 mt-1">45 this month</p>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="clientId">Client ID</Label>
+              <Input
+                id="clientId"
+                type="text"
+                value={settings.clientId}
+                onChange={(e) => handleChangeSetting('clientId', e.target.value)}
+                placeholder="Enter your ETA Client ID"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your ETA application client identifier
+              </p>
             </div>
             
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <CheckCircleIcon className="w-8 h-8 mx-auto mb-2 text-green-600" />
-              <h4 className="font-medium text-green-800">Successful Submissions</h4>
-              <p className="text-sm text-green-600 mt-1">43 completed</p>
+            <div className="space-y-3">
+              <Label htmlFor="clientSecret">Client Secret</Label>
+              <Input
+                id="clientSecret"
+                type="password"
+                value={settings.clientSecret}
+                onChange={(e) => handleChangeSetting('clientSecret', e.target.value)}
+                placeholder="Enter your ETA Client Secret"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your ETA application client secret key
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                value={settings.username}
+                onChange={(e) => handleChangeSetting('username', e.target.value)}
+                placeholder="Enter your ETA username"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your ETA portal username
+              </p>
             </div>
             
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <AlertTriangleIcon className="w-8 h-8 mx-auto mb-2 text-orange-600" />
-              <h4 className="font-medium text-orange-800">Pending Review</h4>
-              <p className="text-sm text-orange-600 mt-1">2 invoices</p>
+            <div className="space-y-3">
+              <Label htmlFor="pin">PIN</Label>
+              <Input
+                id="pin"
+                type="password"
+                value={settings.pin}
+                onChange={(e) => handleChangeSetting('pin', e.target.value)}
+                placeholder="Enter your ETA PIN"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your ETA portal PIN code
+              </p>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label htmlFor="apiKey">API Key</Label>
+            <Input
+              id="apiKey"
+              type="password"
+              value={settings.apiKey}
+              onChange={(e) => handleChangeSetting('apiKey', e.target.value)}
+              placeholder="Enter your ETA API Key"
+              disabled={!settings.etaEnabled}
+            />
+            <p className="text-sm text-muted-foreground">
+              Your ETA API access key
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Company Information */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <FileTextIcon className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Company Information</CardTitle>
+              <CardDescription>Configure company details for ETA submissions</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="taxNumber">Tax Registration Number</Label>
+              <Input
+                id="taxNumber"
+                type="text"
+                value={settings.taxNumber}
+                onChange={(e) => handleChangeSetting('taxNumber', e.target.value)}
+                placeholder="Enter tax registration number"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your company's tax registration number
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <Label htmlFor="branchId">Branch ID</Label>
+              <Input
+                id="branchId"
+                type="text"
+                value={settings.branchId}
+                onChange={(e) => handleChangeSetting('branchId', e.target.value)}
+                placeholder="Enter branch identifier"
+                disabled={!settings.etaEnabled}
+              />
+              <p className="text-sm text-muted-foreground">
+                Your branch or location identifier
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label htmlFor="activityCode">Activity Code</Label>
+            <Input
+              id="activityCode"
+              type="text"
+              value={settings.activityCode}
+              onChange={(e) => handleChangeSetting('activityCode', e.target.value)}
+              placeholder="Enter business activity code"
+              disabled={!settings.etaEnabled}
+            />
+            <p className="text-sm text-muted-foreground">
+              Your primary business activity code as registered with ETA
+            </p>
           </div>
         </CardContent>
       </Card>

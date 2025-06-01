@@ -9,6 +9,8 @@ import {
   DollarSignIcon,
   ShieldIcon,
   MessageSquareIcon,
+  CloudIcon,
+  FileTextIcon,
   SettingsIcon
 } from 'lucide-react';
 
@@ -18,6 +20,8 @@ import InventorySettingsTab from '@/components/system-preferences/InventorySetti
 import FinancialConfigurationTab from '@/components/system-preferences/FinancialConfigurationTab';
 import SecuritySettingsTab from '@/components/system-preferences/SecuritySettingsTab';
 import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
+import BackupTab from '@/components/system-preferences/BackupTab';
+import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -42,6 +46,10 @@ const SystemPreferences: React.FC = () => {
         return <ShieldIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'communication':
         return <MessageSquareIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'backup':
+        return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'eta':
+        return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
@@ -85,7 +93,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-3 md:grid-cols-6 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-4 md:grid-cols-8 border-b rounded-none h-auto">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -120,6 +128,20 @@ const SystemPreferences: React.FC = () => {
               >
                 {renderTabIcon('communication')}
                 <span className="hidden md:inline">Communication</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="backup" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
+                {renderTabIcon('backup')}
+                <span className="hidden md:inline">Backup</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="eta" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
+                {renderTabIcon('eta')}
+                <span className="hidden md:inline">ETA</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="modules" 
