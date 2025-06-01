@@ -11,7 +11,8 @@ import {
   BellIcon,
   BuildingIcon,
   CloudIcon,
-  FileTextIcon
+  FileTextIcon,
+  SettingsIcon
 } from 'lucide-react';
 
 // Import tab components
@@ -23,6 +24,7 @@ import NotificationsTab from '@/components/system-preferences/NotificationsTab';
 import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
+import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -53,6 +55,8 @@ const SystemPreferences: React.FC = () => {
         return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'eta':
         return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'modules':
+        return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
         return null;
     }
@@ -94,7 +98,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 md:grid-cols-8 border-b rounded-none h-auto">
+            <TabsList className="grid grid-cols-4 md:grid-cols-9 border-b rounded-none h-auto">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
@@ -151,6 +155,13 @@ const SystemPreferences: React.FC = () => {
                 {renderTabIcon('eta')}
                 <span className="hidden md:inline">ETA</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="modules" 
+                className="flex items-center justify-center py-3 px-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+              >
+                {renderTabIcon('modules')}
+                <span className="hidden md:inline">Modules</span>
+              </TabsTrigger>
             </TabsList>
             
             <div className="p-6">
@@ -184,6 +195,10 @@ const SystemPreferences: React.FC = () => {
               
               <TabsContent value="eta" className="mt-0">
                 <ETAIntegrationTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="modules" className="mt-0">
+                <ModuleConfigurationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
             </div>
           </Tabs>
