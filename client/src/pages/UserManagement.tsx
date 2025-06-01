@@ -103,74 +103,376 @@ const formatModuleName = (moduleName: string): string => {
   return moduleDisplayNames[moduleName] || moduleName;
 };
 
-// Define configurable features for each module
+// Define comprehensive configurable features for each module
 const moduleFeatures = {
   dashboard: [
-    { key: "viewSales", label: "View Sales Summary" },
-    { key: "viewInventory", label: "View Inventory Summary" },
-    { key: "viewFinancials", label: "View Financial Summary" },
-    { key: "viewReports", label: "View Reports Section" },
+    // Tab Controls
+    { key: "overviewTab", label: "Overview Tab", category: "tabs", description: "Main dashboard overview with key metrics" },
+    { key: "analyticsTab", label: "Analytics Tab", category: "tabs", description: "Data analytics and insights section" },
+    { key: "reportsTab", label: "Quick Reports Tab", category: "tabs", description: "Quick access to common reports" },
+    
+    // Content Visibility
+    { key: "salesSummary", label: "Sales Summary Cards", category: "content", description: "Revenue, orders, and sales metrics" },
+    { key: "inventoryOverview", label: "Inventory Overview", category: "content", description: "Stock levels and product counts" },
+    { key: "financialMetrics", label: "Financial Metrics", category: "content", description: "Profit, expenses, and financial KPIs" },
+    { key: "recentActivity", label: "Recent Activity Feed", category: "content", description: "Latest transactions and updates" },
+    { key: "chartVisualizations", label: "Chart Visualizations", category: "content", description: "Graphs and data charts" },
+    { key: "notificationsPanel", label: "Notifications Panel", category: "content", description: "System alerts and notifications" },
+    
+    // Actions
+    { key: "exportDashboard", label: "Export Dashboard", category: "actions", description: "Export dashboard data and reports" },
+    { key: "customizeLayout", label: "Customize Layout", category: "actions", description: "Rearrange dashboard components" },
   ],
-  inventory: [
-    { key: "viewProducts", label: "View Products" },
-    { key: "addProducts", label: "Add Products" },
-    { key: "editProducts", label: "Edit Products" },
-    { key: "deleteProducts", label: "Delete Products" },
-    { key: "viewStock", label: "View Stock Levels" },
-    { key: "manageCategories", label: "Manage Categories" },
+  
+  products: [
+    // Tab Controls
+    { key: "productsTab", label: "Products List Tab", category: "tabs", description: "Main products listing and management" },
+    { key: "categoriesTab", label: "Categories Tab", category: "tabs", description: "Product categories management" },
+    { key: "stockTab", label: "Stock Management Tab", category: "tabs", description: "Inventory and stock levels" },
+    { key: "pricingTab", label: "Pricing Tab", category: "tabs", description: "Product pricing and cost management" },
+    
+    // Content Visibility
+    { key: "productsList", label: "Products List View", category: "content", description: "Main products table/grid view" },
+    { key: "productDetails", label: "Product Details Panel", category: "content", description: "Detailed product information view" },
+    { key: "stockLevels", label: "Stock Level Indicators", category: "content", description: "Current stock status and alerts" },
+    { key: "priceHistory", label: "Price History", category: "content", description: "Historical pricing data" },
+    { key: "productImages", label: "Product Images", category: "content", description: "Product photos and galleries" },
+    { key: "specifications", label: "Product Specifications", category: "content", description: "Technical specs and details" },
+    
+    // Actions
+    { key: "addProducts", label: "Add New Products", category: "actions", description: "Create new product entries" },
+    { key: "editProducts", label: "Edit Products", category: "actions", description: "Modify existing products" },
+    { key: "deleteProducts", label: "Delete Products", category: "actions", description: "Remove products from system" },
+    { key: "bulkOperations", label: "Bulk Operations", category: "actions", description: "Mass update/delete operations" },
+    { key: "importExport", label: "Import/Export", category: "actions", description: "Bulk data import and export" },
   ],
-  sales: [
-    { key: "viewInvoices", label: "View Invoices" },
-    { key: "createInvoices", label: "Create Invoices" },
-    { key: "editInvoices", label: "Edit Invoices" },
-    { key: "viewQuotations", label: "View Quotations" },
-    { key: "createQuotations", label: "Create Quotations" },
-    { key: "viewOrders", label: "View Orders" },
+  
+  expenses: [
+    // Tab Controls
+    { key: "expensesTab", label: "Expenses List Tab", category: "tabs", description: "All expense records and transactions" },
+    { key: "categoriesTab", label: "Expense Categories Tab", category: "tabs", description: "Expense categorization management" },
+    { key: "reportsTab", label: "Expense Reports Tab", category: "tabs", description: "Expense analysis and reporting" },
+    { key: "approvalTab", label: "Approval Workflow Tab", category: "tabs", description: "Expense approval process" },
+    
+    // Content Visibility
+    { key: "expensesList", label: "Expenses List View", category: "content", description: "Main expenses table view" },
+    { key: "expenseDetails", label: "Expense Details", category: "content", description: "Detailed expense information" },
+    { key: "receiptsAttachments", label: "Receipts & Attachments", category: "content", description: "Supporting documents view" },
+    { key: "approvalStatus", label: "Approval Status", category: "content", description: "Current approval workflow state" },
+    { key: "expenseCharts", label: "Expense Charts", category: "content", description: "Visual expense analytics" },
+    { key: "budgetComparison", label: "Budget Comparison", category: "content", description: "Budget vs actual spending" },
+    
+    // Actions
+    { key: "addExpenses", label: "Add Expenses", category: "actions", description: "Create new expense entries" },
+    { key: "editExpenses", label: "Edit Expenses", category: "actions", description: "Modify expense records" },
+    { key: "deleteExpenses", label: "Delete Expenses", category: "actions", description: "Remove expense entries" },
+    { key: "approveExpenses", label: "Approve Expenses", category: "actions", description: "Expense approval workflow" },
+    { key: "exportExpenses", label: "Export Expenses", category: "actions", description: "Export expense data" },
   ],
-  purchases: [
-    { key: "viewPurchases", label: "View Purchase Orders" },
-    { key: "createPurchases", label: "Create Purchase Orders" },
-    { key: "editPurchases", label: "Edit Purchase Orders" },
-    { key: "approvePurchases", label: "Approve Purchase Orders" },
-  ],
-  customers: [
-    { key: "viewCustomers", label: "View Customers" },
-    { key: "addCustomers", label: "Add Customers" },
-    { key: "editCustomers", label: "Edit Customers" },
-    { key: "deleteCustomers", label: "Delete Customers" },
-    { key: "viewPayments", label: "View Customer Payments" },
-  ],
-  suppliers: [
-    { key: "viewSuppliers", label: "View Suppliers" },
-    { key: "addSuppliers", label: "Add Suppliers" },
-    { key: "editSuppliers", label: "Edit Suppliers" },
-    { key: "deleteSuppliers", label: "Delete Suppliers" },
-  ],
+  
   accounting: [
-    { key: "viewAccounts", label: "View Chart of Accounts" },
-    { key: "manageAccounts", label: "Manage Accounts" },
-    { key: "viewJournalEntries", label: "View Journal Entries" },
-    { key: "createJournalEntries", label: "Create Journal Entries" },
-    { key: "viewReports", label: "View Financial Reports" },
-    { key: "managePayments", label: "Manage Payments" },
+    // Tab Controls
+    { key: "journalTab", label: "Journal Entries Tab", category: "tabs", description: "General ledger and journal entries" },
+    { key: "accountsTab", label: "Chart of Accounts Tab", category: "tabs", description: "Account structure management" },
+    { key: "reportsTab", label: "Financial Reports Tab", category: "tabs", description: "P&L, Balance Sheet, etc." },
+    { key: "reconciliationTab", label: "Bank Reconciliation Tab", category: "tabs", description: "Bank account reconciliation" },
+    
+    // Content Visibility
+    { key: "journalEntries", label: "Journal Entries List", category: "content", description: "All accounting transactions" },
+    { key: "accountsChart", label: "Chart of Accounts", category: "content", description: "Account hierarchy view" },
+    { key: "trialBalance", label: "Trial Balance", category: "content", description: "Account balances summary" },
+    { key: "financialStatements", label: "Financial Statements", category: "content", description: "P&L and Balance Sheet" },
+    { key: "cashFlow", label: "Cash Flow Statement", category: "content", description: "Cash flow analysis" },
+    
+    // Actions
+    { key: "createJournalEntry", label: "Create Journal Entries", category: "actions", description: "Add new accounting transactions" },
+    { key: "editJournalEntry", label: "Edit Journal Entries", category: "actions", description: "Modify existing entries" },
+    { key: "deleteJournalEntry", label: "Delete Journal Entries", category: "actions", description: "Remove accounting entries" },
+    { key: "generateReports", label: "Generate Reports", category: "actions", description: "Create financial reports" },
+    { key: "exportData", label: "Export Accounting Data", category: "actions", description: "Export financial data" },
   ],
+  
+  suppliers: [
+    // Tab Controls
+    { key: "suppliersTab", label: "Suppliers List Tab", category: "tabs", description: "Main suppliers directory" },
+    { key: "contactsTab", label: "Contacts Tab", category: "tabs", description: "Supplier contact information" },
+    { key: "ordersTab", label: "Purchase Orders Tab", category: "tabs", description: "Orders from suppliers" },
+    { key: "paymentsTab", label: "Payments Tab", category: "tabs", description: "Supplier payment history" },
+    
+    // Content Visibility
+    { key: "suppliersList", label: "Suppliers List View", category: "content", description: "Main suppliers table" },
+    { key: "supplierDetails", label: "Supplier Details", category: "content", description: "Detailed supplier information" },
+    { key: "contactInformation", label: "Contact Information", category: "content", description: "Phone, email, address details" },
+    { key: "purchaseHistory", label: "Purchase History", category: "content", description: "Historical purchase data" },
+    { key: "paymentTerms", label: "Payment Terms", category: "content", description: "Credit terms and conditions" },
+    
+    // Actions
+    { key: "addSuppliers", label: "Add Suppliers", category: "actions", description: "Register new suppliers" },
+    { key: "editSuppliers", label: "Edit Suppliers", category: "actions", description: "Update supplier information" },
+    { key: "deleteSuppliers", label: "Delete Suppliers", category: "actions", description: "Remove suppliers" },
+    { key: "createPurchaseOrder", label: "Create Purchase Orders", category: "actions", description: "Order from suppliers" },
+  ],
+  
+  customers: [
+    // Tab Controls
+    { key: "customersTab", label: "Customers List Tab", category: "tabs", description: "Main customers directory" },
+    { key: "contactsTab", label: "Contacts Tab", category: "tabs", description: "Customer contact management" },
+    { key: "ordersTab", label: "Orders History Tab", category: "tabs", description: "Customer order history" },
+    { key: "paymentsTab", label: "Payments Tab", category: "tabs", description: "Customer payment records" },
+    
+    // Content Visibility
+    { key: "customersList", label: "Customers List View", category: "content", description: "Main customers table" },
+    { key: "customerDetails", label: "Customer Details", category: "content", description: "Detailed customer profiles" },
+    { key: "contactInformation", label: "Contact Information", category: "content", description: "Communication details" },
+    { key: "orderHistory", label: "Order History", category: "content", description: "Past customer orders" },
+    { key: "paymentHistory", label: "Payment History", category: "content", description: "Payment transaction records" },
+    { key: "creditInformation", label: "Credit Information", category: "content", description: "Credit limits and terms" },
+    
+    // Actions
+    { key: "addCustomers", label: "Add Customers", category: "actions", description: "Register new customers" },
+    { key: "editCustomers", label: "Edit Customers", category: "actions", description: "Update customer information" },
+    { key: "deleteCustomers", label: "Delete Customers", category: "actions", description: "Remove customers" },
+    { key: "createOrder", label: "Create Orders", category: "actions", description: "Place orders for customers" },
+  ],
+  
+  createInvoice: [
+    // Tab Controls
+    { key: "invoiceDetailsTab", label: "Invoice Details Tab", category: "tabs", description: "Main invoice creation form" },
+    { key: "itemsTab", label: "Items Tab", category: "tabs", description: "Invoice line items management" },
+    { key: "taxesTab", label: "Taxes & Discounts Tab", category: "tabs", description: "Tax calculations and discounts" },
+    { key: "previewTab", label: "Preview Tab", category: "tabs", description: "Invoice preview before generation" },
+    
+    // Content Visibility
+    { key: "customerSelection", label: "Customer Selection", category: "content", description: "Choose invoice recipient" },
+    { key: "invoiceNumbering", label: "Invoice Numbering", category: "content", description: "Automatic/manual invoice numbers" },
+    { key: "itemSelection", label: "Item Selection", category: "content", description: "Product/service selection interface" },
+    { key: "pricingCalculation", label: "Pricing Calculation", category: "content", description: "Price and total calculations" },
+    { key: "taxCalculation", label: "Tax Calculation", category: "content", description: "Tax computation display" },
+    { key: "invoicePreview", label: "Invoice Preview", category: "content", description: "Generated invoice preview" },
+    
+    // Actions
+    { key: "createInvoice", label: "Create Invoice", category: "actions", description: "Generate new invoices" },
+    { key: "saveAsDraft", label: "Save as Draft", category: "actions", description: "Save incomplete invoices" },
+    { key: "sendInvoice", label: "Send Invoice", category: "actions", description: "Email invoices to customers" },
+    { key: "printInvoice", label: "Print Invoice", category: "actions", description: "Print invoice documents" },
+    { key: "duplicateInvoice", label: "Duplicate Invoice", category: "actions", description: "Copy existing invoices" },
+  ],
+  
+  createQuotation: [
+    // Tab Controls
+    { key: "quotationDetailsTab", label: "Quotation Details Tab", category: "tabs", description: "Main quotation creation form" },
+    { key: "itemsTab", label: "Items Tab", category: "tabs", description: "Quotation line items" },
+    { key: "termsTab", label: "Terms & Conditions Tab", category: "tabs", description: "Quotation terms and validity" },
+    { key: "previewTab", label: "Preview Tab", category: "tabs", description: "Quotation preview" },
+    
+    // Content Visibility
+    { key: "customerSelection", label: "Customer Selection", category: "content", description: "Choose quotation recipient" },
+    { key: "quotationNumbering", label: "Quotation Numbering", category: "content", description: "Quote number generation" },
+    { key: "itemSelection", label: "Item Selection", category: "content", description: "Product/service quotes" },
+    { key: "validityPeriod", label: "Validity Period", category: "content", description: "Quote expiration settings" },
+    { key: "termsConditions", label: "Terms & Conditions", category: "content", description: "Quote terms display" },
+    
+    // Actions
+    { key: "createQuotation", label: "Create Quotation", category: "actions", description: "Generate new quotations" },
+    { key: "convertToInvoice", label: "Convert to Invoice", category: "actions", description: "Turn quotes into invoices" },
+    { key: "sendQuotation", label: "Send Quotation", category: "actions", description: "Email quotes to customers" },
+    { key: "printQuotation", label: "Print Quotation", category: "actions", description: "Print quote documents" },
+  ],
+  
+  invoiceHistory: [
+    // Tab Controls
+    { key: "allInvoicesTab", label: "All Invoices Tab", category: "tabs", description: "Complete invoice history" },
+    { key: "paidInvoicesTab", label: "Paid Invoices Tab", category: "tabs", description: "Completed payments" },
+    { key: "unpaidInvoicesTab", label: "Unpaid Invoices Tab", category: "tabs", description: "Outstanding invoices" },
+    { key: "overdueInvoicesTab", label: "Overdue Invoices Tab", category: "tabs", description: "Past due invoices" },
+    
+    // Content Visibility
+    { key: "invoicesList", label: "Invoices List View", category: "content", description: "Main invoices table" },
+    { key: "invoiceDetails", label: "Invoice Details", category: "content", description: "Detailed invoice view" },
+    { key: "paymentStatus", label: "Payment Status", category: "content", description: "Payment tracking information" },
+    { key: "customerInformation", label: "Customer Information", category: "content", description: "Associated customer details" },
+    { key: "amountDue", label: "Amount Due", category: "content", description: "Outstanding balance display" },
+    
+    // Actions
+    { key: "viewInvoice", label: "View Invoice Details", category: "actions", description: "Open invoice details" },
+    { key: "editInvoice", label: "Edit Invoice", category: "actions", description: "Modify existing invoices" },
+    { key: "deleteInvoice", label: "Delete Invoice", category: "actions", description: "Remove invoices" },
+    { key: "resendInvoice", label: "Resend Invoice", category: "actions", description: "Email invoices again" },
+    { key: "markAsPaid", label: "Mark as Paid", category: "actions", description: "Update payment status" },
+  ],
+  
+  quotationHistory: [
+    // Tab Controls
+    { key: "allQuotationsTab", label: "All Quotations Tab", category: "tabs", description: "Complete quotation history" },
+    { key: "pendingQuotationsTab", label: "Pending Quotations Tab", category: "tabs", description: "Awaiting response" },
+    { key: "acceptedQuotationsTab", label: "Accepted Quotations Tab", category: "tabs", description: "Approved quotations" },
+    { key: "expiredQuotationsTab", label: "Expired Quotations Tab", category: "tabs", description: "Past validity period" },
+    
+    // Content Visibility
+    { key: "quotationsList", label: "Quotations List View", category: "content", description: "Main quotations table" },
+    { key: "quotationStatus", label: "Quotation Status", category: "content", description: "Current quote status" },
+    { key: "validityInformation", label: "Validity Information", category: "content", description: "Expiration dates" },
+    { key: "conversionTracking", label: "Conversion Tracking", category: "content", description: "Quote to invoice conversion" },
+    
+    // Actions
+    { key: "viewQuotation", label: "View Quotation", category: "actions", description: "Open quotation details" },
+    { key: "editQuotation", label: "Edit Quotation", category: "actions", description: "Modify quotations" },
+    { key: "duplicateQuotation", label: "Duplicate Quotation", category: "actions", description: "Copy quotations" },
+    { key: "convertToInvoice", label: "Convert to Invoice", category: "actions", description: "Create invoice from quote" },
+  ],
+  
+  orderManagement: [
+    // Tab Controls
+    { key: "allOrdersTab", label: "All Orders Tab", category: "tabs", description: "Complete orders overview" },
+    { key: "pendingOrdersTab", label: "Pending Orders Tab", category: "tabs", description: "Orders awaiting processing" },
+    { key: "processingOrdersTab", label: "Processing Orders Tab", category: "tabs", description: "Orders in production" },
+    { key: "completedOrdersTab", label: "Completed Orders Tab", category: "tabs", description: "Finished orders" },
+    
+    // Content Visibility
+    { key: "ordersList", label: "Orders List View", category: "content", description: "Main orders table" },
+    { key: "orderDetails", label: "Order Details", category: "content", description: "Detailed order information" },
+    { key: "productionStatus", label: "Production Status", category: "content", description: "Manufacturing progress" },
+    { key: "deliveryTracking", label: "Delivery Tracking", category: "content", description: "Shipping and delivery status" },
+    { key: "qualityControl", label: "Quality Control", category: "content", description: "QC checkpoints and results" },
+    
+    // Actions
+    { key: "createOrder", label: "Create Order", category: "actions", description: "New order creation" },
+    { key: "editOrder", label: "Edit Order", category: "actions", description: "Modify existing orders" },
+    { key: "cancelOrder", label: "Cancel Order", category: "actions", description: "Cancel orders" },
+    { key: "updateStatus", label: "Update Status", category: "actions", description: "Change order status" },
+    { key: "printWorkOrder", label: "Print Work Order", category: "actions", description: "Print production documents" },
+  ],
+  
+  ordersHistory: [
+    // Tab Controls
+    { key: "allHistoryTab", label: "All History Tab", category: "tabs", description: "Complete order history" },
+    { key: "customerHistoryTab", label: "Customer History Tab", category: "tabs", description: "Orders by customer" },
+    { key: "productHistoryTab", label: "Product History Tab", category: "tabs", description: "Orders by product" },
+    { key: "dateRangeTab", label: "Date Range Tab", category: "tabs", description: "Time-based order analysis" },
+    
+    // Content Visibility
+    { key: "historicalOrdersList", label: "Historical Orders List", category: "content", description: "Past orders table" },
+    { key: "orderAnalytics", label: "Order Analytics", category: "content", description: "Order trends and statistics" },
+    { key: "customerInsights", label: "Customer Insights", category: "content", description: "Customer order patterns" },
+    { key: "productPerformance", label: "Product Performance", category: "content", description: "Product order metrics" },
+    
+    // Actions
+    { key: "searchOrders", label: "Search Orders", category: "actions", description: "Find specific orders" },
+    { key: "filterOrders", label: "Filter Orders", category: "actions", description: "Apply order filters" },
+    { key: "exportHistory", label: "Export History", category: "actions", description: "Export historical data" },
+    { key: "reorderItems", label: "Reorder Items", category: "actions", description: "Repeat previous orders" },
+  ],
+  
+  label: [
+    // Tab Controls
+    { key: "labelDesignTab", label: "Label Design Tab", category: "tabs", description: "Label creation and design" },
+    { key: "templatesTab", label: "Templates Tab", category: "tabs", description: "Pre-designed label templates" },
+    { key: "printingTab", label: "Printing Tab", category: "tabs", description: "Label printing options" },
+    { key: "historyTab", label: "History Tab", category: "tabs", description: "Previously generated labels" },
+    
+    // Content Visibility
+    { key: "designCanvas", label: "Design Canvas", category: "content", description: "Label design workspace" },
+    { key: "templateLibrary", label: "Template Library", category: "content", description: "Available label templates" },
+    { key: "productInformation", label: "Product Information", category: "content", description: "Auto-populated product data" },
+    { key: "hazardSymbols", label: "Hazard Symbols", category: "content", description: "Safety and warning symbols" },
+    { key: "barcodeGeneration", label: "Barcode Generation", category: "content", description: "Automatic barcode creation" },
+    { key: "printPreview", label: "Print Preview", category: "content", description: "Label preview before printing" },
+    
+    // Actions
+    { key: "createLabel", label: "Create Label", category: "actions", description: "Design new labels" },
+    { key: "editTemplate", label: "Edit Template", category: "actions", description: "Modify label templates" },
+    { key: "printLabel", label: "Print Label", category: "actions", description: "Print label designs" },
+    { key: "saveTemplate", label: "Save Template", category: "actions", description: "Save custom templates" },
+    { key: "exportLabel", label: "Export Label", category: "actions", description: "Export label designs" },
+  ],
+  
   reports: [
-    { key: "viewSalesReports", label: "View Sales Reports" },
-    { key: "viewInventoryReports", label: "View Inventory Reports" },
-    { key: "viewFinancialReports", label: "View Financial Reports" },
-    { key: "exportReports", label: "Export Reports" },
+    // Tab Controls
+    { key: "salesReportsTab", label: "Sales Reports Tab", category: "tabs", description: "Sales analytics and reports" },
+    { key: "inventoryReportsTab", label: "Inventory Reports Tab", category: "tabs", description: "Stock and inventory reports" },
+    { key: "financialReportsTab", label: "Financial Reports Tab", category: "tabs", description: "Financial statements and analysis" },
+    { key: "customReportsTab", label: "Custom Reports Tab", category: "tabs", description: "User-defined reports" },
+    
+    // Content Visibility
+    { key: "reportsList", label: "Reports List", category: "content", description: "Available reports directory" },
+    { key: "reportPreview", label: "Report Preview", category: "content", description: "Report preview window" },
+    { key: "dataVisualizations", label: "Data Visualizations", category: "content", description: "Charts and graphs" },
+    { key: "filterControls", label: "Filter Controls", category: "content", description: "Report filtering options" },
+    { key: "summaryMetrics", label: "Summary Metrics", category: "content", description: "Key performance indicators" },
+    
+    // Actions
+    { key: "generateReport", label: "Generate Report", category: "actions", description: "Create new reports" },
+    { key: "scheduleReport", label: "Schedule Report", category: "actions", description: "Automated report generation" },
+    { key: "exportReport", label: "Export Report", category: "actions", description: "Export reports to various formats" },
+    { key: "shareReport", label: "Share Report", category: "actions", description: "Share reports with others" },
+    { key: "customizeReport", label: "Customize Report", category: "actions", description: "Modify report parameters" },
   ],
-  users: [
-    { key: "viewUsers", label: "View Users" },
-    { key: "addUsers", label: "Add Users" },
-    { key: "editUsers", label: "Edit Users" },
-    { key: "managePermissions", label: "Manage User Permissions" },
+  
+  userManagement: [
+    // Tab Controls
+    { key: "usersTab", label: "Users Tab", category: "tabs", description: "User accounts management" },
+    { key: "rolesTab", label: "Roles Tab", category: "tabs", description: "User roles and permissions" },
+    { key: "permissionsTab", label: "Permissions Tab", category: "tabs", description: "Detailed permissions management" },
+    { key: "securityTab", label: "Security Tab", category: "tabs", description: "Security settings and policies" },
+    
+    // Content Visibility
+    { key: "usersList", label: "Users List", category: "content", description: "Active user accounts" },
+    { key: "userProfiles", label: "User Profiles", category: "content", description: "Detailed user information" },
+    { key: "roleAssignments", label: "Role Assignments", category: "content", description: "User role mapping" },
+    { key: "permissionMatrix", label: "Permission Matrix", category: "content", description: "Permissions overview" },
+    { key: "loginActivity", label: "Login Activity", category: "content", description: "User login history" },
+    { key: "securityLogs", label: "Security Logs", category: "content", description: "Security events and alerts" },
+    
+    // Actions
+    { key: "addUser", label: "Add User", category: "actions", description: "Create new user accounts" },
+    { key: "editUser", label: "Edit User", category: "actions", description: "Modify user information" },
+    { key: "deleteUser", label: "Delete User", category: "actions", description: "Remove user accounts" },
+    { key: "resetPassword", label: "Reset Password", category: "actions", description: "Password reset functionality" },
+    { key: "managePermissions", label: "Manage Permissions", category: "actions", description: "Configure user permissions" },
   ],
-  settings: [
-    { key: "viewSettings", label: "View System Settings" },
-    { key: "editSettings", label: "Edit System Settings" },
-    { key: "manageBackups", label: "Manage Backups" },
-    { key: "viewLogs", label: "View System Logs" },
+  
+  systemPreferences: [
+    // Tab Controls
+    { key: "generalTab", label: "General Settings Tab", category: "tabs", description: "Basic system configuration" },
+    { key: "securityTab", label: "Security Settings Tab", category: "tabs", description: "Security and access controls" },
+    { key: "integrationTab", label: "Integration Settings Tab", category: "tabs", description: "Third-party integrations" },
+    { key: "backupTab", label: "Backup Settings Tab", category: "tabs", description: "Data backup configuration" },
+    
+    // Content Visibility
+    { key: "systemConfiguration", label: "System Configuration", category: "content", description: "Core system settings" },
+    { key: "securityPolicies", label: "Security Policies", category: "content", description: "Security rules and policies" },
+    { key: "integrationStatus", label: "Integration Status", category: "content", description: "Connected services status" },
+    { key: "backupSchedule", label: "Backup Schedule", category: "content", description: "Automated backup settings" },
+    { key: "systemLogs", label: "System Logs", category: "content", description: "System activity logs" },
+    
+    // Actions
+    { key: "updateSettings", label: "Update Settings", category: "actions", description: "Modify system configuration" },
+    { key: "manageIntegrations", label: "Manage Integrations", category: "actions", description: "Configure integrations" },
+    { key: "runBackup", label: "Run Backup", category: "actions", description: "Manual backup execution" },
+    { key: "viewLogs", label: "View Logs", category: "actions", description: "Access system logs" },
+    { key: "exportSettings", label: "Export Settings", category: "actions", description: "Export configuration" },
+  ],
+  
+  procurement: [
+    // Tab Controls
+    { key: "purchaseOrdersTab", label: "Purchase Orders Tab", category: "tabs", description: "Purchase order management" },
+    { key: "requestsTab", label: "Purchase Requests Tab", category: "tabs", description: "Purchase request workflow" },
+    { key: "approvalsTab", label: "Approvals Tab", category: "tabs", description: "Purchase approval process" },
+    { key: "vendorsTab", label: "Vendors Tab", category: "tabs", description: "Vendor management" },
+    
+    // Content Visibility
+    { key: "purchaseOrdersList", label: "Purchase Orders List", category: "content", description: "All purchase orders" },
+    { key: "requestsList", label: "Requests List", category: "content", description: "Purchase requests queue" },
+    { key: "approvalWorkflow", label: "Approval Workflow", category: "content", description: "Approval process status" },
+    { key: "vendorInformation", label: "Vendor Information", category: "content", description: "Vendor details and history" },
+    { key: "budgetTracking", label: "Budget Tracking", category: "content", description: "Purchase budget monitoring" },
+    
+    // Actions
+    { key: "createPurchaseOrder", label: "Create Purchase Order", category: "actions", description: "New purchase orders" },
+    { key: "approvePurchase", label: "Approve Purchase", category: "actions", description: "Purchase approval actions" },
+    { key: "manageBudget", label: "Manage Budget", category: "actions", description: "Budget allocation and control" },
+    { key: "trackDelivery", label: "Track Delivery", category: "actions", description: "Delivery status tracking" },
+    { key: "generateReports", label: "Generate Reports", category: "actions", description: "Procurement analytics" },
   ],
 };
 
@@ -1248,29 +1550,168 @@ export default function UserManagement() {
                 </div>
                 
                 {selectedPermission.accessGranted ? (
-                  <div className="grid gap-4">
-                    {moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures].map((feature) => (
-                      <div
-                        key={feature.key}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">{feature.label}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Controls visibility and access to this feature
-                          </p>
+                  <div className="space-y-6">
+                    {/* Group features by category */}
+                    {["tabs", "content", "actions"].map((category) => {
+                      const categoryFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
+                        ?.filter((feature: any) => feature.category === category) || [];
+                      
+                      if (categoryFeatures.length === 0) return null;
+                      
+                      const categoryLabels = {
+                        tabs: "Tab Controls",
+                        content: "Content Visibility", 
+                        actions: "User Actions"
+                      };
+                      
+                      const categoryDescriptions = {
+                        tabs: "Control which tabs are visible in the module interface",
+                        content: "Manage what content and data is displayed to users",
+                        actions: "Define what actions users can perform in this module"
+                      };
+                      
+                      const categoryIcons = {
+                        tabs: "📋",
+                        content: "👁️",
+                        actions: "⚡"
+                      };
+                      
+                      return (
+                        <div key={category} className="space-y-3">
+                          <div className="flex items-center gap-2 pb-2 border-b">
+                            <span className="text-lg">{categoryIcons[category as keyof typeof categoryIcons]}</span>
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">
+                                {categoryLabels[category as keyof typeof categoryLabels]}
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                {categoryDescriptions[category as keyof typeof categoryDescriptions]}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid gap-3">
+                            {categoryFeatures.map((feature: any) => (
+                              <div
+                                key={feature.key}
+                                className="flex items-start justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-gray-900">{feature.label}</p>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-xs ${
+                                        modulePermissionFeatures[feature.key] ?? true 
+                                          ? 'bg-green-50 text-green-700 border-green-200' 
+                                          : 'bg-red-50 text-red-700 border-red-200'
+                                      }`}
+                                    >
+                                      {modulePermissionFeatures[feature.key] ?? true ? 'Enabled' : 'Disabled'}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {feature.description || "Controls visibility and access to this feature"}
+                                  </p>
+                                </div>
+                                <div className="ml-3">
+                                  <Switch
+                                    checked={modulePermissionFeatures[feature.key] ?? true}
+                                    onCheckedChange={(checked) => {
+                                      setModulePermissionFeatures(prev => ({
+                                        ...prev,
+                                        [feature.key]: checked
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Category Summary */}
+                          <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border border-blue-200">
+                            <span className="font-medium text-blue-800">
+                              {categoryFeatures.filter((f: any) => modulePermissionFeatures[f.key] ?? true).length} of {categoryFeatures.length} features enabled
+                            </span>
+                            {category === "tabs" && " - Users will see these tabs in the module"}
+                            {category === "content" && " - This content will be visible to users"}
+                            {category === "actions" && " - Users can perform these actions"}
+                          </div>
                         </div>
-                        <Switch
-                          checked={modulePermissionFeatures[feature.key] ?? true}
-                          onCheckedChange={(checked) => {
-                            setModulePermissionFeatures(prev => ({
-                              ...prev,
-                              [feature.key]: checked
-                            }));
-                          }}
-                        />
+                      );
+                    })}
+                    
+                    {/* Quick Actions */}
+                    <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-sm font-semibold text-blue-900">Quick Configuration</h4>
                       </div>
-                    ))}
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const allFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] || [];
+                            const updates: Record<string, boolean> = {};
+                            allFeatures.forEach((feature: any) => {
+                              updates[feature.key] = true;
+                            });
+                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
+                          }}
+                          className="text-green-700 border-green-300 hover:bg-green-50"
+                        >
+                          Enable All
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const allFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] || [];
+                            const updates: Record<string, boolean> = {};
+                            allFeatures.forEach((feature: any) => {
+                              updates[feature.key] = false;
+                            });
+                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
+                          }}
+                          className="text-red-700 border-red-300 hover:bg-red-50"
+                        >
+                          Disable All
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const tabFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
+                              ?.filter((f: any) => f.category === "tabs") || [];
+                            const updates: Record<string, boolean> = {};
+                            tabFeatures.forEach((feature: any) => {
+                              updates[feature.key] = true;
+                            });
+                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
+                          }}
+                          className="text-blue-700 border-blue-300 hover:bg-blue-50"
+                        >
+                          Enable All Tabs
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const actionFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
+                              ?.filter((f: any) => f.category === "actions") || [];
+                            const updates: Record<string, boolean> = {};
+                            actionFeatures.forEach((feature: any) => {
+                              updates[feature.key] = false;
+                            });
+                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
+                          }}
+                          className="text-orange-700 border-orange-300 hover:bg-orange-50"
+                        >
+                          Disable All Actions
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
