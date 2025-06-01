@@ -1000,26 +1000,70 @@ export default function UserManagement() {
               <span className="text-sm font-medium">Available Modules</span>
               <span className="text-xs text-muted-foreground">{availableModules.length} modules</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="space-y-1">
               {availableModules.map((module) => {
                 const hasPermission = permissions?.some(p => p.moduleName === module);
                 return (
                   <div
                     key={module}
-                    className={`p-2 rounded-lg border text-center text-sm ${
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
                       hasPermission 
-                        ? 'bg-green-50 border-green-200 text-green-700' 
-                        : 'bg-gray-50 border-gray-200 text-gray-600'
+                        ? 'bg-green-50 border-green-200' 
+                        : 'bg-gray-50 border-gray-200'
                     }`}
                   >
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center gap-2">
                       {hasPermission ? (
-                        <ShieldCheck className="h-3 w-3" />
+                        <ShieldCheck className="h-4 w-4 text-green-600" />
                       ) : (
-                        <div className="h-3 w-3 rounded-full border border-gray-300" />
+                        <div className="h-4 w-4 rounded-full border border-gray-300" />
                       )}
-                      <span className="capitalize">{module}</span>
+                      <span className={`text-sm font-medium capitalize ${
+                        hasPermission ? 'text-green-700' : 'text-gray-600'
+                      }`}>
+                        {module}
+                      </span>
+                      <Badge variant={hasPermission ? "default" : "secondary"} className="text-xs">
+                        {hasPermission ? "Assigned" : "Available"}
+                      </Badge>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {hasPermission ? (
+                          <>
+                            <DropdownMenuItem onClick={() => {
+                              const permission = permissions?.find(p => p.moduleName === module);
+                              if (permission) handleConfigurePermissions(permission);
+                            }}>
+                              <Settings className="mr-2 h-4 w-4" />
+                              Configure
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              const permission = permissions?.find(p => p.moduleName === module);
+                              if (permission) handleDeletePermission(permission);
+                            }}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove Access
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          <DropdownMenuItem onClick={() => {
+                            // Set the module in the form and open add permission dialog
+                            permissionForm.setValue('moduleName', module);
+                            setIsAddPermissionOpen(true);
+                          }}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Grant Access
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 );
               })}
