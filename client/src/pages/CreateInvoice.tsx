@@ -269,58 +269,113 @@ const CreateInvoice = () => {
     queryKey: ['/api/customers', customerSearchTerm],
     queryFn: async () => {
       if (customerSearchTerm.length > 0) {
-        const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-        return await res.json();
+        try {
+          const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const text = await res.text();
+          if (!text) return [];
+          return JSON.parse(text);
+        } catch (error) {
+          console.error('Error fetching customers:', error);
+          return [];
+        }
       }
       return [];
     },
     enabled: customerSearchTerm.length > 0,
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Fetch all products from inventory
   const { data: allProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/products'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/products');
-      return await res.json();
+      try {
+        const res = await apiRequest('GET', '/api/products');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        if (!text) return [];
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        return [];
+      }
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Fetch categories to map category names
   const { data: categories = [] } = useQuery<any[]>({
     queryKey: ['/api/categories'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/categories');
-      return await res.json();
+      try {
+        const res = await apiRequest('GET', '/api/categories');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        if (!text) return [];
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Fetch quotations from quotations history
   const { data: quotations = [] } = useQuery<any[]>({
     queryKey: ['/api/quotations', '', 'all', 'all', 'all'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/quotations?query=&status=all&type=all&date=all');
-      return await res.json();
+      try {
+        const res = await apiRequest('GET', '/api/quotations?query=&status=all&type=all&date=all');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        if (!text) return [];
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error fetching quotations:', error);
+        return [];
+      }
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Fetch orders from order history
   const { data: orders = [] } = useQuery<any[]>({
     queryKey: ['/api/orders/production-history'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/orders/production-history');
-      return await res.json();
+      try {
+        const res = await apiRequest('GET', '/api/orders/production-history');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const text = await res.text();
+        if (!text) return [];
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error fetching order history:', error);
+        return [];
+      }
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   // Filter products based on search term
@@ -405,8 +460,18 @@ const CreateInvoice = () => {
   // Mutation for creating a customer
   const createCustomerMutation = useMutation({
     mutationFn: async (newCustomer: any) => {
-      const response = await apiRequest('POST', '/api/customers', newCustomer);
-      return await response.json();
+      try {
+        const response = await apiRequest('POST', '/api/customers', newCustomer);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        if (!text) throw new Error('Empty response');
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error creating customer:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
@@ -427,6 +492,7 @@ const CreateInvoice = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
     },
     onError: (error) => {
+      console.error('Customer creation error:', error);
       toast({
         title: 'Error',
         description: 'Failed to create customer. Please try again.',
@@ -438,8 +504,18 @@ const CreateInvoice = () => {
   // Mutation for creating an invoice
   const createInvoiceMutation = useMutation({
     mutationFn: async (invoiceData: any) => {
-      const response = await apiRequest('POST', '/api/invoices', invoiceData);
-      return await response.json();
+      try {
+        const response = await apiRequest('POST', '/api/invoices', invoiceData);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        if (!text) throw new Error('Empty response');
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error creating invoice:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
@@ -474,6 +550,7 @@ const CreateInvoice = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
     },
     onError: (error) => {
+      console.error('Invoice creation error:', error);
       toast({
         title: 'Error',
         description: 'Failed to create invoice. Please try again.',
@@ -496,22 +573,26 @@ const CreateInvoice = () => {
     const timer = setTimeout(() => {
       const currentFormData = form.getValues();
       setInvoiceDrafts(prev => {
-        const updated = prev.map(draft => 
-          draft.id === activeInvoiceId 
-            ? { 
-                ...draft, 
-                data: currentFormData,
-                lastUpdated: new Date().toISOString() 
-              }
-            : draft
-        );
-        saveDrafts(updated);
-        return updated;
+        const activeDraft = prev.find(draft => draft.id === activeInvoiceId);
+        if (activeDraft && JSON.stringify(activeDraft.data) !== JSON.stringify(currentFormData)) {
+          const updated = prev.map(draft => 
+            draft.id === activeInvoiceId 
+              ? { 
+                  ...draft, 
+                  data: currentFormData,
+                  lastUpdated: new Date().toISOString() 
+                }
+              : draft
+          );
+          saveDrafts(updated);
+          return updated;
+        }
+        return prev;
       });
-    }, 1000); // Increased delay to reduce frequency
+    }, 2000); // Further increased delay and only save if data actually changed
     
     return () => clearTimeout(timer);
-  }, [watchItems, watchTaxRate, watchDiscountType, watchDiscountValue, activeInvoiceId]);
+  }, [watchItems, watchTaxRate, watchDiscountType, watchDiscountValue, activeInvoiceId, form]);
 
   // Update amount paid based on payment status
   useEffect(() => {
