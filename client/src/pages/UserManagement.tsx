@@ -1079,18 +1079,17 @@ export default function UserManagement() {
                         <Switch
                           checked={hasPermission}
                           disabled={addPermissionMutation.isPending || deletePermissionMutation.isPending}
-                          onCheckedChange={(checked) => {
-                            if (checked && !hasPermission) {
+                          onCheckedChange={async (checked) => {
+                            if (checked && !hasPermission && selectedUser) {
                               // Grant access
-                              if (selectedUser) {
-                                addPermissionMutation.mutate({ 
-                                  userId: selectedUser.id, 
-                                  permission: { moduleName: module, accessGranted: true } 
-                                });
-                              }
-                            } else if (!checked && hasPermission) {
-                              // Remove access
-                              if (selectedUser) {
+                              addPermissionMutation.mutate({ 
+                                userId: selectedUser.id, 
+                                permission: { moduleName: module, accessGranted: true } 
+                              });
+                            } else if (!checked && hasPermission && selectedUser) {
+                              // Remove access - use existing permission to delete
+                              const existingPermission = permissions?.find(p => p.moduleName === module);
+                              if (existingPermission) {
                                 deletePermissionMutation.mutate({
                                   userId: selectedUser.id,
                                   moduleName: module
