@@ -1461,41 +1461,7 @@ export default function UserManagement() {
                         {formatModuleName(module)}
                       </span>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          if (hasPermission) {
-                            const permission = permissions?.find(p => p.moduleName === module);
-                            if (permission) handleConfigurePermissions(permission);
-                          } else {
-                            // For unassigned modules, show customize options directly
-                            toast({
-                              title: "Module not assigned",
-                              description: "Grant access to this module first to customize its features.",
-                              variant: "destructive",
-                            });
-                          }
-                        }}>
-                          <Settings className="mr-2 h-4 w-4" />
-                          Customize
-                        </DropdownMenuItem>
-                        {hasPermission && (
-                          <DropdownMenuItem onClick={() => {
-                            const permission = permissions?.find(p => p.moduleName === module);
-                            if (permission) handleDeletePermission(permission);
-                          }}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove Access
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+
                   </div>
                 );
               })}
@@ -1629,76 +1595,7 @@ export default function UserManagement() {
                       );
                     })}
                     
-                    {/* Quick Actions */}
-                    <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-sm font-semibold text-blue-900">Quick Configuration</h4>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const allFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] || [];
-                            const updates: Record<string, boolean> = {};
-                            allFeatures.forEach((feature: any) => {
-                              updates[feature.key] = true;
-                            });
-                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
-                          }}
-                          className="text-green-700 border-green-300 hover:bg-green-50"
-                        >
-                          Enable All
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const allFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] || [];
-                            const updates: Record<string, boolean> = {};
-                            allFeatures.forEach((feature: any) => {
-                              updates[feature.key] = false;
-                            });
-                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
-                          }}
-                          className="text-red-700 border-red-300 hover:bg-red-50"
-                        >
-                          Disable All
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const tabFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
-                              ?.filter((f: any) => f.category === "tabs") || [];
-                            const updates: Record<string, boolean> = {};
-                            tabFeatures.forEach((feature: any) => {
-                              updates[feature.key] = true;
-                            });
-                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
-                          }}
-                          className="text-blue-700 border-blue-300 hover:bg-blue-50"
-                        >
-                          Enable All Tabs
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const actionFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
-                              ?.filter((f: any) => f.category === "actions") || [];
-                            const updates: Record<string, boolean> = {};
-                            actionFeatures.forEach((feature: any) => {
-                              updates[feature.key] = false;
-                            });
-                            setModulePermissionFeatures(prev => ({ ...prev, ...updates }));
-                          }}
-                          className="text-orange-700 border-orange-300 hover:bg-orange-50"
-                        >
-                          Disable All Actions
-                        </Button>
-                      </div>
-                    </div>
+
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
