@@ -825,10 +825,6 @@ export default function UserManagement() {
             <UserCog2 className="h-4 w-4 mr-2" />
             Users
           </TabsTrigger>
-          <TabsTrigger value="permissions" disabled={!selectedUser}>
-            <ShieldCheck className="h-4 w-4 mr-2" />
-            Permissions
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
