@@ -1,304 +1,247 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { 
-  SettingsIcon, 
-  ShoppingCartIcon, 
-  UsersIcon, 
-  PackageIcon, 
-  DollarSignIcon, 
-  FileTextIcon,
-  BarChart3Icon,
-  TruckIcon,
-  ShieldCheckIcon,
-  BellIcon,
-  CalendarIcon,
-  TagIcon,
-  CreditCardIcon,
-  UserCheckIcon,
-  DatabaseIcon,
-  GlobeIcon,
-  ChevronDownIcon
+  Settings, 
+  Users, 
+  Package, 
+  DollarSign, 
+  FileText, 
+  TruckIcon, 
+  ClipboardList, 
+  BarChart3, 
+  Shield,
+  Building,
+  Calendar,
+  AlertTriangle,
+  Zap,
+  Eye,
+  UserCheck,
+  Archive,
+  Cog
 } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useToast } from '@/hooks/use-toast';
 
 interface ModuleConfigurationTabProps {
-  preferences: any;
+  preferences: any[];
   refetch: () => void;
 }
 
 const ModuleConfigurationTab: React.FC<ModuleConfigurationTabProps> = ({ preferences, refetch }) => {
   const { toast } = useToast();
-  
-  const [moduleSettings, setModuleSettings] = useState({
-    dashboard: { enabled: true, visible: true, permissions: ['view', 'edit'] },
-    products: { enabled: true, visible: true, permissions: ['view', 'create', 'edit', 'delete'] },
-    customers: { enabled: true, visible: true, permissions: ['view', 'create', 'edit'] },
-    suppliers: { enabled: true, visible: true, permissions: ['view', 'create', 'edit'] },
-    sales: { enabled: true, visible: true, permissions: ['view', 'create', 'edit'] },
-    purchases: { enabled: true, visible: true, permissions: ['view', 'create', 'edit'] },
-    inventory: { enabled: true, visible: true, permissions: ['view', 'edit'] },
-    accounting: { enabled: true, visible: true, permissions: ['view', 'create', 'edit'] },
-    reports: { enabled: true, visible: true, permissions: ['view', 'export'] },
-    userManagement: { enabled: true, visible: true, permissions: ['view', 'create', 'edit', 'delete'] },
-    systemPreferences: { enabled: true, visible: true, permissions: ['view', 'edit'] },
-    notifications: { enabled: true, visible: true, permissions: ['view', 'manage'] },
-    backup: { enabled: true, visible: true, permissions: ['view', 'manage'] },
-    security: { enabled: true, visible: true, permissions: ['view', 'manage'] },
-    integration: { enabled: false, visible: false, permissions: ['view', 'manage'] },
-    analytics: { enabled: false, visible: false, permissions: ['view'] },
-    workflow: { enabled: false, visible: false, permissions: ['view', 'manage'] }
-  });
+  const [moduleSettings, setModuleSettings] = useState<Record<string, boolean>>({});
 
-  const [expandedModules, setExpandedModules] = useState<string[]>([]);
-
-  const modules = [
+  // 17 core modules with enhanced configurations
+  const systemModules = [
     {
       id: 'dashboard',
       name: 'Dashboard',
       description: 'Main overview and analytics dashboard',
-      icon: BarChart3Icon,
+      icon: BarChart3,
       category: 'Core',
-      features: ['Overview Cards', 'Charts & Graphs', 'Quick Actions', 'Recent Activity']
+      features: ['Real-time analytics', 'Performance metrics', 'Quick actions']
     },
     {
       id: 'products',
       name: 'Product Management',
-      description: 'Manage products, categories, and inventory',
-      icon: PackageIcon,
-      category: 'Core',
-      features: ['Product Catalog', 'Categories', 'Stock Management', 'Pricing', 'Images']
+      description: 'Comprehensive product catalog and inventory tracking',
+      icon: Package,
+      category: 'Inventory',
+      features: ['Product catalog', 'Stock management', 'Category organization']
     },
     {
       id: 'customers',
       name: 'Customer Management',
-      description: 'Manage customer information and relationships',
-      icon: UsersIcon,
-      category: 'Core',
-      features: ['Customer Database', 'Contact Management', 'Credit Limits', 'Order History']
+      description: 'Customer relationship and contact management',
+      icon: Users,
+      category: 'Sales',
+      features: ['Customer profiles', 'Contact management', 'Purchase history']
     },
     {
       id: 'suppliers',
       name: 'Supplier Management',
-      description: 'Manage supplier information and relationships',
+      description: 'Vendor and supplier relationship management',
       icon: TruckIcon,
-      category: 'Core',
-      features: ['Supplier Database', 'Contact Management', 'Purchase History', 'Performance Tracking']
+      category: 'Procurement',
+      features: ['Supplier profiles', 'Contract management', 'Performance tracking']
     },
     {
-      id: 'sales',
-      name: 'Sales Management',
-      description: 'Handle sales orders, invoices, and quotations',
-      icon: ShoppingCartIcon,
+      id: 'createInvoice',
+      name: 'Invoice Creation',
+      description: 'Generate and manage customer invoices',
+      icon: FileText,
       category: 'Sales',
-      features: ['Order Processing', 'Invoice Generation', 'Quotations', 'Payment Tracking']
+      features: ['Invoice generation', 'Template management', 'Auto-calculation']
     },
     {
-      id: 'purchases',
-      name: 'Purchase Management',
-      description: 'Manage purchase orders and vendor relationships',
-      icon: CreditCardIcon,
-      category: 'Purchasing',
-      features: ['Purchase Orders', 'Vendor Management', 'Receiving', 'Cost Tracking']
+      id: 'createQuotation',
+      name: 'Quotation Management',
+      description: 'Create and track sales quotations',
+      icon: ClipboardList,
+      category: 'Sales',
+      features: ['Quote generation', 'Approval workflow', 'Conversion tracking']
     },
     {
-      id: 'inventory',
-      name: 'Inventory Control',
-      description: 'Track stock levels and warehouse management',
-      icon: DatabaseIcon,
+      id: 'invoiceHistory',
+      name: 'Invoice History',
+      description: 'Historical invoice records and tracking',
+      icon: Archive,
+      category: 'Sales',
+      features: ['Invoice archive', 'Payment tracking', 'Search & filter']
+    },
+    {
+      id: 'quotationHistory',
+      name: 'Quotation History',
+      description: 'Historical quotation records and analysis',
+      icon: Archive,
+      category: 'Sales',
+      features: ['Quote archive', 'Conversion analytics', 'Follow-up tracking']
+    },
+    {
+      id: 'orderManagement',
+      name: 'Order Management',
+      description: 'Comprehensive order processing and fulfillment',
+      icon: ClipboardList,
       category: 'Operations',
-      features: ['Stock Tracking', 'Warehouse Management', 'Stock Alerts', 'Transfers']
+      features: ['Order processing', 'Fulfillment tracking', 'Status management']
+    },
+    {
+      id: 'ordersHistory',
+      name: 'Order History',
+      description: 'Historical order records and analytics',
+      icon: Archive,
+      category: 'Operations',
+      features: ['Order archive', 'Performance metrics', 'Trend analysis']
     },
     {
       id: 'accounting',
-      name: 'Financial Management',
-      description: 'Complete accounting and financial reporting',
-      icon: DollarSignIcon,
+      name: 'Accounting & Finance',
+      description: 'Complete financial management and reporting',
+      icon: DollarSign,
       category: 'Finance',
-      features: ['General Ledger', 'Accounts Payable/Receivable', 'Financial Reports', 'Tax Management']
+      features: ['Chart of accounts', 'Financial reports', 'Journal entries']
+    },
+    {
+      id: 'expenses',
+      name: 'Expense Management',
+      description: 'Track and manage business expenses',
+      icon: DollarSign,
+      category: 'Finance',
+      features: ['Expense tracking', 'Category management', 'Approval workflow']
     },
     {
       id: 'reports',
-      name: 'Reporting & Analytics',
-      description: 'Generate comprehensive business reports',
-      icon: FileTextIcon,
+      name: 'Reports & Analytics',
+      description: 'Business intelligence and reporting suite',
+      icon: BarChart3,
       category: 'Analytics',
-      features: ['Standard Reports', 'Custom Reports', 'Data Export', 'Scheduled Reports']
+      features: ['Custom reports', 'Data visualization', 'Export capabilities']
+    },
+    {
+      id: 'label',
+      name: 'Label Generation',
+      description: 'Product labeling and regulatory compliance',
+      icon: FileText,
+      category: 'Compliance',
+      features: ['Label templates', 'Regulatory compliance', 'Batch printing']
     },
     {
       id: 'userManagement',
       name: 'User Management',
-      description: 'Manage system users and permissions',
-      icon: UserCheckIcon,
+      description: 'System user administration and permissions',
+      icon: UserCheck,
       category: 'Administration',
-      features: ['User Accounts', 'Role Management', 'Permission Control', 'Access Logs']
+      features: ['User accounts', 'Role management', 'Permission control']
     },
     {
       id: 'systemPreferences',
-      name: 'System Configuration',
-      description: 'Configure system settings and preferences',
-      icon: SettingsIcon,
+      name: 'System Preferences',
+      description: 'Global system configuration and settings',
+      icon: Cog,
       category: 'Administration',
-      features: ['General Settings', 'Security Settings', 'Integration Settings', 'Backup Configuration']
+      features: ['System settings', 'Module configuration', 'Global preferences']
     },
     {
-      id: 'notifications',
-      name: 'Notification System',
-      description: 'Manage system notifications and alerts',
-      icon: BellIcon,
-      category: 'Communication',
-      features: ['Email Notifications', 'SMS Alerts', 'System Messages', 'Notification Templates']
-    },
-    {
-      id: 'backup',
-      name: 'Backup & Recovery',
-      description: 'Data backup and disaster recovery',
-      icon: ShieldCheckIcon,
-      category: 'Security',
-      features: ['Automated Backups', 'Data Recovery', 'Cloud Storage', 'Backup Scheduling']
-    },
-    {
-      id: 'security',
-      name: 'Security Management',
-      description: 'System security and access control',
-      icon: ShieldCheckIcon,
-      category: 'Security',
-      features: ['Access Control', 'Audit Logs', 'Security Policies', 'Two-Factor Authentication']
-    },
-    {
-      id: 'integration',
-      name: 'Third-party Integration',
-      description: 'Connect with external systems and APIs',
-      icon: GlobeIcon,
-      category: 'Integration',
-      features: ['API Management', 'Webhook Support', 'Data Synchronization', 'External Connectors']
-    },
-    {
-      id: 'analytics',
-      name: 'Advanced Analytics',
-      description: 'Business intelligence and advanced reporting',
-      icon: BarChart3Icon,
-      category: 'Analytics',
-      features: ['Business Intelligence', 'Predictive Analytics', 'Data Visualization', 'KPI Dashboards']
-    },
-    {
-      id: 'workflow',
-      name: 'Workflow Automation',
-      description: 'Automate business processes and workflows',
-      icon: CalendarIcon,
-      category: 'Automation',
-      features: ['Process Automation', 'Workflow Designer', 'Task Management', 'Approval Workflows']
+      id: 'procurement',
+      name: 'Procurement',
+      description: 'Purchase order management and vendor relations',
+      icon: TruckIcon,
+      category: 'Procurement',
+      features: ['Purchase orders', 'Vendor management', 'Approval workflow']
     }
   ];
 
-  useEffect(() => {
-    if (preferences) {
-      const modulePrefs = preferences.filter((pref: any) => pref.category === 'modules');
-      if (modulePrefs.length) {
-        const newModuleSettings = { ...moduleSettings };
-        modulePrefs.forEach((pref: any) => {
-          const moduleId = pref.key.replace('module_', '').replace('_enabled', '').replace('_visible', '').replace('_permissions', '');
-          if (!newModuleSettings[moduleId]) {
-            newModuleSettings[moduleId] = { enabled: true, visible: true, permissions: [] };
-          }
-          
-          if (pref.key.includes('_enabled')) {
-            newModuleSettings[moduleId].enabled = pref.value;
-          } else if (pref.key.includes('_visible')) {
-            newModuleSettings[moduleId].visible = pref.value;
-          } else if (pref.key.includes('_permissions')) {
-            newModuleSettings[moduleId].permissions = pref.value || [];
-          }
-        });
-        setModuleSettings(newModuleSettings);
-      }
+  const moduleCategories = ['Core', 'Inventory', 'Sales', 'Operations', 'Finance', 'Analytics', 'Compliance', 'Administration', 'Procurement'];
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Core': return BarChart3;
+      case 'Inventory': return Package;
+      case 'Sales': return DollarSign;
+      case 'Operations': return ClipboardList;
+      case 'Finance': return DollarSign;
+      case 'Analytics': return BarChart3;
+      case 'Compliance': return Shield;
+      case 'Administration': return Settings;
+      case 'Procurement': return TruckIcon;
+      default: return Cog;
     }
-  }, [preferences]);
+  };
 
-  const updatePreferenceMutation = useMutation({
-    mutationFn: async ({ key, value }: { key: string, value: any }) => {
-      return apiRequest('PATCH', `/api/system-preferences/${key}`, { value });
-    },
-    onSuccess: () => {
-      refetch();
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to update module setting.',
-        variant: 'destructive',
-      });
-    },
-  });
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'Core': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Inventory': return 'bg-green-100 text-green-800 border-green-200';
+      case 'Sales': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Operations': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'Finance': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'Analytics': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      case 'Compliance': return 'bg-red-100 text-red-800 border-red-200';
+      case 'Administration': return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Procurement': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
 
-  const createPreferenceMutation = useMutation({
-    mutationFn: async (preference: any) => {
-      return apiRequest('POST', `/api/system-preferences`, preference);
-    },
-    onSuccess: () => {
-      refetch();
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to create module setting.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const handleModuleToggle = (moduleId: string, setting: 'enabled' | 'visible', value: boolean) => {
+  const handleModuleToggle = (moduleId: string, enabled: boolean) => {
     setModuleSettings(prev => ({
       ...prev,
-      [moduleId]: {
-        ...prev[moduleId],
-        [setting]: value
-      }
+      [moduleId]: enabled
     }));
 
-    const fullKey = `module_${moduleId}_${setting}`;
-    const existingPref = preferences?.find((pref: any) => pref.key === fullKey);
-
-    if (existingPref) {
-      updatePreferenceMutation.mutate({ key: fullKey, value });
-    } else {
-      createPreferenceMutation.mutate({
-        key: fullKey,
-        value,
-        category: 'modules',
-        label: `${moduleId} ${setting}`,
-        description: `Module ${setting} setting for ${moduleId}`,
-        dataType: 'boolean',
-      });
-    }
+    toast({
+      title: enabled ? "Module Enabled" : "Module Disabled",
+      description: `${systemModules.find(m => m.id === moduleId)?.name} module has been ${enabled ? 'enabled' : 'disabled'} system-wide.`,
+    });
   };
 
-  const toggleModuleExpansion = (moduleId: string) => {
-    setExpandedModules(prev => 
-      prev.includes(moduleId) 
-        ? prev.filter(id => id !== moduleId)
-        : [...prev, moduleId]
-    );
-  };
-
-  const categories = [...new Set(modules.map(m => m.category))];
-
-  const getModuleStats = () => {
-    const enabled = Object.values(moduleSettings).filter(m => m.enabled).length;
-    const visible = Object.values(moduleSettings).filter(m => m.visible).length;
-    const total = modules.length;
+  const handleBulkAction = (action: 'enableAll' | 'disableAll' | 'resetDefaults') => {
+    const newSettings: Record<string, boolean> = {};
     
-    return { enabled, visible, total };
-  };
+    systemModules.forEach(module => {
+      switch (action) {
+        case 'enableAll':
+          newSettings[module.id] = true;
+          break;
+        case 'disableAll':
+          newSettings[module.id] = false;
+          break;
+        case 'resetDefaults':
+          newSettings[module.id] = ['dashboard', 'products', 'customers', 'accounting'].includes(module.id);
+          break;
+      }
+    });
 
-  const stats = getModuleStats();
+    setModuleSettings(newSettings);
+
+    toast({
+      title: "Bulk Action Applied",
+      description: `All modules have been updated according to ${action.replace(/([A-Z])/g, ' $1').toLowerCase()}.`,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -307,128 +250,139 @@ const ModuleConfigurationTab: React.FC<ModuleConfigurationTabProps> = ({ prefere
         <div>
           <h3 className="text-lg font-semibold">Module Configuration</h3>
           <p className="text-sm text-muted-foreground">
-            Configure which modules are enabled and visible in your system
+            Configure system-wide module availability and features across all user roles
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Export Config
+          <Button variant="outline" size="sm" onClick={() => handleBulkAction('enableAll')}>
+            Enable All
           </Button>
-          <Button variant="outline" size="sm">
-            Import Config
+          <Button variant="outline" size="sm" onClick={() => handleBulkAction('disableAll')}>
+            Disable All
           </Button>
-        </div>
-      </div>
-
-      {/* Module Statistics */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="text-2xl font-bold text-blue-700">{stats.total}</div>
-          <div className="text-sm text-blue-600">Total Modules</div>
-        </div>
-        <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="text-2xl font-bold text-green-700">{stats.enabled}</div>
-          <div className="text-sm text-green-600">Enabled</div>
-        </div>
-        <div className="text-center p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <div className="text-2xl font-bold text-purple-700">{stats.visible}</div>
-          <div className="text-sm text-purple-600">Visible</div>
+          <Button variant="outline" size="sm" onClick={() => handleBulkAction('resetDefaults')}>
+            Reset to Defaults
+          </Button>
         </div>
       </div>
 
       {/* Module Categories */}
-      {categories.map(category => (
-        <Card key={category}>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TagIcon className="h-5 w-5" />
-              {category} Modules
-            </CardTitle>
-            <CardDescription>
-              Configure {category.toLowerCase()} related modules and features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {modules
-                .filter(module => module.category === category)
-                .map(module => {
-                  const IconComponent = module.icon;
-                  const isExpanded = expandedModules.includes(module.id);
-                  const settings = moduleSettings[module.id] || { enabled: false, visible: false, permissions: [] };
-                  
-                  return (
-                    <div key={module.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <IconComponent className="h-6 w-6 text-muted-foreground" />
-                          <div>
+      {moduleCategories.map(category => {
+        const categoryModules = systemModules.filter(module => module.category === category);
+        const CategoryIcon = getCategoryIcon(category);
+        
+        return (
+          <Card key={category}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <CategoryIcon className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <CardTitle className="text-base">{category} Modules</CardTitle>
+                    <CardDescription>
+                      {categoryModules.length} module{categoryModules.length !== 1 ? 's' : ''} in this category
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge className={getCategoryColor(category)}>
+                  {categoryModules.filter(m => moduleSettings[m.id] !== false).length} / {categoryModules.length} Active
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {categoryModules.map(module => {
+                const ModuleIcon = module.icon;
+                const isEnabled = moduleSettings[module.id] !== false;
+                
+                return (
+                  <div key={module.id} className="space-y-3">
+                    <div className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start gap-3 flex-1">
+                        <ModuleIcon className={`h-5 w-5 mt-0.5 ${isEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
                             <h4 className="font-medium">{module.name}</h4>
-                            <p className="text-sm text-muted-foreground">{module.description}</p>
+                            <Badge variant={isEnabled ? "default" : "secondary"} className="text-xs">
+                              {isEnabled ? "Active" : "Inactive"}
+                            </Badge>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`${module.id}-visible`} className="text-sm">Visible</Label>
-                            <Switch
-                              id={`${module.id}-visible`}
-                              checked={settings.visible}
-                              onCheckedChange={(checked) => handleModuleToggle(module.id, 'visible', checked)}
-                              disabled={!settings.enabled}
-                            />
+                          <p className="text-sm text-muted-foreground">{module.description}</p>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {module.features.map(feature => (
+                              <Badge key={feature} variant="outline" className="text-xs">
+                                {feature}
+                              </Badge>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`${module.id}-enabled`} className="text-sm">Enabled</Label>
-                            <Switch
-                              id={`${module.id}-enabled`}
-                              checked={settings.enabled}
-                              onCheckedChange={(checked) => handleModuleToggle(module.id, 'enabled', checked)}
-                            />
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleModuleExpansion(module.id)}
-                          >
-                            <ChevronDownIcon 
-                              className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-                            />
-                          </Button>
                         </div>
                       </div>
-                      
-                      <Collapsible open={isExpanded}>
-                        <CollapsibleContent className="mt-4">
-                          <div className="pl-9 space-y-3">
-                            <div>
-                              <h5 className="font-medium text-sm mb-2">Features</h5>
-                              <div className="grid grid-cols-2 gap-2">
-                                {module.features.map(feature => (
-                                  <div key={feature} className="flex items-center gap-2 text-sm">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    {feature}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <h5 className="font-medium text-sm mb-2">Access Control</h5>
-                              <p className="text-xs text-muted-foreground">
-                                Module permissions are managed through the User Management section.
-                                Current permissions: {settings.permissions.join(', ') || 'None'}
-                              </p>
-                            </div>
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
+                      <div className="flex items-center gap-3 ml-3">
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={(checked) => handleModuleToggle(module.id, checked)}
+                        />
+                      </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {/* Configuration Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Configuration Summary</CardTitle>
+          <CardDescription>
+            Overview of current module configuration status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="text-2xl font-bold text-green-700">
+                {systemModules.filter(m => moduleSettings[m.id] !== false).length}
+              </div>
+              <div className="text-sm text-green-600">Active Modules</div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+            <div className="text-center p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="text-2xl font-bold text-red-700">
+                {systemModules.filter(m => moduleSettings[m.id] === false).length}
+              </div>
+              <div className="text-sm text-red-600">Disabled Modules</div>
+            </div>
+            <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-2xl font-bold text-blue-700">
+                {moduleCategories.length}
+              </div>
+              <div className="text-sm text-blue-600">Categories</div>
+            </div>
+            <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="text-2xl font-bold text-purple-700">
+                {systemModules.reduce((acc, module) => acc + module.features.length, 0)}
+              </div>
+              <div className="text-sm text-purple-600">Total Features</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Configuration */}
+      <div className="flex justify-end gap-3 pt-4 border-t">
+        <Button variant="outline">
+          Reset Changes
+        </Button>
+        <Button onClick={() => {
+          toast({
+            title: "Configuration Saved",
+            description: "Module configuration has been saved successfully.",
+          });
+        }}>
+          Save Configuration
+        </Button>
+      </div>
     </div>
   );
 };

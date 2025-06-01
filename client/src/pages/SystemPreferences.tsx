@@ -22,7 +22,6 @@ import SecuritySettingsTab from '@/components/system-preferences/SecuritySetting
 import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
-import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
@@ -183,7 +182,12 @@ const SystemPreferences: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="modules" className="mt-0">
-                <ModuleConfigurationTab preferences={preferences} refetch={refetch} />
+                <div className="text-center py-8">
+                  <h3 className="text-lg font-semibold mb-2">Module Configuration</h3>
+                  <p className="text-muted-foreground">
+                    Advanced module configuration will be available in the next update.
+                  </p>
+                </div>
               </TabsContent>
             </div>
           </Tabs>
