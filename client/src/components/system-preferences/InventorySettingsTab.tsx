@@ -14,7 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Package, AlertTriangle, Barcode, Calendar, TrendingUp, Settings } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface InventorySettingsTabProps {
   preferences: any;
@@ -157,17 +159,64 @@ const InventorySettingsTab: React.FC<InventorySettingsTabProps> = ({ preferences
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Inventory Configuration</h3>
-        <Button onClick={handleSaveAll} disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save All Settings
-        </Button>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Inventory Management Configuration</h3>
+          <p className="text-sm text-muted-foreground">
+            Configure inventory tracking, alerts, and management settings
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            Reset to Defaults
+          </Button>
+          <Button onClick={handleSaveAll} disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save All Settings
+          </Button>
+        </div>
       </div>
-      
-      <Separator />
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      {/* Configuration Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <Package className="h-6 w-6 mx-auto text-blue-700 mb-1" />
+          <div className="text-sm text-blue-600">Stock Threshold</div>
+          <div className="text-lg font-bold text-blue-700">{settings.lowStockThreshold}</div>
+        </div>
+        <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+          <TrendingUp className="h-6 w-6 mx-auto text-green-700 mb-1" />
+          <div className="text-sm text-green-600">Default Unit</div>
+          <div className="text-lg font-bold text-green-700">{settings.defaultUnit}</div>
+        </div>
+        <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
+          <Calendar className="h-6 w-6 mx-auto text-purple-700 mb-1" />
+          <div className="text-sm text-purple-600">Tracking Features</div>
+          <div className="text-lg font-bold text-purple-700">
+            {[settings.batchTracking, settings.expiryAlerts, settings.barcodeGeneration].filter(Boolean).length}/3
+          </div>
+        </div>
+        <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <Settings className="h-6 w-6 mx-auto text-orange-700 mb-1" />
+          <div className="text-sm text-orange-600">Status</div>
+          <div className="text-lg font-bold text-orange-700">Active</div>
+        </div>
+      </div>
+
+      {/* Stock Management Settings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Package className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Stock Management</CardTitle>
+              <CardDescription>Configure stock levels and unit settings</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Low Stock Settings */}
         <div className="space-y-3">
           <Label htmlFor="lowStockThreshold">Default Low Stock Threshold</Label>
@@ -184,81 +233,100 @@ const InventorySettingsTab: React.FC<InventorySettingsTabProps> = ({ preferences
         </div>
         
         {/* Default Unit */}
-        <div className="space-y-3">
-          <Label htmlFor="defaultUnit">Default Unit of Measurement</Label>
-          <Select
-            value={settings.defaultUnit}
-            onValueChange={(value) => handleChangeSetting('defaultUnit', value)}
-          >
-            <SelectTrigger id="defaultUnit">
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="kg">Kilogram (kg)</SelectItem>
-              <SelectItem value="g">Gram (g)</SelectItem>
-              <SelectItem value="mg">Milligram (mg)</SelectItem>
-              <SelectItem value="liter">Liter (L)</SelectItem>
-              <SelectItem value="ml">Milliliter (ml)</SelectItem>
-              <SelectItem value="piece">Piece (pcs)</SelectItem>
-              <SelectItem value="box">Box</SelectItem>
-              <SelectItem value="bottle">Bottle</SelectItem>
-              <SelectItem value="vial">Vial</SelectItem>
-              <SelectItem value="ampoule">Ampoule</SelectItem>
-            </SelectContent>
-          </Select>
-          <p className="text-sm text-muted-foreground">
-            The default unit of measurement for new products
-          </p>
-        </div>
-      </div>
-      
-      <Separator />
-      
-      <div className="space-y-4">
-        <h4 className="text-base font-medium">Tracking Options</h4>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="batchTracking">Batch Tracking</Label>
-            <p className="text-sm text-muted-foreground">
-              Enable tracking of product batches and lot numbers
-            </p>
+            <div className="space-y-3">
+              <Label htmlFor="defaultUnit">Default Unit of Measurement</Label>
+              <Select
+                value={settings.defaultUnit}
+                onValueChange={(value) => handleChangeSetting('defaultUnit', value)}
+              >
+                <SelectTrigger id="defaultUnit">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                  <SelectItem value="g">Gram (g)</SelectItem>
+                  <SelectItem value="mg">Milligram (mg)</SelectItem>
+                  <SelectItem value="liter">Liter (L)</SelectItem>
+                  <SelectItem value="ml">Milliliter (ml)</SelectItem>
+                  <SelectItem value="piece">Piece (pcs)</SelectItem>
+                  <SelectItem value="box">Box</SelectItem>
+                  <SelectItem value="bottle">Bottle</SelectItem>
+                  <SelectItem value="vial">Vial</SelectItem>
+                  <SelectItem value="ampoule">Ampoule</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                The default unit of measurement for new products
+              </p>
+            </div>
           </div>
-          <Switch
-            id="batchTracking"
-            checked={settings.batchTracking}
-            onCheckedChange={(checked) => handleChangeSetting('batchTracking', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="expiryAlerts">Expiry Date Alerts</Label>
-            <p className="text-sm text-muted-foreground">
-              Enable notifications for products approaching expiry date
-            </p>
+        </CardContent>
+      </Card>
+
+      {/* Tracking and Alerts */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <CardTitle className="text-base">Tracking & Alerts</CardTitle>
+              <CardDescription>Configure inventory tracking features and notifications</CardDescription>
+            </div>
           </div>
-          <Switch
-            id="expiryAlerts"
-            checked={settings.expiryAlerts}
-            onCheckedChange={(checked) => handleChangeSetting('expiryAlerts', checked)}
-          />
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="barcodeGeneration">Barcode Generation</Label>
-            <p className="text-sm text-muted-foreground">
-              Automatically generate barcodes for new products
-            </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="batchTracking">Batch Tracking</Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable tracking of product batches and lot numbers
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="batchTracking"
+              checked={settings.batchTracking}
+              onCheckedChange={(checked) => handleChangeSetting('batchTracking', checked)}
+            />
           </div>
-          <Switch
-            id="barcodeGeneration"
-            checked={settings.barcodeGeneration}
-            onCheckedChange={(checked) => handleChangeSetting('barcodeGeneration', checked)}
-          />
-        </div>
-      </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="expiryAlerts">Expiry Date Alerts</Label>
+                <p className="text-sm text-muted-foreground">
+                  Enable notifications for products approaching expiry date
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="expiryAlerts"
+              checked={settings.expiryAlerts}
+              onCheckedChange={(checked) => handleChangeSetting('expiryAlerts', checked)}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <Barcode className="h-5 w-5 text-muted-foreground" />
+              <div className="space-y-0.5">
+                <Label htmlFor="barcodeGeneration">Barcode Generation</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically generate barcodes for new products
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="barcodeGeneration"
+              checked={settings.barcodeGeneration}
+              onCheckedChange={(checked) => handleChangeSetting('barcodeGeneration', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

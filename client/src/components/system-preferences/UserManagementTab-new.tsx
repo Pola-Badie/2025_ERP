@@ -203,12 +203,51 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">User Accounts</h3>
-        <Button onClick={() => setIsAddUserDialogOpen(true)}>
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">User Account Management</h3>
+          <p className="text-sm text-muted-foreground">
+            Manage system user accounts, roles, and access permissions
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            Export Users
+          </Button>
+          <Button onClick={() => setIsAddUserDialogOpen(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add User
+          </Button>
+        </div>
+      </div>
+
+      {/* User Statistics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="text-2xl font-bold text-blue-700">
+            {users?.length || 0}
+          </div>
+          <div className="text-sm text-blue-600">Total Users</div>
+        </div>
+        <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="text-2xl font-bold text-green-700">
+            {users?.filter((u: any) => u.role === 'admin').length || 0}
+          </div>
+          <div className="text-sm text-green-600">Administrators</div>
+        </div>
+        <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
+          <div className="text-2xl font-bold text-purple-700">
+            {users?.filter((u: any) => u.role === 'manager').length || 0}
+          </div>
+          <div className="text-sm text-purple-600">Managers</div>
+        </div>
+        <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="text-2xl font-bold text-orange-700">
+            {users?.filter((u: any) => u.role === 'staff').length || 0}
+          </div>
+          <div className="text-sm text-orange-600">Staff Members</div>
+        </div>
       </div>
 
       {isError ? (
