@@ -173,6 +173,14 @@ const SystemPreferences: React.FC = () => {
                 <CommunicationSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
+              <TabsContent value="backup" className="mt-0">
+                <BackupTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="eta" className="mt-0">
+                <ETAIntegrationTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
               <TabsContent value="modules" className="mt-0">
                 <div className="text-center py-8">
                   <h3 className="text-lg font-semibold mb-2">Module Configuration</h3>

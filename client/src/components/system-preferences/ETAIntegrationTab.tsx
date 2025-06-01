@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { FileTextIcon, CheckCircleIcon, XCircleIcon, AlertCircleIcon, SyncIcon, KeyIcon } from 'lucide-react';
+import { FileTextIcon, CheckCircleIcon, XCircleIcon, AlertCircleIcon, RotateCwIcon, KeyIcon } from 'lucide-react';
 
 interface ETAIntegrationTabProps {
   preferences: any;
@@ -155,7 +155,7 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
       case 'connected':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />;
       case 'connecting':
-        return <SyncIcon className="h-5 w-5 text-blue-600 animate-spin" />;
+        return <RotateCwIcon className="h-5 w-5 text-blue-600 animate-spin" />;
       case 'error':
         return <XCircleIcon className="h-5 w-5 text-red-600" />;
       default:
@@ -211,7 +211,7 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
           <div className="text-lg font-bold text-green-700">{getStatusText()}</div>
         </div>
         <div className="text-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
-          <SyncIcon className="h-6 w-6 mx-auto text-purple-700 mb-1" />
+          <RotateCwIcon className="h-6 w-6 mx-auto text-purple-700 mb-1" />
           <div className="text-sm text-purple-600">Environment</div>
           <div className="text-lg font-bold text-purple-700">{settings.environment}</div>
         </div>
@@ -292,7 +292,7 @@ const ETAIntegrationTab: React.FC<ETAIntegrationTabProps> = ({ preferences, refe
 
           <div className="flex items-center justify-between p-4 border rounded-lg">
             <div className="flex items-center gap-3">
-              <SyncIcon className="h-5 w-5 text-muted-foreground" />
+              <RotateCwIcon className="h-5 w-5 text-muted-foreground" />
               <div className="space-y-0.5">
                 <Label htmlFor="autoSubmit">Auto Submit Invoices</Label>
                 <p className="text-sm text-muted-foreground">
