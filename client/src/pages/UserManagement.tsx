@@ -927,13 +927,6 @@ export default function UserManagement() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Current Permissions</span>
-              <Button 
-                onClick={() => setIsAddPermissionOpen(true)}
-                size="sm"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Permission
-              </Button>
             </div>
             
             {isLoadingPermissions ? (
