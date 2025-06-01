@@ -463,10 +463,18 @@ const CreateInvoice = () => {
       try {
         const response = await apiRequest('POST', '/api/customers', newCustomer);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
         const text = await response.text();
         if (!text) throw new Error('Empty response');
+        
+        // Check if response is HTML (error page) instead of JSON
+        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+          throw new Error('Server returned HTML instead of JSON - likely a server error');
+        }
+        
         return JSON.parse(text);
       } catch (error) {
         console.error('Error creating customer:', error);
@@ -507,10 +515,18 @@ const CreateInvoice = () => {
       try {
         const response = await apiRequest('POST', '/api/invoices', invoiceData);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
         const text = await response.text();
         if (!text) throw new Error('Empty response');
+        
+        // Check if response is HTML (error page) instead of JSON
+        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+          throw new Error('Server returned HTML instead of JSON - likely a server error');
+        }
+        
         return JSON.parse(text);
       } catch (error) {
         console.error('Error creating invoice:', error);
