@@ -917,7 +917,7 @@ export default function UserManagement() {
 
       {/* Manage Permissions Dialog */}
       <Dialog open={isManagePermissionsOpen} onOpenChange={setIsManagePermissionsOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage Permissions</DialogTitle>
             <DialogDescription>
