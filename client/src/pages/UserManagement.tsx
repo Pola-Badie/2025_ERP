@@ -819,15 +819,7 @@ export default function UserManagement() {
         </Button>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="users">
-            <UserCog2 className="h-4 w-4 mr-2" />
-            Users
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="users" className="space-y-4">
+      <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>User List</CardTitle>
@@ -901,76 +893,7 @@ export default function UserManagement() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="permissions" className="space-y-4">
-          {selectedUser && (
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Permission Management</CardTitle>
-                    <CardDescription>
-                      Manage permissions for {selectedUser.name} ({selectedUser.username})
-                    </CardDescription>
-                  </div>
-                  <Button onClick={() => setIsAddPermissionOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Permission
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {isLoadingPermissions ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <Table>
-                    <TableCaption>User's module permissions</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Module</TableHead>
-                        <TableHead>Access</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {permissions?.map((permission) => (
-                        <TableRow key={`${permission.userId}-${permission.moduleName}`}>
-                          <TableCell className="font-medium">{formatModuleName(permission.moduleName)}</TableCell>
-                          <TableCell>
-                            <Badge className={permission.accessGranted ? "bg-green-500" : "bg-red-500"}>
-                              {permission.accessGranted ? "Granted" : "Denied"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDeletePermission(permission)}
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" />
-                              Delete
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {permissions?.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
-                            No permissions assigned yet
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
