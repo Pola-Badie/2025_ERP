@@ -1035,31 +1035,29 @@ export default function UserManagement() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {hasPermission ? (
-                          <>
-                            <DropdownMenuItem onClick={() => {
-                              const permission = permissions?.find(p => p.moduleName === module);
-                              if (permission) handleConfigurePermissions(permission);
-                            }}>
-                              <Settings className="mr-2 h-4 w-4" />
-                              Configure
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {
-                              const permission = permissions?.find(p => p.moduleName === module);
-                              if (permission) handleDeletePermission(permission);
-                            }}>
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Remove Access
-                            </DropdownMenuItem>
-                          </>
-                        ) : (
+                        <DropdownMenuItem onClick={() => {
+                          if (hasPermission) {
+                            const permission = permissions?.find(p => p.moduleName === module);
+                            if (permission) handleConfigurePermissions(permission);
+                          } else {
+                            // For unassigned modules, show customize options directly
+                            toast({
+                              title: "Module not assigned",
+                              description: "Grant access to this module first to customize its features.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}>
+                          <Settings className="mr-2 h-4 w-4" />
+                          Customize
+                        </DropdownMenuItem>
+                        {hasPermission && (
                           <DropdownMenuItem onClick={() => {
-                            // Set the module in the form and open add permission dialog
-                            permissionForm.setValue('moduleName', module);
-                            setIsAddPermissionOpen(true);
+                            const permission = permissions?.find(p => p.moduleName === module);
+                            if (permission) handleDeletePermission(permission);
                           }}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Grant Access
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Access
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
