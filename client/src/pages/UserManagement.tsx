@@ -1006,11 +1006,24 @@ export default function UserManagement() {
                 return (
                   <div
                     key={module}
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors hover:bg-opacity-80 ${
                       hasPermission 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-gray-50 border-gray-200'
+                        ? 'bg-green-50 border-green-200 hover:bg-green-100' 
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                     }`}
+                    onClick={() => {
+                      if (hasPermission) {
+                        const permission = permissions?.find(p => p.moduleName === module);
+                        if (permission) handleConfigurePermissions(permission);
+                      } else {
+                        // For unassigned modules, show customize options directly
+                        toast({
+                          title: "Module not assigned",
+                          description: "Grant access to this module first to customize its features.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       {hasPermission ? (
