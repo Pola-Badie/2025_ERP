@@ -546,55 +546,90 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
 
       {/* Manage Permissions Dialog */}
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>Manage Permissions</DialogTitle>
             <DialogDescription>
               Manage module permissions for {selectedUserForPermissions?.name || selectedUserForPermissions?.username} ({selectedUserForPermissions?.role})
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
             <div className="text-sm font-medium">Current Permissions</div>
             <div className="space-y-2">
-              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2 sticky top-0 bg-white">
                 <div>Module</div>
                 <div>Access</div>
                 <div>Actions</div>
               </div>
-              {userPermissions.length > 0 ? (
-                userPermissions.map((permission: any) => (
-                  <div key={permission.id} className="grid grid-cols-3 gap-4 py-2 border-b items-center">
-                    <div className="font-medium">{permission.moduleName}</div>
+              
+              {/* Available Modules */}
+              {[
+                { name: 'Products', key: 'products', description: 'Product management and inventory' },
+                { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview' },
+                { name: 'Accounting', key: 'accounting', description: 'Financial management and reports' },
+                { name: 'Suppliers', key: 'suppliers', description: 'Supplier management' },
+                { name: 'Customers', key: 'customers', description: 'Customer relationship management' },
+                { name: 'Expenses', key: 'expenses', description: 'Expense tracking and management' },
+                { name: 'Create Invoice', key: 'createInvoice', description: 'Invoice creation and management' },
+                { name: 'Create Quotation', key: 'createQuotation', description: 'Quotation generation' },
+                { name: 'Invoice History', key: 'invoiceHistory', description: 'View and manage invoice history' },
+                { name: 'Quotation History', key: 'quotationHistory', description: 'View quotation records' },
+                { name: 'Order Management', key: 'orderManagement', description: 'Order processing and tracking' },
+                { name: 'Orders History', key: 'ordersHistory', description: 'Historical order data' },
+                { name: 'Label Generator', key: 'label', description: 'Generate product labels' },
+                { name: 'Reports', key: 'reports', description: 'Business reports and analytics' },
+                { name: 'User Management', key: 'userManagement', description: 'Manage user accounts' },
+                { name: 'System Preferences', key: 'systemPreferences', description: 'System configuration' },
+                { name: 'Procurement', key: 'procurement', description: 'Procurement and purchasing' }
+              ].map((module) => {
+                const hasPermission = userPermissions.some((p: any) => p.moduleName === module.key);
+                return (
+                  <div key={module.key} className="grid grid-cols-3 gap-4 py-3 border-b items-center hover:bg-gray-50">
                     <div>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Granted
-                      </span>
+                      <div className="font-medium">{module.name}</div>
+                      <div className="text-xs text-muted-foreground">{module.description}</div>
+                    </div>
+                    <div>
+                      {hasPermission ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Granted
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          Not Granted
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-3 w-3 mr-1" />
-                        Configure
-                      </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Remove
-                      </Button>
+                      {hasPermission ? (
+                        <>
+                          <Button variant="outline" size="sm">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configure
+                          </Button>
+                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Remove
+                          </Button>
+                        </>
+                      ) : (
+                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
+                          <Check className="h-3 w-3 mr-1" />
+                          Grant
+                        </Button>
+                      )}
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No specific permissions configured. User has default role-based access.
-                </div>
-              )}
+                );
+              })}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsPermissionsDialogOpen(false)}>
               Close
             </Button>
             <Button>
-              Add Permission
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
