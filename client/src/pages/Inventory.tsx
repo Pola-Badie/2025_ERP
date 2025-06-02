@@ -1852,7 +1852,7 @@ const Inventory: React.FC = () => {
               </div>
               <div className="flex gap-2">
                 <Input
-                  placeholder="New product type"
+                  placeholder="New item type"
                   value={newOption.type === 'productType' ? newOption.value : ''}
                   onChange={(e) => setNewOption({ type: 'productType', value: e.target.value })}
                 />

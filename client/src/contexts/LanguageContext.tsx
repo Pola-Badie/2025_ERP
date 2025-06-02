@@ -39,12 +39,12 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Dashboard
     totalCustomers: 'Total Customers',
-    totalProducts: 'Total Products',
+    totalProducts: 'Total Items',
     totalSales: 'Total Sales',
     recentSales: 'Recent Sales',
     
-    // Products
-    addProduct: 'Add Product',
+    // Inventory
+    addProduct: 'Add Item',
     code: 'Code',
     name: 'Name',
     price: 'Price',
