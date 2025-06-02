@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2, ShieldCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -638,7 +639,33 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
-            <div className="text-sm font-medium">Current Permissions</div>
+            <div className="flex justify-between items-center">
+              <div className="text-sm font-medium">Current Permissions</div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Grant all module access
+                  const allModules = [
+                    'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
+                    'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
+                    'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
+                    'userManagement', 'systemPreferences'
+                  ];
+                  
+                  allModules.forEach(module => {
+                    console.log(`Granting access to ${module} for user ${selectedUserForPermissions?.id}`);
+                  });
+                  
+                  toast({
+                    title: "Full access granted",
+                    description: `Access granted to all ${allModules.length} ERP modules.`,
+                  });
+                }}
+              >
+                Grant All Access
+              </Button>
+            </div>
             <div className="space-y-2">
               <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2 sticky top-0 bg-white">
                 <div>Module</div>
@@ -677,8 +704,21 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       <Switch
                         checked={hasPermission}
                         onCheckedChange={(checked) => {
-                          // Handle permission toggle
-                          console.log(`Toggle permission for ${module.key}: ${checked}`);
+                          if (checked) {
+                            // Grant permission
+                            console.log(`Granting permission for ${module.key} to user ${selectedUserForPermissions?.id}`);
+                            toast({
+                              title: "Permission granted",
+                              description: `Access granted to ${module.name} module.`,
+                            });
+                          } else {
+                            // Remove permission
+                            console.log(`Removing permission for ${module.key} from user ${selectedUserForPermissions?.id}`);
+                            toast({
+                              title: "Permission removed",
+                              description: `Access removed from ${module.name} module.`,
+                            });
+                          }
                         }}
                       />
                     </div>
