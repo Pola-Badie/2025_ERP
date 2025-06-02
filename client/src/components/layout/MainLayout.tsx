@@ -158,7 +158,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className="font-bold text-lg ml-1">PharmaOverseas</span>
+                <span className="font-bold text-lg ml-1">Morgan ERP</span>
               </div>
             </div>
             <button type="button" className="p-1 rounded-full">

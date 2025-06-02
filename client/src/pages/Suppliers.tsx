@@ -578,9 +578,9 @@ const Suppliers: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-orange-700">Pharmaceutical License</label>
+                        <label className="text-sm font-medium text-orange-700">Business License</label>
                         <Input 
-                          placeholder="Pharma license number"
+                          placeholder="Business license number"
                           className="border-orange-200 focus:ring-orange-500"
                         />
                       </div>

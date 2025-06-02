@@ -176,7 +176,7 @@ const Dashboard: React.FC = () => {
   const handleSaveSettings = async () => {
     try {
       // Save settings to localStorage for persistence
-      localStorage.setItem('pharmaSettings', JSON.stringify(settingsData));
+      localStorage.setItem('morganSettings', JSON.stringify(settingsData));
       
       // Apply theme changes immediately
       if (settingsData.theme === 'dark') {

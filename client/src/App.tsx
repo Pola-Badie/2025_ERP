@@ -34,7 +34,7 @@ import NotFound from "@/pages/not-found";
 function App() {
   // Set document title
   useEffect(() => {
-    document.title = "PharmaOverseas - Pharmaceutical ERP System";
+    document.title = "Morgan ERP - Enterprise Resource Planning System";
   }, []);
 
   return (
