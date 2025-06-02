@@ -31,7 +31,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   if (isLoading) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-500">Loading products...</p>
+        <p className="text-gray-500">Loading inventory...</p>
       </div>
     );
   }
@@ -39,7 +39,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   if (products.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-gray-500">No products found. Add your first product using the button above.</p>
+        <p className="text-gray-500">No inventory items found. Add your first item using the button above.</p>
       </div>
     );
   }

@@ -208,9 +208,9 @@ const InventoryNew = () => {
         <TabsContent value="inventory">
           <Card>
             <CardHeader>
-              <CardTitle>Products</CardTitle>
+              <CardTitle>Inventory</CardTitle>
               <CardDescription>
-                Manage your inventory products, track stock levels and expiry dates
+                Manage your inventory items, track stock levels and expiry dates
               </CardDescription>
             </CardHeader>
             <CardContent>

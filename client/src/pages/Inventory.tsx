@@ -592,7 +592,7 @@ const Inventory: React.FC = () => {
                       const selectedProductItems = filteredProducts.filter(p => selectedProducts.includes(p.id));
                       toast({
                         title: "Creating Labels",
-                        description: `Creating labels for ${selectedProducts.length} selected products`,
+                        description: `Creating labels for ${selectedProducts.length} selected items`,
                       });
                       // Navigate to label page
                       window.location.href = '/label';
@@ -619,7 +619,7 @@ const Inventory: React.FC = () => {
               setIsProductFormOpen(true);
             }}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Product
+              Add Item
             </Button>
           </div>
         </div>
@@ -728,7 +728,7 @@ const Inventory: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
-                    placeholder="Search products..."
+                    placeholder="Search inventory..."
                     className="pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -1836,9 +1836,9 @@ const Inventory: React.FC = () => {
               </div>
             </div>
 
-            {/* Product Types */}
+            {/* Item Types */}
             <div>
-              <h4 className="font-medium mb-3">Product Types</h4>
+              <h4 className="font-medium mb-3">Item Types</h4>
               <div className="flex flex-wrap gap-2 mb-3">
                 {inventorySettings.productTypes.map((type, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">

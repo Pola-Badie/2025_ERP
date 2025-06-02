@@ -565,7 +565,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               
               {/* Available Modules */}
               {[
-                { name: 'Products', key: 'products', description: 'Product management and inventory' },
+                { name: 'Inventory', key: 'products', description: 'Inventory management and stock tracking' },
                 { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview' },
                 { name: 'Accounting', key: 'accounting', description: 'Financial management and reports' },
                 { name: 'Suppliers', key: 'suppliers', description: 'Supplier management' },
