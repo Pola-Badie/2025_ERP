@@ -393,6 +393,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= User Permissions Endpoints =============
+
+  // Get user permissions
+  app.get("/api/users/:id/permissions", async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.id);
+      
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Get user permissions
+      const userPermissions = await db.select({
+        id: userPermissions.id,
+        userId: userPermissions.userId,
+        moduleName: userPermissions.moduleName,
+        accessGranted: userPermissions.accessGranted,
+      }).from(userPermissions).where(eq(userPermissions.userId, userId));
+      
+      res.json(userPermissions);
+    } catch (error) {
+      console.error("Get user permissions error:", error);
+      res.status(500).json({ message: "Failed to get user permissions" });
+    }
+  });
+
+  // Add user permission
+  app.post("/api/users/:id/permissions", async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.id);
+      const { moduleName, accessGranted } = req.body;
+      
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if permission already exists
+      const [existingPermission] = await db.select()
+        .from(userPermissions)
+        .where(and(
+          eq(userPermissions.userId, userId),
+          eq(userPermissions.moduleName, moduleName)
+        ));
+
+      let permission;
+      if (existingPermission) {
+        // Update existing permission
+        [permission] = await db.update(userPermissions)
+          .set({ accessGranted })
+          .where(and(
+            eq(userPermissions.userId, userId),
+            eq(userPermissions.moduleName, moduleName)
+          ))
+          .returning();
+      } else {
+        // Create new permission
+        [permission] = await db.insert(userPermissions)
+          .values({ userId, moduleName, accessGranted })
+          .returning();
+      }
+      
+      res.status(201).json(permission);
+    } catch (error) {
+      console.error("Add user permission error:", error);
+      res.status(500).json({ message: "Failed to add user permission" });
+    }
+  });
+
+  // Delete user permission
+  app.delete("/api/users/:id/permissions/:moduleName", async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.id);
+      const moduleName = req.params.moduleName;
+      
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Delete permission
+      const result = await db.delete(userPermissions)
+        .where(and(
+          eq(userPermissions.userId, userId),
+          eq(userPermissions.moduleName, moduleName)
+        ));
+      
+      res.status(200).json({ message: "Permission deleted successfully" });
+    } catch (error) {
+      console.error("Delete user permission error:", error);
+      res.status(500).json({ message: "Failed to delete user permission" });
+    }
+  });
+
   // ============= Dashboard Endpoints =============
   
   // API endpoint for dashboard summary data
