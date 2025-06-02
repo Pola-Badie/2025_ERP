@@ -7,7 +7,7 @@ import { registerETARoutes } from "./routes-eta";
 import { 
   users, products, productCategories, customers, suppliers, sales, 
   saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings,
-  systemPreferences, rolePermissions, loginLogs,
+  systemPreferences, rolePermissions, loginLogs, userPermissions,
   insertUserSchema, insertProductSchema, updateProductSchema, insertProductCategorySchema,
   insertCustomerSchema, insertSaleSchema, insertSaleItemSchema,
   insertPurchaseOrderSchema, insertSupplierSchema, updateBackupSettingsSchema,
