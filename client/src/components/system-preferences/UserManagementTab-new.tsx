@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -60,11 +60,20 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const { toast } = useToast();
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<any>(null);
 
   // Fetch users
   const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/users'],
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch user permissions for selected user
+  const { data: userPermissions = [], refetch: refetchPermissions } = useQuery({
+    queryKey: ['/api/users', selectedUserForPermissions?.id, 'permissions'],
+    enabled: !!selectedUserForPermissions?.id,
     refetchOnWindowFocus: false,
   });
 
@@ -184,6 +193,11 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
     if (window.confirm('Are you sure you want to delete this user?')) {
       deleteUserMutation.mutate(userId);
     }
+  };
+
+  const handleManagePermissions = (user: any) => {
+    setSelectedUserForPermissions(user);
+    setIsPermissionsDialogOpen(true);
   };
 
   const handleExportUsers = () => {
@@ -320,6 +334,13 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                         onClick={() => handleEditUser(user)}
                       >
                         <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManagePermissions(user)}
+                      >
+                        <Settings className="h-3 w-3" />
                       </Button>
                       <Button
                         variant="outline"
@@ -520,6 +541,62 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Permissions Dialog */}
+      <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Manage Permissions</DialogTitle>
+            <DialogDescription>
+              Manage module permissions for {selectedUserForPermissions?.name || selectedUserForPermissions?.username} ({selectedUserForPermissions?.role})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-sm font-medium">Current Permissions</div>
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                <div>Module</div>
+                <div>Access</div>
+                <div>Actions</div>
+              </div>
+              {userPermissions.length > 0 ? (
+                userPermissions.map((permission: any) => (
+                  <div key={permission.id} className="grid grid-cols-3 gap-4 py-2 border-b items-center">
+                    <div className="font-medium">{permission.moduleName}</div>
+                    <div>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Granted
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-3 w-3 mr-1" />
+                        Configure
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No specific permissions configured. User has default role-based access.
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPermissionsDialogOpen(false)}>
+              Close
+            </Button>
+            <Button>
+              Add Permission
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
