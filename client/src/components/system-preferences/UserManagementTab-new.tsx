@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2, ShieldCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -52,6 +52,72 @@ const userFormSchema = z.object({
 
 type UserFormValues = z.infer<typeof userFormSchema>;
 
+// Module configuration features
+const moduleFeatures = {
+  products: [
+    // Tab Controls
+    { key: "inventoryTab", label: "Inventory List Tab", category: "tabs", description: "Main inventory items view" },
+    { key: "categoriesTab", label: "Categories Tab", category: "tabs", description: "Product categories management" },
+    { key: "stockTab", label: "Stock Management Tab", category: "tabs", description: "Inventory and stock levels" },
+    { key: "pricingTab", label: "Pricing Tab", category: "tabs", description: "Product pricing and cost management" },
+    
+    // Content Visibility
+    { key: "productsList", label: "Inventory List View", category: "content", description: "Main inventory table/grid view" },
+    { key: "productDetails", label: "Item Details Panel", category: "content", description: "Detailed item information view" },
+    { key: "stockLevels", label: "Stock Level Indicators", category: "content", description: "Current stock status and alerts" },
+    { key: "priceHistory", label: "Price History", category: "content", description: "Historical pricing data" },
+    { key: "productImages", label: "Item Images", category: "content", description: "Product photos and galleries" },
+    { key: "specifications", label: "Item Specifications", category: "content", description: "Technical specs and details" },
+    
+    // Actions
+    { key: "addProducts", label: "Add New Items", category: "actions", description: "Create new inventory entries" },
+    { key: "editProducts", label: "Edit Items", category: "actions", description: "Modify existing inventory" },
+    { key: "deleteProducts", label: "Delete Items", category: "actions", description: "Remove items from system" },
+    { key: "bulkOperations", label: "Bulk Operations", category: "actions", description: "Mass update/delete operations" },
+    { key: "importExport", label: "Import/Export", category: "actions", description: "Bulk data import and export" },
+  ],
+  
+  dashboard: [
+    // Tab Controls
+    { key: "overviewTab", label: "Overview Tab", category: "tabs", description: "Main dashboard summary" },
+    { key: "analyticsTab", label: "Analytics Tab", category: "tabs", description: "Business analytics and insights" },
+    { key: "reportsTab", label: "Quick Reports Tab", category: "tabs", description: "Summary reports section" },
+    
+    // Content Visibility
+    { key: "summaryCards", label: "Summary Cards", category: "content", description: "Key metrics overview cards" },
+    { key: "recentActivity", label: "Recent Activity", category: "content", description: "Latest system activities" },
+    { key: "charts", label: "Dashboard Charts", category: "content", description: "Visual analytics and graphs" },
+    { key: "notifications", label: "Notifications Panel", category: "content", description: "System alerts and messages" },
+    
+    // Actions
+    { key: "refreshData", label: "Refresh Data", category: "actions", description: "Update dashboard information" },
+    { key: "exportReports", label: "Export Reports", category: "actions", description: "Download dashboard reports" },
+    { key: "customizeLayout", label: "Customize Layout", category: "actions", description: "Personalize dashboard view" },
+  ],
+  
+  accounting: [
+    // Tab Controls
+    { key: "journalTab", label: "Journal Entries Tab", category: "tabs", description: "General ledger and journal entries" },
+    { key: "accountsTab", label: "Chart of Accounts Tab", category: "tabs", description: "Account structure management" },
+    { key: "reportsTab", label: "Financial Reports Tab", category: "tabs", description: "P&L, Balance Sheet, etc." },
+    { key: "reconciliationTab", label: "Bank Reconciliation Tab", category: "tabs", description: "Bank account reconciliation" },
+    
+    // Content Visibility
+    { key: "journalEntries", label: "Journal Entries List", category: "content", description: "All accounting transactions" },
+    { key: "accountsChart", label: "Chart of Accounts", category: "content", description: "Account hierarchy view" },
+    { key: "trialBalance", label: "Trial Balance", category: "content", description: "Account balances summary" },
+    { key: "financialStatements", label: "Financial Statements", category: "content", description: "P&L and Balance Sheet" },
+    { key: "cashFlow", label: "Cash Flow Statement", category: "content", description: "Cash flow analysis" },
+    
+    // Actions
+    { key: "createJournalEntry", label: "Create Journal Entries", category: "actions", description: "Add new accounting transactions" },
+    { key: "editJournalEntry", label: "Edit Journal Entries", category: "actions", description: "Modify existing entries" },
+    { key: "deleteJournalEntry", label: "Delete Journal Entries", category: "actions", description: "Remove accounting entries" },
+    { key: "generateReports", label: "Generate Reports", category: "actions", description: "Create financial reports" },
+    { key: "exportData", label: "Export Accounting Data", category: "actions", description: "Export financial data" },
+  ],
+};
+
 interface UserManagementTabProps {
   preferences: any;
   refetch: () => void;
@@ -62,8 +128,11 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
+  const [isConfigurePermissionsOpen, setIsConfigurePermissionsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<any>(null);
+  const [selectedPermission, setSelectedPermission] = useState<any>(null);
+  const [modulePermissionFeatures, setModulePermissionFeatures] = useState<Record<string, boolean>>({});
 
   // Fetch users
   const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery({
@@ -199,6 +268,20 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const handleManagePermissions = (user: any) => {
     setSelectedUserForPermissions(user);
     setIsPermissionsDialogOpen(true);
+  };
+
+  const handleConfigurePermissions = (permission: any) => {
+    setSelectedPermission(permission);
+    setIsConfigurePermissionsOpen(true);
+    // Initialize module features state
+    if (moduleFeatures[permission.moduleName as keyof typeof moduleFeatures]) {
+      const features = moduleFeatures[permission.moduleName as keyof typeof moduleFeatures];
+      const initialFeatures: Record<string, boolean> = {};
+      features.forEach((feature: any) => {
+        initialFeatures[feature.key] = true; // Default to enabled
+      });
+      setModulePermissionFeatures(initialFeatures);
+    }
   };
 
   const handleExportUsers = () => {
@@ -600,9 +683,17 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          const permission = { moduleName: module.key, accessGranted: hasPermission };
+                          handleConfigurePermissions(permission);
+                        }}
+                        disabled={!hasPermission}
+                      >
                         <Settings className="h-3 w-3 mr-1" />
-                        Customize
+                        Configure
                       </Button>
                       {hasPermission && (
                         <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
@@ -624,6 +715,142 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               Save Changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Permissions Dialog */}
+      <Dialog open={isConfigurePermissionsOpen} onOpenChange={setIsConfigurePermissionsOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configure Module Permissions</DialogTitle>
+            <DialogDescription>
+              Configure detailed permissions for {selectedPermission?.moduleName} module for {selectedUserForPermissions?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {selectedPermission && moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures] && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Available Features</span>
+                  <Badge className={selectedPermission.accessGranted ? "bg-green-500" : "bg-red-500"}>
+                    {selectedPermission.accessGranted ? "Module Access Granted" : "Module Access Denied"}
+                  </Badge>
+                </div>
+                
+                {selectedPermission.accessGranted ? (
+                  <div className="space-y-6">
+                    {/* Group features by category */}
+                    {["tabs", "content", "actions"].map((category) => {
+                      const categoryFeatures = moduleFeatures[selectedPermission.moduleName as keyof typeof moduleFeatures]
+                        ?.filter((feature: any) => feature.category === category) || [];
+                      
+                      if (categoryFeatures.length === 0) return null;
+                      
+                      const categoryLabels = {
+                        tabs: "Tab Controls",
+                        content: "Content Visibility", 
+                        actions: "User Actions"
+                      };
+                      
+                      const categoryDescriptions = {
+                        tabs: "Control which tabs are visible in the module interface",
+                        content: "Manage what content and data is displayed to users",
+                        actions: "Define what actions users can perform in this module"
+                      };
+                      
+                      const categoryIcons = {
+                        tabs: "📋",
+                        content: "👁️",
+                        actions: "⚡"
+                      };
+                      
+                      return (
+                        <div key={category} className="space-y-3">
+                          <div className="flex items-center gap-2 pb-2 border-b">
+                            <span className="text-lg">{categoryIcons[category as keyof typeof categoryIcons]}</span>
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900">
+                                {categoryLabels[category as keyof typeof categoryLabels]}
+                              </h4>
+                              <p className="text-xs text-muted-foreground">
+                                {categoryDescriptions[category as keyof typeof categoryDescriptions]}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="grid gap-3">
+                            {categoryFeatures.map((feature: any) => (
+                              <div
+                                key={feature.key}
+                                className="flex items-start justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-gray-900">{feature.label}</p>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {feature.description || "Controls visibility and access to this feature"}
+                                  </p>
+                                </div>
+                                <div className="ml-3">
+                                  <Switch
+                                    checked={modulePermissionFeatures[feature.key] ?? true}
+                                    onCheckedChange={(checked) => {
+                                      setModulePermissionFeatures(prev => ({
+                                        ...prev,
+                                        [feature.key]: checked
+                                      }));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Category Summary */}
+                          <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded border border-blue-200">
+                            <span className="font-medium text-blue-800">
+                              {categoryFeatures.filter((f: any) => modulePermissionFeatures[f.key] ?? true).length} of {categoryFeatures.length} features enabled
+                            </span>
+                            {category === "tabs" && " - Users will see these tabs in the module"}
+                            {category === "content" && " - This content will be visible to users"}
+                            {category === "actions" && " - Users can perform these actions"}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ShieldCheck className="mx-auto h-12 w-12 opacity-50 mb-2" />
+                    <p>Module access is denied</p>
+                    <p className="text-xs">Grant module access first to configure individual features</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsConfigurePermissionsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Save the configuration
+                toast({
+                  title: "Permissions updated",
+                  description: "Module permissions have been configured successfully.",
+                });
+                setIsConfigurePermissionsOpen(false);
+              }}
+              disabled={!selectedPermission?.accessGranted}
+            >
+              Save Configuration
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
