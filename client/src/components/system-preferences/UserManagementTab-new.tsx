@@ -285,6 +285,28 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
     }
   };
 
+  // Add permission mutation
+  const addPermissionMutation = useMutation({
+    mutationFn: async (data: { userId: number; permission: { moduleName: string; accessGranted: boolean } }) => {
+      return apiRequest('POST', `/api/users/${data.userId}/permissions`, data.permission);
+    },
+    onSuccess: () => {
+      refetchPermissions();
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+  });
+
+  // Delete permission mutation
+  const deletePermissionMutation = useMutation({
+    mutationFn: async (data: { userId: number; moduleName: string }) => {
+      return apiRequest('DELETE', `/api/users/${data.userId}/permissions/${data.moduleName}`);
+    },
+    onSuccess: () => {
+      refetchPermissions();
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+  });
+
   const handleExportUsers = () => {
     // Convert users data to CSV format
     const csvData = users.map((user: any) => ({
@@ -661,7 +683,13 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                   if (hasAllPermissions) {
                     // Remove all permissions
                     allModules.forEach(module => {
-                      console.log(`Removing access to ${module} for user ${selectedUserForPermissions?.id}`);
+                      const hasPermission = currentPermissions.some((p: any) => p.moduleName === module);
+                      if (hasPermission && selectedUserForPermissions?.id) {
+                        deletePermissionMutation.mutate({
+                          userId: selectedUserForPermissions.id,
+                          moduleName: module
+                        });
+                      }
                     });
                     
                     toast({
@@ -672,8 +700,11 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                     // Grant all permissions
                     allModules.forEach(module => {
                       const hasPermission = currentPermissions.some((p: any) => p.moduleName === module);
-                      if (!hasPermission) {
-                        console.log(`Granting access to ${module} for user ${selectedUserForPermissions?.id}`);
+                      if (!hasPermission && selectedUserForPermissions?.id) {
+                        addPermissionMutation.mutate({
+                          userId: selectedUserForPermissions.id,
+                          permission: { moduleName: module, accessGranted: true }
+                        });
                       }
                     });
                     
@@ -737,16 +768,22 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       <Switch
                         checked={hasPermission}
                         onCheckedChange={(checked) => {
-                          if (checked) {
+                          if (checked && selectedUserForPermissions?.id) {
                             // Grant permission
-                            console.log(`Granting permission for ${module.key} to user ${selectedUserForPermissions?.id}`);
+                            addPermissionMutation.mutate({
+                              userId: selectedUserForPermissions.id,
+                              permission: { moduleName: module.key, accessGranted: true }
+                            });
                             toast({
                               title: "Permission granted",
                               description: `Access granted to ${module.name} module.`,
                             });
-                          } else {
+                          } else if (!checked && selectedUserForPermissions?.id) {
                             // Remove permission
-                            console.log(`Removing permission for ${module.key} from user ${selectedUserForPermissions?.id}`);
+                            deletePermissionMutation.mutate({
+                              userId: selectedUserForPermissions.id,
+                              moduleName: module.key
+                            });
                             toast({
                               title: "Permission removed",
                               description: `Access removed from ${module.name} module.`,
