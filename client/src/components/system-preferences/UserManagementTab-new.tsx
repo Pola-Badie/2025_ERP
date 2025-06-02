@@ -269,6 +269,23 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const handleManagePermissions = (user: any) => {
     setSelectedUserForPermissions(user);
     setIsPermissionsDialogOpen(true);
+    
+    // Automatically grant access to all 17 modules when opening permissions dialog
+    const allModules = [
+      'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
+      'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
+      'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
+      'userManagement', 'systemPreferences'
+    ];
+    
+    setTimeout(() => {
+      allModules.forEach(module => {
+        addPermissionMutation.mutate({
+          userId: user.id,
+          permission: { moduleName: module, accessGranted: true }
+        });
+      });
+    }, 100);
   };
 
   const handleConfigurePermissions = (permission: any) => {
@@ -662,73 +679,10 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
             <div className="flex justify-between items-center">
-              <div className="text-sm font-medium">Current Permissions</div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const allModules = [
-                    'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
-                    'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
-                    'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
-                    'userManagement', 'systemPreferences'
-                  ];
-                  
-                  // Check if user already has all permissions
-                  const currentPermissions = userPermissions || [];
-                  const hasAllPermissions = allModules.every(module => 
-                    currentPermissions.some((p: any) => p.moduleName === module)
-                  );
-                  
-                  if (hasAllPermissions) {
-                    // Remove all permissions
-                    allModules.forEach(module => {
-                      const hasPermission = currentPermissions.some((p: any) => p.moduleName === module);
-                      if (hasPermission && selectedUserForPermissions?.id) {
-                        deletePermissionMutation.mutate({
-                          userId: selectedUserForPermissions.id,
-                          moduleName: module
-                        });
-                      }
-                    });
-                    
-                    toast({
-                      title: "All access removed",
-                      description: `Access removed from all ${allModules.length} ERP modules.`,
-                    });
-                  } else {
-                    // Grant all permissions
-                    allModules.forEach(module => {
-                      const hasPermission = currentPermissions.some((p: any) => p.moduleName === module);
-                      if (!hasPermission && selectedUserForPermissions?.id) {
-                        addPermissionMutation.mutate({
-                          userId: selectedUserForPermissions.id,
-                          permission: { moduleName: module, accessGranted: true }
-                        });
-                      }
-                    });
-                    
-                    toast({
-                      title: "Full access granted",
-                      description: `Access granted to all ${allModules.length} ERP modules.`,
-                    });
-                  }
-                }}
-              >
-                {(() => {
-                  const allModules = [
-                    'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
-                    'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
-                    'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
-                    'userManagement', 'systemPreferences'
-                  ];
-                  const currentPermissions = userPermissions || [];
-                  const hasAllPermissions = allModules.every(module => 
-                    currentPermissions.some((p: any) => p.moduleName === module)
-                  );
-                  return hasAllPermissions ? "Remove All Access" : "Grant All Access";
-                })()}
-              </Button>
+              <div className="text-sm font-medium">Module Access Control</div>
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                All 17 Modules Available
+              </Badge>
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2 sticky top-0 bg-white">
