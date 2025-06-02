@@ -407,14 +407,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get user permissions
-      const userPermissions = await db.select({
+      const userPermissionsList = await db.select({
         id: userPermissions.id,
         userId: userPermissions.userId,
         moduleName: userPermissions.moduleName,
         accessGranted: userPermissions.accessGranted,
       }).from(userPermissions).where(eq(userPermissions.userId, userId));
       
-      res.json(userPermissions);
+      res.json(userPermissionsList);
     } catch (error) {
       console.error("Get user permissions error:", error);
       res.status(500).json({ message: "Failed to get user permissions" });
