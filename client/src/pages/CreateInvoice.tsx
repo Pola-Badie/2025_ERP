@@ -156,7 +156,6 @@ const CreateInvoice = () => {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
@@ -864,6 +863,11 @@ const CreateInvoice = () => {
 
   const [mainTab, setMainTab] = useState("create");
   const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
+  
+  // Print and PDF state
+  const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const printRef = React.useRef<HTMLDivElement>(null);
 
   // Load saved drafts from localStorage
   useEffect(() => {
@@ -922,6 +926,87 @@ const CreateInvoice = () => {
     });
   };
 
+  // Print functionality
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Invoice-${getCurrentDraft()?.name || activeInvoiceId}`,
+    onAfterPrint: () => {
+      toast({
+        title: "Invoice Printed",
+        description: "Invoice has been sent to printer successfully",
+      });
+    }
+  });
+
+  // PDF generation functionality
+  const generatePDF = async () => {
+    if (!printRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    
+    try {
+      const canvas = await html2canvas(printRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const fileName = `Invoice-${getCurrentDraft()?.name || activeInvoiceId}.pdf`;
+      pdf.save(fileName);
+      
+      toast({
+        title: "PDF Generated",
+        description: `Invoice PDF saved as ${fileName}`,
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Preview invoice function
+  const previewInvoice = () => {
+    const formData = form.getValues();
+    
+    // Validate that we have minimum required data
+    if (!formData.customer.name || formData.items.length === 0) {
+      toast({
+        title: "Preview Not Available",
+        description: "Please add customer information and at least one item to preview the invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setShowInvoicePreview(true);
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center mb-6">
@@ -974,6 +1059,14 @@ const CreateInvoice = () => {
               >
                 <Save className="mr-2 h-4 w-4" />
                 Save as Draft
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={previewInvoice}
+                disabled={isSubmitting}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Preview Invoice
               </Button>
               <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -2100,6 +2193,83 @@ const CreateInvoice = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowOrderSelector(false)}>
               Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invoice Preview Dialog */}
+      <Dialog open={showInvoicePreview} onOpenChange={setShowInvoicePreview}>
+        <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Invoice Preview</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrint}
+                  disabled={!printRef.current}
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generatePDF}
+                  disabled={isGeneratingPDF || !printRef.current}
+                >
+                  {isGeneratingPDF ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+                </Button>
+              </div>
+            </DialogTitle>
+            <DialogDescription>
+              Preview your invoice before printing or downloading
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto border rounded-md bg-gray-50 p-4">
+            <div ref={printRef}>
+              <PrintableInvoice
+                invoiceNumber={`INV-${getCurrentDraft()?.name || activeInvoiceId}-${new Date().getFullYear()}`}
+                date={new Date()}
+                customer={{
+                  name: form.watch('customer.name') || '',
+                  company: form.watch('customer.company') || '',
+                  email: form.watch('customer.email') || '',
+                  phone: form.watch('customer.phone') || '',
+                  address: form.watch('customer.address') || '',
+                }}
+                items={form.watch('items').map(item => ({
+                  productName: item.productName || '',
+                  category: item.category || '',
+                  batchNo: item.batchNo || '',
+                  quantity: item.quantity || 0,
+                  unitPrice: item.unitPrice || 0,
+                  total: item.total || 0,
+                }))}
+                subtotal={form.watch('subtotal') || 0}
+                discountAmount={form.watch('discountAmount') || 0}
+                taxRate={form.watch('taxRate') || 0}
+                taxAmount={form.watch('taxAmount') || 0}
+                grandTotal={form.watch('grandTotal') || 0}
+                paymentTerms={form.watch('paymentTerms') || '0'}
+                notes={form.watch('notes') || ''}
+                amountPaid={form.watch('amountPaid') || 0}
+                paymentStatus={form.watch('paymentStatus') || 'unpaid'}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInvoicePreview(false)}>
+              Close Preview
             </Button>
           </DialogFooter>
         </DialogContent>
