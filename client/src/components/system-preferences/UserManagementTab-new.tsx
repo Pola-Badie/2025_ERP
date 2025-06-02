@@ -645,7 +645,6 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  // Grant all module access
                   const allModules = [
                     'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
                     'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
@@ -653,17 +652,51 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                     'userManagement', 'systemPreferences'
                   ];
                   
-                  allModules.forEach(module => {
-                    console.log(`Granting access to ${module} for user ${selectedUserForPermissions?.id}`);
-                  });
+                  // Check if user already has all permissions
+                  const currentPermissions = userPermissions || [];
+                  const hasAllPermissions = allModules.every(module => 
+                    currentPermissions.some((p: any) => p.moduleName === module)
+                  );
                   
-                  toast({
-                    title: "Full access granted",
-                    description: `Access granted to all ${allModules.length} ERP modules.`,
-                  });
+                  if (hasAllPermissions) {
+                    // Remove all permissions
+                    allModules.forEach(module => {
+                      console.log(`Removing access to ${module} for user ${selectedUserForPermissions?.id}`);
+                    });
+                    
+                    toast({
+                      title: "All access removed",
+                      description: `Access removed from all ${allModules.length} ERP modules.`,
+                    });
+                  } else {
+                    // Grant all permissions
+                    allModules.forEach(module => {
+                      const hasPermission = currentPermissions.some((p: any) => p.moduleName === module);
+                      if (!hasPermission) {
+                        console.log(`Granting access to ${module} for user ${selectedUserForPermissions?.id}`);
+                      }
+                    });
+                    
+                    toast({
+                      title: "Full access granted",
+                      description: `Access granted to all ${allModules.length} ERP modules.`,
+                    });
+                  }
                 }}
               >
-                Grant All Access
+                {(() => {
+                  const allModules = [
+                    'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
+                    'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
+                    'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
+                    'userManagement', 'systemPreferences'
+                  ];
+                  const currentPermissions = userPermissions || [];
+                  const hasAllPermissions = allModules.every(module => 
+                    currentPermissions.some((p: any) => p.moduleName === module)
+                  );
+                  return hasAllPermissions ? "Remove All Access" : "Grant All Access";
+                })()}
               </Button>
             </div>
             <div className="space-y-2">
