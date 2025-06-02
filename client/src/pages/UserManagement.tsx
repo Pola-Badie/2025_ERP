@@ -82,7 +82,7 @@ const availableModules = [
 const formatModuleName = (moduleName: string): string => {
   const moduleDisplayNames: Record<string, string> = {
     dashboard: "Dashboard",
-    products: "Products",
+    products: "Inventory",
     expenses: "Expenses",
     accounting: "Accounting",
     suppliers: "Suppliers", 
@@ -1298,27 +1298,26 @@ export default function UserManagement() {
                   size="sm"
                   onClick={() => {
                     if (selectedUser) {
-                      // Grant access to all modules that don't already have permissions
-                      const modulesToGrant = availableModules.filter(module => 
-                        !permissions?.some(p => p.moduleName === module)
-                      );
-                      
-                      modulesToGrant.forEach(module => {
-                        addPermissionMutation.mutate({ 
-                          userId: selectedUser.id, 
-                          permission: { moduleName: module, accessGranted: true } 
-                        });
+                      // Grant access to all 17 modules
+                      availableModules.forEach(module => {
+                        const hasExistingPermission = permissions?.some(p => p.moduleName === module);
+                        if (!hasExistingPermission) {
+                          addPermissionMutation.mutate({ 
+                            userId: selectedUser.id, 
+                            permission: { moduleName: module, accessGranted: true } 
+                          });
+                        }
                       });
                       
                       toast({
-                        title: "All modules granted",
-                        description: `Access granted to ${modulesToGrant.length} modules.`,
+                        title: "Full access granted",
+                        description: `Access granted to all ${availableModules.length} ERP modules.`,
                       });
                     }
                   }}
                   disabled={addPermissionMutation.isPending || deletePermissionMutation.isPending}
                 >
-                  Grant All
+                  Grant All Modules
                 </Button>
                 <span className="text-xs text-muted-foreground">{availableModules.length} modules</span>
               </div>

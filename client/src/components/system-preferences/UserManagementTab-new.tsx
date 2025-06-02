@@ -563,7 +563,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                 <div>Actions</div>
               </div>
               
-              {/* Available Modules */}
+              {/* Available Modules - All 17 ERP Modules */}
               {[
                 { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview and analytics' },
                 { name: 'Inventory', key: 'products', description: 'Inventory management and stock tracking' },
