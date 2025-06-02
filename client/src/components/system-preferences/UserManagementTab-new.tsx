@@ -565,23 +565,23 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               
               {/* Available Modules */}
               {[
+                { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview and analytics' },
                 { name: 'Inventory', key: 'products', description: 'Inventory management and stock tracking' },
-                { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview' },
-                { name: 'Accounting', key: 'accounting', description: 'Financial management and reports' },
-                { name: 'Suppliers', key: 'suppliers', description: 'Supplier management' },
-                { name: 'Customers', key: 'customers', description: 'Customer relationship management' },
                 { name: 'Expenses', key: 'expenses', description: 'Expense tracking and management' },
+                { name: 'Accounting', key: 'accounting', description: 'Financial management and reports' },
+                { name: 'Suppliers', key: 'suppliers', description: 'Supplier management and relationships' },
+                { name: 'Customers', key: 'customers', description: 'Customer relationship management' },
                 { name: 'Create Invoice', key: 'createInvoice', description: 'Invoice creation and management' },
-                { name: 'Create Quotation', key: 'createQuotation', description: 'Quotation generation' },
+                { name: 'Create Quotation', key: 'createQuotation', description: 'Quotation generation and pricing' },
                 { name: 'Invoice History', key: 'invoiceHistory', description: 'View and manage invoice history' },
-                { name: 'Quotation History', key: 'quotationHistory', description: 'View quotation records' },
+                { name: 'Quotation History', key: 'quotationHistory', description: 'View quotation records and history' },
                 { name: 'Order Management', key: 'orderManagement', description: 'Order processing and tracking' },
-                { name: 'Orders History', key: 'ordersHistory', description: 'Historical order data' },
-                { name: 'Label Generator', key: 'label', description: 'Generate product labels' },
+                { name: 'Orders History', key: 'ordersHistory', description: 'Historical order data and records' },
+                { name: 'Label Generator', key: 'label', description: 'Generate product and shipping labels' },
                 { name: 'Reports', key: 'reports', description: 'Business reports and analytics' },
-                { name: 'User Management', key: 'userManagement', description: 'Manage user accounts' },
-                { name: 'System Preferences', key: 'systemPreferences', description: 'System configuration' },
-                { name: 'Procurement', key: 'procurement', description: 'Procurement and purchasing' }
+                { name: 'Procurement', key: 'procurement', description: 'Procurement and purchasing management' },
+                { name: 'User Management', key: 'userManagement', description: 'Manage user accounts and roles' },
+                { name: 'System Preferences', key: 'systemPreferences', description: 'System configuration and settings' }
               ].map((module) => {
                 const hasPermission = userPermissions.some((p: any) => p.moduleName === module.key);
                 return (
