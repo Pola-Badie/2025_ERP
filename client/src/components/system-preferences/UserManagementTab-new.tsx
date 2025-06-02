@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -589,33 +590,24 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                       <div className="font-medium">{module.name}</div>
                       <div className="text-xs text-muted-foreground">{module.description}</div>
                     </div>
-                    <div>
-                      {hasPermission ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Granted
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          Not Granted
-                        </span>
-                      )}
+                    <div className="flex items-center">
+                      <Switch
+                        checked={hasPermission}
+                        onCheckedChange={(checked) => {
+                          // Handle permission toggle
+                          console.log(`Toggle permission for ${module.key}: ${checked}`);
+                        }}
+                      />
                     </div>
                     <div className="flex gap-2">
-                      {hasPermission ? (
-                        <>
-                          <Button variant="outline" size="sm">
-                            <Settings className="h-3 w-3 mr-1" />
-                            Configure
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Remove
-                          </Button>
-                        </>
-                      ) : (
-                        <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
-                          <Check className="h-3 w-3 mr-1" />
-                          Grant
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-3 w-3 mr-1" />
+                        Customize
+                      </Button>
+                      {hasPermission && (
+                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Remove
                         </Button>
                       )}
                     </div>
