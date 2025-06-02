@@ -751,7 +751,8 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                         variant="outline" 
                         size="sm"
                         onClick={() => {
-                          const permission = { moduleName: module.key, accessGranted: hasPermission };
+                          // Always pass true for accessGranted when configuring
+                          const permission = { moduleName: module.key, accessGranted: true };
                           handleConfigurePermissions(permission);
                         }}
                         disabled={!hasPermission}
@@ -760,7 +761,23 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                         Configure
                       </Button>
                       {hasPermission && (
-                        <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => {
+                            if (selectedUserForPermissions?.id) {
+                              deletePermissionMutation.mutate({
+                                userId: selectedUserForPermissions.id,
+                                moduleName: module.key
+                              });
+                              toast({
+                                title: "Permission removed",
+                                description: `Access removed from ${module.name} module.`,
+                              });
+                            }
+                          }}
+                        >
                           <Trash2 className="h-3 w-3 mr-1" />
                           Remove
                         </Button>
@@ -771,11 +788,24 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               })}
             </div>
           </div>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setIsPermissionsDialogOpen(false)}>
+          <DialogFooter className="mt-6 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPermissionsDialogOpen(false)}
+              className="flex-1"
+            >
               Close
             </Button>
-            <Button>
+            <Button 
+              onClick={() => {
+                toast({
+                  title: "Permissions saved",
+                  description: "All permission changes have been saved successfully.",
+                });
+                setIsPermissionsDialogOpen(false);
+              }}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
               Save Changes
             </Button>
           </DialogFooter>
