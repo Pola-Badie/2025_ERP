@@ -107,6 +107,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import ChartOfAccounts from '@/components/accounting/ChartOfAccounts';
 import JournalEntries from '@/components/accounting/JournalEntries';
 import ProfitAndLoss from '@/components/accounting/ProfitAndLoss';
@@ -7021,12 +7022,11 @@ const Accounting: React.FC = () => {
                                 </div>
                               </div>
                               <Check
-                                className={cn(
-                                  "h-4 w-4",
+                                className={`h-4 w-4 ${
                                   addPayForm.employeeId === employee.id
                                     ? "opacity-100"
                                     : "opacity-0"
-                                )}
+                                }`}
                               />
                             </div>
                           </CommandItem>
