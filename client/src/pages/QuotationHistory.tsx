@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { format } from 'date-fns';
 import { 
   Search, 
@@ -137,6 +138,7 @@ const QuotationHistory = () => {
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [, setLocation] = useLocation();
 
   // Fetch quotations
   const { data: quotations = [], isLoading } = useQuery<Quotation[]>({
@@ -166,6 +168,31 @@ const QuotationHistory = () => {
   const handlePreview = (quotation: Quotation) => {
     setSelectedQuotation(quotation);
     setShowPreview(true);
+  };
+
+  // Handle convert quotation to invoice
+  const handleConvertToInvoice = (quotation: Quotation) => {
+    // Store quotation data in localStorage for the invoice form
+    const invoiceData = {
+      customerId: quotation.customerId,
+      customerName: quotation.customerName,
+      items: quotation.items.map(item => ({
+        productName: item.productName,
+        description: item.description || '',
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total,
+        uom: item.uom
+      })),
+      subtotal: quotation.subtotal || quotation.amount,
+      tax: quotation.tax || (quotation.amount * 0.14),
+      total: quotation.total || quotation.amount,
+      notes: quotation.notes || '',
+      quotationNumber: quotation.quotationNumber
+    };
+    
+    localStorage.setItem('quotationToInvoice', JSON.stringify(invoiceData));
+    setLocation('/create-invoice');
   };
 
   // Get summary statistics
@@ -502,7 +529,7 @@ const QuotationHistory = () => {
                         <TableHead className="font-semibold text-gray-700 px-4 text-right">Payment Terms</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Payment Method</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Status</TableHead>
-                        <TableHead className="font-semibold text-gray-700 px-4 text-center">ETA Upload</TableHead>
+                        <TableHead className="font-semibold text-gray-700 px-4 text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
