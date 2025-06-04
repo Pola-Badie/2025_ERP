@@ -28,6 +28,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 import { 
   BookOpen, 
@@ -68,7 +81,9 @@ import {
   ExternalLink,
   Calculator,
   Users,
-  Pencil
+  Pencil,
+  ChevronsUpDown,
+  Check
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -6966,26 +6981,61 @@ const Accounting: React.FC = () => {
             {/* Employee Selection */}
             <div className="space-y-2">
               <Label htmlFor="employee">Select Employee *</Label>
-              <Select
-                value={addPayForm.employeeId}
-                onValueChange={handleEmployeeSelect}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose an employee..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {employeeList.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{employee.name}</span>
-                        <span className="text-sm text-gray-500">
-                          {employee.department} - {employee.position}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between"
+                  >
+                    {addPayForm.employeeId ? 
+                      employeeList.find(emp => emp.id === addPayForm.employeeId)?.name || "Select employee..." 
+                      : "Select employee..."
+                    }
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Search employees..." 
+                      className="h-9" 
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        <p className="py-3 text-center text-sm">No employees found</p>
+                      </CommandEmpty>
+                      <CommandGroup heading="Employees">
+                        {employeeList.map((employee) => (
+                          <CommandItem
+                            key={employee.id}
+                            value={`${employee.name} ${employee.department} ${employee.position}`}
+                            onSelect={() => handleEmployeeSelect(employee.id)}
+                            className="flex flex-col items-start py-2"
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex-1">
+                                <div className="font-medium">{employee.name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {employee.department} - {employee.position}
+                                </div>
+                              </div>
+                              <Check
+                                className={cn(
+                                  "h-4 w-4",
+                                  addPayForm.employeeId === employee.id
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Pay Period and Department */}
