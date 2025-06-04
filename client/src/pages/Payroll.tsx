@@ -405,22 +405,24 @@ const Payroll = () => {
       <div className="absolute inset-0 bg-grid-pattern opacity-40"></div>
       
       <div className="relative p-6 space-y-6">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.history.back()}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Payroll Management</h1>
-              <p className="text-gray-600 mt-1">Comprehensive employee payroll and attendance tracking</p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Payroll Management</h1>
+            <p className="text-gray-600 mt-1">Comprehensive employee payroll and attendance tracking</p>
           </div>
           
           <div className="flex items-center gap-3">
