@@ -616,10 +616,11 @@ const QuotationHistory = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-50 rounded-full"
-                                title="Upload to ETA"
+                                className="h-7 w-7 p-0 text-green-600 hover:bg-green-50 rounded-full"
+                                title="Convert to Invoice"
+                                onClick={() => handleConvertToInvoice(quotation)}
                               >
-                                <Upload className="h-3 w-3" />
+                                <FileText className="h-3 w-3" />
                               </Button>
                             </div>
                           </TableCell>

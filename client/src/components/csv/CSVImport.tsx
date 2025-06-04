@@ -207,58 +207,109 @@ export const CSVImport: React.FC<CSVImportProps> = ({
 
       {/* Warehouse Selection Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Package className="w-5 h-5 text-blue-600" />
-              Select Warehouse
+              Import Inventory to Warehouse
             </DialogTitle>
             <DialogDescription>
-              Choose which warehouse to import the CSV data to. This will help organize your inventory by location.
+              Select the destination warehouse and review your import data before proceeding.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="py-4">
-            <div className="space-y-2">
+          <div className="py-4 space-y-6">
+            {/* CSV Format Requirements */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-medium text-gray-900 mb-2">CSV Format Requirements</h4>
+              <div className="text-sm text-gray-700 space-y-1">
+                <p><strong>Required columns:</strong> Product Name, SKU, Quantity, Unit Price</p>
+                <p><strong>Optional columns:</strong> Description, Category, Expiry Date, Batch Number</p>
+                <p><strong>Format:</strong> Standard CSV with headers in the first row</p>
+              </div>
+            </div>
+
+            {/* Warehouse Selection */}
+            <div className="space-y-3">
               <label className="text-sm font-medium text-gray-900">
-                Warehouse Location
+                Destination Warehouse
               </label>
               <Select value={selectedWarehouse} onValueChange={setSelectedWarehouse}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a warehouse..." />
+                  <SelectValue placeholder="Select warehouse location..." />
                 </SelectTrigger>
                 <SelectContent>
                   {warehouseLocations.map((location) => (
                     <SelectItem key={location} value={location}>
                       <div className="flex items-center gap-2">
                         <Package className="w-4 h-4 text-green-600" />
-                        <span>{location}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{location}</span>
+                          <span className="text-xs text-gray-500">
+                            {location.includes('1') || location.includes('2') ? 'Main storage facility' : 
+                             location.includes('3') || location.includes('4') ? 'Secondary storage' :
+                             'Distribution center'}
+                          </span>
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
+            {/* Import Summary */}
             {pendingData.length > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  Ready to import <span className="font-semibold">{pendingData.length} rows</span> of data
-                </p>
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-3">Import Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <p className="text-blue-800 font-medium">{pendingData.length} rows</p>
+                    <p className="text-blue-600">Total products to import</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded">
+                    <p className="text-green-800 font-medium">Validated</p>
+                    <p className="text-green-600">Data format verified</p>
+                  </div>
+                </div>
+                
+                {/* Sample Data Preview */}
+                {pendingData.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Sample Data Preview:</p>
+                    <div className="bg-gray-50 p-3 rounded text-xs font-mono overflow-x-auto">
+                      <div className="text-gray-600 mb-1">First row:</div>
+                      <div className="text-gray-900">
+                        {Object.entries(pendingData[0]).slice(0, 4).map(([key, value]) => `${key}: ${value}`).join(' | ')}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            {/* Important Notes */}
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h4 className="font-medium text-amber-900 mb-2">Important Notes</h4>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Existing products with matching SKUs will be updated</li>
+                <li>• New products will be added to the selected warehouse</li>
+                <li>• Inventory quantities will be added to existing stock</li>
+                <li>• This action cannot be undone after confirmation</li>
+              </ul>
+            </div>
           </div>
 
           <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={handleDialogCancel} disabled={isLoading}>
-              Cancel
+              Cancel Import
             </Button>
             <Button 
               onClick={handleWarehouseConfirm} 
               disabled={!selectedWarehouse || isLoading}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? 'Importing...' : 'Import to Warehouse'}
+              {isLoading ? 'Importing...' : `Import ${pendingData.length} Products`}
             </Button>
           </DialogFooter>
         </DialogContent>
