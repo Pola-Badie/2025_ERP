@@ -427,23 +427,23 @@ const BalanceSheet: React.FC = () => {
         </div>
       ) : (
         <Card className="w-full" id="balance-sheet-report">
-          <CardHeader className="bg-navy-700 text-white text-center py-4">
-            <CardTitle className="text-xl">PharmaOverseas</CardTitle>
-            <CardDescription className="text-white text-md font-medium">
+          <CardHeader className="bg-navy-700 text-white text-center py-3">
+            <CardTitle className="text-lg mb-1">PharmaOverseas</CardTitle>
+            <CardDescription className="text-white text-sm font-medium mb-1">
               Balance Sheet
             </CardDescription>
-            <CardDescription className="text-white">
+            <CardDescription className="text-white text-sm mb-2">
               As of {format(new Date(data.date), 'MMMM dd, yyyy')}
             </CardDescription>
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center">
               {data.isBalanced ? (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center">
-                  <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center text-xs">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
                   Balanced
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center">
-                  <AlertCircle className="h-3.5 w-3.5 mr-1" />
+                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center text-xs">
+                  <AlertCircle className="h-3 w-3 mr-1" />
                   Not Balanced
                 </Badge>
               )}
