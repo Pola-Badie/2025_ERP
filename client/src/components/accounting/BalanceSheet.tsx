@@ -246,20 +246,27 @@ const BalanceSheet: React.FC = () => {
     if (!data) return;
     
     const csvData = [];
-    csvData.push(['PharmaOverseas Balance Sheet']);
-    csvData.push([`As of ${format(new Date(data.date), 'MMMM dd, yyyy')}`]);
-    csvData.push([]);
     
-    // Assets
-    csvData.push(['ASSETS']);
+    // Header section with company information
+    csvData.push(['PharmaOverseas']);
+    csvData.push(['Balance Sheet']);
+    csvData.push([`As of ${format(new Date(data.date), 'MMMM dd, yyyy')}`]);
+    csvData.push(['']);
+    csvData.push(['Balance Status:', data.isBalanced ? 'Balanced' : 'Not Balanced']);
+    csvData.push(['']);
+    
+    // Assets section
+    csvData.push(['ASSETS', '', '', '', '', '']);
     csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
     
     data.assets.byCategory.forEach(category => {
-      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      // Category header
+      csvData.push(['', category.name, '', '', '', category.total]);
+      // Individual accounts under category
       category.accounts.forEach(account => {
         csvData.push([
           account.code,
-          account.name,
+          `  ${account.name}`,
           account.openingBalance,
           account.debits,
           account.credits,
@@ -267,19 +274,21 @@ const BalanceSheet: React.FC = () => {
         ]);
       });
     });
-    csvData.push(['Total Assets', '', '', '', '', data.assets.total]);
-    csvData.push([]);
+    csvData.push(['', 'TOTAL ASSETS', '', '', '', data.assets.total]);
+    csvData.push(['']);
     
-    // Liabilities
-    csvData.push(['LIABILITIES']);
+    // Liabilities section
+    csvData.push(['LIABILITIES', '', '', '', '', '']);
     csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
     
     data.liabilities.byCategory.forEach(category => {
-      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      // Category header
+      csvData.push(['', category.name, '', '', '', category.total]);
+      // Individual accounts under category
       category.accounts.forEach(account => {
         csvData.push([
           account.code,
-          account.name,
+          `  ${account.name}`,
           account.openingBalance,
           account.debits,
           account.credits,
@@ -287,19 +296,21 @@ const BalanceSheet: React.FC = () => {
         ]);
       });
     });
-    csvData.push(['Total Liabilities', '', '', '', '', data.liabilities.total]);
-    csvData.push([]);
+    csvData.push(['', 'TOTAL LIABILITIES', '', '', '', data.liabilities.total]);
+    csvData.push(['']);
     
-    // Equity
-    csvData.push(['EQUITY']);
+    // Equity section
+    csvData.push(['EQUITY', '', '', '', '', '']);
     csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
     
     data.equity.byCategory.forEach(category => {
-      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      // Category header
+      csvData.push(['', category.name, '', '', '', category.total]);
+      // Individual accounts under category
       category.accounts.forEach(account => {
         csvData.push([
           account.code,
-          account.name,
+          `  ${account.name}`,
           account.openingBalance,
           account.debits,
           account.credits,
@@ -307,17 +318,38 @@ const BalanceSheet: React.FC = () => {
         ]);
       });
     });
-    csvData.push(['Total Equity', '', '', '', '', data.equity.total]);
-    csvData.push([]);
-    csvData.push(['Total Liabilities & Equity', '', '', '', '', data.liabilities.total + data.equity.total]);
+    csvData.push(['', 'TOTAL EQUITY', '', '', '', data.equity.total]);
+    csvData.push(['']);
     
-    const csvContent = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Summary section
+    csvData.push(['SUMMARY', '', '', '', '', '']);
+    csvData.push(['Total Assets', '', '', '', '', data.assets.total]);
+    csvData.push(['Total Liabilities & Equity', '', '', '', '', data.liabilities.total + data.equity.total]);
+    const difference = data.assets.total - (data.liabilities.total + data.equity.total);
+    csvData.push(['Difference', '', '', '', '', difference]);
+    
+    // Create properly formatted CSV content with Excel compatibility
+    const csvContent = csvData.map(row => 
+      row.map(cell => {
+        const value = cell?.toString() || '';
+        // Properly escape commas, quotes, and newlines for CSV
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value;
+      }).join(',')
+    ).join('\n');
+    
+    // Add UTF-8 BOM for better Excel compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.csv`;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
     
     toast({
