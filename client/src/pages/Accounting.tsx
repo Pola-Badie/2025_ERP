@@ -2233,7 +2233,7 @@ const Accounting: React.FC = () => {
                         <Download className="h-4 w-4 mr-2" /> Export
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
+                    <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                       <DialogHeader>
                         <div className="flex items-center space-x-3">
                           <div className="bg-green-100 p-2 rounded-lg">
