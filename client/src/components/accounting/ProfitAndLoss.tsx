@@ -194,15 +194,113 @@ const ProfitAndLoss: React.FC = () => {
           <Button 
             variant="outline" 
             onClick={() => {
-              const csvContent = "data:text/csv;charset=utf-8,";
-              // CSV generation logic would go here
-              const encodedUri = encodeURI(csvContent);
-              const link = document.createElement("a");
-              link.setAttribute("href", encodedUri);
-              link.setAttribute("download", `Profit_and_Loss_${format(new Date(dateRange.startDate), 'yyyy-MM-dd')}_to_${format(new Date(dateRange.endDate), 'yyyy-MM-dd')}.csv`);
+              if (!data) return;
+              
+              const csvData = [];
+              
+              // Header section
+              csvData.push(['PharmaOverseas']);
+              csvData.push(['Profit & Loss Statement']);
+              csvData.push([`${format(new Date(data.startDate), 'MMMM dd, yyyy')} to ${format(new Date(data.endDate), 'MMMM dd, yyyy')}`]);
+              csvData.push(['']);
+              
+              // Table headers
+              csvData.push(['Account', 'Current Period', 'Year-to-Date', 'Variance %']);
+              
+              // Revenue section
+              csvData.push(['REVENUE', '', '', '']);
+              data.revenue.items.forEach(item => {
+                csvData.push([
+                  `${item.code} - ${item.name}`,
+                  item.current,
+                  item.ytd,
+                  `${item.variance > 0 ? '+' : ''}${item.variance.toFixed(2)}%`
+                ]);
+              });
+              csvData.push([
+                'Total Revenue',
+                data.revenue.current,
+                data.revenue.ytd,
+                `${data.revenue.variance > 0 ? '+' : ''}${data.revenue.variance.toFixed(2)}%`
+              ]);
+              csvData.push(['']);
+              
+              // Cost of Goods Sold section
+              csvData.push(['COST OF GOODS SOLD', '', '', '']);
+              data.costOfGoodsSold.items.forEach(item => {
+                csvData.push([
+                  `${item.code} - ${item.name}`,
+                  item.current,
+                  item.ytd,
+                  `${item.variance > 0 ? '+' : ''}${item.variance.toFixed(2)}%`
+                ]);
+              });
+              csvData.push([
+                'Total Cost of Goods Sold',
+                data.costOfGoodsSold.current,
+                data.costOfGoodsSold.ytd,
+                `${data.costOfGoodsSold.variance > 0 ? '+' : ''}${data.costOfGoodsSold.variance.toFixed(2)}%`
+              ]);
+              csvData.push(['']);
+              
+              // Gross Profit
+              csvData.push([
+                'GROSS PROFIT',
+                data.grossProfit.current,
+                data.grossProfit.ytd,
+                `${data.grossProfit.variance > 0 ? '+' : ''}${data.grossProfit.variance.toFixed(2)}%`
+              ]);
+              csvData.push(['']);
+              
+              // Operating Expenses section
+              csvData.push(['OPERATING EXPENSES', '', '', '']);
+              data.operatingExpenses.items.forEach(item => {
+                csvData.push([
+                  `${item.code} - ${item.name}`,
+                  item.current,
+                  item.ytd,
+                  `${item.variance > 0 ? '+' : ''}${item.variance.toFixed(2)}%`
+                ]);
+              });
+              csvData.push([
+                'Total Operating Expenses',
+                data.operatingExpenses.current,
+                data.operatingExpenses.ytd,
+                `${data.operatingExpenses.variance > 0 ? '+' : ''}${data.operatingExpenses.variance.toFixed(2)}%`
+              ]);
+              csvData.push(['']);
+              
+              // Net Profit/Loss
+              csvData.push([
+                `NET ${data.netProfit.current >= 0 ? 'PROFIT' : 'LOSS'}`,
+                data.netProfit.current,
+                data.netProfit.ytd,
+                `${data.netProfit.variance > 0 ? '+' : ''}${data.netProfit.variance.toFixed(2)}%`
+              ]);
+              
+              // Create properly formatted CSV content
+              const csvContent = csvData.map(row => 
+                row.map(cell => {
+                  const value = cell?.toString() || '';
+                  // Escape commas, quotes, and newlines for CSV
+                  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                  }
+                  return value;
+                }).join(',')
+              ).join('\n');
+              
+              // Add UTF-8 BOM for better Excel compatibility
+              const BOM = '\uFEFF';
+              const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `Profit_and_Loss_${format(new Date(dateRange.startDate), 'yyyy-MM-dd')}_to_${format(new Date(dateRange.endDate), 'yyyy-MM-dd')}.csv`;
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
             }}
             disabled={isLoading || !data}
           >
