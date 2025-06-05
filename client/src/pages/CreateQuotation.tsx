@@ -125,7 +125,7 @@ const CreateQuotation: React.FC = () => {
   });
 
   // Fetch customers
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
 
@@ -368,7 +368,7 @@ const CreateQuotation: React.FC = () => {
       </div>
 
       {/* Tabs for Draft Management */}
-      <Tabs defaultValue="create" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create">Create New</TabsTrigger>
           <TabsTrigger value="drafts">Draft Quotations</TabsTrigger>
