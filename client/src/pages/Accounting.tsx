@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { 
   Card, 
   CardContent, 
@@ -1004,7 +1004,7 @@ const Accounting: React.FC = () => {
         expense.paymentMethod
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 60,
@@ -1014,24 +1014,34 @@ const Accounting: React.FC = () => {
       });
 
       doc.save(filename);
-    } else {
-      // For Excel and JSON, create a download link
-      const dataStr = exportFormat === 'json' 
-        ? JSON.stringify(expenseData, null, 2)
-        : expenseData.map((e: any) => ({
-            Date: e.date,
-            Description: e.description,
-            Amount: e.amount,
-            'Account Type': e.accountType,
-            'Cost Center': e.costCenter,
-            'Payment Method': e.paymentMethod,
-            Notes: e.notes
-          }));
-
-      const blob = new Blob([typeof dataStr === 'string' ? dataStr : JSON.stringify(dataStr)], {
-        type: exportFormat === 'json' ? 'application/json' : 'application/vnd.ms-excel'
-      });
+    } else if (exportFormat === 'json') {
+      // JSON export
+      const jsonData = JSON.stringify(expenseData, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else if (exportFormat === 'excel') {
+      // Excel export (CSV format)
+      const excelData = expenseData.map((e: any) => ({
+        Date: e.date,
+        Description: e.description,
+        Amount: e.amount,
+        'Account Type': e.accountType,
+        'Cost Center': e.costCenter,
+        'Payment Method': e.paymentMethod,
+        Notes: e.notes
+      }));
       
+      const csvContent = [
+        Object.keys(excelData[0] || {}).join(','),
+        ...excelData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
