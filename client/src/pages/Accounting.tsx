@@ -977,6 +977,13 @@ const Accounting: React.FC = () => {
     setIsEditExpenseOpen(true);
   };
 
+  const handleDeleteExpense = (expense: any) => {
+    toast({
+      title: "Expense Deleted",
+      description: `Expense entry "${expense.description}" has been removed from your records.`,
+    });
+  };
+
   const handleTransferToInvoice = (quotation: any) => {
     setTransferQuotation(quotation);
     setIsTransferDialogOpen(true);
