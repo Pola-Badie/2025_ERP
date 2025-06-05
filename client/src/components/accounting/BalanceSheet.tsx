@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle, FileDown } from "lucide-react";
+import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle, FileDown, Image, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -24,6 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -144,6 +150,124 @@ const BalanceSheet: React.FC = () => {
     }
   };
 
+  // Export handlers
+  const handleExportPNG = async () => {
+    const reportElement = document.getElementById('balance-sheet-report');
+    if (!reportElement || !data) return;
+
+    setIsPrinting(true);
+    try {
+      const canvas = await html2canvas(reportElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const link = document.createElement('a');
+      link.download = `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+      
+      toast({
+        title: "PNG Generated",
+        description: "Your Balance Sheet image has been downloaded",
+      });
+    } catch (error) {
+      console.error("Error generating PNG:", error);
+      toast({
+        title: "PNG Generation Failed",
+        description: "There was an error generating the image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!data) return;
+    
+    const csvData = [];
+    csvData.push(['PharmaOverseas Balance Sheet']);
+    csvData.push([`As of ${format(new Date(data.date), 'MMMM dd, yyyy')}`]);
+    csvData.push([]);
+    
+    // Assets
+    csvData.push(['ASSETS']);
+    csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
+    
+    data.assets.byCategory.forEach(category => {
+      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      category.accounts.forEach(account => {
+        csvData.push([
+          account.code,
+          account.name,
+          account.openingBalance,
+          account.debits,
+          account.credits,
+          account.closingBalance
+        ]);
+      });
+    });
+    csvData.push(['Total Assets', '', '', '', '', data.assets.total]);
+    csvData.push([]);
+    
+    // Liabilities
+    csvData.push(['LIABILITIES']);
+    csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
+    
+    data.liabilities.byCategory.forEach(category => {
+      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      category.accounts.forEach(account => {
+        csvData.push([
+          account.code,
+          account.name,
+          account.openingBalance,
+          account.debits,
+          account.credits,
+          account.closingBalance
+        ]);
+      });
+    });
+    csvData.push(['Total Liabilities', '', '', '', '', data.liabilities.total]);
+    csvData.push([]);
+    
+    // Equity
+    csvData.push(['EQUITY']);
+    csvData.push(['Account Code', 'Account Name', 'Opening Balance', 'Debits', 'Credits', 'Closing Balance']);
+    
+    data.equity.byCategory.forEach(category => {
+      csvData.push([category.name, '', '', '', '', formatCurrency(category.total)]);
+      category.accounts.forEach(account => {
+        csvData.push([
+          account.code,
+          account.name,
+          account.openingBalance,
+          account.debits,
+          account.credits,
+          account.closingBalance
+        ]);
+      });
+    });
+    csvData.push(['Total Equity', '', '', '', '', data.equity.total]);
+    csvData.push([]);
+    csvData.push(['Total Liabilities & Equity', '', '', '', '', data.liabilities.total + data.equity.total]);
+    
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Excel Export Complete",
+      description: "Your Balance Sheet data has been exported to CSV format",
+    });
+  };
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -193,6 +317,40 @@ const BalanceSheet: React.FC = () => {
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               {isLoading ? 'Generating...' : 'Generate Report'}
             </Button>
+            
+            {data && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={isPrinting}>
+                    <Download className="h-4 w-4 mr-2" />
+                    {isPrinting ? 'Exporting...' : 'Export'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={generatePDF} disabled={isPrinting}>
+                    <FileText className="h-4 w-4 mr-2 text-red-600" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as PDF</span>
+                      <span className="text-xs text-gray-500">Printable document</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPNG} disabled={isPrinting}>
+                    <Image className="h-4 w-4 mr-2 text-blue-600" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as PNG</span>
+                      <span className="text-xs text-gray-500">High-quality image</span>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportExcel} disabled={isPrinting}>
+                    <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Export as Excel</span>
+                      <span className="text-xs text-gray-500">CSV spreadsheet format</span>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </CardContent>
       </Card>
