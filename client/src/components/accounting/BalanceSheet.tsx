@@ -115,11 +115,33 @@ const BalanceSheet: React.FC = () => {
 
     setIsPrinting(true);
     try {
+      // Store original styles
+      const originalHeight = reportElement.style.height;
+      const originalMaxHeight = reportElement.style.maxHeight;
+      const originalOverflow = reportElement.style.overflow;
+      
+      // Temporarily expand to capture full content
+      reportElement.style.height = 'auto';
+      reportElement.style.maxHeight = 'none';
+      reportElement.style.overflow = 'visible';
+      
+      // Wait for layout to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        backgroundColor: '#ffffff',
+        height: reportElement.scrollHeight,
+        windowHeight: reportElement.scrollHeight,
+        allowTaint: true
       });
+      
+      // Restore original styles
+      reportElement.style.height = originalHeight;
+      reportElement.style.maxHeight = originalMaxHeight;
+      reportElement.style.overflow = originalOverflow;
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -129,9 +151,23 @@ const BalanceSheet: React.FC = () => {
       });
       
       const imgWidth = 210; // A4 width in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      // Handle multiple pages if content is long
+      if (imgHeight > 297) { // A4 height is 297mm
+        const pageHeight = 297;
+        const totalPages = Math.ceil(imgHeight / pageHeight);
+        
+        for (let i = 0; i < totalPages; i++) {
+          if (i > 0) pdf.addPage();
+          
+          const yPosition = -(pageHeight * i);
+          pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight);
+        }
+      } else {
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      }
+      
       pdf.save(`Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.pdf`);
       
       toast({
@@ -157,15 +193,37 @@ const BalanceSheet: React.FC = () => {
 
     setIsPrinting(true);
     try {
+      // Store original styles
+      const originalHeight = reportElement.style.height;
+      const originalMaxHeight = reportElement.style.maxHeight;
+      const originalOverflow = reportElement.style.overflow;
+      
+      // Temporarily expand to capture full content
+      reportElement.style.height = 'auto';
+      reportElement.style.maxHeight = 'none';
+      reportElement.style.overflow = 'visible';
+      
+      // Wait for layout to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(reportElement, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        height: reportElement.scrollHeight,
+        windowHeight: reportElement.scrollHeight,
+        allowTaint: true,
+        logging: false
       });
+      
+      // Restore original styles
+      reportElement.style.height = originalHeight;
+      reportElement.style.maxHeight = originalMaxHeight;
+      reportElement.style.overflow = originalOverflow;
       
       const link = document.createElement('a');
       link.download = `Balance_Sheet_${format(new Date(reportDate), 'yyyy-MM-dd')}.png`;
-      link.href = canvas.toDataURL();
+      link.href = canvas.toDataURL('image/png');
       link.click();
       
       toast({
