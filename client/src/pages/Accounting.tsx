@@ -905,8 +905,56 @@ const Accounting: React.FC = () => {
     // Generate filename
     const filename = `expenses_${startDate}_to_${endDate}.${exportFormat === 'excel' ? 'xlsx' : exportFormat}`;
 
-    // Mock expense data for demonstration
-    const expenseData = expenses.filter(expense => {
+    // Generate sample expense data for demonstration
+    const sampleExpenses = [
+      {
+        date: '2025-06-01',
+        description: 'Office Supplies Purchase',
+        amount: 250.00,
+        accountType: 'Office Expenses',
+        costCenter: 'Administration',
+        paymentMethod: 'Credit Card',
+        notes: 'Monthly office supplies restocking'
+      },
+      {
+        date: '2025-06-02',
+        description: 'Laboratory Equipment Maintenance',
+        amount: 1500.00,
+        accountType: 'Maintenance & Repairs',
+        costCenter: 'Quality Control',
+        paymentMethod: 'Bank Transfer',
+        notes: 'Quarterly maintenance of analytical equipment'
+      },
+      {
+        date: '2025-06-03',
+        description: 'Professional Services - Legal Consultation',
+        amount: 800.00,
+        accountType: 'Professional Services',
+        costCenter: 'Legal & Compliance',
+        paymentMethod: 'Check',
+        notes: 'Regulatory compliance consultation'
+      },
+      {
+        date: '2025-06-04',
+        description: 'Raw Materials Transportation',
+        amount: 450.00,
+        accountType: 'Transportation',
+        costCenter: 'Manufacturing',
+        paymentMethod: 'Cash',
+        notes: 'Freight charges for chemical raw materials'
+      },
+      {
+        date: '2025-06-05',
+        description: 'Marketing Campaign - Digital Advertising',
+        amount: 2000.00,
+        accountType: 'Marketing & Advertising',
+        costCenter: 'Sales & Marketing',
+        paymentMethod: 'Credit Card',
+        notes: 'Q2 digital marketing campaign'
+      }
+    ];
+
+    const expenseData = sampleExpenses.filter(expense => {
       const expenseDate = new Date(expense.date);
       return expenseDate >= new Date(startDate) && expenseDate <= new Date(endDate);
     });
@@ -970,7 +1018,7 @@ const Accounting: React.FC = () => {
       // For Excel and JSON, create a download link
       const dataStr = exportFormat === 'json' 
         ? JSON.stringify(expenseData, null, 2)
-        : expenseData.map(e => ({
+        : expenseData.map((e: any) => ({
             Date: e.date,
             Description: e.description,
             Amount: e.amount,
