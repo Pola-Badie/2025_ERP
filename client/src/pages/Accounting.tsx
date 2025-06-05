@@ -71,6 +71,7 @@ import {
   Upload,
   Paperclip,
   Trash2,
+  Image,
   AlertCircle,
   Building,
   Wallet,
@@ -2162,6 +2163,31 @@ const Accounting: React.FC = () => {
                           className="col-span-3"
                           placeholder="0.00"
                         />
+                      </div>
+                      
+                      {/* Document Upload Section - Compact version for simple form */}
+                      <div className="grid gap-4 pt-4 border-t">
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-4 w-4 text-gray-600" />
+                          <Label className="font-medium text-gray-900">Attach Receipt</Label>
+                        </div>
+                        
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                          <div className="text-center">
+                            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                            <div className="text-sm font-medium text-gray-900 mb-1">Upload receipt or invoice</div>
+                            <div className="text-xs text-gray-600 mb-3">
+                              Drag files here or click to browse
+                            </div>
+                            <Button variant="outline" size="sm">
+                              <FileText className="h-3 w-3 mr-1" />
+                              Choose File
+                            </Button>
+                            <div className="text-xs text-gray-500 mt-2">
+                              PDF, JPG, PNG (Max 5MB)
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <DialogFooter>
@@ -4266,6 +4292,70 @@ const Accounting: React.FC = () => {
                         <SelectItem value="annually">Annually</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+                
+                {/* Document Upload Section */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Upload className="h-5 w-5 text-gray-600" />
+                    <Label className="text-lg font-semibold text-gray-900">Supporting Documents</Label>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <div className="text-lg font-medium text-gray-900 mb-2">Upload Receipt or Invoice</div>
+                      <div className="text-sm text-gray-600 mb-4">
+                        Drag and drop files here, or click to browse
+                      </div>
+                      <Button variant="outline" className="mb-3">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Choose Files
+                      </Button>
+                      <div className="text-xs text-gray-500">
+                        Supported formats: PDF, JPG, PNG, DOCX (Max 10MB each)
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Uploaded Files Display */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-green-600" />
+                        <div>
+                          <div className="font-medium text-green-900">receipt_invoice_001.pdf</div>
+                          <div className="text-sm text-green-700">2.3 MB • Uploaded</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Image className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <div className="font-medium text-blue-900">supporting_document.jpg</div>
+                          <div className="text-sm text-blue-700">1.8 MB • Uploaded</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
