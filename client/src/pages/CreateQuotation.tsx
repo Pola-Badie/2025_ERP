@@ -281,6 +281,10 @@ const CreateQuotation: React.FC = () => {
   };
 
   const handleSubmit = (action: 'draft' | 'send') => {
+    console.log('handleSubmit called with action:', action);
+    console.log('selectedCustomer:', selectedCustomer);
+    console.log('items:', items);
+    
     if (!selectedCustomer) {
       toast({
         title: "Error",
@@ -317,6 +321,7 @@ const CreateQuotation: React.FC = () => {
       date: new Date().toISOString()
     };
 
+    console.log('Quotation data to submit:', quotationData);
     createQuotationMutation.mutate(quotationData);
   };
 
@@ -899,9 +904,13 @@ const CreateQuotation: React.FC = () => {
                 <Save className="mr-2 h-4 w-4" />
                 Save as Draft
               </Button>
-              <Button className="w-full" onClick={() => handleSubmit('send')}>
+              <Button 
+                className="w-full" 
+                onClick={() => handleSubmit('send')}
+                disabled={createQuotationMutation.isPending}
+              >
                 <Send className="mr-2 h-4 w-4" />
-                Send to Customer
+                {createQuotationMutation.isPending ? 'Sending...' : 'Send to Customer'}
               </Button>
             </CardContent>
           </Card>
