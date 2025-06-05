@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,7 @@ const CreateQuotation: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<QuotationItem[]>([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('create');
   
   // Transportation fees state
   const [transportationFees, setTransportationFees] = useState(0);
@@ -125,6 +127,30 @@ const CreateQuotation: React.FC = () => {
   // Fetch customers
   const { data: customers = [] } = useQuery({
     queryKey: ['/api/customers'],
+  });
+
+  // Create quotation mutation
+  const createQuotationMutation = useMutation({
+    mutationFn: async (quotationData: any) => {
+      return apiRequest('POST', '/api/quotations', quotationData);
+    },
+    onSuccess: (response, variables) => {
+      const action = variables.status;
+      toast({
+        title: "Success",
+        description: `Quotation ${action === 'draft' ? 'saved as draft' : 'sent to customer'} successfully`
+      });
+      // Invalidate quotations cache
+      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      setLocation('/quotation-history');
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to save quotation. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   // Generate quotation number on component mount
@@ -254,7 +280,7 @@ const CreateQuotation: React.FC = () => {
     return calculateTotal() + calculateTax();
   };
 
-  const handleSubmit = async (action: 'draft' | 'send') => {
+  const handleSubmit = (action: 'draft' | 'send') => {
     if (!selectedCustomer) {
       toast({
         title: "Error",
@@ -273,43 +299,25 @@ const CreateQuotation: React.FC = () => {
       return;
     }
 
-    try {
-      const quotationData = {
-        quotationNumber,
-        type: quotationType,
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
-        validUntil,
-        notes,
-        items,
-        subtotal: calculateSubtotal(),
-        transportationFees,
-        transportationType,
-        transportationNotes,
-        tax: calculateTax(),
-        total: calculateGrandTotal(),
-        status: action === 'draft' ? 'draft' : 'sent',
-        date: new Date().toISOString()
-      };
+    const quotationData = {
+      quotationNumber,
+      type: quotationType,
+      customerId: selectedCustomer.id,
+      customerName: selectedCustomer.name,
+      validUntil,
+      notes,
+      items,
+      subtotal: calculateSubtotal(),
+      transportationFees,
+      transportationType,
+      transportationNotes,
+      tax: calculateTax(),
+      total: calculateGrandTotal(),
+      status: action === 'draft' ? 'draft' : 'sent',
+      date: new Date().toISOString()
+    };
 
-      const response = await apiRequest('POST', '/api/quotations', quotationData);
-      
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: `Quotation ${action === 'draft' ? 'saved as draft' : 'sent to customer'} successfully`
-        });
-        setLocation('/quotation-history');
-      } else {
-        throw new Error('Failed to save quotation');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save quotation. Please try again.",
-        variant: "destructive"
-      });
-    }
+    createQuotationMutation.mutate(quotationData);
   };
 
   const getQuotationTypeIcon = (type: string) => {

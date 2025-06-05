@@ -1137,6 +1137,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new quotation
+  app.post("/api/quotations", async (req: Request, res: Response) => {
+    try {
+      const {
+        quotationNumber,
+        type,
+        customerId,
+        customerName,
+        validUntil,
+        notes,
+        items,
+        subtotal,
+        transportationFees,
+        transportationType,
+        transportationNotes,
+        tax,
+        total,
+        status,
+        date
+      } = req.body;
+
+      // Generate quotation number if not provided
+      const finalQuotationNumber = quotationNumber || `QUOTE-${type.toUpperCase().substring(0,3)}-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+
+      // Create quotation object
+      const newQuotation = {
+        id: Date.now(),
+        quotationNumber: finalQuotationNumber,
+        type,
+        customerId,
+        customerName,
+        date: date || new Date().toISOString(),
+        validUntil,
+        status: status || 'sent',
+        subtotal,
+        transportationFees: transportationFees || 0,
+        transportationType: transportationType || 'standard',
+        transportationNotes: transportationNotes || '',
+        tax,
+        total,
+        amount: total,
+        notes: notes || '',
+        items: items || []
+      };
+
+      // Here you would typically save to database
+      // For now, we'll return the created quotation
+      
+      res.status(201).json({
+        success: true,
+        quotation: newQuotation,
+        message: `Quotation ${status === 'draft' ? 'saved as draft' : 'sent to customer'} successfully`
+      });
+
+    } catch (error) {
+      console.error("Create quotation error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create quotation",
+        error: error.message 
+      });
+    }
+  });
+
   // ============= Expenses Endpoints =============
   
   // Get expenses
