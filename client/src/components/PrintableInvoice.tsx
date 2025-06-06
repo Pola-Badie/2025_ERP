@@ -114,9 +114,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           {/* Other customer details */}
           <div className="space-y-1 pt-2 border-t mt-3">
 
-            {customer.sector && (
-              <p className="text-sm text-gray-600">Sector: {customer.sector}</p>
-            )}
+
             {customer.email && (
               <p className="text-sm text-gray-600">Email: {customer.email}</p>
             )}
