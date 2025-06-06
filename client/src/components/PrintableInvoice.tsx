@@ -11,12 +11,15 @@ interface InvoiceItem {
 }
 
 interface Customer {
+  id?: number;
   name: string;
   company?: string;
+  position?: string;
   email?: string;
   phone?: string;
   address?: string;
-  code?: string;
+  sector?: string;
+  taxNumber?: string;
 }
 
 interface PrintableInvoiceProps {
@@ -81,28 +84,48 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
       <div className="customer-info mb-8">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Bill To:</h3>
         <div className="bg-gray-50 p-4 rounded border">
-          <div className="flex justify-between items-start mb-2">
-            <p className="font-semibold text-lg">{customer.name}</p>
-            <div className="text-right">
-              {customer.code && (
-                <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
-                  Code: {customer.code}
-                </p>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              {customer.company ? (
+                <div>
+                  <h3 className="font-medium text-lg">{customer.company}</h3>
+                  <p className="text-sm text-gray-600">{customer.phone}</p>
+                </div>
+              ) : (
+                <h3 className="font-medium text-lg">{customer.company || customer.name}</h3>
               )}
-              {customer.phone && (
-                <p className="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded">
-                  Mobile: {customer.phone}
-                </p>
-              )}
+              
+              {/* Customer Code and Mobile prominently displayed */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {customer.id && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                    Code: CUST-{String(customer.id).padStart(4, '0')}
+                  </span>
+                )}
+                {customer.phone && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                    Mobile: {customer.phone}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          {customer.company && <p className="text-gray-600">{customer.company}</p>}
-          {customer.address && <p className="text-gray-600 mt-2">{customer.address}</p>}
-          {customer.email && (
-            <p className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">Email:</span> {customer.email}
-            </p>
-          )}
+          
+          {/* Other customer details */}
+          <div className="space-y-1 pt-2 border-t mt-3">
+            {customer.position && (
+              <p className="text-sm text-gray-600">Position: {customer.position}</p>
+            )}
+            {customer.sector && (
+              <p className="text-sm text-gray-600">Sector: {customer.sector}</p>
+            )}
+            {customer.email && (
+              <p className="text-sm text-gray-600">Email: {customer.email}</p>
+            )}
+            {customer.address && (
+              <p className="text-sm text-gray-600">Address: {customer.address}</p>
+            )}
+          </div>
         </div>
       </div>
 

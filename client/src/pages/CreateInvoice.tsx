@@ -2299,12 +2299,15 @@ const CreateInvoice = () => {
                 invoiceNumber={`INV-${getCurrentDraft()?.name || activeInvoiceId}-${new Date().getFullYear()}`}
                 date={new Date()}
                 customer={{
+                  id: form.watch('customer.id'),
                   name: form.watch('customer.name') || '',
                   company: form.watch('customer.company') || '',
+                  position: form.watch('customer.position') || '',
                   email: form.watch('customer.email') || '',
                   phone: form.watch('customer.phone') || '',
                   address: form.watch('customer.address') || '',
-                  code: form.watch('customer.id') ? `CUST-${String(form.watch('customer.id')).padStart(4, '0')}` : '',
+                  sector: form.watch('customer.sector') || '',
+                  taxNumber: form.watch('customer.taxNumber') || '',
                 }}
                 items={form.watch('items').map(item => ({
                   productName: item.productName || '',
