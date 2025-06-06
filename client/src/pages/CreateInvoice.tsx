@@ -271,31 +271,36 @@ const CreateInvoice = () => {
   const watchDiscountValue = form.watch('discountValue');
   const watchPaymentStatus = form.watch('paymentStatus');
 
-  // Fetch customers data
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ['/api/customers', customerSearchTerm],
+  // Fetch all customers data
+  const { data: allCustomers = [] } = useQuery<any[]>({
+    queryKey: ['/api/customers'],
     queryFn: async () => {
-      if (customerSearchTerm.length > 0) {
-        try {
-          const res = await apiRequest('GET', `/api/customers?query=${encodeURIComponent(customerSearchTerm)}`);
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          const text = await res.text();
-          if (!text) return [];
-          return JSON.parse(text);
-        } catch (error) {
-          console.error('Error fetching customers:', error);
-          return [];
+      try {
+        const res = await apiRequest('GET', '/api/customers');
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
+        const text = await res.text();
+        if (!text) return [];
+        return JSON.parse(text);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        return [];
       }
-      return [];
     },
-    enabled: customerSearchTerm.length > 0,
     staleTime: 60000,
     refetchOnWindowFocus: false,
     retry: 1,
   });
+
+  // Filter customers based on search term
+  const customers = allCustomers.filter(customer => 
+    customerSearchTerm.length === 0 || 
+    customer.name?.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.company?.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.phone?.includes(customerSearchTerm) ||
+    customer.email?.toLowerCase().includes(customerSearchTerm.toLowerCase())
+  );
 
   // Fetch all products from inventory
   const { data: allProducts = [] } = useQuery<any[]>({
@@ -1208,21 +1213,35 @@ const CreateInvoice = () => {
                                     key={customer.id}
                                     value={customer.name}
                                     onSelect={() => handleCustomerSelection(customer)}
-                                    className="flex items-center"
+                                    className="flex items-center justify-between py-3"
                                   >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        form.watch('customer.id') === customer.id
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                    <div className="flex flex-col">
-                                      <span>{customer.name}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {customer.phone || customer.email}
-                                      </span>
+                                    <div className="flex items-center flex-1">
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          form.watch('customer.id') === customer.id
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                      <div className="flex flex-col flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">{customer.name}</span>
+                                          {customer.company && (
+                                            <span className="text-xs text-muted-foreground">• {customer.company}</span>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          {customer.phone && (
+                                            <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                                              {customer.phone}
+                                            </span>
+                                          )}
+                                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                            CUST-{String(customer.id).padStart(4, '0')}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </CommandItem>
                                 ))}
