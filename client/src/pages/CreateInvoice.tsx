@@ -71,6 +71,7 @@ const invoiceFormSchema = z.object({
     phone: z.string().optional().or(z.literal('')),
     sector: z.string().optional().or(z.literal('')),
     address: z.string().optional().or(z.literal('')),
+    taxNumber: z.string().optional().or(z.literal('')),
   }),
   items: z.array(z.object({
     productId: z.number().min(1, 'Product is required'),
@@ -96,6 +97,7 @@ const invoiceFormSchema = z.object({
   paymentTerms: z.string().default('0'),
   amountPaid: z.number().min(0),
   paperInvoiceNumber: z.string().optional(),
+  approvalNumber: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -120,6 +122,7 @@ const defaultFormValues: InvoiceFormValues = {
     phone: '',
     sector: '',
     address: '',
+    taxNumber: '',
   },
   items: [
     {
@@ -147,6 +150,7 @@ const defaultFormValues: InvoiceFormValues = {
   paymentTerms: '0',
   amountPaid: 0,
   paperInvoiceNumber: '',
+  approvalNumber: '',
   notes: '',
 };
 
@@ -716,6 +720,7 @@ const CreateInvoice = () => {
       phone: customer.phone || '',
       sector: customer.sector || '',
       address: customer.address || '',
+      taxNumber: customer.taxNumber || '',
     });
   };
 
@@ -729,6 +734,7 @@ const CreateInvoice = () => {
       phone: data.customer.phone,
       sector: data.customer.sector,
       address: data.customer.address,
+      taxNumber: data.customer.taxNumber,
     });
   };
 
@@ -1247,6 +1253,19 @@ const CreateInvoice = () => {
                   />
                   <p className="text-xs text-muted-foreground">
                     Physical invoice reference number for record-keeping
+                  </p>
+                </div>
+
+                {/* Approval Number Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="approvalNumber">Approval No.</Label>
+                  <Input
+                    id="approvalNumber"
+                    placeholder="APP-2025001"
+                    {...form.register('approvalNumber')}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Internal approval reference number
                   </p>
                 </div>
 
