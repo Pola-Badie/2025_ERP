@@ -1297,7 +1297,7 @@ const CreateInvoice = () => {
                         {form.watch('customer.company') ? (
                           <div>
                             <h3 className="font-medium">{form.watch('customer.company')}</h3>
-                            <p className="text-sm">{form.watch('customer.phone')}</p>
+                            <p className="text-sm">{form.watch('customer.name')}</p>
                           </div>
                         ) : (
                           <h3 className="font-medium">{form.watch('customer.company') || form.watch('customer.name')}</h3>
