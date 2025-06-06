@@ -46,7 +46,13 @@ const CustomerCard: React.FC<CustomerCardProps> = ({
 }) => {
   return (
     <div className="border-b border-slate-200 py-4 overflow-hidden">
-      <div className="grid grid-cols-4 md:grid-cols-7 gap-3 md:gap-4 items-center text-sm min-h-[60px]">
+      <div className="grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-4 items-center text-sm min-h-[60px]">
+        <div className="hidden md:block min-w-0">
+          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+            CUST-{String(customer.id).padStart(4, '0')}
+          </span>
+        </div>
+        
         <div className="col-span-2 md:col-span-1 min-w-0">
           <div className="flex flex-col space-y-1">
             <span className="font-medium text-slate-800 truncate">{customer.name}</span>

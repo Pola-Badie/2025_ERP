@@ -26,6 +26,10 @@ interface ApiCustomer {
   totalPurchases: string;
   createdAt: string;
   updatedAt: string;
+  position?: string;
+  company?: string;
+  sector?: string;
+  taxNumber?: string;
 }
 
 const CustomersDemo: React.FC = () => {
@@ -306,7 +310,8 @@ const CustomersDemo: React.FC = () => {
             <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100 hover:scrollbar-thumb-slate-400">
               <div className="min-w-[800px]">
                 {/* Table header */}
-                <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2 sticky top-0 bg-white z-10">
+                <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2 sticky top-0 bg-white z-10">
+                  <div className="hidden md:block">Code</div>
                   <div className="col-span-2 md:col-span-1">Name</div>
                   <div className="hidden md:block">Company</div>
                   <div className="hidden md:block">Sector</div>
