@@ -83,14 +83,20 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
         <div className="bg-gray-50 p-4 rounded border">
           <div className="flex justify-between items-start mb-2">
             <p className="font-semibold text-lg">{customer.name}</p>
-            {customer.code && (
-              <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                Code: {customer.code}
-              </p>
-            )}
+            <div className="text-right">
+              {customer.code && (
+                <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                  Code: {customer.code}
+                </p>
+              )}
+              {customer.phone && (
+                <p className="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                  Mobile: {customer.phone}
+                </p>
+              )}
+            </div>
           </div>
           {customer.company && <p className="text-gray-600">{customer.company}</p>}
-          {customer.phone && <p className="text-gray-800 font-medium mt-1">Mobile No.: {customer.phone}</p>}
           {customer.address && <p className="text-gray-600 mt-2">{customer.address}</p>}
           {customer.email && (
             <p className="text-sm text-gray-600 mt-1">

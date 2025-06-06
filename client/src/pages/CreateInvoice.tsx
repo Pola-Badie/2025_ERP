@@ -2385,14 +2385,20 @@ const CreateInvoice = () => {
                   <div className="bg-gray-50 p-4 rounded border">
                     <div className="flex justify-between items-start mb-2">
                       <p className="font-semibold text-lg">{form.watch('customer.name') || 'No customer selected'}</p>
-                      {form.watch('customer.id') && (
-                        <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                          Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
-                        </p>
-                      )}
+                      <div className="text-right">
+                        {form.watch('customer.id') && (
+                          <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
+                            Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
+                          </p>
+                        )}
+                        {form.watch('customer.phone') && (
+                          <p className="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                            Mobile: {form.watch('customer.phone')}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
-                    {form.watch('customer.phone') && <p className="text-gray-800 font-medium mt-1">Mobile No.: {form.watch('customer.phone')}</p>}
                     {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
                     {form.watch('customer.email') && (
                       <p className="text-sm text-gray-600 mt-1">
