@@ -1178,7 +1178,7 @@ const CreateInvoice = () => {
                             role="combobox"
                             className="w-full justify-between"
                           >
-                            {form.watch('customer.name') || "Select customer..."}
+                            {form.watch('customer.company') || form.watch('customer.name') || "Select customer..."}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
