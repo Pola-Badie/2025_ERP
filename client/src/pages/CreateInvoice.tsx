@@ -1300,7 +1300,7 @@ const CreateInvoice = () => {
                             <p className="text-sm">{form.watch('customer.phone')}</p>
                           </div>
                         ) : (
-                          <h3 className="font-medium">{form.watch('customer.name')}</h3>
+                          <h3 className="font-medium">{form.watch('customer.company') || form.watch('customer.name')}</h3>
                         )}
                         
                         {/* Customer Code and Mobile prominently displayed */}
