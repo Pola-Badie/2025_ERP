@@ -89,7 +89,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
               {customer.company ? (
                 <div>
                   <h3 className="font-medium text-lg">{customer.company}</h3>
-                  <p className="text-sm text-gray-600">{customer.phone}</p>
+                  <p className="text-sm text-gray-600">{customer.name}</p>
                 </div>
               ) : (
                 <h3 className="font-medium text-lg">{customer.company || customer.name}</h3>
