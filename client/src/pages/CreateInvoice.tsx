@@ -1273,15 +1273,32 @@ const CreateInvoice = () => {
                 {/* Customer Details Display */}
                 {form.watch('customer.name') && !isCreatingCustomer && (
                   <div className="border rounded-lg p-4 space-y-2">
-                    <div className="flex justify-between">
-                      {form.watch('customer.company') ? (
-                        <div>
-                          <h3 className="font-medium">{form.watch('customer.company')}</h3>
-                          <p className="text-sm">{form.watch('customer.name')}</p>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        {form.watch('customer.company') ? (
+                          <div>
+                            <h3 className="font-medium">{form.watch('customer.company')}</h3>
+                            <p className="text-sm">{form.watch('customer.name')}</p>
+                          </div>
+                        ) : (
+                          <h3 className="font-medium">{form.watch('customer.name')}</h3>
+                        )}
+                        
+                        {/* Customer Code and Mobile prominently displayed */}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {form.watch('customer.id') && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                              Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
+                            </span>
+                          )}
+                          {form.watch('customer.phone') && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                              Mobile: {form.watch('customer.phone')}
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <h3 className="font-medium">{form.watch('customer.name')}</h3>
-                      )}
+                      </div>
+                      
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -1294,26 +1311,28 @@ const CreateInvoice = () => {
                           phone: '',
                           sector: '',
                           address: '',
+                          taxNumber: '',
                         })}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
-                    {form.watch('customer.position') && (
-                      <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
-                    )}
-                    {form.watch('customer.phone') && (
-                      <p className="text-sm text-muted-foreground">Phone: {form.watch('customer.phone')}</p>
-                    )}
-                    {form.watch('customer.sector') && (
-                      <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
-                    )}
-                    {form.watch('customer.email') && (
-                      <p className="text-sm text-muted-foreground">Email: {form.watch('customer.email')}</p>
-                    )}
-                    {form.watch('customer.address') && (
-                      <p className="text-sm text-muted-foreground">Address: {form.watch('customer.address')}</p>
-                    )}
+                    
+                    {/* Other customer details */}
+                    <div className="space-y-1 pt-2 border-t">
+                      {form.watch('customer.position') && (
+                        <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
+                      )}
+                      {form.watch('customer.sector') && (
+                        <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
+                      )}
+                      {form.watch('customer.email') && (
+                        <p className="text-sm text-muted-foreground">Email: {form.watch('customer.email')}</p>
+                      )}
+                      {form.watch('customer.address') && (
+                        <p className="text-sm text-muted-foreground">Address: {form.watch('customer.address')}</p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
