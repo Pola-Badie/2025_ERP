@@ -16,6 +16,7 @@ interface Customer {
   email?: string;
   phone?: string;
   address?: string;
+  code?: string;
 }
 
 interface PrintableInvoiceProps {
@@ -80,13 +81,22 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
       <div className="customer-info mb-8">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Bill To:</h3>
         <div className="bg-gray-50 p-4 rounded border">
-          <p className="font-semibold text-lg">{customer.name}</p>
-          {customer.company && <p className="text-gray-600">{customer.company}</p>}
-          {customer.address && <p className="text-gray-600 mt-2">{customer.address}</p>}
-          <div className="flex gap-8 mt-2 text-sm">
-            {customer.email && <p><span className="font-medium">Email:</span> {customer.email}</p>}
-            {customer.phone && <p><span className="font-medium">Phone:</span> {customer.phone}</p>}
+          <div className="flex justify-between items-start mb-2">
+            <p className="font-semibold text-lg">{customer.name}</p>
+            {customer.code && (
+              <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                Code: {customer.code}
+              </p>
+            )}
           </div>
+          {customer.company && <p className="text-gray-600">{customer.company}</p>}
+          {customer.phone && <p className="text-gray-800 font-medium mt-1">Phone: {customer.phone}</p>}
+          {customer.address && <p className="text-gray-600 mt-2">{customer.address}</p>}
+          {customer.email && (
+            <p className="text-sm text-gray-600 mt-1">
+              <span className="font-medium">Email:</span> {customer.email}
+            </p>
+          )}
         </div>
       </div>
 

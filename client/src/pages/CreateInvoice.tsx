@@ -2266,6 +2266,7 @@ const CreateInvoice = () => {
                   email: form.watch('customer.email') || '',
                   phone: form.watch('customer.phone') || '',
                   address: form.watch('customer.address') || '',
+                  code: form.watch('customer.id') ? `CUST-${String(form.watch('customer.id')).padStart(4, '0')}` : '',
                 }}
                 items={form.watch('items').map(item => ({
                   productName: item.productName || '',
@@ -2382,13 +2383,22 @@ const CreateInvoice = () => {
                 <div className="customer-info mb-8">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Bill To:</h3>
                   <div className="bg-gray-50 p-4 rounded border">
-                    <p className="font-semibold text-lg">{form.watch('customer.name') || 'No customer selected'}</p>
-                    {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
-                    {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
-                    <div className="flex gap-8 mt-2 text-sm">
-                      {form.watch('customer.email') && <p><span className="font-medium">Email:</span> {form.watch('customer.email')}</p>}
-                      {form.watch('customer.phone') && <p><span className="font-medium">Phone:</span> {form.watch('customer.phone')}</p>}
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-semibold text-lg">{form.watch('customer.name') || 'No customer selected'}</p>
+                      {form.watch('customer.id') && (
+                        <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                          Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
+                        </p>
+                      )}
                     </div>
+                    {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
+                    {form.watch('customer.phone') && <p className="text-gray-800 font-medium mt-1">Phone: {form.watch('customer.phone')}</p>}
+                    {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
+                    {form.watch('customer.email') && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        <span className="font-medium">Email:</span> {form.watch('customer.email')}
+                      </p>
+                    )}
                   </div>
                 </div>
 
