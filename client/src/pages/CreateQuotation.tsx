@@ -116,9 +116,26 @@ const CreateQuotation: React.FC = () => {
   const [vatPercentage, setVatPercentage] = useState(14);
 
   // Calculation functions
-  const calculateSubtotal = () => items.reduce((sum, item) => sum + item.total, 0);
-  const calculateTax = () => (calculateSubtotal() + transportationFees) * (vatPercentage / 100);
-  const calculateGrandTotal = () => calculateSubtotal() + transportationFees + calculateTax();
+  const calculateSubtotal = () => {
+    return items.reduce((sum, item) => {
+      const itemTotal = Number(item.total) || 0;
+      return sum + itemTotal;
+    }, 0);
+  };
+  
+  const calculateTax = () => {
+    const subtotal = calculateSubtotal();
+    const transportFees = Number(transportationFees) || 0;
+    const vatRate = Number(vatPercentage) || 0;
+    return (subtotal + transportFees) * (vatRate / 100);
+  };
+  
+  const calculateGrandTotal = () => {
+    const subtotal = calculateSubtotal();
+    const transportFees = Number(transportationFees) || 0;
+    const tax = calculateTax();
+    return subtotal + transportFees + tax;
+  };
 
   // Calculate totals for component use
   const subtotal = calculateSubtotal();
@@ -236,15 +253,20 @@ const CreateQuotation: React.FC = () => {
       return;
     }
 
+    // Ensure numerical values are properly converted
+    const quantity = Number(newItem.quantity!);
+    const unitPrice = Number(newItem.unitPrice!);
+    const total = quantity * unitPrice;
+
     const item: QuotationItem = {
       id: Date.now().toString(),
       type: quotationType,
       productName: newItem.productName!,
       description: newItem.description || '',
-      quantity: newItem.quantity!,
+      quantity: quantity,
       uom: newItem.uom!,
-      unitPrice: newItem.unitPrice!,
-      total: newItem.quantity! * newItem.unitPrice!,
+      unitPrice: unitPrice,
+      total: total,
       specifications: newItem.specifications,
       rawMaterials: newItem.rawMaterials,
       processingTime: newItem.processingTime,
