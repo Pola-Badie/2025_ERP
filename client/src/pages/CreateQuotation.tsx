@@ -534,8 +534,9 @@ const CreateQuotation: React.FC = () => {
                   <Input 
                     type="number"
                     min="1"
-                    value={newItem.quantity}
-                    onChange={(e) => setNewItem({...newItem, quantity: Number(e.target.value)})}
+                    placeholder="Enter quantity"
+                    value={newItem.quantity || ''}
+                    onChange={(e) => setNewItem({...newItem, quantity: Number(e.target.value) || 0})}
                   />
                 </div>
                 <div>
@@ -565,8 +566,9 @@ const CreateQuotation: React.FC = () => {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={newItem.unitPrice}
-                    onChange={(e) => setNewItem({...newItem, unitPrice: Number(e.target.value)})}
+                    placeholder="0.00"
+                    value={newItem.unitPrice || ''}
+                    onChange={(e) => setNewItem({...newItem, unitPrice: Number(e.target.value) || 0})}
                   />
                 </div>
                 <div>
@@ -586,8 +588,9 @@ const CreateQuotation: React.FC = () => {
                     <Input 
                       type="number"
                       min="1"
-                      value={newItem.processingTime}
-                      onChange={(e) => setNewItem({...newItem, processingTime: Number(e.target.value)})}
+                      placeholder="Enter processing days"
+                      value={newItem.processingTime || ''}
+                      onChange={(e) => setNewItem({...newItem, processingTime: Number(e.target.value) || 0})}
                     />
                   </div>
                   <div>
@@ -750,8 +753,8 @@ const CreateQuotation: React.FC = () => {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={transportationFees}
-                    onChange={(e) => setTransportationFees(Number(e.target.value))}
+                    value={transportationFees || ''}
+                    onChange={(e) => setTransportationFees(Number(e.target.value) || 0)}
                     placeholder="0.00"
                   />
                 </div>
@@ -807,8 +810,8 @@ const CreateQuotation: React.FC = () => {
                   step="0.1"
                   min="0"
                   max="100"
-                  value={vatPercentage}
-                  onChange={(e) => setVatPercentage(Number(e.target.value))}
+                  value={vatPercentage || ''}
+                  onChange={(e) => setVatPercentage(Number(e.target.value) || 0)}
                   placeholder="14"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
@@ -896,6 +899,10 @@ const CreateQuotation: React.FC = () => {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              <Button className="w-full" onClick={() => handleSubmit('send')}>
+                <FileText className="mr-2 h-4 w-4" />
+                Create Quotation
+              </Button>
               <Button variant="outline" className="w-full" onClick={() => setIsPreviewOpen(true)}>
                 <Eye className="mr-2 h-4 w-4" />
                 Preview Quotation
@@ -903,14 +910,6 @@ const CreateQuotation: React.FC = () => {
               <Button variant="outline" className="w-full" onClick={() => handleSubmit('draft')}>
                 <Save className="mr-2 h-4 w-4" />
                 Save as Draft
-              </Button>
-              <Button 
-                className="w-full" 
-                onClick={() => handleSubmit('send')}
-                disabled={createQuotationMutation.isPending}
-              >
-                <Send className="mr-2 h-4 w-4" />
-                {createQuotationMutation.isPending ? 'Sending...' : 'Send to Customer'}
               </Button>
             </CardContent>
           </Card>
