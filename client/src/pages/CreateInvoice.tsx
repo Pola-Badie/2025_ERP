@@ -751,6 +751,7 @@ const CreateInvoice = () => {
         phone: '',
         sector: '',
         address: '',
+        taxNumber: '',
       });
     }
 
@@ -2367,6 +2368,12 @@ const CreateInvoice = () => {
                       <p><span className="font-semibold">Invoice #:</span> INV-{getCurrentDraft()?.name || activeInvoiceId}-{new Date().getFullYear()}</p>
                       <p><span className="font-semibold">Date:</span> {new Date().toLocaleDateString()}</p>
                       <p><span className="font-semibold">Due Date:</span> {new Date(Date.now() + (parseInt(form.watch('paymentTerms') || '0') * 24 * 60 * 60 * 1000)).toLocaleDateString()}</p>
+                      {form.watch('paperInvoiceNumber') && (
+                        <p><span className="font-semibold">Paper Invoice #:</span> {form.watch('paperInvoiceNumber')}</p>
+                      )}
+                      {form.watch('approvalNumber') && (
+                        <p><span className="font-semibold">Approval No.:</span> {form.watch('approvalNumber')}</p>
+                      )}
                     </div>
                   </div>
                 </div>
