@@ -63,6 +63,7 @@ import {
   Mail,
   ChevronDown
 } from 'lucide-react';
+import { PrintableQuotation } from '@/components/PrintableQuotation';
 import { apiRequest } from '@/lib/queryClient';
 
 interface QuotationItem {
@@ -83,9 +84,13 @@ interface QuotationItem {
 interface Customer {
   id: number;
   name: string;
+  company?: string;
+  position?: string;
   email: string;
   phone: string;
   address: string;
+  sector?: string;
+  taxNumber?: string;
 }
 
 const CreateQuotation: React.FC = () => {
@@ -109,6 +114,11 @@ const CreateQuotation: React.FC = () => {
   
   // VAT percentage state
   const [vatPercentage, setVatPercentage] = useState(14);
+
+  // Calculate totals
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+  const vatAmount = (subtotal + transportationFees) * (vatPercentage / 100);
+  const grandTotal = subtotal + transportationFees + vatAmount;
 
   // Item form for adding new items
   const [newItem, setNewItem] = useState<Partial<QuotationItem>>({
@@ -445,7 +455,12 @@ const CreateQuotation: React.FC = () => {
                     <SelectContent>
                       {customers.map((customer: Customer) => (
                         <SelectItem key={customer.id} value={customer.id.toString()}>
-                          {customer.name}
+                          <div className="flex flex-col">
+                            <span className="font-medium">{customer.company || customer.name}</span>
+                            {customer.company && customer.name && (
+                              <span className="text-xs text-muted-foreground">• {customer.name}</span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1415,11 +1430,39 @@ const CreateQuotation: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Quotation content would go here */}
-            <div className="text-center py-8">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Quotation preview content will be displayed here</p>
-            </div>
+            {selectedCustomer ? (
+              <PrintableQuotation
+                quotationNumber={quotationNumber}
+                date={new Date()}
+                validUntil={validUntil}
+                customer={{
+                  id: selectedCustomer.id,
+                  name: selectedCustomer.name,
+                  company: selectedCustomer.company || '',
+                  position: selectedCustomer.position || '',
+                  email: selectedCustomer.email || '',
+                  phone: selectedCustomer.phone || '',
+                  address: selectedCustomer.address || '',
+                  sector: selectedCustomer.sector || '',
+                  taxNumber: selectedCustomer.taxNumber || '',
+                }}
+                items={items}
+                subtotal={subtotal}
+                transportationFees={transportationFees}
+                vatPercentage={vatPercentage}
+                vatAmount={vatAmount}
+                grandTotal={grandTotal}
+                notes={notes}
+                transportationType={transportationType}
+                transportationNotes={transportationNotes}
+                quotationType={quotationType}
+              />
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Please select a customer to preview the quotation</p>
+              </div>
+            )}
           </div>
           
           <DialogFooter>
