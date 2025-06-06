@@ -866,6 +866,7 @@ const CreateInvoice = () => {
   
   // Print and PDF state
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const printRef = React.useRef<HTMLDivElement>(null);
 
@@ -1444,10 +1445,10 @@ const CreateInvoice = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.print()}
+                  onClick={() => setShowPrintPreview(true)}
                 >
                   <Printer className="mr-2 h-4 w-4" />
-                  Print Invoice
+                  Print Preview
                 </Button>
               </div>
             </div>
@@ -2269,6 +2270,191 @@ const CreateInvoice = () => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInvoicePreview(false)}>
+              Close Preview
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Preview Dialog */}
+      <Dialog open={showPrintPreview} onOpenChange={setShowPrintPreview}>
+        <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Print Preview</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const printContent = document.getElementById('print-content');
+                    if (printContent) {
+                      const newWindow = window.open('', '_blank');
+                      if (newWindow) {
+                        newWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Invoice Print</title>
+                              <style>
+                                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                                .printable-invoice { max-width: none; margin: 0; }
+                                @media print {
+                                  body { margin: 0; padding: 0; }
+                                  @page { margin: 0.5in; }
+                                }
+                              </style>
+                            </head>
+                            <body>
+                              ${printContent.innerHTML}
+                            </body>
+                          </html>
+                        `);
+                        newWindow.document.close();
+                        newWindow.print();
+                        newWindow.close();
+                      }
+                    }
+                  }}
+                >
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print
+                </Button>
+              </div>
+            </DialogTitle>
+            <DialogDescription>
+              Preview your invoice before printing
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto border rounded-md bg-gray-50 p-4">
+            <div id="print-content">
+              <div className="printable-invoice bg-white p-8 max-w-4xl mx-auto text-black">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-8 border-b pb-6">
+                  <div className="company-info">
+                    <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
+                    <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
+                    <div className="mt-4 text-sm text-gray-600">
+                      <p>123 Business District</p>
+                      <p>Cairo, Egypt 11511</p>
+                      <p>Phone: +20 2 1234 5678</p>
+                      <p>Email: info@morganerp.com</p>
+                    </div>
+                  </div>
+                  
+                  <div className="invoice-header text-right">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">INVOICE</h2>
+                    <div className="text-sm">
+                      <p><span className="font-semibold">Invoice #:</span> INV-{getCurrentDraft()?.name || activeInvoiceId}-{new Date().getFullYear()}</p>
+                      <p><span className="font-semibold">Date:</span> {new Date().toLocaleDateString()}</p>
+                      <p><span className="font-semibold">Due Date:</span> {new Date(Date.now() + (parseInt(form.watch('paymentTerms') || '0') * 24 * 60 * 60 * 1000)).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Customer Information */}
+                <div className="customer-info mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">Bill To:</h3>
+                  <div className="bg-gray-50 p-4 rounded border">
+                    <p className="font-semibold text-lg">{form.watch('customer.name') || 'No customer selected'}</p>
+                    {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
+                    {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
+                    <div className="flex gap-8 mt-2 text-sm">
+                      {form.watch('customer.email') && <p><span className="font-medium">Email:</span> {form.watch('customer.email')}</p>}
+                      {form.watch('customer.phone') && <p><span className="font-medium">Phone:</span> {form.watch('customer.phone')}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="items-table mb-8">
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Item Description</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Category</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Batch No.</th>
+                        <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Qty</th>
+                        <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Unit Price</th>
+                        <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {form.watch('items').map((item, index) => (
+                        <tr key={index}>
+                          <td className="border border-gray-300 px-4 py-2">{item.productName || ''}</td>
+                          <td className="border border-gray-300 px-4 py-2">{item.category || ''}</td>
+                          <td className="border border-gray-300 px-4 py-2">{item.batchNo || ''}</td>
+                          <td className="border border-gray-300 px-4 py-2 text-center">{item.quantity || 0}</td>
+                          <td className="border border-gray-300 px-4 py-2 text-right">${(item.unitPrice || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-4 py-2 text-right">${(item.total || 0).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Summary */}
+                <div className="summary flex justify-end mb-8">
+                  <div className="w-80">
+                    <div className="bg-gray-50 p-4 rounded border">
+                      <div className="flex justify-between py-2">
+                        <span>Subtotal:</span>
+                        <span>${(form.watch('subtotal') || 0).toFixed(2)}</span>
+                      </div>
+                      {form.watch('discountAmount') > 0 && (
+                        <div className="flex justify-between py-2 text-green-600">
+                          <span>Discount:</span>
+                          <span>-${(form.watch('discountAmount') || 0).toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between py-2">
+                        <span>Tax ({form.watch('taxRate') || 0}%):</span>
+                        <span>${(form.watch('taxAmount') || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between py-2 font-bold text-lg">
+                          <span>Total:</span>
+                          <span>${(form.watch('grandTotal') || 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                      {form.watch('paymentStatus') === 'partial' && (
+                        <>
+                          <div className="flex justify-between py-2 text-green-600">
+                            <span>Amount Paid:</span>
+                            <span>${(form.watch('amountPaid') || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between py-2 text-red-600 font-semibold">
+                            <span>Balance Due:</span>
+                            <span>${((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0)).toFixed(2)}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {form.watch('notes') && (
+                  <div className="notes mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Notes:</h3>
+                    <div className="bg-gray-50 p-4 rounded border">
+                      <p className="text-sm">{form.watch('notes')}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="footer text-center text-sm text-gray-600 border-t pt-4">
+                  <p>Thank you for your business!</p>
+                  <p>Payment Terms: {form.watch('paymentTerms') === '0' ? 'Due Immediately' : `Net ${form.watch('paymentTerms')} Days`}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
               Close Preview
             </Button>
           </DialogFooter>
