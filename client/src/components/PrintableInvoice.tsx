@@ -90,7 +90,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
             )}
           </div>
           {customer.company && <p className="text-gray-600">{customer.company}</p>}
-          {customer.phone && <p className="text-gray-800 font-medium mt-1">Phone: {customer.phone}</p>}
+          {customer.phone && <p className="text-gray-800 font-medium mt-1">Mobile No.: {customer.phone}</p>}
           {customer.address && <p className="text-gray-600 mt-2">{customer.address}</p>}
           {customer.email && (
             <p className="text-sm text-gray-600 mt-1">

@@ -2392,7 +2392,7 @@ const CreateInvoice = () => {
                       )}
                     </div>
                     {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
-                    {form.watch('customer.phone') && <p className="text-gray-800 font-medium mt-1">Phone: {form.watch('customer.phone')}</p>}
+                    {form.watch('customer.phone') && <p className="text-gray-800 font-medium mt-1">Mobile No.: {form.watch('customer.phone')}</p>}
                     {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
                     {form.watch('customer.email') && (
                       <p className="text-sm text-gray-600 mt-1">
