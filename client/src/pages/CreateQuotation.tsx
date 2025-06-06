@@ -115,10 +115,15 @@ const CreateQuotation: React.FC = () => {
   // VAT percentage state
   const [vatPercentage, setVatPercentage] = useState(14);
 
-  // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-  const vatAmount = (subtotal + transportationFees) * (vatPercentage / 100);
-  const grandTotal = subtotal + transportationFees + vatAmount;
+  // Calculation functions
+  const calculateSubtotal = () => items.reduce((sum, item) => sum + item.total, 0);
+  const calculateTax = () => (calculateSubtotal() + transportationFees) * (vatPercentage / 100);
+  const calculateGrandTotal = () => calculateSubtotal() + transportationFees + calculateTax();
+
+  // Calculate totals for component use
+  const subtotal = calculateSubtotal();
+  const vatAmount = calculateTax();
+  const grandTotal = calculateGrandTotal();
 
   // Item form for adding new items
   const [newItem, setNewItem] = useState<Partial<QuotationItem>>({
@@ -272,22 +277,6 @@ const CreateQuotation: React.FC = () => {
       title: "Success",
       description: "Item removed from quotation"
     });
-  };
-
-  const calculateSubtotal = () => {
-    return items.reduce((sum, item) => sum + item.total, 0);
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + transportationFees;
-  };
-
-  const calculateTax = () => {
-    return calculateTotal() * (vatPercentage / 100);
-  };
-
-  const calculateGrandTotal = () => {
-    return calculateTotal() + calculateTax();
   };
 
   const handleSubmit = (action: 'draft' | 'send') => {
