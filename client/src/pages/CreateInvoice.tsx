@@ -1226,9 +1226,9 @@ const CreateInvoice = () => {
                                       />
                                       <div className="flex flex-col flex-1">
                                         <div className="flex items-center gap-2">
-                                          <span className="font-medium">{customer.name}</span>
-                                          {customer.company && (
-                                            <span className="text-xs text-muted-foreground">• {customer.company}</span>
+                                          <span className="font-medium">{customer.company || customer.name}</span>
+                                          {customer.company && customer.name && (
+                                            <span className="text-xs text-muted-foreground">• {customer.name}</span>
                                           )}
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
