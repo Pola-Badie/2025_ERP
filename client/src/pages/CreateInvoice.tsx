@@ -1140,8 +1140,13 @@ const CreateInvoice = () => {
           </TabsContent>
         </Tabs>
         
-        <div className="mt-2 text-sm text-muted-foreground">
-          <p>Your invoice progress is automatically saved. You can work on up to 4 invoices at the same time.</p>
+        <div className="mt-2 flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            <p>Your invoice progress is automatically saved. You can work on up to 4 invoices at the same time.</p>
+          </div>
+          <div className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200">
+            <span className="font-medium">Next Invoice #:</span> INV-{getCurrentDraft()?.name || activeInvoiceId}-{new Date().getFullYear()}
+          </div>
         </div>
       </div>
 
