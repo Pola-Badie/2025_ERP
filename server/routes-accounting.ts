@@ -22,25 +22,23 @@ import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
 export function registerAccountingRoutes(app: Express) {
   // Accounting API Routes
 
-  // Get accounting summary for dashboard
+  // Get accounting summary for dashboard - optimized
   app.get("/api/accounting/summary", async (_req: Request, res: Response) => {
     try {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Get actual counts from database
-      const accountsResult = await db.select().from(accounts);
-      const journalEntriesResult = await db.select().from(journalEntries);
+      // Execute queries in parallel for better performance
+      const [accountsCount, journalEntriesCount, monthlyJournalEntries] = await Promise.all([
+        db.select({ count: sql<number>`count(*)` }).from(accounts),
+        db.select({ count: sql<number>`count(*)` }).from(journalEntries),
+        db.select().from(journalEntries).where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]))
+      ]);
       
-      const totalAccounts = accountsResult.length;
-      const totalJournalEntries = journalEntriesResult.length;
+      const totalAccounts = Number(accountsCount[0]?.count) || 0;
+      const totalJournalEntries = Number(journalEntriesCount[0]?.count) || 0;
 
       // Calculate revenue and expenses from journal entries this month
-      const monthlyJournalEntries = await db
-        .select()
-        .from(journalEntries)
-        .where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]));
-
       let revenueThisMonth = 0;
       let expensesThisMonth = 0;
 
