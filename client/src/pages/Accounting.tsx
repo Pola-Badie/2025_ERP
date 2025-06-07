@@ -88,6 +88,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Select,
   SelectContent,
@@ -1063,6 +1064,169 @@ const Accounting: React.FC = () => {
     });
 
     setIsExpenseExportOpen(false);
+  };
+
+  // Handle purchase export
+  const handlePurchaseExport = () => {
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+
+    let startDate: string;
+    let endDate: string;
+
+    // Use custom date range from purchase export state
+    startDate = purchaseExportStartDate || formatDate(new Date());
+    endDate = purchaseExportEndDate || formatDate(new Date());
+
+    // Generate filename
+    const filename = `purchases_${startDate}_to_${endDate}.${purchaseExportFormat === 'excel' ? 'xlsx' : purchaseExportFormat}`;
+
+    // Generate sample purchase data for demonstration
+    const samplePurchases = [
+      {
+        date: '2025-06-01',
+        invoiceNumber: 'PUR-2025-001',
+        supplier: 'Chemical Supply Co.',
+        description: 'Sodium Chloride 99.9% Pure (Industrial Grade)',
+        quantity: 500,
+        unit: 'kg',
+        unitPrice: 12.50,
+        total: 6250.00,
+        vatAmount: 875.00,
+        paymentMethod: 'Bank Transfer',
+        status: 'Paid'
+      },
+      {
+        date: '2025-06-02',
+        invoiceNumber: 'PUR-2025-002',
+        supplier: 'Lab Equipment Ltd.',
+        description: 'Precision Analytical Balance',
+        quantity: 2,
+        unit: 'units',
+        unitPrice: 850.00,
+        total: 1700.00,
+        vatAmount: 238.00,
+        paymentMethod: 'Credit Card',
+        status: 'Pending'
+      },
+      {
+        date: '2025-06-03',
+        invoiceNumber: 'PUR-2025-003',
+        supplier: 'Packaging Solutions Inc.',
+        description: 'Pharmaceutical Grade Containers',
+        quantity: 1000,
+        unit: 'pieces',
+        unitPrice: 2.50,
+        total: 2500.00,
+        vatAmount: 350.00,
+        paymentMethod: 'Bank Transfer',
+        status: 'Paid'
+      }
+    ];
+
+    const purchaseData = samplePurchases.filter(purchase => {
+      const purchaseDate = new Date(purchase.date);
+      return purchaseDate >= new Date(startDate) && purchaseDate <= new Date(endDate);
+    });
+
+    // Generate export based on format
+    if (purchaseExportFormat === 'csv') {
+      const csvContent = [
+        ['Date', 'Invoice Number', 'Supplier', 'Description', 'Quantity', 'Unit', 'Unit Price', 'Total', 'VAT Amount', 'Payment Method', 'Status'].join(','),
+        ...purchaseData.map(purchase => [
+          purchase.date,
+          purchase.invoiceNumber,
+          `"${purchase.supplier}"`,
+          `"${purchase.description}"`,
+          purchase.quantity,
+          purchase.unit,
+          purchase.unitPrice,
+          purchase.total,
+          purchase.vatAmount,
+          purchase.paymentMethod,
+          purchase.status
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else if (purchaseExportFormat === 'pdf') {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.setTextColor(40, 116, 166);
+      doc.text('Purchase Report', 20, 25);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Date Range: ${startDate} to ${endDate}`, 20, 40);
+      doc.text(`Export Date: ${formatDate(new Date())}`, 20, 50);
+      
+      // Table header
+      const tableColumn = ['Date', 'Invoice #', 'Supplier', 'Description', 'Amount', 'Status'];
+      const tableRows = purchaseData.map(purchase => [
+        purchase.date,
+        purchase.invoiceNumber,
+        purchase.supplier,
+        purchase.description.substring(0, 30) + '...',
+        `$${purchase.total}`,
+        purchase.status
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 60,
+        theme: 'grid',
+        headStyles: { fillColor: [40, 116, 166] },
+        styles: { fontSize: 8 }
+      });
+
+      doc.save(filename);
+    } else if (purchaseExportFormat === 'excel') {
+      // Excel export (CSV format)
+      const excelData = purchaseData.map((p: any) => ({
+        Date: p.date,
+        'Invoice Number': p.invoiceNumber,
+        Supplier: p.supplier,
+        Description: p.description,
+        Quantity: p.quantity,
+        Unit: p.unit,
+        'Unit Price': p.unitPrice,
+        Total: p.total,
+        'VAT Amount': p.vatAmount,
+        'Payment Method': p.paymentMethod,
+        Status: p.status
+      }));
+      
+      const csvContent = [
+        Object.keys(excelData[0] || {}).join(','),
+        ...excelData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+      ].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    toast({
+      title: "Export Complete",
+      description: `Purchase report exported successfully as ${filename}`,
+      variant: "default"
+    });
+
+    setIsPurchaseExportOpen(false);
   };
 
   const recordPayment = (invoice: any) => {
