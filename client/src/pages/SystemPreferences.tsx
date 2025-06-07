@@ -123,12 +123,12 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <div className="relative">
+            <div className="tabs-nav-container">
               {/* Left scroll button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-accent"
+                className="scroll-button left-2 h-8 w-8 p-0"
                 onClick={() => scrollTabs('left')}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -138,18 +138,17 @@ const SystemPreferences: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-accent"
+                className="scroll-button right-2 h-8 w-8 p-0"
                 onClick={() => scrollTabs('right')}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
 
               {/* Scrollable tabs container */}
-              <div className="overflow-hidden px-10">
+              <div className="overflow-hidden px-12">
                 <TabsList 
                   ref={tabsListRef}
                   className="flex w-auto border-b rounded-none h-auto gap-1 overflow-x-auto scrollbar-hide scroll-smooth px-2"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
               <TabsTrigger 
                 value="users" 
