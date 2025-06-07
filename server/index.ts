@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes-new";
 import { registerOrderRoutes } from "./routes-orders";
 import { registerReportsRoutes } from "./routes-reports";
@@ -6,19 +7,23 @@ import { registerCompanyRoutes } from "./routes-company";
 import { registerProcurementRoutes } from "./routes-procurement";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
-import { performanceMiddleware } from "./performance-middleware";
 
 const app = express();
 
-// Apply performance optimizations
-app.use(performanceMiddleware.compression);
-app.use(performanceMiddleware.cacheHeaders);
-app.use(performanceMiddleware.responseTime);
-app.use(performanceMiddleware.memoryOptimization);
-app.use(performanceMiddleware.jsonOptimization);
+// Performance optimizations for faster startup
+app.use(compression());
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+// Optimized cache headers
+app.use((req, res, next) => {
+  if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg)$/)) {
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+  } else if (req.url.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-cache');
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
