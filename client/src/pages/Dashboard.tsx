@@ -22,17 +22,30 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Plus, Thermometer, AlertCircle, Maximize2, BarChart, Minimize2,
+  Plus, Thermometer, AlertCircle, Maximize2, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
   User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
-  Camera, Image, Edit, MoreHorizontal, TrendingUp
+  Camera, Image, Edit, MoreHorizontal, TrendingUp, BarChart2 as BarChartIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  BarChart as RechartsBarChart, 
+  Bar 
+} from 'recharts';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,6 +111,14 @@ const Dashboard: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isExpiringProductsCollapsed, setIsExpiringProductsCollapsed] = useState(false);
   const [isLowStockProductsCollapsed, setIsLowStockProductsCollapsed] = useState(false);
+  
+  // Chart control states
+  const [salesChartExpanded, setSalesChartExpanded] = useState(false);
+  const [distributionChartExpanded, setDistributionChartExpanded] = useState(false);
+  const [categoryChartExpanded, setCategoryChartExpanded] = useState(false);
+  const [salesChartType, setSalesChartType] = useState<'line' | 'bar'>('line');
+  const [distributionChartType, setDistributionChartType] = useState<'pie' | 'bar'>('pie');
+  const [categoryChartType, setCategoryChartType] = useState<'pie' | 'bar'>('pie');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Profile dialog state
@@ -588,63 +609,121 @@ const Dashboard: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">SALES OVERVIEW</CardTitle>
             <div className="flex space-x-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setSalesChartExpanded(true)}
+                title="Expand chart"
+              >
                 <Maximize2 className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <BarChart className="h-3 w-3" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setSalesChartType(salesChartType === 'line' ? 'bar' : 'line')}
+                title="Switch chart type"
+              >
+                <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setSalesChartExpanded(false)}
+                title="Minimize chart"
+              >
                 <Minimize2 className="h-3 w-3" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={salesData}
-                margin={chartSettings.margin}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={props => {
-                    const { x, y, payload } = props;
-                    return (
-                      <g transform={`translate(${x},${y})`}>
-                        <text 
-                          x={0} 
-                          y={0} 
-                          dy={16} 
-                          textAnchor="middle" 
-                          fill="#666" 
-                          fontSize={chartSettings.fontSize}
-                        >
-                          {/* Abbreviate month names to 3 characters */}
-                          {payload.value.substring(0, 3)}
-                        </text>
-                      </g>
-                    );
-                  }}
-                  padding={{ left: 10, right: 10 }}
-                  height={30}
-                  // Use numeric values for small screens, and explicit controls for larger screens
-                  interval={typeof chartSettings.interval === 'number' ? chartSettings.interval : 'preserveStartEnd'}
-                  minTickGap={chartSettings.minTickGap}
-                />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: chartSettings.fontSize }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="#3BCEAC" 
-                  strokeWidth={3}
-                  dot={{ r: 4, stroke: '#3BCEAC', fill: 'white', strokeWidth: 2 }}
-                  activeDot={{ r: 6, stroke: '#3BCEAC', fill: '#3BCEAC' }}
-                />
-              </LineChart>
+              {salesChartType === 'line' ? (
+                <LineChart
+                  data={salesData}
+                  margin={chartSettings.margin}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={props => {
+                      const { x, y, payload } = props;
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text 
+                            x={0} 
+                            y={0} 
+                            dy={16} 
+                            textAnchor="middle" 
+                            fill="#666" 
+                            fontSize={chartSettings.fontSize}
+                          >
+                            {payload.value.substring(0, 3)}
+                          </text>
+                        </g>
+                      );
+                    }}
+                    padding={{ left: 10, right: 10 }}
+                    height={30}
+                    interval={typeof chartSettings.interval === 'number' ? chartSettings.interval : 'preserveStartEnd'}
+                    minTickGap={chartSettings.minTickGap}
+                  />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: chartSettings.fontSize }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="sales" 
+                    stroke="#3BCEAC" 
+                    strokeWidth={3}
+                    dot={{ r: 4, stroke: '#3BCEAC', fill: 'white', strokeWidth: 2 }}
+                    activeDot={{ r: 6, stroke: '#3BCEAC', fill: '#3BCEAC' }}
+                  />
+                </LineChart>
+              ) : (
+                <RechartsBarChart
+                  data={salesData}
+                  margin={chartSettings.margin}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={props => {
+                      const { x, y, payload } = props;
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text 
+                            x={0} 
+                            y={0} 
+                            dy={16} 
+                            textAnchor="middle" 
+                            fill="#666" 
+                            fontSize={chartSettings.fontSize}
+                          >
+                            {payload.value.substring(0, 3)}
+                          </text>
+                        </g>
+                      );
+                    }}
+                    padding={{ left: 10, right: 10 }}
+                    height={30}
+                    interval={typeof chartSettings.interval === 'number' ? chartSettings.interval : 'preserveStartEnd'}
+                    minTickGap={chartSettings.minTickGap}
+                  />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: chartSettings.fontSize }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="sales" 
+                    fill="#3BCEAC" 
+                    radius={[4, 4, 0, 0]}
+                  />
+                </RechartsBarChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
