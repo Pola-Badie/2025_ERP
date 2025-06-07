@@ -29,13 +29,11 @@ export function registerAccountingRoutes(app: Express) {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Get actual counts from database
-      const totalAccounts = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(accounts);
+      const accountsResult = await db.select().from(accounts);
+      const journalEntriesResult = await db.select().from(journalEntries);
       
-      const totalJournalEntries = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(journalEntries);
+      const totalAccounts = accountsResult.length;
+      const totalJournalEntries = journalEntriesResult.length;
 
       // Calculate revenue and expenses from journal entries this month
       const monthlyJournalEntries = await db
@@ -81,8 +79,8 @@ export function registerAccountingRoutes(app: Express) {
       }
 
       res.json({
-        totalAccounts: totalAccounts[0]?.count.toString() || "0",
-        journalEntries: totalJournalEntries[0]?.count.toString() || "0",
+        totalAccounts: totalAccounts.toString(),
+        journalEntries: totalJournalEntries.toString(),
         revenueThisMonth: revenueThisMonth.toFixed(2),
         expensesThisMonth: expensesThisMonth.toFixed(2),
       });
