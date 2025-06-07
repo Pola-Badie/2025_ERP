@@ -116,7 +116,13 @@ export const suppliers = pgTable("suppliers", {
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
+  country: text("country"),
+  taxId: text("tax_id"),
+  paymentTerms: text("payment_terms").default("Net 30"),
+  currency: text("currency").default("USD"),
+  status: text("status").default("active").notNull(),
   materials: text("materials"),
+  totalPurchases: numeric("total_purchases").default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -129,8 +135,15 @@ export const purchaseOrders = pgTable("purchase_orders", {
   userId: integer("user_id").references(() => users.id).notNull(),
   orderDate: timestamp("order_date").defaultNow().notNull(),
   expectedDeliveryDate: date("expected_delivery_date"),
-  status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled'
+  status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled', 'draft', 'sent'
+  subtotal: numeric("subtotal").default("0"),
+  taxRate: numeric("tax_rate").default("0"),
+  taxAmount: numeric("tax_amount").default("0"),
   totalAmount: numeric("total_amount").notNull(),
+  paymentMethod: text("payment_method"),
+  paymentTerms: text("payment_terms"),
+  paymentDueDate: date("payment_due_date"),
+  receivedDate: date("received_date"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -139,11 +152,26 @@ export const purchaseOrders = pgTable("purchase_orders", {
 export const purchaseOrderItems = pgTable("purchase_order_items", {
   id: serial("id").primaryKey(),
   purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id).notNull(),
-  productId: integer("product_id").references(() => products.id).notNull(),
+  productId: integer("product_id").references(() => products.id),
+  productName: text("product_name").notNull(),
+  description: text("description"),
   quantity: integer("quantity").notNull(),
   unitPrice: numeric("unit_price").notNull(),
   total: numeric("total").notNull(),
   receivedQuantity: integer("received_quantity").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Purchase Order Documents
+export const purchaseOrderDocuments = pgTable("purchase_order_documents", {
+  id: serial("id").primaryKey(),
+  purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id).notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Inventory transactions
@@ -408,6 +436,8 @@ export const accountsPayable = pgTable("accounts_payable", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+
+
 // Company Settings for ERP Branding
 export const companySettings = pgTable("company_settings", {
   id: serial("id").primaryKey(),
@@ -538,17 +568,39 @@ export const insertSupplierSchema = createInsertSchema(suppliers).pick({
   city: true,
   state: true,
   zipCode: true,
-  materials: true,
+  country: true,
+  taxId: true,
+  paymentTerms: true,
+  currency: true,
+  status: true,
 });
 
 export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).pick({
   poNumber: true,
   supplierId: true,
-  userId: true,
-  expectedDeliveryDate: true,
+  orderDate: true,
+  expectedDelivery: true,
   status: true,
+  subtotal: true,
+  taxRate: true,
+  taxAmount: true,
   totalAmount: true,
+  paymentMethod: true,
+  paymentTerms: true,
+  paymentDueDate: true,
   notes: true,
+  userId: true,
+});
+
+export const insertPurchaseOrderItemSchema = createInsertSchema(purchaseOrderItems).pick({
+  purchaseOrderId: true,
+  productId: true,
+  productName: true,
+  description: true,
+  quantity: true,
+  unitPrice: true,
+  total: true,
+  receivedQuantity: true,
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoices).pick({
