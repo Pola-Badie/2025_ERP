@@ -18,12 +18,13 @@ import {
   insertPaymentAllocationSchema,
 } from "@shared/schema";
 import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
+import { fastCache, cacheMiddleware } from "./fast-cache";
 
 export function registerAccountingRoutes(app: Express) {
   // Accounting API Routes
 
-  // Get accounting summary for dashboard - optimized
-  app.get("/api/accounting/summary", async (_req: Request, res: Response) => {
+  // Get accounting summary for dashboard - optimized with aggressive caching
+  app.get("/api/accounting/summary", cacheMiddleware("accounting-summary", 45000), async (_req: Request, res: Response) => {
     try {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

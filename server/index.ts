@@ -12,7 +12,10 @@ import { performanceMiddleware } from "./performance-middleware";
 const app = express();
 
 // Performance optimizations for faster startup
-app.use(compression());
+app.use(performanceMiddleware.compression);
+app.use(performanceMiddleware.responseTime);
+app.use(performanceMiddleware.jsonOptimization);
+app.use(performanceMiddleware.cacheHeaders);
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 

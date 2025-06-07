@@ -244,8 +244,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= User Management Endpoints =============
 
-  // Get all users
-  app.get("/api/users", async (_req: Request, res: Response) => {
+  // Get all users with caching
+  app.get("/api/users", cacheMiddleware("users", 60000), async (_req: Request, res: Response) => {
     try {
       const allUsers = await db.select({
         id: users.id,
