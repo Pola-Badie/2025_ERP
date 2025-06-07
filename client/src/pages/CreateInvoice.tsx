@@ -1145,7 +1145,7 @@ const CreateInvoice = () => {
             <p>Your invoice progress is automatically saved. You can work on up to 4 invoices at the same time.</p>
           </div>
           <div className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200">
-            <span className="font-medium">Next Invoice #:</span> INV-{new Date().getFullYear().toString().slice(-2)}{String(new Date().getMonth() + 1).padStart(2, '0')}{String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}
+            <span className="font-medium">Next Invoice #:</span> INV-{String(new Date().getMonth() + 1).padStart(2, '0')}{new Date().getFullYear().toString().slice(-2)}{String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}
           </div>
         </div>
       </div>
@@ -2301,7 +2301,7 @@ const CreateInvoice = () => {
           <div className="flex-1 overflow-auto border rounded-md bg-gray-50 p-4">
             <div ref={printRef}>
               <PrintableInvoice
-                invoiceNumber={`INV-${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}`}
+                invoiceNumber={`INV-${String(new Date().getMonth() + 1).padStart(2, '0')}${new Date().getFullYear().toString().slice(-2)}${String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}`}
                 paperInvoiceNumber={form.watch('paperInvoiceNumber') || ''}
                 approvalNumber={form.watch('approvalNumber') || ''}
                 date={new Date()}
