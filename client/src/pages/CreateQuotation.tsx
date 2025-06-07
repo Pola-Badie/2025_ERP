@@ -65,6 +65,8 @@ import {
 } from 'lucide-react';
 import { PrintableQuotation } from '@/components/PrintableQuotation';
 import { apiRequest } from '@/lib/queryClient';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface QuotationItem {
   id: string;
@@ -375,6 +377,247 @@ const CreateQuotation: React.FC = () => {
       case 'refining': return 'API purification, solvent recovery, and quality enhancement services';
       case 'finished': return 'Ready-to-market pharmaceutical products and medical supplies';
       default: return '';
+    }
+  };
+
+  const generateQuotationPDF = () => {
+    if (!selectedCustomer || items.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select a customer and add items before generating PDF",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    let yPosition = 15;
+
+    // Header - Company Info
+    doc.setFontSize(20);
+    doc.setTextColor(37, 99, 235); // blue-600
+    doc.text('Morgan ERP', 20, yPosition);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(75, 85, 99); // gray-600
+    doc.text('Enterprise Resource Planning System', 20, yPosition + 8);
+    doc.text('123 Business District', 20, yPosition + 16);
+    doc.text('Cairo, Egypt 11511', 20, yPosition + 22);
+    doc.text('Phone: +20 2 1234 5678', 20, yPosition + 28);
+    doc.text('Email: info@morganerp.com', 20, yPosition + 34);
+
+    // Quotation Header (right side)
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('QUOTATION', pageWidth - 20, yPosition, { align: 'right' });
+    
+    doc.setFontSize(10);
+    doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 12, { align: 'right' });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 18, { align: 'right' });
+    doc.text(`Valid Until: ${validUntil}`, pageWidth - 20, yPosition + 24, { align: 'right' });
+    doc.text(`Service Type: ${getQuotationTypeLabel(quotationType)}`, pageWidth - 20, yPosition + 30, { align: 'right' });
+
+    yPosition += 50;
+
+    // Line separator
+    doc.setDrawColor(229, 231, 235);
+    doc.line(20, yPosition, pageWidth - 20, yPosition);
+    yPosition += 15;
+
+    // Customer Information
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Quote For:', 20, yPosition);
+    yPosition += 10;
+
+    // Customer details in a box
+    doc.setDrawColor(229, 231, 235);
+    doc.rect(20, yPosition, pageWidth - 40, 25);
+    doc.setFillColor(248, 250, 252);
+    doc.rect(20, yPosition, pageWidth - 40, 25, 'F');
+
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    if (selectedCustomer.company) {
+      doc.text(selectedCustomer.company, 25, yPosition + 8);
+      doc.setFontSize(9);
+      doc.setTextColor(75, 85, 99);
+      doc.text(selectedCustomer.name, 25, yPosition + 15);
+    } else {
+      doc.text(selectedCustomer.name, 25, yPosition + 8);
+    }
+
+    // Customer badges
+    if (selectedCustomer.id) {
+      doc.setFontSize(8);
+      doc.setTextColor(30, 64, 175);
+      doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, 25, yPosition + 20);
+    }
+    if (selectedCustomer.phone) {
+      doc.setTextColor(22, 101, 52);
+      doc.text(`Mobile: ${selectedCustomer.phone}`, 100, yPosition + 20);
+    }
+
+    yPosition += 35;
+
+    // Items Table
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Quoted Items & Services', 20, yPosition);
+    yPosition += 10;
+
+    const tableData = items.map(item => [
+      item.productName,
+      item.description,
+      item.quantity.toString(),
+      item.uom,
+      `EGP ${item.unitPrice.toFixed(2)}`,
+      `EGP ${item.total.toFixed(2)}`
+    ]);
+
+    (doc as any).autoTable({
+      startY: yPosition,
+      head: [['Item/Service', 'Description', 'Qty', 'UoM', 'Unit Price', 'Total']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [243, 244, 246],
+        textColor: [0, 0, 0],
+        fontSize: 9,
+        fontStyle: 'bold'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [0, 0, 0]
+      },
+      columnStyles: {
+        2: { halign: 'center' },
+        3: { halign: 'center' },
+        4: { halign: 'right' },
+        5: { halign: 'right', fontStyle: 'bold' }
+      },
+      margin: { left: 20, right: 20 }
+    });
+
+    yPosition = (doc as any).lastAutoTable.finalY + 15;
+
+    // Transportation (if applicable)
+    if (transportationFees > 0) {
+      doc.setFontSize(11);
+      doc.text('Transportation & Delivery', 20, yPosition);
+      yPosition += 8;
+      
+      doc.setFillColor(239, 246, 255);
+      doc.rect(20, yPosition, pageWidth - 40, 20, 'F');
+      doc.setDrawColor(219, 234, 254);
+      doc.rect(20, yPosition, pageWidth - 40, 20);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(30, 58, 138);
+      doc.text(getTransportationTypeLabel(transportationType), 25, yPosition + 8);
+      doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 8, { align: 'right' });
+      
+      if (transportationNotes) {
+        doc.text(transportationNotes, 25, yPosition + 15);
+      }
+      
+      yPosition += 25;
+    }
+
+    // Totals Section
+    const totalsX = pageWidth - 80;
+    const totalsWidth = 60;
+    
+    doc.setDrawColor(229, 231, 235);
+    doc.setFillColor(249, 250, 251);
+    
+    // Subtotal
+    doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Subtotal:', totalsX + 3, yPosition + 5);
+    doc.text(`EGP ${subtotal.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
+    yPosition += 8;
+
+    // Transportation
+    if (transportationFees > 0) {
+      doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
+      doc.text('Transportation:', totalsX + 3, yPosition + 5);
+      doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
+      yPosition += 8;
+    }
+
+    // VAT
+    doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
+    doc.text(`VAT (${vatPercentage}%):`, totalsX + 3, yPosition + 5);
+    doc.text(`EGP ${vatAmount.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
+    yPosition += 8;
+
+    // Total
+    doc.setFillColor(37, 99, 235);
+    doc.rect(totalsX, yPosition, totalsWidth, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text('Total Amount:', totalsX + 3, yPosition + 6);
+    doc.text(`EGP ${grandTotal.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 6, { align: 'right' });
+    yPosition += 20;
+
+    // Terms & Conditions
+    if (termsAndConditions) {
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Terms & Conditions', 20, yPosition);
+      yPosition += 8;
+      
+      doc.setFillColor(248, 250, 252);
+      const termsHeight = 40;
+      doc.rect(20, yPosition, pageWidth - 40, termsHeight, 'F');
+      doc.setDrawColor(229, 231, 235);
+      doc.rect(20, yPosition, pageWidth - 40, termsHeight);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(55, 65, 81);
+      const splitTerms = doc.splitTextToSize(termsAndConditions, pageWidth - 50);
+      doc.text(splitTerms, 25, yPosition + 6);
+      yPosition += termsHeight + 10;
+    }
+
+    // Footer
+    if (yPosition < pageHeight - 30) {
+      doc.setDrawColor(229, 231, 235);
+      doc.line(20, pageHeight - 25, pageWidth - 20, pageHeight - 25);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(75, 85, 99);
+      doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 18, { align: 'center' });
+      doc.text(`Generated on ${new Date().toLocaleString()}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
+      doc.text('For questions: info@morganerp.com', pageWidth / 2, pageHeight - 6, { align: 'center' });
+    }
+
+    return doc;
+  };
+
+  const getTransportationTypeLabel = (type?: string) => {
+    switch (type) {
+      case 'standard': return 'Standard Delivery (3-5 days)';
+      case 'express': return 'Express Delivery (1-2 days)';
+      case 'cold-chain': return 'Cold Chain Transport (Temperature Controlled)';
+      case 'hazmat': return 'Hazardous Materials Transport';
+      case 'international': return 'International Shipping';
+      case 'pickup': return 'Customer Pickup';
+      case 'custom': return 'Custom Transportation';
+      default: return 'Standard Delivery';
+    }
+  };
+
+  const getQuotationTypeLabel = (type: string) => {
+    switch (type) {
+      case 'manufacturing': return 'Manufacturing Services';
+      case 'refining': return 'Refining & Processing';
+      case 'finished': return 'Finished Products';
+      default: return 'Pharmaceutical Services';
     }
   };
 
