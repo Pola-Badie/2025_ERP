@@ -946,6 +946,90 @@ export default function Procurement() {
                   </p>
                 </div>
               )}
+
+              {/* Uploaded Documents Section */}
+              <div>
+                <h4 className="font-semibold mb-3">Uploaded Documents</h4>
+                {/* Sample documents - in production this would come from API */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-sm">Receipt_{detailsOrder.poNumber}.pdf</p>
+                        <p className="text-xs text-muted-foreground">
+                          2.4 MB • PDF Document • Uploaded {new Date(detailsOrder.orderDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          // In production, this would download the actual file
+                          toast({
+                            title: "Download Started",
+                            description: `Downloading Receipt_${detailsOrder.poNumber}.pdf`
+                          });
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="font-medium text-sm">Delivery_Note_{detailsOrder.poNumber}.pdf</p>
+                        <p className="text-xs text-muted-foreground">
+                          1.2 MB • PDF Document • Uploaded {new Date(detailsOrder.orderDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          toast({
+                            title: "Download Started",
+                            description: `Downloading Delivery_Note_${detailsOrder.poNumber}.pdf`
+                          });
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Upload more documents option */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Add more documents to this purchase order
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toast({
+                          title: "Upload Feature",
+                          description: "Document upload functionality would be implemented here"
+                        });
+                      }}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Document
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
