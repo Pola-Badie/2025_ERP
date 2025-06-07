@@ -129,6 +129,13 @@ const Accounting: React.FC = () => {
   const [, setLocation] = useLocation();
   const [isNewExpenseOpen, setIsNewExpenseOpen] = useState(false);
   const [isExpenseSettingsOpen, setIsExpenseSettingsOpen] = useState(false);
+  
+  // Financial Reports state
+  const [selectedReportType, setSelectedReportType] = useState("trial-balance");
+  const [reportStartDate, setReportStartDate] = useState("2025-06-01");
+  const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [accountFilter, setAccountFilter] = useState("all");
+  const [reportGenerated, setReportGenerated] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
     date: '',
     description: '',
@@ -1300,6 +1307,126 @@ const Accounting: React.FC = () => {
       variant: "default"
     });
     setIsElectronicReceiptDialogOpen(false);
+  };
+
+  // Financial Reports Generation Function
+  const generateFinancialReport = () => {
+    setReportGenerated(true);
+    toast({
+      title: "Report Generated",
+      description: `${getReportTypeName(selectedReportType)} generated successfully for ${reportStartDate} to ${reportEndDate}`,
+      variant: "default"
+    });
+  };
+
+  const getReportTypeName = (type: string) => {
+    const reportNames: { [key: string]: string } = {
+      "trial-balance": "Trial Balance Report",
+      "general-ledger": "General Ledger Report", 
+      "cash-flow": "Cash Flow Statement",
+      "account-summary": "Account Summary Report",
+      "journal-register": "Journal Register Report",
+      "aging-analysis": "Aging Analysis Report"
+    };
+    return reportNames[type] || "Financial Report";
+  };
+
+  const getReportData = () => {
+    switch (selectedReportType) {
+      case "trial-balance":
+        return {
+          title: "Trial Balance Report",
+          headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
+          rows: [
+            ["1000", "Cash", "$50,000.00", "-"],
+            ["1100", "Accounts Receivable", "$125,000.00", "-"],
+            ["1200", "Inventory - Raw Materials", "$85,000.00", "-"],
+            ["1300", "Equipment", "$200,000.00", "-"],
+            ["2000", "Accounts Payable", "-", "$45,000.00"],
+            ["2100", "Accrued Expenses", "-", "$15,000.00"],
+            ["3000", "Owner's Equity", "-", "$300,000.00"],
+            ["4000", "Sales Revenue", "-", "$180,000.00"],
+            ["5000", "Cost of Goods Sold", "$90,000.00", "-"],
+            ["5100", "Utilities Expense", "$12,000.00", "-"],
+          ],
+          totals: ["Total", "", "$562,000.00", "$540,000.00"]
+        };
+      case "general-ledger":
+        return {
+          title: "General Ledger Report",
+          headers: ["Date", "Account", "Description", "Debit", "Credit", "Balance"],
+          rows: [
+            ["2025-06-01", "1000 - Cash", "Opening Balance", "$50,000.00", "-", "$50,000.00"],
+            ["2025-06-02", "1000 - Cash", "Customer Payment", "$5,000.00", "-", "$55,000.00"],
+            ["2025-06-03", "1000 - Cash", "Supplier Payment", "-", "$2,500.00", "$52,500.00"],
+            ["2025-06-04", "1100 - A/R", "Sales Invoice", "$15,000.00", "-", "$15,000.00"],
+            ["2025-06-05", "1100 - A/R", "Customer Payment", "-", "$5,000.00", "$10,000.00"],
+            ["2025-06-06", "2000 - A/P", "Purchase Invoice", "-", "$8,000.00", "$8,000.00"],
+            ["2025-06-07", "2000 - A/P", "Payment to Supplier", "$2,500.00", "-", "$5,500.00"],
+          ]
+        };
+      case "cash-flow":
+        return {
+          title: "Cash Flow Statement",
+          headers: ["Category", "Description", "Amount"],
+          rows: [
+            ["Operating Activities", "Cash from Customers", "$45,000.00"],
+            ["Operating Activities", "Cash to Suppliers", "($25,000.00)"],
+            ["Operating Activities", "Cash for Operating Expenses", "($8,000.00)"],
+            ["Operating Activities", "Net Cash from Operating", "$12,000.00"],
+            ["Investing Activities", "Equipment Purchase", "($15,000.00)"],
+            ["Investing Activities", "Net Cash from Investing", "($15,000.00)"],
+            ["Financing Activities", "Owner Investment", "$10,000.00"],
+            ["Financing Activities", "Net Cash from Financing", "$10,000.00"],
+          ],
+          totals: ["Net Change in Cash", "", "$7,000.00"]
+        };
+      case "account-summary":
+        return {
+          title: "Account Summary Report",
+          headers: ["Account Type", "Account Count", "Total Debit", "Total Credit", "Net Balance"],
+          rows: [
+            ["Assets", "4", "$460,000.00", "-", "$460,000.00"],
+            ["Liabilities", "2", "-", "$60,000.00", "($60,000.00)"],
+            ["Equity", "1", "-", "$300,000.00", "($300,000.00)"],
+            ["Revenue", "1", "-", "$180,000.00", "($180,000.00)"],
+            ["Expenses", "2", "$102,000.00", "-", "$102,000.00"],
+          ],
+          totals: ["Total", "10", "$562,000.00", "$540,000.00", "$22,000.00"]
+        };
+      case "journal-register":
+        return {
+          title: "Journal Register Report",
+          headers: ["Entry #", "Date", "Description", "Debit Account", "Credit Account", "Amount"],
+          rows: [
+            ["JE001", "2025-06-01", "Cash Sale", "Cash", "Sales Revenue", "$5,000.00"],
+            ["JE002", "2025-06-02", "Purchase Inventory", "Inventory", "Accounts Payable", "$8,000.00"],
+            ["JE003", "2025-06-03", "Pay Supplier", "Accounts Payable", "Cash", "$2,500.00"],
+            ["JE004", "2025-06-04", "Utility Payment", "Utilities Expense", "Cash", "$1,200.00"],
+            ["JE005", "2025-06-05", "Equipment Purchase", "Equipment", "Cash", "$15,000.00"],
+          ]
+        };
+      case "aging-analysis":
+        return {
+          title: "Aging Analysis Report",
+          headers: ["Customer/Vendor", "Current", "30 Days", "60 Days", "90+ Days", "Total"],
+          rows: [
+            ["PharmaCorp Ltd", "$5,000.00", "$2,000.00", "-", "-", "$7,000.00"],
+            ["MediSupply Inc", "$3,000.00", "$1,500.00", "$800.00", "-", "$5,300.00"],
+            ["HealthTech Solutions", "$8,000.00", "-", "-", "$500.00", "$8,500.00"],
+            ["Chemical Suppliers Co", "$2,500.00", "$1,000.00", "-", "-", "$3,500.00"],
+            ["Lab Equipment Ltd", "$4,200.00", "$800.00", "$300.00", "-", "$5,300.00"],
+          ],
+          totals: ["Total Outstanding", "$22,700.00", "$5,300.00", "$1,100.00", "$500.00", "$29,600.00"]
+        };
+      default:
+        return {
+          title: "Financial Report",
+          headers: ["Item", "Value"],
+          rows: [["No data", "Select a report type"]],
+          totals: null
+        };
+    }
   };
 
   const [newOption, setNewOption] = useState({ type: '', value: '' });
@@ -4725,7 +4852,7 @@ const Accounting: React.FC = () => {
                   <div className="lg:col-span-1 space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="report-type">Report Type</Label>
-                      <Select defaultValue="trial-balance">
+                      <Select value={selectedReportType} onValueChange={setSelectedReportType}>
                         <SelectTrigger id="report-type">
                           <SelectValue placeholder="Select report type" />
                         </SelectTrigger>
@@ -4746,7 +4873,8 @@ const Accounting: React.FC = () => {
                         <Input 
                           id="start-date" 
                           type="date" 
-                          defaultValue="2025-06-01"
+                          value={reportStartDate}
+                          onChange={(e) => setReportStartDate(e.target.value)}
                         />
                       </div>
                       <div className="space-y-2">
@@ -4754,14 +4882,15 @@ const Accounting: React.FC = () => {
                         <Input 
                           id="end-date" 
                           type="date" 
-                          defaultValue={new Date().toISOString().split('T')[0]}
+                          value={reportEndDate}
+                          onChange={(e) => setReportEndDate(e.target.value)}
                         />
                       </div>
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="account-filter">Account Filter</Label>
-                      <Select defaultValue="all">
+                      <Select value={accountFilter} onValueChange={setAccountFilter}>
                         <SelectTrigger id="account-filter">
                           <SelectValue placeholder="Filter by account type" />
                         </SelectTrigger>
@@ -4795,7 +4924,7 @@ const Accounting: React.FC = () => {
                     </div>
                     
                     <div className="flex flex-col gap-2 pt-4">
-                      <Button className="w-full">
+                      <Button className="w-full" onClick={generateFinancialReport}>
                         <BarChart className="h-4 w-4 mr-2" />
                         Generate Report
                       </Button>
@@ -4815,97 +4944,58 @@ const Accounting: React.FC = () => {
                   {/* Report Preview */}
                   <div className="lg:col-span-2">
                     <div className="border rounded-lg p-4 bg-gray-50 min-h-[400px]">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Trial Balance Report</h3>
-                        <div className="text-sm text-gray-600">
-                          As of {new Date().toLocaleDateString()}
-                        </div>
-                      </div>
-                      
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="border-b bg-white">
-                              <th className="text-left p-3 font-medium text-gray-700">Account Code</th>
-                              <th className="text-left p-3 font-medium text-gray-700">Account Name</th>
-                              <th className="text-right p-3 font-medium text-gray-700">Debit Balance</th>
-                              <th className="text-right p-3 font-medium text-gray-700">Credit Balance</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white">
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">1000</td>
-                              <td className="p-3">Cash</td>
-                              <td className="p-3 text-right font-semibold">$50,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">1100</td>
-                              <td className="p-3">Accounts Receivable</td>
-                              <td className="p-3 text-right font-semibold">$125,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">1200</td>
-                              <td className="p-3">Inventory - Raw Materials</td>
-                              <td className="p-3 text-right font-semibold">$85,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">1300</td>
-                              <td className="p-3">Equipment</td>
-                              <td className="p-3 text-right font-semibold">$200,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">2000</td>
-                              <td className="p-3">Accounts Payable</td>
-                              <td className="p-3 text-right">-</td>
-                              <td className="p-3 text-right font-semibold">$45,000.00</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">2100</td>
-                              <td className="p-3">Accrued Expenses</td>
-                              <td className="p-3 text-right">-</td>
-                              <td className="p-3 text-right font-semibold">$15,000.00</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">3000</td>
-                              <td className="p-3">Owner's Equity</td>
-                              <td className="p-3 text-right">-</td>
-                              <td className="p-3 text-right font-semibold">$300,000.00</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">4000</td>
-                              <td className="p-3">Sales Revenue</td>
-                              <td className="p-3 text-right">-</td>
-                              <td className="p-3 text-right font-semibold">$180,000.00</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">5000</td>
-                              <td className="p-3">Cost of Goods Sold</td>
-                              <td className="p-3 text-right font-semibold">$90,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="border-b hover:bg-gray-50">
-                              <td className="p-3 font-mono">5100</td>
-                              <td className="p-3">Utilities Expense</td>
-                              <td className="p-3 text-right font-semibold">$12,000.00</td>
-                              <td className="p-3 text-right">-</td>
-                            </tr>
-                            <tr className="bg-gray-100 font-semibold">
-                              <td className="p-3" colSpan={2}>Total</td>
-                              <td className="p-3 text-right">$562,000.00</td>
-                              <td className="p-3 text-right">$540,000.00</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+                      {(() => {
+                        const reportData = getReportData();
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold text-gray-900">{reportData.title}</h3>
+                              <div className="text-sm text-gray-600">
+                                {reportStartDate} to {reportEndDate}
+                              </div>
+                            </div>
+                            
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b bg-white">
+                                    {reportData.headers.map((header, index) => (
+                                      <th key={index} className={`p-3 font-medium text-gray-700 ${index > 1 ? 'text-right' : 'text-left'}`}>
+                                        {header}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white">
+                                  {reportData.rows.map((row, rowIndex) => (
+                                    <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                                      {row.map((cell, cellIndex) => (
+                                        <td key={cellIndex} className={`p-3 ${cellIndex === 0 ? 'font-mono' : ''} ${cellIndex > 1 ? 'text-right font-semibold' : ''}`}>
+                                          {cell}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                  {reportData.totals && (
+                                    <tr className="bg-gray-100 font-semibold">
+                                      {reportData.totals.map((total, index) => (
+                                        <td key={index} className={`p-3 ${index > 1 ? 'text-right' : ''}`}>
+                                          {total}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
 
-                      <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
-                        <span>Report generated from live accounting data</span>
-                        <span>Last updated: {new Date().toLocaleTimeString()}</span>
-                      </div>
+                            <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
+                              <span>Report generated from live accounting data</span>
+                              <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
