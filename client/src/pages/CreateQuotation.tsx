@@ -396,77 +396,77 @@ const CreateQuotation: React.FC = () => {
     let yPosition = 15;
 
     // Header - Company Info
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.setTextColor(37, 99, 235); // blue-600
     doc.text('Morgan ERP', 20, yPosition);
     
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(75, 85, 99); // gray-600
-    doc.text('Enterprise Resource Planning System', 20, yPosition + 8);
-    doc.text('123 Business District', 20, yPosition + 16);
-    doc.text('Cairo, Egypt 11511', 20, yPosition + 22);
-    doc.text('Phone: +20 2 1234 5678', 20, yPosition + 28);
-    doc.text('Email: info@morganerp.com', 20, yPosition + 34);
+    doc.text('Enterprise Resource Planning System', 20, yPosition + 6);
+    doc.text('123 Business District', 20, yPosition + 12);
+    doc.text('Cairo, Egypt 11511', 20, yPosition + 17);
+    doc.text('Phone: +20 2 1234 5678', 20, yPosition + 22);
+    doc.text('Email: info@morganerp.com', 20, yPosition + 27);
 
     // Quotation Header (right side)
-    doc.setFontSize(18);
+    doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
     doc.text('QUOTATION', pageWidth - 20, yPosition, { align: 'right' });
     
-    doc.setFontSize(10);
-    doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 12, { align: 'right' });
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 18, { align: 'right' });
-    doc.text(`Valid Until: ${validUntil}`, pageWidth - 20, yPosition + 24, { align: 'right' });
-    doc.text(`Service Type: ${getQuotationTypeLabel(quotationType)}`, pageWidth - 20, yPosition + 30, { align: 'right' });
+    doc.setFontSize(9);
+    doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 8, { align: 'right' });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 13, { align: 'right' });
+    doc.text(`Valid Until: ${validUntil}`, pageWidth - 20, yPosition + 18, { align: 'right' });
+    doc.text(`Service Type: ${getQuotationTypeLabel(quotationType)}`, pageWidth - 20, yPosition + 23, { align: 'right' });
 
-    yPosition += 50;
+    yPosition += 35;
 
     // Line separator
     doc.setDrawColor(229, 231, 235);
     doc.line(20, yPosition, pageWidth - 20, yPosition);
-    yPosition += 15;
+    yPosition += 10;
 
     // Customer Information
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text('Quote For:', 20, yPosition);
-    yPosition += 10;
+    yPosition += 8;
 
     // Customer details in a box
     doc.setDrawColor(229, 231, 235);
-    doc.rect(20, yPosition, pageWidth - 40, 25);
+    doc.rect(20, yPosition, pageWidth - 40, 18);
     doc.setFillColor(248, 250, 252);
-    doc.rect(20, yPosition, pageWidth - 40, 25, 'F');
+    doc.rect(20, yPosition, pageWidth - 40, 18, 'F');
 
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     if (selectedCustomer.company) {
-      doc.text(selectedCustomer.company, 25, yPosition + 8);
-      doc.setFontSize(9);
+      doc.text(selectedCustomer.company, 25, yPosition + 6);
+      doc.setFontSize(8);
       doc.setTextColor(75, 85, 99);
-      doc.text(selectedCustomer.name, 25, yPosition + 15);
+      doc.text(selectedCustomer.name, 25, yPosition + 11);
     } else {
-      doc.text(selectedCustomer.name, 25, yPosition + 8);
+      doc.text(selectedCustomer.name, 25, yPosition + 6);
     }
 
     // Customer badges
     if (selectedCustomer.id) {
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(30, 64, 175);
-      doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, 25, yPosition + 20);
+      doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, 25, yPosition + 15);
     }
     if (selectedCustomer.phone) {
       doc.setTextColor(22, 101, 52);
-      doc.text(`Mobile: ${selectedCustomer.phone}`, 100, yPosition + 20);
+      doc.text(`Mobile: ${selectedCustomer.phone}`, 100, yPosition + 15);
     }
 
-    yPosition += 35;
+    yPosition += 25;
 
     // Items Table
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
     doc.text('Quoted Items & Services', 20, yPosition);
-    yPosition += 10;
+    yPosition += 6;
 
     const tableData = items.map(item => [
       item.productName,
@@ -485,12 +485,14 @@ const CreateQuotation: React.FC = () => {
       headStyles: {
         fillColor: [243, 244, 246],
         textColor: [0, 0, 0],
-        fontSize: 9,
-        fontStyle: 'bold'
+        fontSize: 8,
+        fontStyle: 'bold',
+        cellPadding: 3
       },
       bodyStyles: {
-        fontSize: 8,
-        textColor: [0, 0, 0]
+        fontSize: 7,
+        textColor: [0, 0, 0],
+        cellPadding: 3
       },
       columnStyles: {
         2: { halign: 'center' },
@@ -501,99 +503,99 @@ const CreateQuotation: React.FC = () => {
       margin: { left: 20, right: 20 }
     });
 
-    yPosition = (doc as any).lastAutoTable.finalY + 15;
+    yPosition = (doc as any).lastAutoTable.finalY + 8;
 
     // Transportation (if applicable)
     if (transportationFees > 0) {
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       doc.text('Transportation & Delivery', 20, yPosition);
-      yPosition += 8;
+      yPosition += 5;
       
       doc.setFillColor(239, 246, 255);
-      doc.rect(20, yPosition, pageWidth - 40, 20, 'F');
+      doc.rect(20, yPosition, pageWidth - 40, 12, 'F');
       doc.setDrawColor(219, 234, 254);
-      doc.rect(20, yPosition, pageWidth - 40, 20);
+      doc.rect(20, yPosition, pageWidth - 40, 12);
       
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setTextColor(30, 58, 138);
-      doc.text(getTransportationTypeLabel(transportationType), 25, yPosition + 8);
-      doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 8, { align: 'right' });
+      doc.text(getTransportationTypeLabel(transportationType), 25, yPosition + 6);
+      doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
       
       if (transportationNotes) {
-        doc.text(transportationNotes, 25, yPosition + 15);
+        doc.text(transportationNotes.substring(0, 50), 25, yPosition + 10);
       }
       
-      yPosition += 25;
+      yPosition += 16;
     }
 
     // Totals Section
-    const totalsX = pageWidth - 80;
-    const totalsWidth = 60;
+    const totalsX = pageWidth - 70;
+    const totalsWidth = 50;
     
     doc.setDrawColor(229, 231, 235);
     doc.setFillColor(249, 250, 251);
     
     // Subtotal
-    doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
-    doc.setFontSize(9);
+    doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
+    doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
-    doc.text('Subtotal:', totalsX + 3, yPosition + 5);
-    doc.text(`EGP ${subtotal.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
-    yPosition += 8;
+    doc.text('Subtotal:', totalsX + 2, yPosition + 4);
+    doc.text(`EGP ${subtotal.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
+    yPosition += 6;
 
     // Transportation
     if (transportationFees > 0) {
-      doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
-      doc.text('Transportation:', totalsX + 3, yPosition + 5);
-      doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
-      yPosition += 8;
+      doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
+      doc.text('Transportation:', totalsX + 2, yPosition + 4);
+      doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
+      yPosition += 6;
     }
 
     // VAT
-    doc.rect(totalsX, yPosition, totalsWidth, 8, 'FD');
-    doc.text(`VAT (${vatPercentage}%):`, totalsX + 3, yPosition + 5);
-    doc.text(`EGP ${vatAmount.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 5, { align: 'right' });
-    yPosition += 8;
+    doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
+    doc.text(`VAT (${vatPercentage}%):`, totalsX + 2, yPosition + 4);
+    doc.text(`EGP ${vatAmount.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
+    yPosition += 6;
 
     // Total
     doc.setFillColor(37, 99, 235);
-    doc.rect(totalsX, yPosition, totalsWidth, 10, 'F');
+    doc.rect(totalsX, yPosition, totalsWidth, 8, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(10);
-    doc.text('Total Amount:', totalsX + 3, yPosition + 6);
-    doc.text(`EGP ${grandTotal.toFixed(2)}`, totalsX + totalsWidth - 3, yPosition + 6, { align: 'right' });
-    yPosition += 20;
+    doc.setFontSize(9);
+    doc.text('Total Amount:', totalsX + 2, yPosition + 5);
+    doc.text(`EGP ${grandTotal.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 5, { align: 'right' });
+    yPosition += 12;
 
     // Terms & Conditions
     if (termsAndConditions) {
-      doc.setFontSize(11);
+      doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
       doc.text('Terms & Conditions', 20, yPosition);
-      yPosition += 8;
+      yPosition += 5;
       
       doc.setFillColor(248, 250, 252);
-      const termsHeight = 40;
+      const termsHeight = 25;
       doc.rect(20, yPosition, pageWidth - 40, termsHeight, 'F');
       doc.setDrawColor(229, 231, 235);
       doc.rect(20, yPosition, pageWidth - 40, termsHeight);
       
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(55, 65, 81);
       const splitTerms = doc.splitTextToSize(termsAndConditions, pageWidth - 50);
-      doc.text(splitTerms, 25, yPosition + 6);
-      yPosition += termsHeight + 10;
+      doc.text(splitTerms.slice(0, 6), 25, yPosition + 4);
+      yPosition += termsHeight + 5;
     }
 
     // Footer
-    if (yPosition < pageHeight - 30) {
+    if (yPosition < pageHeight - 20) {
       doc.setDrawColor(229, 231, 235);
-      doc.line(20, pageHeight - 25, pageWidth - 20, pageHeight - 25);
+      doc.line(20, pageHeight - 18, pageWidth - 20, pageHeight - 18);
       
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setTextColor(75, 85, 99);
-      doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 18, { align: 'center' });
-      doc.text(`Generated on ${new Date().toLocaleString()}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
-      doc.text('For questions: info@morganerp.com', pageWidth / 2, pageHeight - 6, { align: 'center' });
+      doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 13, { align: 'center' });
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+      doc.text('For questions: info@morganerp.com', pageWidth / 2, pageHeight - 4, { align: 'center' });
     }
 
     return doc;
@@ -1759,23 +1761,26 @@ const CreateQuotation: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={() => {
-                const printContent = document.querySelector('.printable-quotation');
-                if (printContent) {
-                  const originalDisplay = document.body.style.display;
-                  const originalContents = document.body.innerHTML;
-                  
-                  document.body.innerHTML = printContent.outerHTML;
-                  document.body.style.display = 'block';
-                  
-                  window.print();
-                  
-                  document.body.innerHTML = originalContents;
-                  document.body.style.display = originalDisplay;
+                try {
+                  const doc = generateQuotationPDF();
+                  doc.save(`Quotation-${quotationNumber}.pdf`);
+                  toast({
+                    title: "PDF Downloaded",
+                    description: `Quotation ${quotationNumber} has been downloaded successfully`,
+                    variant: "default"
+                  });
+                } catch (error) {
+                  console.error('Download error:', error);
+                  toast({
+                    title: "Download Error",
+                    description: "Failed to generate PDF. Please try again.",
+                    variant: "destructive"
+                  });
                 }
               }}
             >
               <FileText className="mr-2 h-4 w-4" />
-              Print
+              Download PDF
             </Button>
             <Button 
               variant="outline" 
