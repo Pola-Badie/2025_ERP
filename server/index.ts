@@ -42,6 +42,7 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
   registerOrderRoutes(app);
+  registerReportsRoutes(app);
   app.use("/api", comprehensiveRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

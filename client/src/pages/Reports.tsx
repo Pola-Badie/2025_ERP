@@ -75,7 +75,7 @@ const ReportsPage: React.FC = () => {
   });
   const [selectedFilter, setSelectedFilter] = useState('all');
   
-  // Data fetching with react-query - will be implemented with actual endpoints
+  // Data fetching with react-query using real API endpoints
   const { data: salesReportData, isLoading: salesLoading } = useQuery<any>({
     queryKey: ['/api/reports/sales', dateRange, selectedFilter],
     enabled: activeTab === 'sales',
@@ -94,6 +94,11 @@ const ReportsPage: React.FC = () => {
   const { data: customerReportData, isLoading: customerLoading } = useQuery<any>({
     queryKey: ['/api/reports/customers', dateRange, selectedFilter],
     enabled: activeTab === 'customers',
+  });
+
+  const { data: productionReportData, isLoading: productionLoading } = useQuery<any>({
+    queryKey: ['/api/reports/production', dateRange, selectedFilter],
+    enabled: activeTab === 'production',
   });
 
   // Export functions
@@ -340,10 +345,20 @@ const ReportsPage: React.FC = () => {
                 <CardDescription>Current Period</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$24,780</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 12%</span> vs previous period
-                </div>
+                {salesLoading ? (
+                  <div className="text-2xl font-bold animate-pulse">Loading...</div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      ${salesReportData?.summary?.totalSales?.toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span className="text-green-500">
+                        ↑ {salesReportData?.summary?.growthRate || 0}%
+                      </span> vs previous period
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card>
@@ -352,10 +367,18 @@ const ReportsPage: React.FC = () => {
                 <CardDescription>Total Orders</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">278</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 8%</span> vs previous period
-                </div>
+                {salesLoading ? (
+                  <div className="text-2xl font-bold animate-pulse">Loading...</div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {salesReportData?.summary?.transactionCount || '0'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span className="text-green-500">↑ 8%</span> vs previous period
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card>
