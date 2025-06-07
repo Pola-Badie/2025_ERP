@@ -11,7 +11,9 @@ import {
   MessageSquareIcon,
   CloudIcon,
   FileTextIcon,
-  SettingsIcon
+  SettingsIcon,
+  ReceiptIcon,
+  FileDownIcon
 } from 'lucide-react';
 
 // Import tab components
@@ -22,6 +24,8 @@ import SecuritySettingsTab from '@/components/system-preferences/SecuritySetting
 import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
+import QuotationPreviewSettingsTab from '@/components/system-preferences/QuotationPreviewSettingsTab';
+import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePreviewSettingsTab';
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
@@ -51,6 +55,10 @@ const SystemPreferences: React.FC = () => {
         return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'eta':
         return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'quotation-preview':
+        return <FileDownIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'invoice-preview':
+        return <ReceiptIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
@@ -94,7 +102,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 border-b rounded-none h-auto gap-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-10 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -145,6 +153,20 @@ const SystemPreferences: React.FC = () => {
                 <span className="hidden lg:inline ml-1 truncate">ETA</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="quotation-preview" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('quotation-preview')}
+                <span className="hidden lg:inline ml-1 truncate">Quote</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="invoice-preview" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('invoice-preview')}
+                <span className="hidden lg:inline ml-1 truncate">Invoice</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="modules" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
@@ -180,6 +202,14 @@ const SystemPreferences: React.FC = () => {
               
               <TabsContent value="eta" className="mt-0">
                 <ETAIntegrationTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="quotation-preview" className="mt-0">
+                <QuotationPreviewSettingsTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="invoice-preview" className="mt-0">
+                <InvoicePreviewSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="modules" className="mt-0">
