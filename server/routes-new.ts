@@ -18,7 +18,7 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import * as cron from "node-cron";
-import { fastCache, cacheMiddleware } from "./fast-cache";
+import { ultraCache, ultraCacheMiddleware } from "./ultra-cache";
 import { eq, and, gte, lte, desc, count, sum, sql } from "drizzle-orm";
 
 // Set up multer for file uploads
@@ -245,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= User Management Endpoints =============
 
   // Get all users with caching
-  app.get("/api/users", cacheMiddleware("users", 60000), async (_req: Request, res: Response) => {
+  app.get("/api/users", ultraCacheMiddleware("users", 300000), async (_req: Request, res: Response) => {
     try {
       const allUsers = await db.select({
         id: users.id,
@@ -533,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= Product Endpoints =============
   
   // Get all products with aggressive caching
-  app.get("/api/products", cacheMiddleware("products", 60000), async (req: Request, res: Response) => {
+  app.get("/api/products", ultraCacheMiddleware("products", 300000), async (req: Request, res: Response) => {
     try {
       let productsQuery = db.select().from(products);
       
@@ -605,7 +605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= Category Endpoints =============
   
   // Get all categories with caching
-  app.get("/api/categories", cacheMiddleware("categories", 120000), async (_req: Request, res: Response) => {
+  app.get("/api/categories", ultraCacheMiddleware("categories", 600000), async (_req: Request, res: Response) => {
     try {
       const result = await db.select().from(productCategories);
       res.json(result);
@@ -684,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============= Customer Endpoints =============
   
   // Get all customers with caching
-  app.get("/api/customers", cacheMiddleware("customers", 45000), async (_req: Request, res: Response) => {
+  app.get("/api/customers", ultraCacheMiddleware("customers", 300000), async (_req: Request, res: Response) => {
     try {
       const result = await db.select().from(customers);
       res.json(result);
