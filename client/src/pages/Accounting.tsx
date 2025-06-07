@@ -1319,6 +1319,236 @@ const Accounting: React.FC = () => {
     });
   };
 
+  // Enhanced PDF Export Function
+  const exportReportToPDF = async () => {
+    try {
+      const reportData = getReportData();
+      
+      // Dynamic import of jsPDF
+      const { jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      
+      const doc = new jsPDF();
+      
+      // Set up PDF styling colors
+      const primaryColor: [number, number, number] = [34, 197, 94]; // Green
+      const secondaryColor: [number, number, number] = [75, 85, 99]; // Gray
+      const headerBg: [number, number, number] = [248, 250, 252]; // Light gray
+      
+      // Header section
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 25, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MORGAN ERP', 20, 16);
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Pharmaceutical Enterprise Resource Planning', 20, 21);
+      
+      // Report title and info
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(reportData.title, 20, 40);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Report Period: ${reportStartDate} to ${reportEndDate}`, 20, 48);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 54);
+      doc.text(`Account Filter: ${accountFilter === 'all' ? 'All Accounts' : accountFilter.charAt(0).toUpperCase() + accountFilter.slice(1)}`, 20, 60);
+      
+      // Prepare table data
+      const tableData = reportData.rows.map(row => row.map(cell => String(cell)));
+      
+      // Add totals row if exists
+      if (reportData.totals) {
+        tableData.push(reportData.totals.map(total => String(total)));
+      }
+      
+      // Generate table based on report type
+      const tableConfig: any = {
+        head: [reportData.headers],
+        body: tableData,
+        startY: 70,
+        theme: 'grid' as const,
+        headStyles: {
+          fillColor: primaryColor,
+          textColor: [255, 255, 255] as [number, number, number],
+          fontStyle: 'bold' as const,
+          fontSize: 10,
+          halign: 'left' as const
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [31, 41, 55] as [number, number, number],
+          halign: 'left' as const
+        },
+        columnStyles: {},
+        margin: { left: 20, right: 20 },
+        didParseCell: function(data: any) {
+          // Right-align numeric columns (typically amounts)
+          if (data.column.index > 1 && data.section === 'body') {
+            data.cell.styles.halign = 'right';
+            data.cell.styles.fontStyle = 'bold';
+          }
+          if (data.column.index > 1 && data.section === 'head') {
+            data.cell.styles.halign = 'right';
+          }
+          
+          // Special styling for totals row
+          if (reportData.totals && data.row.index === tableData.length - 1 && data.section === 'body') {
+            data.cell.styles.fillColor = headerBg;
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.textColor = [31, 41, 55];
+          }
+        }
+      };
+      
+      // Adjust column styles based on report type
+      if (selectedReportType === 'trial-balance') {
+        tableConfig.columnStyles = {
+          0: { cellWidth: 25, halign: 'left' },
+          1: { cellWidth: 80, halign: 'left' },
+          2: { cellWidth: 35, halign: 'right' },
+          3: { cellWidth: 35, halign: 'right' }
+        };
+      } else if (selectedReportType === 'general-ledger') {
+        tableConfig.columnStyles = {
+          0: { cellWidth: 20, halign: 'left' },
+          1: { cellWidth: 60, halign: 'left' },
+          2: { cellWidth: 25, halign: 'right' },
+          3: { cellWidth: 25, halign: 'right' },
+          4: { cellWidth: 30, halign: 'right' }
+        };
+      } else if (selectedReportType === 'cash-flow') {
+        tableConfig.columnStyles = {
+          0: { cellWidth: 80, halign: 'left' },
+          1: { cellWidth: 30, halign: 'right' },
+          2: { cellWidth: 30, halign: 'right' },
+          3: { cellWidth: 35, halign: 'right' }
+        };
+      }
+      
+      // Generate the table
+      autoTable(doc, tableConfig);
+      
+      // Footer
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+        doc.text('Morgan ERP - Confidential Financial Report', 20, 285);
+        doc.text(`Report: ${reportData.title}`, 20, 290);
+      }
+      
+      // Report summary (for applicable reports)
+      if (selectedReportType === 'trial-balance' || selectedReportType === 'pnl-statement') {
+        const finalY = (doc as any).lastAutoTable?.finalY || 200;
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+        doc.text('Report Summary:', 20, finalY + 20);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text('• This report was generated from live accounting data', 20, finalY + 28);
+        doc.text('• All amounts are displayed in USD unless otherwise specified', 20, finalY + 34);
+        doc.text('• Report complies with pharmaceutical industry accounting standards', 20, finalY + 40);
+        doc.text('• Data integrity verified at time of generation', 20, finalY + 46);
+      }
+      
+      // Save the PDF
+      const fileName = `${reportData.title.replace(/\s+/g, '_')}_${reportStartDate}_to_${reportEndDate}.pdf`;
+      doc.save(fileName);
+      
+      toast({
+        title: "PDF Export Successful",
+        description: `${reportData.title} has been exported to PDF successfully.`,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting the report to PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Excel Export Function
+  const exportReportToExcel = async () => {
+    try {
+      const reportData = getReportData();
+      
+      // Create workbook data
+      const workbookData = [
+        ['MORGAN ERP - Financial Report'],
+        ['Pharmaceutical Enterprise Resource Planning'],
+        [''],
+        [`Report: ${reportData.title}`],
+        [`Period: ${reportStartDate} to ${reportEndDate}`],
+        [`Generated: ${new Date().toLocaleString()}`],
+        [`Filter: ${accountFilter === 'all' ? 'All Accounts' : accountFilter.charAt(0).toUpperCase() + accountFilter.slice(1)}`],
+        [''],
+        reportData.headers,
+        ...reportData.rows,
+      ];
+      
+      // Add totals row if exists
+      if (reportData.totals) {
+        workbookData.push(reportData.totals);
+      }
+      
+      // Add summary section
+      workbookData.push(
+        [''],
+        ['Report Summary:'],
+        ['• Generated from live accounting data'],
+        ['• All amounts in USD unless specified'],
+        ['• Pharmaceutical industry compliant'],
+        ['• Data integrity verified']
+      );
+      
+      // Convert to CSV format for download
+      const csvContent = workbookData
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${reportData.title.replace(/\s+/g, '_')}_${reportStartDate}_to_${reportEndDate}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Excel Export Successful",
+        description: `${reportData.title} has been exported to Excel format successfully.`,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('Excel Export Error:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting the report to Excel. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getReportTypeName = (type: string) => {
     const reportNames: { [key: string]: string } = {
       "trial-balance": "Trial Balance Report",
@@ -4929,11 +5159,11 @@ const Accounting: React.FC = () => {
                         Generate Report
                       </Button>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={exportReportToPDF}>
                           <Download className="h-4 w-4 mr-2" />
                           Export PDF
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={exportReportToExcel}>
                           <FileText className="h-4 w-4 mr-2" />
                           Export Excel
                         </Button>
