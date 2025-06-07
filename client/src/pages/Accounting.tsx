@@ -305,6 +305,12 @@ const Accounting: React.FC = () => {
   const [exportEndDate, setExportEndDate] = useState('');
   const [exportFormat, setExportFormat] = useState('excel');
   
+  // Purchase export dialog states
+  const [isPurchaseExportOpen, setIsPurchaseExportOpen] = useState(false);
+  const [purchaseExportStartDate, setPurchaseExportStartDate] = useState('');
+  const [purchaseExportEndDate, setPurchaseExportEndDate] = useState('');
+  const [purchaseExportFormat, setPurchaseExportFormat] = useState('excel');
+  
   // New invoice form state
   const [newInvoiceForm, setNewInvoiceForm] = useState({
     invoiceNumber: '',
@@ -3399,13 +3405,105 @@ const Accounting: React.FC = () => {
                   <ShoppingBag className="h-5 w-5 mr-2 text-blue-600" />
                   <span>Purchases Management</span>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsNewPurchaseOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" /> New Purchase
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Dialog open={isPurchaseExportOpen} onOpenChange={setIsPurchaseExportOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" /> Export
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                      <DialogHeader>
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-100 p-2 rounded-lg">
+                            <Download className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <DialogTitle className="text-xl font-bold text-gray-900">Export Purchases Report</DialogTitle>
+                            <p className="text-sm text-gray-600 mt-1">Choose date range and export format for your purchase data</p>
+                          </div>
+                        </div>
+                      </DialogHeader>
+                      <div className="space-y-6 pt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="purchase-start-date" className="text-sm font-medium text-gray-700">Start Date</Label>
+                            <Input
+                              id="purchase-start-date"
+                              type="date"
+                              value={purchaseExportStartDate}
+                              onChange={(e) => setPurchaseExportStartDate(e.target.value)}
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="purchase-end-date" className="text-sm font-medium text-gray-700">End Date</Label>
+                            <Input
+                              id="purchase-end-date"
+                              type="date"
+                              value={purchaseExportEndDate}
+                              onChange={(e) => setPurchaseExportEndDate(e.target.value)}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">Export Format</Label>
+                          <RadioGroup value={purchaseExportFormat} onValueChange={setPurchaseExportFormat}>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="csv" id="purchase-csv" />
+                              <Label htmlFor="purchase-csv">CSV (Comma Separated Values)</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="excel" id="purchase-excel" />
+                              <Label htmlFor="purchase-excel">Excel (.xlsx)</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="pdf" id="purchase-pdf" />
+                              <Label htmlFor="purchase-pdf">PDF Report</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="text-sm text-gray-600">
+                            <p className="font-medium mb-2">Export will include:</p>
+                            <ul className="list-disc pl-5 space-y-1">
+                              <li>Purchase invoice numbers and ETA references</li>
+                              <li>Supplier information and contact details</li>
+                              <li>Item descriptions and quantities</li>
+                              <li>Payment methods and status</li>
+                              <li>Total amounts and VAT calculations</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter className="pt-6">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsPurchaseExportOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handlePurchaseExport}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export Purchases
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsNewPurchaseOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" /> New Purchase
+                  </Button>
+                </div>
               </CardTitle>
               <CardDescription>Manage purchase records, suppliers, and inventory-related accounting</CardDescription>
             </CardHeader>

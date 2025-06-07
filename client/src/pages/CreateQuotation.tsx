@@ -905,17 +905,7 @@ const CreateQuotation: React.FC = () => {
                 <span>${calculateGrandTotal().toFixed(2)}</span>
               </div>
               
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="font-medium text-blue-900">Quotation Type: {quotationType}</p>
-                    <p className="text-blue-700 mt-1">
-                      {getQuotationTypeDescription(quotationType)}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              
             </CardContent>
           </Card>
 
