@@ -1566,39 +1566,147 @@ const CreateQuotation: React.FC = () => {
                       <head>
                         <title>Quotation-${quotationNumber}</title>
                         <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <style>
                           @page {
                             size: A4;
-                            margin: 0.5in;
+                            margin: 0.75in 0.5in;
+                          }
+                          
+                          * {
+                            box-sizing: border-box;
                           }
                           
                           body { 
                             margin: 0; 
                             padding: 0;
-                            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                            font-size: 12px;
-                            line-height: 1.4;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+                            font-size: 11px;
+                            line-height: 1.3;
                             color: #000;
+                            background: white;
                           }
                           
                           .printable-quotation { 
                             box-shadow: none !important; 
                             margin: 0 !important; 
-                            padding: 20px !important; 
+                            padding: 0 !important; 
                             max-width: none !important; 
                             width: 100% !important; 
+                            background: white !important;
                           }
                           
-                          .bg-gray-50 { 
-                            background-color: #f9f9f9 !important;
+                          /* Header styling */
+                          .company-info {
+                            display: flex !important;
+                            align-items: flex-start !important;
+                            gap: 12px !important;
+                          }
+                          
+                          .company-info img {
+                            width: 48px !important;
+                            height: 48px !important;
+                            object-fit: contain !important;
+                          }
+                          
+                          .company-info h1 {
+                            font-size: 22px !important;
+                            font-weight: bold !important;
+                            color: #2563eb !important;
+                            margin: 0 0 4px 0 !important;
+                          }
+                          
+                          .quotation-header h2 {
+                            font-size: 18px !important;
+                            font-weight: bold !important;
+                            margin: 0 0 8px 0 !important;
+                          }
+                          
+                          /* Customer info styling */
+                          .customer-info .bg-gray-50 { 
+                            background-color: #f8f9fa !important;
+                            -webkit-print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                            padding: 12px !important;
+                            border: 1px solid #e5e7eb !important;
+                            border-radius: 4px !important;
+                          }
+                          
+                          .customer-info h3 {
+                            font-size: 14px !important;
+                            font-weight: 600 !important;
+                            margin: 0 0 6px 0 !important;
+                          }
+                          
+                          /* Badge styling */
+                          .inline-flex {
+                            display: inline-flex !important;
+                            align-items: center !important;
+                            padding: 2px 6px !important;
+                            border-radius: 3px !important;
+                            font-size: 9px !important;
+                            font-weight: 500 !important;
+                            margin: 2px 4px 2px 0 !important;
+                          }
+                          
+                          .bg-blue-100 { 
+                            background-color: #dbeafe !important;
+                            color: #1e40af !important;
                             -webkit-print-color-adjust: exact !important;
                             color-adjust: exact !important;
                           }
                           
+                          .bg-green-100 { 
+                            background-color: #dcfce7 !important;
+                            color: #166534 !important;
+                            -webkit-print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                          }
+                          
+                          /* Table styling */
+                          table { 
+                            page-break-inside: avoid; 
+                            border-collapse: collapse !important;
+                            width: 100% !important;
+                            margin: 8px 0 !important;
+                            font-size: 10px !important;
+                          }
+                          
+                          th, td {
+                            border: 1px solid #374151 !important;
+                            padding: 6px 8px !important;
+                            text-align: left !important;
+                            vertical-align: top !important;
+                          }
+                          
+                          th {
+                            background-color: #f3f4f6 !important;
+                            font-weight: 600 !important;
+                            font-size: 10px !important;
+                            -webkit-print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                          }
+                          
+                          .text-center { text-align: center !important; }
+                          .text-right { text-align: right !important; }
+                          .font-semibold { font-weight: 600 !important; }
+                          .font-medium { font-weight: 500 !important; }
+                          
+                          /* Transportation section */
                           .bg-blue-50 { 
                             background-color: #eff6ff !important;
                             -webkit-print-color-adjust: exact !important;
                             color-adjust: exact !important;
+                            padding: 12px !important;
+                            border: 1px solid #dbeafe !important;
+                            border-radius: 4px !important;
+                            margin: 8px 0 !important;
+                          }
+                          
+                          /* Totals section */
+                          .w-80 {
+                            width: 300px !important;
+                            margin-left: auto !important;
                           }
                           
                           .bg-blue-600 { 
@@ -1606,30 +1714,83 @@ const CreateQuotation: React.FC = () => {
                             color: white !important;
                             -webkit-print-color-adjust: exact !important;
                             color-adjust: exact !important;
+                            padding: 8px 12px !important;
+                            font-weight: bold !important;
                           }
                           
-                          .text-blue-600 { 
-                            color: #2563eb !important;
+                          /* Terms section */
+                          .terms .bg-gray-50 {
+                            background-color: #f8f9fa !important;
                             -webkit-print-color-adjust: exact !important;
                             color-adjust: exact !important;
+                            padding: 12px !important;
+                            border: 1px solid #e5e7eb !important;
+                            border-radius: 4px !important;
                           }
                           
-                          .border { 
-                            border: 1px solid #000 !important; 
+                          .terms pre {
+                            white-space: pre-wrap !important;
+                            font-family: inherit !important;
+                            font-size: 10px !important;
+                            line-height: 1.4 !important;
+                            margin: 0 !important;
                           }
                           
-                          table { 
-                            page-break-inside: avoid; 
-                            border-collapse: collapse;
-                            width: 100%;
-                          }
-                          
+                          /* Footer styling */
                           .footer { 
                             page-break-inside: avoid; 
+                            border-top: 1px solid #e5e7eb !important;
+                            padding-top: 12px !important;
+                            margin-top: 16px !important;
+                            text-align: center !important;
+                            font-size: 10px !important;
+                          }
+                          
+                          /* Spacing */
+                          .mb-8 { margin-bottom: 16px !important; }
+                          .mb-6 { margin-bottom: 12px !important; }
+                          .mb-4 { margin-bottom: 8px !important; }
+                          .mb-3 { margin-bottom: 6px !important; }
+                          .mb-2 { margin-bottom: 4px !important; }
+                          .mt-4 { margin-top: 8px !important; }
+                          .mt-2 { margin-top: 4px !important; }
+                          .mt-1 { margin-top: 2px !important; }
+                          .pb-6 { padding-bottom: 12px !important; }
+                          .pt-2 { padding-top: 4px !important; }
+                          
+                          /* Border utilities */
+                          .border-b { border-bottom: 1px solid #e5e7eb !important; }
+                          .border-t { border-top: 1px solid #e5e7eb !important; }
+                          
+                          /* Text utilities */
+                          .text-sm { font-size: 10px !important; }
+                          .text-xs { font-size: 9px !important; }
+                          .text-lg { font-size: 13px !important; }
+                          .text-2xl { font-size: 18px !important; }
+                          .text-3xl { font-size: 22px !important; }
+                          .text-gray-600 { color: #4b5563 !important; }
+                          .text-gray-700 { color: #374151 !important; }
+                          .text-gray-800 { color: #1f2937 !important; }
+                          .text-blue-600 { color: #2563eb !important; }
+                          .text-blue-700 { color: #1d4ed8 !important; }
+                          .text-blue-900 { color: #1e3a8a !important; }
+                          
+                          /* Flex utilities */
+                          .flex { display: flex !important; }
+                          .justify-between { justify-content: space-between !important; }
+                          .justify-end { justify-content: flex-end !important; }
+                          .items-start { align-items: flex-start !important; }
+                          .items-center { align-items: center !important; }
+                          .gap-4 { gap: 8px !important; }
+                          .gap-2 { gap: 4px !important; }
+                          
+                          /* Prevent page breaks */
+                          .terms, .footer, .transportation-info {
+                            page-break-inside: avoid !important;
                           }
                           
                           h1, h2, h3 {
-                            page-break-after: avoid;
+                            page-break-after: avoid !important;
                           }
                         </style>
                       </head>
@@ -1639,11 +1800,13 @@ const CreateQuotation: React.FC = () => {
                           window.onload = function() {
                             setTimeout(function() {
                               window.print();
-                            }, 1000);
+                            }, 1500);
                           };
                           
                           window.onafterprint = function() {
-                            window.close();
+                            setTimeout(function() {
+                              window.close();
+                            }, 500);
                           };
                         </script>
                       </body>
