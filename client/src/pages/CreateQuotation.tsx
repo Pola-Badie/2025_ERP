@@ -1499,6 +1499,7 @@ const CreateQuotation: React.FC = () => {
                 transportationType={transportationType}
                 transportationNotes={transportationNotes}
                 quotationType={quotationType}
+                termsAndConditions={termsAndConditions}
               />
             ) : (
               <div className="text-center py-8">
