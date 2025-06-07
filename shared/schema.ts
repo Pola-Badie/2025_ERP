@@ -408,6 +408,43 @@ export const accountsPayable = pgTable("accounts_payable", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Company Settings for ERP Branding
+export const companySettings = pgTable("company_settings", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  companyLegalName: text("company_legal_name"),
+  logo: text("logo"), // Path to uploaded logo file
+  tagline: text("tagline"),
+  website: text("website"),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  fax: text("fax"),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  zipCode: text("zip_code").notNull(),
+  country: text("country").default("Egypt").notNull(),
+  taxId: text("tax_id"),
+  vatNumber: text("vat_number"),
+  registrationNumber: text("registration_number"),
+  currency: text("currency").default("USD").notNull(),
+  currencySymbol: text("currency_symbol").default("$").notNull(),
+  timezone: text("timezone").default("Africa/Cairo").notNull(),
+  dateFormat: text("date_format").default("DD/MM/YYYY").notNull(),
+  languageCode: text("language_code").default("en").notNull(),
+  fiscalYearStart: text("fiscal_year_start").default("01-01").notNull(),
+  reportFooter: text("report_footer"),
+  invoiceTerms: text("invoice_terms"),
+  quotationTerms: text("quotation_terms"),
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankRoutingNumber: text("bank_routing_number"),
+  bankSwiftCode: text("bank_swift_code"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // The parent-child relationship for accounts is already handled by the column reference
 // We don't need to explicitly define the foreign key with Drizzle this way
 
@@ -595,6 +632,39 @@ export const insertLoginLogSchema = createInsertSchema(loginLogs).pick({
   success: true,
 });
 
+export const insertCompanySettingsSchema = createInsertSchema(companySettings).pick({
+  companyName: true,
+  companyLegalName: true,
+  logo: true,
+  tagline: true,
+  website: true,
+  email: true,
+  phone: true,
+  fax: true,
+  address: true,
+  city: true,
+  state: true,
+  zipCode: true,
+  country: true,
+  taxId: true,
+  vatNumber: true,
+  registrationNumber: true,
+  currency: true,
+  currencySymbol: true,
+  timezone: true,
+  dateFormat: true,
+  languageCode: true,
+  fiscalYearStart: true,
+  reportFooter: true,
+  invoiceTerms: true,
+  quotationTerms: true,
+  bankName: true,
+  bankAccountNumber: true,
+  bankRoutingNumber: true,
+  bankSwiftCode: true,
+  isActive: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -674,6 +744,9 @@ export type RolePermission = typeof rolePermissions.$inferSelect;
 
 export type InsertLoginLog = z.infer<typeof insertLoginLogSchema>;
 export type LoginLog = typeof loginLogs.$inferSelect;
+
+export type InsertCompanySettings = z.infer<typeof insertCompanySettingsSchema>;
+export type CompanySettings = typeof companySettings.$inferSelect;
 
 // Accounting module schemas and types
 export const insertAccountSchema = createInsertSchema(accounts).pick({
