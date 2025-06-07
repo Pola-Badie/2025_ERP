@@ -26,6 +26,8 @@ import CommunicationSettingsTab from '@/components/system-preferences/Communicat
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
 import { CompanySettingsTab } from '@/components/system-preferences/CompanySettingsTab';
+import { InvoiceSettingsTab } from '@/components/system-preferences/InvoiceSettingsTab';
+import { QuotationSettingsTab } from '@/components/system-preferences/QuotationSettingsTab';
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
