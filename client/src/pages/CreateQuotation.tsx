@@ -1509,9 +1509,77 @@ const CreateQuotation: React.FC = () => {
             )}
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
               Close Preview
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                const printContent = document.querySelector('.printable-quotation');
+                if (printContent) {
+                  const originalDisplay = document.body.style.display;
+                  const originalContents = document.body.innerHTML;
+                  
+                  document.body.innerHTML = printContent.outerHTML;
+                  document.body.style.display = 'block';
+                  
+                  window.print();
+                  
+                  document.body.innerHTML = originalContents;
+                  document.body.style.display = originalDisplay;
+                }
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Print
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                const printContent = document.querySelector('.printable-quotation');
+                if (printContent) {
+                  const printWindow = window.open('', '_blank');
+                  if (printWindow) {
+                    printWindow.document.write(`
+                      <!DOCTYPE html>
+                      <html>
+                        <head>
+                          <title>Quotation ${quotationNumber}</title>
+                          <style>
+                            body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+                            .printable-quotation { box-shadow: none !important; margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; }
+                            .bg-gray-50 { background-color: #f9f9f9 !important; }
+                            .bg-blue-50 { background-color: #eff6ff !important; }
+                            .bg-blue-600 { background-color: #2563eb !important; color: white !important; }
+                            .text-blue-600 { color: #2563eb !important; }
+                            .border { border: 1px solid #000 !important; }
+                            table { page-break-inside: avoid; border-collapse: collapse; }
+                            .footer { page-break-inside: avoid; }
+                          </style>
+                        </head>
+                        <body>
+                          ${printContent.outerHTML}
+                        </body>
+                      </html>
+                    `);
+                    printWindow.document.close();
+                    
+                    setTimeout(() => {
+                      printWindow.print();
+                      setTimeout(() => printWindow.close(), 100);
+                    }, 500);
+                  }
+                }
+                
+                toast({
+                  title: "Download Started",
+                  description: "Quotation PDF download initiated"
+                });
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Download PDF
             </Button>
             <Button onClick={() => {
               setIsPreviewOpen(false);
