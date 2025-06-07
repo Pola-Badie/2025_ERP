@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Calendar, DollarSign, Package, Minus } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Calendar, DollarSign, Package, Minus, Upload, FileText, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -87,6 +87,10 @@ export default function Procurement() {
       total: 0
     }
   ]);
+
+  // Document/Receipt upload state
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
 
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
@@ -229,6 +233,51 @@ export default function Procurement() {
     }));
   };
 
+  // File upload functions
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setUploadedFiles(prev => [...prev, ...fileArray]);
+      
+      // Simulate upload progress
+      fileArray.forEach(file => {
+        const fileName = file.name;
+        setUploadProgress(prev => ({ ...prev, [fileName]: 0 }));
+        
+        // Simulate progress
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 20;
+          setUploadProgress(prev => ({ ...prev, [fileName]: progress }));
+          
+          if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              setUploadProgress(prev => {
+                const newProgress = { ...prev };
+                delete newProgress[fileName];
+                return newProgress;
+              });
+            }, 1000);
+          }
+        }, 200);
+      });
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const resetForm = () => {
     setFormData({
       supplierId: "",
@@ -252,6 +301,8 @@ export default function Procurement() {
       unitPrice: 0,
       total: 0
     }]);
+    setUploadedFiles([]);
+    setUploadProgress({});
     setEditingOrder(null);
   };
 
@@ -719,6 +770,97 @@ export default function Procurement() {
                     placeholder="Additional notes, requirements, or special instructions..."
                     rows={3}
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upload Receipt/Documents */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Documents & Receipts</CardTitle>
+                <CardDescription>
+                  Upload receipts, invoices, or other relevant documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Upload Area */}
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium">Upload Receipt or Documents</p>
+                      <p className="text-sm text-muted-foreground">
+                        Drag and drop files here, or click to browse
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Supports: PDF, JPG, PNG, DOC, DOCX (Max 10MB per file)
+                      </p>
+                    </div>
+                    <Input
+                      type="file"
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="receipt-upload"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => document.getElementById('receipt-upload')?.click()}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Choose Files
+                    </Button>
+                  </div>
+
+                  {/* Uploaded Files List */}
+                  {uploadedFiles.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Uploaded Documents</h4>
+                      <div className="space-y-2">
+                        {uploadedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <FileText className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <p className="font-medium text-sm">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatFileSize(file.size)} • {file.type || 'Unknown type'}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            {/* Progress Bar */}
+                            {uploadProgress[file.name] !== undefined && (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-20 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${uploadProgress[file.name]}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs">{uploadProgress[file.name]}%</span>
+                              </div>
+                            )}
+                            
+                            {/* Actions */}
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
