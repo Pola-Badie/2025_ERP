@@ -630,15 +630,6 @@ const Dashboard: React.FC = () => {
               >
                 <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setSalesChartExpanded(false)}
-                title="Minimize chart"
-              >
-                <Minimize2 className="h-3 w-3" />
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="p-0 h-[220px]">
@@ -754,15 +745,7 @@ const Dashboard: React.FC = () => {
               >
                 <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setDistributionChartExpanded(false)}
-                title="Minimize chart"
-              >
-                <Minimize2 className="h-3 w-3" />
-              </Button>
+
             </div>
           </CardHeader>
           <CardContent className="p-2 h-[190px]">
@@ -831,15 +814,7 @@ const Dashboard: React.FC = () => {
               >
                 <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setCategoryChartExpanded(false)}
-                title="Minimize chart"
-              >
-                <Minimize2 className="h-3 w-3" />
-              </Button>
+
             </div>
           </CardHeader>
           <CardContent className="p-2 h-[190px]">
@@ -2127,9 +2102,9 @@ const Dashboard: React.FC = () => {
 
               {/* Enlarged Chart Display */}
               <div className="h-[calc(100%-4rem)]">
-                <ResponsiveContainer width="100%" height="100%">
-                  {expandedChart === 'sales' && (
-                    salesChartType === 'line' ? (
+                {expandedChart === 'sales' && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {salesChartType === 'line' ? (
                       <LineChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis 
@@ -2182,22 +2157,24 @@ const Dashboard: React.FC = () => {
                         />
                         <Bar dataKey="sales" fill="#3BCEAC" radius={[6, 6, 0, 0]} />
                       </RechartsBarChart>
-                    )
-                  )}
+                    )}
+                  </ResponsiveContainer>
+                )}
 
-                  {expandedChart === 'distribution' && (
-                    distributionChartType === 'pie' ? (
+                {expandedChart === 'distribution' && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {distributionChartType === 'pie' ? (
                       <PieChart>
                         <Pie
                           data={salesDistributionData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={80}
-                          outerRadius={200}
+                          innerRadius={60}
+                          outerRadius={180}
                           paddingAngle={2}
                           dataKey="value"
-                          label={({ name, percent, value }) => `${name}: ${value}% (${(percent * 100).toFixed(1)}%)`}
-                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                          labelLine={false}
                         >
                           {salesDistributionData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
@@ -2235,22 +2212,24 @@ const Dashboard: React.FC = () => {
                         />
                         <Bar dataKey="value" fill="#3BCEAC" radius={[6, 6, 0, 0]} />
                       </RechartsBarChart>
-                    )
-                  )}
+                    )}
+                  </ResponsiveContainer>
+                )}
 
-                  {expandedChart === 'category' && (
-                    categoryChartType === 'pie' ? (
+                {expandedChart === 'category' && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    {categoryChartType === 'pie' ? (
                       <PieChart>
                         <Pie
                           data={categoryPerformanceData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={80}
-                          outerRadius={200}
+                          innerRadius={60}
+                          outerRadius={180}
                           paddingAngle={2}
                           dataKey="value"
-                          label={({ name, percent, value }) => `${name}: ${value}% (${(percent * 100).toFixed(1)}%)`}
-                          labelLine={true}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                          labelLine={false}
                         >
                           {categoryPerformanceData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
@@ -2288,9 +2267,9 @@ const Dashboard: React.FC = () => {
                         />
                         <Bar dataKey="value" fill="#0077B6" radius={[6, 6, 0, 0]} />
                       </RechartsBarChart>
-                    )
-                  )}
-                </ResponsiveContainer>
+                    )}
+                  </ResponsiveContainer>
+                )}
               </div>
             </div>
           </div>
