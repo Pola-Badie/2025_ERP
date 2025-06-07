@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes-new";
 import { registerOrderRoutes } from "./routes-orders";
+import { registerReportsRoutes } from "./routes-reports";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
 
