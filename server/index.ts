@@ -7,6 +7,7 @@ import { registerCompanyRoutes } from "./routes-company";
 import { registerProcurementRoutes } from "./routes-procurement";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
+import { performanceMiddleware } from "./performance-middleware";
 
 const app = express();
 

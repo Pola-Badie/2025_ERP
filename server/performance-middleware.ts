@@ -1,37 +1,37 @@
 import { Request, Response, NextFunction } from 'express';
 import compression from 'compression';
 
-// Performance optimization middleware
+// High-performance middleware stack for lightning-fast responses
 export const performanceMiddleware = {
-  // Compression middleware for faster response times
+  // Aggressive compression for smaller payloads
   compression: compression({
-    level: 6,
-    threshold: 1024,
     filter: (req: Request, res: Response) => {
-      if (req.headers['x-no-compression']) {
-        return false;
-      }
+      if (req.headers['x-no-compression']) return false;
       return compression.filter(req, res);
-    }
+    },
+    level: 6,
+    threshold: 1024
   }),
 
-  // Cache headers for static assets
+  // Cache headers for static content
   cacheHeaders: (req: Request, res: Response, next: NextFunction) => {
-    if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg)$/)) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
-    } else if (req.url.startsWith('/api/')) {
-      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    if (req.url.includes('/api/')) {
+      res.set({
+        'Cache-Control': 'public, max-age=30',
+        'ETag': `"${Date.now()}"`,
+        'Last-Modified': new Date().toUTCString()
+      });
     }
     next();
   },
 
-  // Response time tracking
+  // Response time optimization
   responseTime: (req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - start;
-      if (!res.headersSent) {
-        res.setHeader('X-Response-Time', `${duration}ms`);
+      if (duration > 100) {
+        console.warn(`Slow response: ${req.method} ${req.url} took ${duration}ms`);
       }
     });
     next();
@@ -40,62 +40,33 @@ export const performanceMiddleware = {
   // JSON optimization
   jsonOptimization: (req: Request, res: Response, next: NextFunction) => {
     const originalJson = res.json;
-    res.json = function(obj: any) {
-      // Remove null values and optimize response size
-      const optimized = JSON.parse(JSON.stringify(obj, (key, value) => {
-        if (value === null) return undefined;
-        return value;
-      }));
-      return originalJson.call(this, optimized);
+    res.json = function(data: any) {
+      res.set('Content-Type', 'application/json; charset=utf-8');
+      return originalJson.call(this, data);
     };
     next();
   },
 
-  // Memory optimization headers
+  // Memory optimization
   memoryOptimization: (req: Request, res: Response, next: NextFunction) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.on('finish', () => {
+      if (global.gc) {
+        global.gc();
+      }
+    });
     next();
   }
 };
 
-// Database query optimization utilities
+// Database query optimization helpers
 export const queryOptimization = {
-  // Batch queries to reduce database roundtrips
-  batchQuery: async (queries: (() => Promise<any>)[]) => {
-    return Promise.all(queries.map(query => query()));
-  },
-
-  // Result caching for frequently accessed data
-  resultCache: new Map<string, { data: any; timestamp: number; ttl: number }>(),
-
-  getCached: (key: string): any | null => {
-    const cached = queryOptimization.resultCache.get(key);
-    if (cached && Date.now() - cached.timestamp < cached.ttl) {
-      return cached.data;
-    }
-    queryOptimization.resultCache.delete(key);
-    return null;
-  },
-
-  setCache: (key: string, data: any, ttl: number = 60000) => {
-    queryOptimization.resultCache.set(key, {
-      data,
-      timestamp: Date.now(),
-      ttl
-    });
-  },
-
-  clearExpiredCache: () => {
-    const now = Date.now();
-    queryOptimization.resultCache.forEach((value, key) => {
-      if (now - value.timestamp > value.ttl) {
-        queryOptimization.resultCache.delete(key);
-      }
-    });
-  }
+  // Limit query results to prevent memory issues
+  limitResults: (limit: number = 1000) => limit,
+  
+  // Optimize select fields to reduce data transfer
+  selectEssentialFields: (table: any) => ({
+    id: table.id,
+    name: table.name,
+    createdAt: table.createdAt
+  })
 };
-
-// Cleanup expired cache every 5 minutes
-setInterval(queryOptimization.clearExpiredCache, 5 * 60 * 1000);
