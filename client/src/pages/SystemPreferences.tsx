@@ -13,7 +13,8 @@ import {
   FileTextIcon,
   SettingsIcon,
   ReceiptIcon,
-  FileDownIcon
+  FileDownIcon,
+  Building2
 } from 'lucide-react';
 
 // Import tab components
@@ -24,8 +25,7 @@ import SecuritySettingsTab from '@/components/system-preferences/SecuritySetting
 import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
-import QuotationPreviewSettingsTab from '@/components/system-preferences/QuotationPreviewSettingsTab';
-import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePreviewSettingsTab';
+import { CompanySettingsTab } from '@/components/system-preferences/CompanySettingsTab';
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
@@ -59,6 +59,8 @@ const SystemPreferences: React.FC = () => {
         return <FileDownIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'invoice-preview':
         return <ReceiptIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'company':
+        return <Building2 className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
@@ -102,7 +104,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-10 border-b rounded-none h-auto gap-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -165,6 +167,13 @@ const SystemPreferences: React.FC = () => {
               >
                 {renderTabIcon('invoice-preview')}
                 <span className="hidden lg:inline ml-1 truncate">Invoice</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="company" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('company')}
+                <span className="hidden lg:inline ml-1 truncate">Company</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="modules" 

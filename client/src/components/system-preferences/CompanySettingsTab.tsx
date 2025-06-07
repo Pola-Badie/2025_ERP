@@ -107,10 +107,16 @@ export function CompanySettingsTab() {
         }
       });
       
-      return apiRequest("/api/company-settings", {
+      const response = await fetch("/api/company-settings", {
         method: "POST",
         body: formData,
       });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save company settings");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -133,10 +139,16 @@ export function CompanySettingsTab() {
       const formData = new FormData();
       formData.append('logo', file);
       
-      return apiRequest("/api/company-settings/upload-logo", {
+      const response = await fetch("/api/company-settings/upload-logo", {
         method: "POST",
         body: formData,
       });
+      
+      if (!response.ok) {
+        throw new Error("Failed to upload logo");
+      }
+      
+      return response.json();
     },
     onSuccess: (data: any) => {
       setLogoPreview(data.logoPath);
@@ -156,7 +168,13 @@ export function CompanySettingsTab() {
   });
 
   const deleteLogoMutation = useMutation({
-    mutationFn: () => apiRequest("/api/company-settings/logo", { method: "DELETE" }),
+    mutationFn: async () => {
+      const response = await fetch("/api/company-settings/logo", { method: "DELETE" });
+      if (!response.ok) {
+        throw new Error("Failed to delete logo");
+      }
+      return response.json();
+    },
     onSuccess: () => {
       setLogoPreview(null);
       if (fileInputRef.current) {
