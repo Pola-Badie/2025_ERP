@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Calendar, DollarSign } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Calendar, DollarSign, Package, Minus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -74,12 +75,35 @@ export default function Procurement() {
     notes: ""
   });
 
+  // Items state
+  const [items, setItems] = useState([
+    {
+      id: Date.now(),
+      productId: "",
+      productName: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      total: 0
+    }
+  ]);
+
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
     queryKey: ['/api/procurement/suppliers'],
     queryFn: async () => {
       const response = await fetch('/api/procurement/suppliers');
       if (!response.ok) throw new Error('Failed to fetch suppliers');
+      return response.json();
+    }
+  });
+
+  // Fetch products
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Failed to fetch products');
       return response.json();
     }
   });
@@ -147,6 +171,64 @@ export default function Procurement() {
     }
   });
 
+  // Item management functions
+  const addItem = () => {
+    setItems([...items, {
+      id: Date.now(),
+      productId: "",
+      productName: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      total: 0
+    }]);
+  };
+
+  const removeItem = (id: number) => {
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id));
+    }
+  };
+
+  const updateItem = (id: number, field: string, value: any) => {
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        
+        // If product is selected, update product name
+        if (field === 'productId' && value) {
+          const product = products.find((p: any) => p.id === parseInt(value));
+          if (product) {
+            updatedItem.productName = product.name;
+            updatedItem.unitPrice = parseFloat(product.sellingPrice) || 0;
+          }
+        }
+        
+        // Calculate total
+        if (field === 'quantity' || field === 'unitPrice' || field === 'productId') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  const calculateItemTotals = () => {
+    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+    const taxRate = parseFloat(formData.taxRate) || 0;
+    const taxAmount = (subtotal * taxRate) / 100;
+    const totalAmount = subtotal + taxAmount;
+
+    setFormData(prev => ({
+      ...prev,
+      subtotal: subtotal.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
+      totalAmount: totalAmount.toFixed(2)
+    }));
+  };
+
   const resetForm = () => {
     setFormData({
       supplierId: "",
@@ -161,6 +243,15 @@ export default function Procurement() {
       paymentTerms: "Net 30",
       notes: ""
     });
+    setItems([{
+      id: Date.now(),
+      productId: "",
+      productName: "",
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      total: 0
+    }]);
     setEditingOrder(null);
   };
 
@@ -201,8 +292,8 @@ export default function Procurement() {
   };
 
   useEffect(() => {
-    calculateTotals();
-  }, [formData.subtotal, formData.taxRate]);
+    calculateItemTotals();
+  }, [items, formData.taxRate]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -384,117 +475,236 @@ export default function Procurement() {
 
       {/* Purchase Order Form Dialog */}
       <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center">
+              <Package className="h-5 w-5 mr-2 text-blue-600" />
               {editingOrder ? `Edit ${editingOrder.poNumber}` : 'New Purchase Order'}
             </DialogTitle>
+            <DialogDescription>
+              Create a new purchase order with detailed item specifications
+            </DialogDescription>
           </DialogHeader>
+          
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="supplier">Supplier *</Label>
-                <Select 
-                  value={formData.supplierId} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, supplierId: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select supplier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers.map((supplier: Supplier) => (
-                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="orderDate">Order Date</Label>
-                <Input 
-                  type="date"
-                  value={formData.orderDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, orderDate: e.target.value }))}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="expectedDelivery">Expected Delivery</Label>
-                <Input 
-                  type="date"
-                  value={formData.expectedDeliveryDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="paymentTerms">Payment Terms</Label>
-                <Select 
-                  value={formData.paymentTerms} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, paymentTerms: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Net 15">Net 15 Days</SelectItem>
-                    <SelectItem value="Net 30">Net 30 Days</SelectItem>
-                    <SelectItem value="Net 45">Net 45 Days</SelectItem>
-                    <SelectItem value="Net 60">Net 60 Days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            {/* Supplier and Basic Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Purchase Order Details</CardTitle>
+                <CardDescription>Basic information for this purchase order</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="supplier">Supplier *</Label>
+                    <Select 
+                      value={formData.supplierId} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, supplierId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select supplier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {suppliers.map((supplier: Supplier) => (
+                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="orderDate">Order Date</Label>
+                    <Input 
+                      type="date"
+                      value={formData.orderDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, orderDate: e.target.value }))}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="expectedDelivery">Expected Delivery</Label>
+                    <Input 
+                      type="date"
+                      value={formData.expectedDeliveryDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="paymentTerms">Payment Terms</Label>
+                    <Select 
+                      value={formData.paymentTerms} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, paymentTerms: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Net 15">Net 15 Days</SelectItem>
+                        <SelectItem value="Net 30">Net 30 Days</SelectItem>
+                        <SelectItem value="Net 45">Net 45 Days</SelectItem>
+                        <SelectItem value="Net 60">Net 60 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Separator />
+            {/* Purchase Order Items */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Purchase Order Items</CardTitle>
+                <CardDescription>Add products to this purchase order</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between mb-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addItem}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Button>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="subtotal">Subtotal *</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={formData.subtotal}
-                  onChange={(e) => setFormData(prev => ({ ...prev, subtotal: e.target.value }))}
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={formData.taxRate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, taxRate: e.target.value }))}
-                  placeholder="14"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="totalAmount">Total Amount</Label>
-                <Input 
-                  type="number"
-                  step="0.01"
-                  value={formData.totalAmount}
-                  readOnly
-                  className="bg-gray-50"
-                />
-              </div>
-            </div>
+                {/* Items Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[300px]">Product</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="w-[100px]">Qty</TableHead>
+                        <TableHead className="w-[120px]">Unit Price</TableHead>
+                        <TableHead className="w-[120px]">Total</TableHead>
+                        <TableHead className="w-[50px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <Select
+                              value={item.productId}
+                              onValueChange={(value) => updateItem(item.id, 'productId', value)}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select product" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {products.map((product: any) => (
+                                  <SelectItem key={product.id} value={product.id.toString()}>
+                                    {product.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.description}
+                              onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                              placeholder="Item description"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">
+                              ${item.total.toFixed(2)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {items.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeItem(item.id)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea 
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Additional notes or requirements..."
-                rows={3}
-              />
-            </div>
+                {/* Totals */}
+                <div className="mt-6 space-y-4">
+                  <div className="flex justify-end">
+                    <div className="w-80 space-y-2">
+                      <div className="flex justify-between">
+                        <span>Subtotal:</span>
+                        <span>${formData.subtotal}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span>Tax Rate:</span>
+                        <div className="flex items-center space-x-2">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.taxRate}
+                            onChange={(e) => setFormData(prev => ({ ...prev, taxRate: e.target.value }))}
+                            className="w-20"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tax Amount:</span>
+                        <span>${formData.taxAmount}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold text-lg">
+                        <span>Total Amount:</span>
+                        <span>${formData.totalAmount}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
+            {/* Notes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Additional Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea 
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="Additional notes, requirements, or special instructions..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
             <div className="flex gap-2 pt-4">
               <Button 
                 onClick={handleFormSubmit}
