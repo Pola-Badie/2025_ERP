@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   UsersIcon,
   PackageIcon,
@@ -32,12 +33,28 @@ import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfig
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
+  const tabsListRef = useRef<HTMLDivElement>(null);
 
   // Fetch system preferences
   const { data: preferences, isLoading, isError, refetch } = useQuery({
     queryKey: ['/api/system-preferences'],
     refetchOnWindowFocus: false,
   });
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsListRef.current) {
+      const scrollAmount = 200;
+      const currentScroll = tabsListRef.current.scrollLeft;
+      const targetScroll = direction === 'left' 
+        ? currentScroll - scrollAmount 
+        : currentScroll + scrollAmount;
+      
+      tabsListRef.current.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const renderTabIcon = (tabValue: string) => {
     const activeClass = activeTab === tabValue ? 'text-primary' : 'text-muted-foreground';
@@ -106,7 +123,34 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 border-b rounded-none h-auto gap-1">
+            <div className="relative">
+              {/* Left scroll button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-accent"
+                onClick={() => scrollTabs('left')}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {/* Right scroll button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-accent"
+                onClick={() => scrollTabs('right')}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
+              {/* Scrollable tabs container */}
+              <div className="overflow-hidden px-10">
+                <TabsList 
+                  ref={tabsListRef}
+                  className="flex w-auto border-b rounded-none h-auto gap-1 overflow-x-auto scrollbar-hide scroll-smooth px-2"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -184,7 +228,9 @@ const SystemPreferences: React.FC = () => {
                 {renderTabIcon('modules')}
                 <span className="hidden lg:inline ml-1 truncate">Modules</span>
               </TabsTrigger>
-            </TabsList>
+                </TabsList>
+              </div>
+            </div>
             
             <div className="p-6">
               <TabsContent value="users" className="mt-0">
