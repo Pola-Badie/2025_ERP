@@ -28,22 +28,63 @@ export function registerAccountingRoutes(app: Express) {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Since we're just starting with the accounting module, return placeholder data
-      // This will be updated as users add accounts and journal entries
-
-      // For now, return placeholder data as we don't have real journal entries yet
+      // Get actual counts from database
       const totalAccounts = await db
         .select({ count: sql<number>`count(*)` })
         .from(accounts);
+      
       const totalJournalEntries = await db
         .select({ count: sql<number>`count(*)` })
         .from(journalEntries);
 
+      // Calculate revenue and expenses from journal entries this month
+      const monthlyJournalEntries = await db
+        .select()
+        .from(journalEntries)
+        .where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]));
+
+      let revenueThisMonth = 0;
+      let expensesThisMonth = 0;
+
+      // Get journal lines for monthly entries
+      if (monthlyJournalEntries.length > 0) {
+        const entryIds = monthlyJournalEntries.map(entry => entry.id);
+        const journalLinesThisMonth = await db
+          .select()
+          .from(journalLines)
+          .where(inArray(journalLines.journalId, entryIds));
+
+        // Get account information to categorize revenue vs expenses
+        const accountIds = Array.from(new Set(journalLinesThisMonth.map(line => line.accountId)));
+        const accountsData = await db
+          .select()
+          .from(accounts)
+          .where(inArray(accounts.id, accountIds));
+
+        const accountsMap = accountsData.reduce((map, account) => {
+          map[account.id] = account;
+          return map;
+        }, {} as Record<number, any>);
+
+        // Calculate revenue and expenses
+        journalLinesThisMonth.forEach(line => {
+          const account = accountsMap[line.accountId];
+          if (account) {
+            const amount = parseFloat(line.credit || '0') - parseFloat(line.debit || '0');
+            if (account.type === 'Revenue' || account.type === 'Income') {
+              revenueThisMonth += amount;
+            } else if (account.type === 'Expense') {
+              expensesThisMonth += Math.abs(amount);
+            }
+          }
+        });
+      }
+
       res.json({
-        totalAccounts: totalAccounts[0]?.count || 0,
-        journalEntries: totalJournalEntries[0]?.count || 0,
-        revenueThisMonth: 0, // This will need to be calculated from journal entries
-        expensesThisMonth: 0, // This will need to be calculated from journal entries
+        totalAccounts: totalAccounts[0]?.count.toString() || "0",
+        journalEntries: totalJournalEntries[0]?.count.toString() || "0",
+        revenueThisMonth: revenueThisMonth.toFixed(2),
+        expensesThisMonth: expensesThisMonth.toFixed(2),
       });
     } catch (error) {
       console.error("Error fetching accounting summary:", error);
@@ -408,12 +449,91 @@ export function registerAccountingRoutes(app: Express) {
   // Generate sample data endpoint
   app.post("/api/accounting/generate-sample-data", async (_req: Request, res: Response) => {
     try {
-      // This endpoint confirms that sample data is available
-      // The actual sample data is already defined in the GET endpoints above
+      // Clear existing data first
+      await db.delete(journalLines);
+      await db.delete(journalEntries);
+      await db.delete(accounts);
+
+      // Insert sample accounts
+      const sampleAccounts = [
+        { code: "1000", name: "Cash", type: "Asset", balance: "50000.00", description: "Petty cash and bank deposits", isActive: true },
+        { code: "1100", name: "Accounts Receivable", type: "Asset", balance: "125000.00", description: "Customer outstanding balances", isActive: true },
+        { code: "1200", name: "Inventory - Raw Materials", type: "Asset", balance: "85000.00", description: "Chemical compounds and ingredients", isActive: true },
+        { code: "1300", name: "Equipment", type: "Asset", balance: "200000.00", description: "Manufacturing and laboratory equipment", isActive: true },
+        { code: "2000", name: "Accounts Payable", type: "Liability", balance: "45000.00", description: "Supplier outstanding payments", isActive: true },
+        { code: "2100", name: "Accrued Expenses", type: "Liability", balance: "15000.00", description: "Outstanding utility and service bills", isActive: true },
+        { code: "3000", name: "Owner's Equity", type: "Equity", balance: "300000.00", description: "Initial capital investment", isActive: true },
+        { code: "4000", name: "Sales Revenue", type: "Revenue", balance: "180000.00", description: "Product sales income", isActive: true },
+        { code: "5000", name: "Cost of Goods Sold", type: "Expense", balance: "90000.00", description: "Direct production costs", isActive: true },
+        { code: "5100", name: "Utilities Expense", type: "Expense", balance: "12000.00", description: "Electricity, water, gas", isActive: true },
+        { code: "5200", name: "Marketing Expense", type: "Expense", balance: "8000.00", description: "Advertising and promotion", isActive: true },
+        { code: "5300", name: "Laboratory Testing", type: "Expense", balance: "15000.00", description: "Quality control testing", isActive: true },
+        { code: "5400", name: "Administrative Expense", type: "Expense", balance: "25000.00", description: "Office and administrative costs", isActive: true }
+      ];
+
+      const insertedAccounts = await db.insert(accounts).values(sampleAccounts).returning();
+
+      // Create sample journal entries with correct schema
+      const sampleJournalEntries = [
+        { 
+          entryNumber: "JE-2025-001", 
+          reference: "SALE-001", 
+          memo: "Product sales to Cairo Medical Center", 
+          date: "2025-06-01", 
+          totalDebit: "15000.00", 
+          totalCredit: "15000.00",
+          userId: 1
+        },
+        { 
+          entryNumber: "JE-2025-002", 
+          reference: "PUR-001", 
+          memo: "Raw materials purchase from ChemCorp", 
+          date: "2025-06-02", 
+          totalDebit: "8500.00", 
+          totalCredit: "8500.00",
+          userId: 1
+        },
+        { 
+          entryNumber: "JE-2025-003", 
+          reference: "UTIL-001", 
+          memo: "Monthly utility bill payment", 
+          date: "2025-06-03", 
+          totalDebit: "2500.00", 
+          totalCredit: "2500.00",
+          userId: 1
+        }
+      ];
+
+      const insertedEntries = await db.insert(journalEntries).values(sampleJournalEntries).returning();
+
+      // Create journal lines for each entry with correct schema
+      const journalLinesData = [];
+      
+      // Entry 1: Sales
+      journalLinesData.push(
+        { journalId: insertedEntries[0].id, accountId: insertedAccounts[1].id, debit: "15000.00", credit: "0.00", description: "AR - Cairo Medical", position: 1 },
+        { journalId: insertedEntries[0].id, accountId: insertedAccounts[7].id, debit: "0.00", credit: "15000.00", description: "Sales revenue", position: 2 }
+      );
+      
+      // Entry 2: Purchase
+      journalLinesData.push(
+        { journalId: insertedEntries[1].id, accountId: insertedAccounts[2].id, debit: "8500.00", credit: "0.00", description: "Raw materials", position: 1 },
+        { journalId: insertedEntries[1].id, accountId: insertedAccounts[4].id, debit: "0.00", credit: "8500.00", description: "AP - ChemCorp", position: 2 }
+      );
+      
+      // Entry 3: Utilities
+      journalLinesData.push(
+        { journalId: insertedEntries[2].id, accountId: insertedAccounts[9].id, debit: "2500.00", credit: "0.00", description: "Utility expense", position: 1 },
+        { journalId: insertedEntries[2].id, accountId: insertedAccounts[0].id, debit: "0.00", credit: "2500.00", description: "Cash payment", position: 2 }
+      );
+
+      await db.insert(journalLines).values(journalLinesData);
+
       res.json({ 
         message: "Sample accounting data generated successfully",
-        journalEntries: 10,
-        accounts: 15 
+        accountsCreated: insertedAccounts.length,
+        journalEntriesCreated: insertedEntries.length,
+        journalLinesCreated: journalLinesData.length
       });
     } catch (error) {
       console.error("Error generating sample data:", error);
