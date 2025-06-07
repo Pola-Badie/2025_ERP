@@ -1074,7 +1074,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Panadol Advance</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">20 Aug 2024</td>
