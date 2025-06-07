@@ -8,14 +8,17 @@ import { registerProcurementRoutes } from "./routes-procurement";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
 import { performanceMiddleware } from "./performance-middleware";
+import { performanceBoost } from "./performance-boost";
+import { ultraCache } from "./ultra-cache";
 
 const app = express();
 
-// Performance optimizations for faster startup
-app.use(performanceMiddleware.compression);
-app.use(performanceMiddleware.responseTime);
-app.use(performanceMiddleware.jsonOptimization);
-app.use(performanceMiddleware.cacheHeaders);
+// Ultra-aggressive performance optimizations for instant loading
+app.use(performanceBoost.compression);
+app.use(performanceBoost.cacheHeaders);
+app.use(performanceBoost.preloadHeaders);
+app.use(performanceBoost.jsonOptimization);
+app.use(performanceBoost.earlyResponse);
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 
