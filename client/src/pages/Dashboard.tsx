@@ -1096,7 +1096,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Diclofenac 500mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">19 Sep 2024</td>
@@ -1105,7 +1105,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Diosmin/Hesperidin</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">15 Dec 2024</td>
@@ -1114,7 +1114,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Metformin 850mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">20 Sep 2024</td>
@@ -1123,7 +1123,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Amoxicillin 500mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">15 Oct 2024</td>
@@ -1132,7 +1132,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Ibuprofen 400mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">30 Nov 2024</td>
@@ -1141,7 +1141,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Aspirin 100mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">05 Sep 2024</td>
@@ -1150,7 +1150,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Omeprazole 20mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">18 Oct 2024</td>
@@ -1159,7 +1159,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Cetirizine 10mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">25 Nov 2024</td>
@@ -1181,7 +1181,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Atorvastatin 20mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">12 Dec 2024</td>
@@ -1203,7 +1203,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Fluoxetine 20mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">05 Oct 2024</td>
@@ -1225,7 +1225,7 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">Sertraline 50mg</td>
                             <td className="px-4 py-2">
                               <span className="px-2 py-1 rounded text-xs font-semibold bg-[#FFB454] text-white">
-                                NEAR
+                                NEAR EXPIRY
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">18 Nov 2024</td>
