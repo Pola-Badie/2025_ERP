@@ -1,5 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
+import logoPath from '@assets/P_1749320448134.png';
 
 interface QuotationItem {
   id: string;
@@ -88,14 +89,21 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
     <div className="printable-quotation bg-white p-8 max-w-4xl mx-auto text-black">
       {/* Header */}
       <div className="flex justify-between items-start mb-8 border-b pb-6">
-        <div className="company-info">
-          <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
-          <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
-          <div className="mt-4 text-sm text-gray-600">
-            <p>123 Business District</p>
-            <p>Cairo, Egypt 11511</p>
-            <p>Phone: +20 2 1234 5678</p>
-            <p>Email: info@morganerp.com</p>
+        <div className="company-info flex items-start gap-4">
+          <img 
+            src={logoPath} 
+            alt="Morgan ERP Logo" 
+            className="w-16 h-16 object-contain"
+          />
+          <div>
+            <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
+            <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
+            <div className="mt-4 text-sm text-gray-600">
+              <p>123 Business District</p>
+              <p>Cairo, Egypt 11511</p>
+              <p>Phone: +20 2 1234 5678</p>
+              <p>Email: info@morganerp.com</p>
+            </div>
           </div>
         </div>
         
@@ -187,8 +195,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
                 </td>
                 <td className="border border-gray-300 px-4 py-3 text-center">{item.quantity}</td>
                 <td className="border border-gray-300 px-4 py-3 text-center">{item.uom}</td>
-                <td className="border border-gray-300 px-4 py-3 text-right">USD {item.unitPrice.toFixed(2)}</td>
-                <td className="border border-gray-300 px-4 py-3 text-right font-semibold">USD {item.total.toFixed(2)}</td>
+                <td className="border border-gray-300 px-4 py-3 text-right">EGP {item.unitPrice.toFixed(2)}</td>
+                <td className="border border-gray-300 px-4 py-3 text-right font-semibold">EGP {item.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -208,7 +216,7 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
                 )}
               </div>
               <div className="text-right">
-                <p className="font-semibold text-blue-900">USD {transportationFees.toFixed(2)}</p>
+                <p className="font-semibold text-blue-900">EGP {transportationFees.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -221,24 +229,24 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
           <div className="border border-gray-300 bg-gray-50">
             <div className="flex justify-between px-4 py-2 border-b border-gray-300">
               <span className="font-medium">Subtotal:</span>
-              <span>USD {subtotal.toFixed(2)}</span>
+              <span>EGP {subtotal.toFixed(2)}</span>
             </div>
             
             {transportationFees > 0 && (
               <div className="flex justify-between px-4 py-2 border-b border-gray-300">
                 <span className="font-medium">Transportation:</span>
-                <span>USD {transportationFees.toFixed(2)}</span>
+                <span>EGP {transportationFees.toFixed(2)}</span>
               </div>
             )}
             
             <div className="flex justify-between px-4 py-2 border-b border-gray-300">
               <span className="font-medium">VAT ({vatPercentage}%):</span>
-              <span>USD {vatAmount.toFixed(2)}</span>
+              <span>EGP {vatAmount.toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between px-4 py-3 bg-blue-600 text-white font-bold text-lg">
               <span>Total Amount:</span>
-              <span>USD {grandTotal.toFixed(2)}</span>
+              <span>EGP {grandTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
