@@ -328,10 +328,19 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       {/* Footer */}
       <div className="footer border-t pt-6 mt-8">
         <div className="text-center text-sm text-gray-600">
-          <p className="font-semibold mb-2">Thank you for considering Morgan ERP for your pharmaceutical needs!</p>
+          <p className="font-semibold mb-2">
+            Thank you for considering {companySettings?.companyName || 'Morgan ERP'} for your pharmaceutical needs!
+          </p>
           <p>This quotation was generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-          <p className="mt-2">For any questions regarding this quotation, please contact us at info@morganerp.com</p>
-          <p className="mt-1 text-xs">All prices are in USD and exclude applicable taxes unless otherwise stated.</p>
+          <p className="mt-2">
+            For any questions regarding this quotation, please contact us at {companySettings?.email || 'info@morganerp.com'}
+          </p>
+          <p className="mt-1 text-xs">
+            All prices are in {companySettings?.currency || 'USD'} and exclude applicable taxes unless otherwise stated.
+          </p>
+          {companySettings?.reportFooter && (
+            <p className="mt-2 text-xs italic">{companySettings.reportFooter}</p>
+          )}
         </div>
       </div>
 

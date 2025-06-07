@@ -76,7 +76,7 @@ export function QuotationSettingsTab() {
       requireCustomerApproval: false,
       allowOnlineAcceptance: false,
       defaultQuotationType: 'manufacturing',
-      ...settings,
+      ...(settings || {}),
     },
   });
 

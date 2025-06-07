@@ -66,7 +66,7 @@ export function InvoiceSettingsTab() {
       dueAfterDays: 30,
       lateFeePercentage: 0,
       discountTerms: '',
-      ...settings,
+      ...(settings || {}),
     },
   });
 

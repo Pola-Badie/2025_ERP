@@ -216,17 +216,11 @@ const SystemPreferences: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="quotation-preview" className="mt-0">
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-semibold">Quotation Preview Settings</h3>
-                  <p className="text-gray-600">Configure quotation preview and formatting options.</p>
-                </div>
+                <QuotationSettingsTab />
               </TabsContent>
               
               <TabsContent value="invoice-preview" className="mt-0">
-                <div className="text-center py-8">
-                  <h3 className="text-lg font-semibold">Invoice Preview Settings</h3>
-                  <p className="text-gray-600">Configure invoice preview and formatting options.</p>
-                </div>
+                <InvoiceSettingsTab />
               </TabsContent>
               
               <TabsContent value="company" className="mt-0">
