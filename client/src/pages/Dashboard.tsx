@@ -119,6 +119,9 @@ const Dashboard: React.FC = () => {
   const [salesChartType, setSalesChartType] = useState<'line' | 'bar'>('line');
   const [distributionChartType, setDistributionChartType] = useState<'pie' | 'bar'>('pie');
   const [categoryChartType, setCategoryChartType] = useState<'pie' | 'bar'>('pie');
+  
+  // Expanded chart dialog states
+  const [expandedChart, setExpandedChart] = useState<'sales' | 'distribution' | 'category' | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Profile dialog state
@@ -613,7 +616,7 @@ const Dashboard: React.FC = () => {
                 variant="ghost" 
                 size="icon" 
                 className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setSalesChartExpanded(true)}
+                onClick={() => setExpandedChart('sales')}
                 title="Expand chart"
               >
                 <Maximize2 className="h-3 w-3" />
@@ -737,7 +740,7 @@ const Dashboard: React.FC = () => {
                 variant="ghost" 
                 size="icon" 
                 className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setDistributionChartExpanded(true)}
+                onClick={() => setExpandedChart('distribution')}
                 title="Expand chart"
               >
                 <Maximize2 className="h-3 w-3" />
@@ -814,7 +817,7 @@ const Dashboard: React.FC = () => {
                 variant="ghost" 
                 size="icon" 
                 className="h-6 w-6 rounded-sm hover:bg-blue-50"
-                onClick={() => setCategoryChartExpanded(true)}
+                onClick={() => setExpandedChart('category')}
                 title="Expand chart"
               >
                 <Maximize2 className="h-3 w-3" />
@@ -2060,6 +2063,235 @@ const Dashboard: React.FC = () => {
               >
                 Save Settings
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Enlarged Chart Dialog */}
+      <Dialog open={expandedChart !== null} onOpenChange={() => setExpandedChart(null)}>
+        <DialogContent className="max-w-6xl w-full h-[80vh] p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              {expandedChart === 'sales' && 'Sales Overview - Detailed View'}
+              {expandedChart === 'distribution' && 'Sales Distribution - Detailed View'}
+              {expandedChart === 'category' && 'Category Performance - Detailed View'}
+            </DialogTitle>
+            <DialogDescription>
+              Enlarged view with interactive controls and detailed analytics
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 min-h-0">
+            <div className="h-full bg-white rounded-lg border p-4">
+              {/* Chart Controls */}
+              <div className="flex justify-between items-center mb-4 pb-3 border-b">
+                <h3 className="text-lg font-medium text-gray-800">
+                  {expandedChart === 'sales' && 'Sales Overview Chart'}
+                  {expandedChart === 'distribution' && 'Sales Distribution Chart'}
+                  {expandedChart === 'category' && 'Category Performance Chart'}
+                </h3>
+                <div className="flex space-x-2">
+                  {expandedChart === 'sales' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSalesChartType(salesChartType === 'line' ? 'bar' : 'line')}
+                    >
+                      <BarChartIcon className="h-4 w-4 mr-2" />
+                      Switch to {salesChartType === 'line' ? 'Bar' : 'Line'} Chart
+                    </Button>
+                  )}
+                  {(expandedChart === 'distribution' || expandedChart === 'category') && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        if (expandedChart === 'distribution') {
+                          setDistributionChartType(distributionChartType === 'pie' ? 'bar' : 'pie');
+                        } else {
+                          setCategoryChartType(categoryChartType === 'pie' ? 'bar' : 'pie');
+                        }
+                      }}
+                    >
+                      <BarChartIcon className="h-4 w-4 mr-2" />
+                      Switch to {
+                        expandedChart === 'distribution' 
+                          ? (distributionChartType === 'pie' ? 'Bar' : 'Pie') 
+                          : (categoryChartType === 'pie' ? 'Bar' : 'Pie')
+                      } Chart
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Enlarged Chart Display */}
+              <div className="h-[calc(100%-4rem)]">
+                <ResponsiveContainer width="100%" height="100%">
+                  {expandedChart === 'sales' && (
+                    salesChartType === 'line' ? (
+                      <LineChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 12 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke="#3BCEAC" 
+                          strokeWidth={4}
+                          dot={{ r: 6, stroke: '#3BCEAC', fill: 'white', strokeWidth: 3 }}
+                          activeDot={{ r: 8, stroke: '#3BCEAC', fill: '#3BCEAC' }}
+                        />
+                      </LineChart>
+                    ) : (
+                      <RechartsBarChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 12 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                        <Bar dataKey="sales" fill="#3BCEAC" radius={[6, 6, 0, 0]} />
+                      </RechartsBarChart>
+                    )
+                  )}
+
+                  {expandedChart === 'distribution' && (
+                    distributionChartType === 'pie' ? (
+                      <PieChart>
+                        <Pie
+                          data={salesDistributionData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={200}
+                          paddingAngle={2}
+                          dataKey="value"
+                          label={({ name, percent, value }) => `${name}: ${value}% (${(percent * 100).toFixed(1)}%)`}
+                          labelLine={true}
+                        >
+                          {salesDistributionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                      </PieChart>
+                    ) : (
+                      <RechartsBarChart data={salesDistributionData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 12 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                        <Bar dataKey="value" fill="#3BCEAC" radius={[6, 6, 0, 0]} />
+                      </RechartsBarChart>
+                    )
+                  )}
+
+                  {expandedChart === 'category' && (
+                    categoryChartType === 'pie' ? (
+                      <PieChart>
+                        <Pie
+                          data={categoryPerformanceData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={200}
+                          paddingAngle={2}
+                          dataKey="value"
+                          label={({ name, percent, value }) => `${name}: ${value}% (${(percent * 100).toFixed(1)}%)`}
+                          labelLine={true}
+                        >
+                          {categoryPerformanceData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                      </PieChart>
+                    ) : (
+                      <RechartsBarChart data={categoryPerformanceData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 12 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                        />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          }}
+                        />
+                        <Bar dataKey="value" fill="#0077B6" radius={[6, 6, 0, 0]} />
+                      </RechartsBarChart>
+                    )
+                  )}
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </DialogContent>
