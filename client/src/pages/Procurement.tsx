@@ -256,10 +256,21 @@ export default function Procurement() {
   };
 
   const handleFormSubmit = () => {
-    if (!formData.supplierId || !formData.totalAmount) {
+    if (!formData.supplierId || items.length === 0) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please select a supplier and add at least one item",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate items
+    const invalidItems = items.filter(item => !item.productId || item.quantity <= 0 || item.unitPrice <= 0);
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please ensure all items have a product, quantity, and unit price",
         variant: "destructive"
       });
       return;
@@ -272,7 +283,15 @@ export default function Procurement() {
       taxRate: parseFloat(formData.taxRate),
       taxAmount: parseFloat(formData.taxAmount),
       totalAmount: parseFloat(formData.totalAmount),
-      userId: 1 // TODO: Get from auth context
+      userId: 1, // TODO: Get from auth context
+      items: items.map(item => ({
+        productId: item.productId ? parseInt(item.productId) : null,
+        productName: item.productName,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.total
+      }))
     };
 
     createPurchaseOrder.mutate(orderData);
