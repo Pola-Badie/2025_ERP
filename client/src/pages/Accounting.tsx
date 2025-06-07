@@ -49,6 +49,7 @@ import {
   FileText, 
   BarChart4, 
   TrendingUp,
+  TrendingDown,
   Landmark,
   Calendar,
   Receipt,
@@ -84,7 +85,12 @@ import {
   Users,
   Pencil,
   ChevronsUpDown,
-  Check
+  Check,
+  FileBarChart,
+  Zap,
+  PieChart,
+  Activity,
+  Target
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -4601,169 +4607,373 @@ const Accounting: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="financial-reports">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <LineChart className="h-5 w-5 mr-2 text-blue-600" />
-                <span>Financial Reports Generator</span>
-              </CardTitle>
-              <CardDescription>Generate comprehensive financial reports with filters and export options</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="report-type">Report Type</Label>
-                    <Select>
-                      <SelectTrigger id="report-type">
-                        <SelectValue placeholder="Select report type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="trial-balance">Trial Balance</SelectItem>
-                        <SelectItem value="general-ledger">General Ledger</SelectItem>
-                        <SelectItem value="expense-summary">Expense Summary by Category</SelectItem>
-                        <SelectItem value="purchase-summary">Purchase Summary by Supplier</SelectItem>
-                        <SelectItem value="cash-flow">Cash Flow Report</SelectItem>
-                        <SelectItem value="aging-payables">Aging Report for Payables</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="start-date">Start Date</Label>
-                      <Input id="start-date" type="date" />
+          <div className="space-y-6">
+            {/* Financial Reports Header */}
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <LineChart className="h-6 w-6 text-blue-600" />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="end-date">End Date</Label>
-                      <Input id="end-date" type="date" />
+                    <div>
+                      <CardTitle className="text-xl">Financial Reports Center</CardTitle>
+                      <CardDescription>Comprehensive financial analysis and reporting with real-time data</CardDescription>
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="account-type-filter">Account Type</Label>
-                    <Select>
-                      <SelectTrigger id="account-type-filter">
-                        <SelectValue placeholder="All account types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="asset">Asset</SelectItem>
-                        <SelectItem value="liability">Liability</SelectItem>
-                        <SelectItem value="equity">Equity</SelectItem>
-                        <SelectItem value="revenue">Revenue</SelectItem>
-                        <SelectItem value="expense">Expense</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cost-center-filter">Cost Center</Label>
-                    <Select>
-                      <SelectTrigger id="cost-center-filter">
-                        <SelectValue placeholder="All cost centers" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Centers</SelectItem>
-                        <SelectItem value="marketing">Marketing</SelectItem>
-                        <SelectItem value="projects">Projects</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="operations">Operations</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="pt-4 flex gap-2">
-                    <Button>
-                      <BarChart className="h-4 w-4 mr-2" />
-                      Generate Report
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        // Export PDF using browser print functionality
-                        const reportContent = document.getElementById('financial-report-container');
-                        if (reportContent) {
-                          const printWindow = window.open('', '_blank');
-                          if (printWindow) {
-                            printWindow.document.write(`
-                              <html>
-                                <head>
-                                  <title>Financial Report</title>
-                                  <style>
-                                    body { font-family: Arial, sans-serif; }
-                                    table { width: 100%; border-collapse: collapse; }
-                                    th, td { border: 1px solid #ddd; padding: 8px; }
-                                    th { background-color: #f2f2f2; }
-                                  </style>
-                                </head>
-                                <body>
-                                  ${reportContent.innerHTML}
-                                </body>
-                              </html>
-                            `);
-                            printWindow.document.close();
-                            printWindow.print();
-                          } else {
-                            toast({
-                              title: "Export Failed",
-                              description: "Unable to open print window. Please check your popup blocker settings.",
-                              variant: "destructive"
-                            });
-                          }
-                        } else {
-                          toast({
-                            title: "Export Failed",
-                            description: "No report content found to export. Please generate a report first.",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    >
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
                       <Download className="h-4 w-4 mr-2" />
-                      Export PDF
+                      Export All
                     </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        // Export CSV data
-                        const csvData = "data:text/csv;charset=utf-8," + 
-                          encodeURIComponent(
-                            "Account Code,Account Name,Opening Balance,Debits,Credits,Closing Balance\n" +
-                            "100100,Cash,5000,1200,800,5400\n" +
-                            "100200,Accounts Receivable,10000,3000,2000,11000\n" +
-                            "200100,Accounts Payable,8000,1500,3500,10000\n" +
-                            "300100,Equity,7000,0,2000,9000\n"
-                          );
-                        
-                        const downloadLink = document.createElement("a");
-                        downloadLink.href = csvData;
-                        downloadLink.download = "financial_report.csv";
-                        document.body.appendChild(downloadLink);
-                        downloadLink.click();
-                        document.body.removeChild(downloadLink);
-                        
-                        toast({
-                          title: "Export Successful",
-                          description: "Financial report exported as CSV.",
-                          variant: "default"
-                        });
-                      }}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Export CSV
+                    <Button size="sm">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh Data
                     </Button>
                   </div>
                 </div>
-                
-                <div className="border rounded-lg p-4 min-h-[300px] flex flex-col items-center justify-center text-center">
-                  <FileQuestion className="h-16 w-16 text-muted-foreground/50 mb-4" />
-                  <p className="mb-2 text-muted-foreground">Select a report type and date range to generate a financial report</p>
-                  <p className="text-xs text-muted-foreground">Reports will display here with visualization options</p>
+              </CardHeader>
+            </Card>
+
+            {/* Financial Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="border-l-4 border-l-blue-500">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Assets</p>
+                      <p className="text-2xl font-bold text-gray-900">$460,000</p>
+                      <p className="text-xs text-green-600 flex items-center mt-1">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +12.5% from last month
+                      </p>
+                    </div>
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Wallet className="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-red-500">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Liabilities</p>
+                      <p className="text-2xl font-bold text-gray-900">$60,000</p>
+                      <p className="text-xs text-red-600 flex items-center mt-1">
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                        -5.2% from last month
+                      </p>
+                    </div>
+                    <div className="p-3 bg-red-100 rounded-full">
+                      <CreditCard className="h-6 w-6 text-red-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-green-500">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                      <p className="text-2xl font-bold text-gray-900">$15,000</p>
+                      <p className="text-xs text-green-600 flex items-center mt-1">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +18.3% from last month
+                      </p>
+                    </div>
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <DollarSign className="h-6 w-6 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-orange-500">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
+                      <p className="text-2xl font-bold text-gray-900">$7,500</p>
+                      <p className="text-xs text-orange-600 flex items-center mt-1">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        +3.1% from last month
+                      </p>
+                    </div>
+                    <div className="p-3 bg-orange-100 rounded-full">
+                      <BarChart4 className="h-6 w-6 text-orange-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Report Generation Panel */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileBarChart className="h-5 w-5 mr-2 text-purple-600" />
+                  Generate Financial Reports
+                </CardTitle>
+                <CardDescription>Create detailed financial reports with customizable parameters</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Report Configuration */}
+                  <div className="lg:col-span-1 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="report-type">Report Type</Label>
+                      <Select defaultValue="trial-balance">
+                        <SelectTrigger id="report-type">
+                          <SelectValue placeholder="Select report type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="trial-balance">Trial Balance</SelectItem>
+                          <SelectItem value="general-ledger">General Ledger</SelectItem>
+                          <SelectItem value="cash-flow">Cash Flow Statement</SelectItem>
+                          <SelectItem value="account-summary">Account Summary</SelectItem>
+                          <SelectItem value="journal-register">Journal Register</SelectItem>
+                          <SelectItem value="aging-analysis">Aging Analysis</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="start-date">From Date</Label>
+                        <Input 
+                          id="start-date" 
+                          type="date" 
+                          defaultValue="2025-06-01"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="end-date">To Date</Label>
+                        <Input 
+                          id="end-date" 
+                          type="date" 
+                          defaultValue={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="account-filter">Account Filter</Label>
+                      <Select defaultValue="all">
+                        <SelectTrigger id="account-filter">
+                          <SelectValue placeholder="Filter by account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Accounts</SelectItem>
+                          <SelectItem value="asset">Assets Only</SelectItem>
+                          <SelectItem value="liability">Liabilities Only</SelectItem>
+                          <SelectItem value="equity">Equity Only</SelectItem>
+                          <SelectItem value="revenue">Revenue Only</SelectItem>
+                          <SelectItem value="expense">Expenses Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Report Options</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="include-zero-balance" className="rounded" defaultChecked />
+                          <Label htmlFor="include-zero-balance" className="text-sm">Include zero balance accounts</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="show-transactions" className="rounded" defaultChecked />
+                          <Label htmlFor="show-transactions" className="text-sm">Show transaction details</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input type="checkbox" id="group-by-type" className="rounded" />
+                          <Label htmlFor="group-by-type" className="text-sm">Group by account type</Label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 pt-4">
+                      <Button className="w-full">
+                        <BarChart className="h-4 w-4 mr-2" />
+                        Generate Report
+                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Export PDF
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export Excel
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Report Preview */}
+                  <div className="lg:col-span-2">
+                    <div className="border rounded-lg p-4 bg-gray-50 min-h-[400px]">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Trial Balance Report</h3>
+                        <div className="text-sm text-gray-600">
+                          As of {new Date().toLocaleDateString()}
+                        </div>
+                      </div>
+                      
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-white">
+                              <th className="text-left p-3 font-medium text-gray-700">Account Code</th>
+                              <th className="text-left p-3 font-medium text-gray-700">Account Name</th>
+                              <th className="text-right p-3 font-medium text-gray-700">Debit Balance</th>
+                              <th className="text-right p-3 font-medium text-gray-700">Credit Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white">
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">1000</td>
+                              <td className="p-3">Cash</td>
+                              <td className="p-3 text-right font-semibold">$50,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">1100</td>
+                              <td className="p-3">Accounts Receivable</td>
+                              <td className="p-3 text-right font-semibold">$125,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">1200</td>
+                              <td className="p-3">Inventory - Raw Materials</td>
+                              <td className="p-3 text-right font-semibold">$85,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">1300</td>
+                              <td className="p-3">Equipment</td>
+                              <td className="p-3 text-right font-semibold">$200,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">2000</td>
+                              <td className="p-3">Accounts Payable</td>
+                              <td className="p-3 text-right">-</td>
+                              <td className="p-3 text-right font-semibold">$45,000.00</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">2100</td>
+                              <td className="p-3">Accrued Expenses</td>
+                              <td className="p-3 text-right">-</td>
+                              <td className="p-3 text-right font-semibold">$15,000.00</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">3000</td>
+                              <td className="p-3">Owner's Equity</td>
+                              <td className="p-3 text-right">-</td>
+                              <td className="p-3 text-right font-semibold">$300,000.00</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">4000</td>
+                              <td className="p-3">Sales Revenue</td>
+                              <td className="p-3 text-right">-</td>
+                              <td className="p-3 text-right font-semibold">$180,000.00</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">5000</td>
+                              <td className="p-3">Cost of Goods Sold</td>
+                              <td className="p-3 text-right font-semibold">$90,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="border-b hover:bg-gray-50">
+                              <td className="p-3 font-mono">5100</td>
+                              <td className="p-3">Utilities Expense</td>
+                              <td className="p-3 text-right font-semibold">$12,000.00</td>
+                              <td className="p-3 text-right">-</td>
+                            </tr>
+                            <tr className="bg-gray-100 font-semibold">
+                              <td className="p-3" colSpan={2}>Total</td>
+                              <td className="p-3 text-right">$562,000.00</td>
+                              <td className="p-3 text-right">$540,000.00</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
+                        <span>Report generated from live accounting data</span>
+                        <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Quick Reports */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Zap className="h-5 w-5 mr-2 text-yellow-600" />
+                  Quick Reports
+                </CardTitle>
+                <CardDescription>Pre-configured reports for common financial analysis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <PieChart className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium">Account Balances</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Current balances for all accounts</p>
+                  </Button>
+
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">Monthly P&L</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Profit and loss for current month</p>
+                  </Button>
+
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Activity className="h-5 w-5 text-purple-600" />
+                      <span className="font-medium">Cash Flow</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Cash inflows and outflows</p>
+                  </Button>
+
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-5 w-5 text-orange-600" />
+                      <span className="font-medium">Journal Summary</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Summary of journal entries</p>
+                  </Button>
+
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-5 w-5 text-red-600" />
+                      <span className="font-medium">Vendor Analysis</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Analysis of vendor payments</p>
+                  </Button>
+
+                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Target className="h-5 w-5 text-indigo-600" />
+                      <span className="font-medium">Budget vs Actual</span>
+                    </div>
+                    <p className="text-xs text-gray-600 text-left">Budget comparison analysis</p>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
