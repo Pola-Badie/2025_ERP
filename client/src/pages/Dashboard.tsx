@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { 
@@ -122,6 +122,14 @@ const Dashboard: React.FC = () => {
   
   // Expanded chart dialog states
   const [expandedChart, setExpandedChart] = useState<'sales' | 'distribution' | 'category' | null>(null);
+
+  // Force re-render of expanded chart when chart types change
+  useEffect(() => {
+    // This ensures the expanded chart updates when chart types change
+    if (expandedChart) {
+      // Chart will re-render automatically due to state dependencies
+    }
+  }, [salesChartType, distributionChartType, categoryChartType, expandedChart]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Profile dialog state
@@ -2103,7 +2111,7 @@ const Dashboard: React.FC = () => {
               {/* Enlarged Chart Display */}
               <div className="h-[calc(100%-4rem)]">
                 {expandedChart === 'sales' && (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" key={`sales-${salesChartType}`}>
                     {salesChartType === 'line' ? (
                       <LineChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -2162,7 +2170,7 @@ const Dashboard: React.FC = () => {
                 )}
 
                 {expandedChart === 'distribution' && (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" key={`distribution-${distributionChartType}`}>
                     {distributionChartType === 'pie' ? (
                       <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
                         <Pie
@@ -2217,7 +2225,7 @@ const Dashboard: React.FC = () => {
                 )}
 
                 {expandedChart === 'category' && (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" key={`category-${categoryChartType}`}>
                     {categoryChartType === 'pie' ? (
                       <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
                         <Pie
