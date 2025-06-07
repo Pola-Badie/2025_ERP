@@ -1,5 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
+import logoPath from '@assets/P_1749320448134.png';
 
 interface InvoiceItem {
   productName: string;
@@ -59,14 +60,21 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
     <div className="printable-invoice bg-white p-8 max-w-4xl mx-auto text-black">
       {/* Header */}
       <div className="flex justify-between items-start mb-8 border-b pb-6">
-        <div className="company-info">
-          <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
-          <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
-          <div className="mt-4 text-sm text-gray-600">
-            <p>123 Business District</p>
-            <p>Cairo, Egypt 11511</p>
-            <p>Phone: +20 2 1234 5678</p>
-            <p>Email: info@morganerp.com</p>
+        <div className="company-info flex items-start gap-4">
+          <img 
+            src={logoPath} 
+            alt="Morgan ERP Logo" 
+            className="w-16 h-16 object-contain"
+          />
+          <div>
+            <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
+            <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
+            <div className="mt-4 text-sm text-gray-600">
+              <p>123 Business District</p>
+              <p>Cairo, Egypt 11511</p>
+              <p>Phone: +20 2 1234 5678</p>
+              <p>Email: info@morganerp.com</p>
+            </div>
           </div>
         </div>
         
