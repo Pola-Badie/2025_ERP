@@ -733,38 +733,74 @@ const Dashboard: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">SALES DISTRIBUTION</CardTitle>
             <div className="flex space-x-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setDistributionChartExpanded(true)}
+                title="Expand chart"
+              >
                 <Maximize2 className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <BarChart className="h-3 w-3" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setDistributionChartType(distributionChartType === 'pie' ? 'bar' : 'pie')}
+                title="Switch chart type"
+              >
+                <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setDistributionChartExpanded(false)}
+                title="Minimize chart"
+              >
                 <Minimize2 className="h-3 w-3" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-2 h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
+              {distributionChartType === 'pie' ? (
+                <PieChart>
+                  <Pie
+                    data={salesDistributionData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={0}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    paddingAngle={0}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
+                  >
+                    {salesDistributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              ) : (
+                <RechartsBarChart
                   data={salesDistributionData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={0}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  paddingAngle={0}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
-                  labelLine={false}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  {salesDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#3BCEAC" radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -774,38 +810,74 @@ const Dashboard: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">CATEGORY PERFORMANCE</CardTitle>
             <div className="flex space-x-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setCategoryChartExpanded(true)}
+                title="Expand chart"
+              >
                 <Maximize2 className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
-                <BarChart className="h-3 w-3" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setCategoryChartType(categoryChartType === 'pie' ? 'bar' : 'pie')}
+                title="Switch chart type"
+              >
+                <BarChartIcon className="h-3 w-3" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-sm">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 rounded-sm hover:bg-blue-50"
+                onClick={() => setCategoryChartExpanded(false)}
+                title="Minimize chart"
+              >
                 <Minimize2 className="h-3 w-3" />
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-2 h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
+              {categoryChartType === 'pie' ? (
+                <PieChart>
+                  <Pie
+                    data={categoryPerformanceData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={0}
+                    outerRadius={70}
+                    fill="#8884d8"
+                    paddingAngle={0}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
+                  >
+                    {categoryPerformanceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              ) : (
+                <RechartsBarChart
                   data={categoryPerformanceData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={0}
-                  outerRadius={70}
-                  fill="#8884d8"
-                  paddingAngle={0}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
-                  labelLine={false}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
-                  {categoryPerformanceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10 }}
+                  />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#0077B6" radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
