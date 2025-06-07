@@ -1241,10 +1241,13 @@ const Dashboard: React.FC = () => {
                             <td className="px-4 py-2 text-sm">{product.drugName}</td>
                             <td className="px-4 py-2">
                               <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                                product.status === 'expired' || product.status !== 'near' ? 'bg-[#F16F6F] text-white' : 
-                                'bg-[#FFB454] text-white'
+                                product.status === 'expired' ? 'bg-[#F16F6F] text-white' : 
+                                product.status === 'near' ? 'bg-[#FFB454] text-white' :
+                                'bg-green-500 text-white'
                               }`}>
-                                {product.status === 'near' ? 'NEAR EXPIRY' : 'EXPIRED'}
+                                {product.status === 'expired' ? 'EXPIRED' : 
+                                 product.status === 'near' ? 'NEAR EXPIRY' :
+                                 product.status === 'out_of_stock' ? 'OUT OF STOCK' : 'ACTIVE'}
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">{new Date(product.expiryDate).toLocaleDateString()}</td>
@@ -1454,7 +1457,7 @@ const Dashboard: React.FC = () => {
                                   ? 'bg-[#F16F6F] text-white' 
                                   : 'bg-[#F16F6F] text-white'
                               }`}>
-                                {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : '10'}
+                                {product.quantity === 0 || product.status === 'out_of_stock' ? 'OUT OF STOCK' : product.quantity}
                               </span>
                             </td>
                             <td className="px-4 py-2 text-sm">19 June 2024</td>
