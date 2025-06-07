@@ -1,5 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import logoPath from '@assets/P_1749320448134.png';
 
 interface InvoiceItem {
@@ -59,6 +60,12 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   paymentStatus,
 }) => {
   const balance = grandTotal - amountPaid;
+
+  // Fetch company settings for branding
+  const { data: companySettings } = useQuery({
+    queryKey: ['/api/company-settings'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   return (
     <div className="printable-invoice bg-white p-8 max-w-4xl mx-auto text-black">

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,12 +91,14 @@ export function CompanySettingsTab() {
   });
 
   // Reset form when data loads
-  if (companySettings && !form.formState.isDirty) {
-    form.reset(companySettings);
-    if (companySettings.logo && !logoPreview) {
-      setLogoPreview(companySettings.logo);
+  React.useEffect(() => {
+    if (companySettings) {
+      form.reset(companySettings);
+      if (companySettings.logo) {
+        setLogoPreview(companySettings.logo);
+      }
     }
-  }
+  }, [companySettings]);
 
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: CompanySettingsFormData) => {
