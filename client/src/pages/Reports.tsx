@@ -387,10 +387,18 @@ const ReportsPage: React.FC = () => {
                 <CardDescription>Value per Transaction</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$89.14</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 4%</span> vs previous period
-                </div>
+                {salesLoading ? (
+                  <div className="text-2xl font-bold animate-pulse">Loading...</div>
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      ${(salesReportData?.summary?.averageOrderValue || 0).toFixed(2)}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      <span className="text-green-500">↑ 4%</span> vs previous period
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -404,30 +412,42 @@ const ReportsPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={salesData}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sales" 
-                      stroke="#8884d8" 
-                      activeDot={{ r: 8 }} 
-                    />
-                    <Line type="monotone" dataKey="revenue" stroke="#82ca9d" />
-                  </LineChart>
-                </ResponsiveContainer>
+{salesLoading ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="animate-pulse">Loading chart data...</div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={salesReportData?.chartData || []}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="amount" 
+                        stroke="#8884d8" 
+                        activeDot={{ r: 8 }} 
+                        name="Sales Amount"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="transactions" 
+                        stroke="#82ca9d" 
+                        name="Transactions"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
             
