@@ -114,6 +114,19 @@ const CreateQuotation: React.FC = () => {
   
   // VAT percentage state
   const [vatPercentage, setVatPercentage] = useState(14);
+  
+  // Terms and conditions state
+  const [termsAndConditions, setTermsAndConditions] = useState(`1. Validity: This quotation is valid for 30 days from the date of issue.
+
+2. Payment Terms: 50% advance payment required upon order confirmation. Balance due upon completion/delivery.
+
+3. Quality Assurance: All pharmaceutical services comply with GMP standards and regulatory requirements as per Egyptian Drug Authority guidelines.
+
+4. Delivery: Delivery times are estimates and subject to production schedules, regulatory approvals, and raw material availability.
+
+5. Changes: Any changes to specifications, quantities, or requirements after quotation acceptance may affect pricing and delivery timelines.
+
+6. Liability: Our liability is limited to the value of services provided. We maintain comprehensive insurance coverage for pharmaceutical operations.`);
 
   // Calculation functions
   const calculateSubtotal = () => {
@@ -339,7 +352,8 @@ const CreateQuotation: React.FC = () => {
       tax: calculateTax(),
       total: calculateGrandTotal(),
       status: action === 'draft' ? 'draft' : 'sent',
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      termsAndConditions
     };
 
     console.log('Quotation data to submit:', quotationData);
@@ -842,6 +856,34 @@ const CreateQuotation: React.FC = () => {
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Standard Egyptian VAT is 14%. Adjust as needed for specific products or regulations.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Terms & Conditions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Terms & Conditions
+              </CardTitle>
+              <CardDescription>
+                Standard terms and conditions for pharmaceutical quotations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <Label>Terms & Conditions</Label>
+                <Textarea 
+                  value={termsAndConditions}
+                  onChange={(e) => setTermsAndConditions(e.target.value)}
+                  rows={12}
+                  className="mt-1"
+                  placeholder="Enter terms and conditions for this quotation..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  These terms will appear on the printed quotation document.
                 </p>
               </div>
             </CardContent>

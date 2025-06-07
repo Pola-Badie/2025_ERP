@@ -43,6 +43,7 @@ interface PrintableQuotationProps {
   transportationType?: string;
   transportationNotes?: string;
   quotationType: 'manufacturing' | 'refining' | 'finished';
+  termsAndConditions?: string;
 }
 
 export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
@@ -60,6 +61,7 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
   transportationType,
   transportationNotes,
   quotationType,
+  termsAndConditions,
 }) => {
   const validUntilDate = validUntil ? new Date(validUntil) : new Date(date.getTime() + 30 * 24 * 60 * 60 * 1000);
 
@@ -253,17 +255,14 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       </div>
 
       {/* Terms & Conditions */}
-      <div className="terms mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Terms & Conditions</h3>
-        <div className="bg-gray-50 p-4 rounded border text-sm space-y-2">
-          <p><strong>1. Validity:</strong> This quotation is valid until {format(validUntilDate, 'dd/MM/yyyy')}.</p>
-          <p><strong>2. Payment Terms:</strong> 50% advance payment required. Balance due upon completion/delivery.</p>
-          <p><strong>3. Quality Assurance:</strong> All pharmaceutical services comply with GMP standards and regulatory requirements.</p>
-          <p><strong>4. Delivery:</strong> Delivery times are estimates and subject to production schedules and regulatory approvals.</p>
-          <p><strong>5. Changes:</strong> Any changes to specifications may affect pricing and delivery timelines.</p>
-          <p><strong>6. Liability:</strong> Our liability is limited to the value of services provided.</p>
+      {termsAndConditions && (
+        <div className="terms mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Terms & Conditions</h3>
+          <div className="bg-gray-50 p-4 rounded border text-sm">
+            <pre className="whitespace-pre-wrap font-sans text-gray-700">{termsAndConditions}</pre>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Notes */}
       {notes && (
