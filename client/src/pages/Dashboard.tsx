@@ -2164,13 +2164,13 @@ const Dashboard: React.FC = () => {
                 {expandedChart === 'distribution' && (
                   <ResponsiveContainer width="100%" height="100%">
                     {distributionChartType === 'pie' ? (
-                      <PieChart>
+                      <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
                         <Pie
                           data={salesDistributionData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={180}
+                          innerRadius={40}
+                          outerRadius="80%"
                           paddingAngle={2}
                           dataKey="value"
                           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
@@ -2219,13 +2219,13 @@ const Dashboard: React.FC = () => {
                 {expandedChart === 'category' && (
                   <ResponsiveContainer width="100%" height="100%">
                     {categoryChartType === 'pie' ? (
-                      <PieChart>
+                      <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
                         <Pie
                           data={categoryPerformanceData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={60}
-                          outerRadius={180}
+                          innerRadius={40}
+                          outerRadius="80%"
                           paddingAngle={2}
                           dataKey="value"
                           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
