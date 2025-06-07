@@ -49,14 +49,29 @@
 
 /* Enhanced Dashboard Styles */
 
-/* Scrollable Tabs Navigation */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Scrollable Tabs Navigation with visible scrollbar */
+.tabs-scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+.tabs-scrollable::-webkit-scrollbar {
+  height: 8px;
+}
+
+.tabs-scrollable::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.tabs-scrollable::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+  border: 1px solid hsl(var(--background));
+}
+
+.tabs-scrollable::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
 }
 
 /* Smooth tab transitions */
@@ -64,39 +79,12 @@
   transition: all 0.3s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: fit-content;
 }
 
-/* Tab navigation container */
-.tabs-nav-container {
-  position: relative;
+/* Tab container styling */
+.tabs-container {
   width: 100%;
-  overflow: hidden;
-}
-
-/* Scroll buttons */
-.scroll-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  border: 1px solid hsl(var(--border));
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
-}
-
-.scroll-button:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.dark .scroll-button {
-  background: rgba(0, 0, 0, 0.9);
-}
-
-.dark .scroll-button:hover {
-  background: rgba(0, 0, 0, 0.95);
 }
 .bg-grid-pattern {
   background-image: 

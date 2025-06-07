@@ -2,8 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import {
   UsersIcon,
   PackageIcon,
@@ -41,20 +40,7 @@ const SystemPreferences: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  const scrollTabs = (direction: 'left' | 'right') => {
-    if (tabsListRef.current) {
-      const scrollAmount = 200;
-      const currentScroll = tabsListRef.current.scrollLeft;
-      const targetScroll = direction === 'left' 
-        ? currentScroll - scrollAmount 
-        : currentScroll + scrollAmount;
-      
-      tabsListRef.current.scrollTo({
-        left: targetScroll,
-        behavior: 'smooth'
-      });
-    }
-  };
+
 
   const renderTabIcon = (tabValue: string) => {
     const activeClass = activeTab === tabValue ? 'text-primary' : 'text-muted-foreground';
@@ -123,32 +109,12 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <div className="tabs-nav-container">
-              {/* Left scroll button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="scroll-button left-2 h-8 w-8 p-0"
-                onClick={() => scrollTabs('left')}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-
-              {/* Right scroll button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="scroll-button right-2 h-8 w-8 p-0"
-                onClick={() => scrollTabs('right')}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-
-              {/* Scrollable tabs container */}
-              <div className="overflow-hidden px-12">
+            <div className="w-full">
+              {/* Scrollable tabs container with visible scrollbar */}
+              <div className="overflow-x-auto tabs-scrollable">
                 <TabsList 
                   ref={tabsListRef}
-                  className="flex w-auto border-b rounded-none h-auto gap-1 overflow-x-auto scrollbar-hide scroll-smooth px-2"
+                  className="flex w-auto border-b rounded-none h-auto gap-1 px-2 min-w-full"
                 >
               <TabsTrigger 
                 value="users" 
