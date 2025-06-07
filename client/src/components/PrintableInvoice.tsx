@@ -25,6 +25,8 @@ interface Customer {
 
 interface PrintableInvoiceProps {
   invoiceNumber: string;
+  paperInvoiceNumber?: string;
+  approvalNumber?: string;
   date: Date;
   customer: Customer;
   items: InvoiceItem[];
@@ -41,6 +43,8 @@ interface PrintableInvoiceProps {
 
 export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
   invoiceNumber,
+  paperInvoiceNumber,
+  approvalNumber,
   date,
   customer,
   items,
@@ -82,6 +86,12 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           <h2 className="text-2xl font-bold text-gray-800 mb-2">INVOICE</h2>
           <div className="text-sm">
             <p><span className="font-semibold">Invoice #:</span> {invoiceNumber}</p>
+            {paperInvoiceNumber && (
+              <p><span className="font-semibold">Paper Invoice #:</span> {paperInvoiceNumber}</p>
+            )}
+            {approvalNumber && (
+              <p><span className="font-semibold">Approval #:</span> {approvalNumber}</p>
+            )}
             <p><span className="font-semibold">Date:</span> {format(date, 'dd/MM/yyyy')}</p>
             <p><span className="font-semibold">Due Date:</span> {format(new Date(date.getTime() + (parseInt(paymentTerms || '0') * 24 * 60 * 60 * 1000)), 'dd/MM/yyyy')}</p>
           </div>

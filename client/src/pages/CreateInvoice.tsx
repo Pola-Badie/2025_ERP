@@ -2297,6 +2297,8 @@ const CreateInvoice = () => {
             <div ref={printRef}>
               <PrintableInvoice
                 invoiceNumber={`INV-${getCurrentDraft()?.name || activeInvoiceId}-${new Date().getFullYear()}`}
+                paperInvoiceNumber={form.watch('paperInvoiceNumber') || ''}
+                approvalNumber={form.watch('approvalNumber') || ''}
                 date={new Date()}
                 customer={{
                   id: form.watch('customer.id'),
