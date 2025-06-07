@@ -31,7 +31,22 @@ export function registerProcurementRoutes(app: Express) {
     try {
       const { status, search } = req.query;
       
-      let query = db
+      let whereConditions = [];
+      
+      if (status && status !== 'all') {
+        whereConditions.push(eq(purchaseOrders.status, status as string));
+      }
+
+      if (search) {
+        whereConditions.push(
+          or(
+            like(purchaseOrders.poNumber, `%${search}%`),
+            like(suppliers.name, `%${search}%`)
+          )
+        );
+      }
+
+      const baseQuery = db
         .select({
           id: purchaseOrders.id,
           poNumber: purchaseOrders.poNumber,
@@ -54,18 +69,9 @@ export function registerProcurementRoutes(app: Express) {
         .from(purchaseOrders)
         .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id));
 
-      if (status && status !== 'all') {
-        query = query.where(eq(purchaseOrders.status, status as string));
-      }
-
-      if (search) {
-        query = query.where(
-          or(
-            like(purchaseOrders.poNumber, `%${search}%`),
-            like(suppliers.name, `%${search}%`)
-          )
-        );
-      }
+      const query = whereConditions.length > 0 
+        ? baseQuery.where(and(...whereConditions))
+        : baseQuery;
 
       const orders = await query.orderBy(desc(purchaseOrders.createdAt));
       res.json(orders);

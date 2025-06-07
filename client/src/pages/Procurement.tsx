@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download, Calendar, DollarSign } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Supplier {
   id: number;
@@ -56,14 +60,137 @@ interface PurchaseOrder {
 
 export default function Procurement() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isPurchaseOrderFormOpen, setIsPurchaseOrderFormOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [detailsOrder, setDetailsOrder] = useState<PurchaseOrder | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    supplierId: "",
+    poNumber: "",
+    orderDate: new Date().toISOString().split('T')[0],
+    expectedDeliveryDate: "",
+    subtotal: "0",
+    taxRate: "14",
+    taxAmount: "0",
+    totalAmount: "0",
+    paymentMethod: "",
+    paymentTerms: "Net 30",
+    notes: ""
+  });
+
+  // Fetch suppliers
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['/api/procurement/suppliers'],
+    queryFn: () => apiRequest('/api/procurement/suppliers')
+  });
+
+  // Fetch purchase orders
+  const { data: purchaseOrders = [], isLoading } = useQuery({
+    queryKey: ['/api/procurement/purchase-orders', { status: statusFilter, search: searchTerm }],
+    queryFn: () => apiRequest(`/api/procurement/purchase-orders?status=${statusFilter}&search=${encodeURIComponent(searchTerm)}`)
+  });
+
+  // Create purchase order mutation
+  const createPurchaseOrder = useMutation({
+    mutationFn: (orderData: any) => apiRequest('/api/procurement/purchase-orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/procurement/purchase-orders'] });
+      toast({
+        title: "Success",
+        description: "Purchase order created successfully"
+      });
+      setIsPurchaseOrderFormOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create purchase order",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update purchase order status mutation
+  const updateOrderStatus = useMutation({
+    mutationFn: ({ orderId, status }: { orderId: number; status: string }) => 
+      apiRequest(`/api/procurement/purchase-orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/procurement/purchase-orders'] });
+      toast({
+        title: "Success",
+        description: "Purchase order status updated successfully"
+      });
+    }
+  });
+
+  const resetForm = () => {
+    setFormData({
+      supplierId: "",
+      poNumber: "",
+      orderDate: new Date().toISOString().split('T')[0],
+      expectedDeliveryDate: "",
+      subtotal: "0",
+      taxRate: "14",
+      taxAmount: "0",
+      totalAmount: "0",
+      paymentMethod: "",
+      paymentTerms: "Net 30",
+      notes: ""
+    });
+    setEditingOrder(null);
+  };
+
+  const handleFormSubmit = () => {
+    if (!formData.supplierId || !formData.totalAmount) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const orderData = {
+      ...formData,
+      supplierId: parseInt(formData.supplierId),
+      subtotal: parseFloat(formData.subtotal),
+      taxRate: parseFloat(formData.taxRate),
+      taxAmount: parseFloat(formData.taxAmount),
+      totalAmount: parseFloat(formData.totalAmount),
+      userId: 1 // TODO: Get from auth context
+    };
+
+    createPurchaseOrder.mutate(orderData);
+  };
+
+  const calculateTotals = () => {
+    const subtotal = parseFloat(formData.subtotal) || 0;
+    const taxRate = parseFloat(formData.taxRate) || 0;
+    const taxAmount = (subtotal * taxRate) / 100;
+    const totalAmount = subtotal + taxAmount;
+
+    setFormData(prev => ({
+      ...prev,
+      taxAmount: taxAmount.toFixed(2),
+      totalAmount: totalAmount.toFixed(2)
+    }));
+  };
+
+  useEffect(() => {
+    calculateTotals();
+  }, [formData.subtotal, formData.taxRate]);
 
   // Sample purchase orders data with materials
   const samplePurchaseOrders: PurchaseOrder[] = [
@@ -179,17 +306,7 @@ export default function Procurement() {
     }
   ];
 
-  // Use sample data instead of API for now
-  const [purchaseOrders, setPurchaseOrders] = useState(samplePurchaseOrders);
-  const isLoading = false;
 
-  // Fetch suppliers from API
-  useEffect(() => {
-    fetch('/api/suppliers')
-      .then(res => res.json())
-      .then(data => setSuppliers(data))
-      .catch(err => console.error('Error fetching suppliers:', err));
-  }, []);
 
   // Handler functions for purchase order actions
   const handleEditPurchaseOrder = (order: PurchaseOrder) => {
@@ -267,6 +384,13 @@ export default function Procurement() {
             Manage purchase orders and supplier inventory
           </p>
         </div>
+        <Button 
+          onClick={() => setIsPurchaseOrderFormOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Purchase Order
+        </Button>
       </div>
 
       {/* Filters */}

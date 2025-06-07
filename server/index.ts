@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes-new";
 import { registerOrderRoutes } from "./routes-orders";
 import { registerReportsRoutes } from "./routes-reports";
 import { registerCompanyRoutes } from "./routes-company";
+import { registerProcurementRoutes } from "./routes-procurement";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
   registerOrderRoutes(app);
   registerReportsRoutes(app);
   registerCompanyRoutes(app);
+  registerProcurementRoutes(app);
   app.use("/api", comprehensiveRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
