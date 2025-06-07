@@ -6,10 +6,19 @@ import { registerCompanyRoutes } from "./routes-company";
 import { registerProcurementRoutes } from "./routes-procurement";
 import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
+import { performanceMiddleware } from "./performance-middleware";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Apply performance optimizations
+app.use(performanceMiddleware.compression);
+app.use(performanceMiddleware.cacheHeaders);
+app.use(performanceMiddleware.responseTime);
+app.use(performanceMiddleware.memoryOptimization);
+app.use(performanceMiddleware.jsonOptimization);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();

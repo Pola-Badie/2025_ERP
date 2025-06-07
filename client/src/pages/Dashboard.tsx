@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy, memo, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { 
@@ -25,13 +25,15 @@ import {
   Plus, Thermometer, AlertCircle, Maximize2, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
   User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
-  Camera, Image, Edit, MoreHorizontal, TrendingUp, BarChart2 as BarChartIcon
+  Camera, Image, Edit, MoreHorizontal, TrendingUp, BarChart2 as BarChartIcon,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+
 import { 
   LineChart, 
   Line, 
