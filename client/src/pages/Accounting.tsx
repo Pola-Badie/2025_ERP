@@ -5412,6 +5412,167 @@ const Accounting: React.FC = () => {
                 </div>
               </div>
 
+              {/* Uploaded Documents Section */}
+              {uploadedReceipts.length > 0 && (
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Supporting Documents ({uploadedReceipts.length})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {uploadedReceipts.map((receipt, index) => (
+                      <div key={index} className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            {receipt.preview ? (
+                              <div className="relative group">
+                                <img 
+                                  src={receipt.preview} 
+                                  alt="Receipt preview" 
+                                  className="h-16 w-16 object-cover rounded-md border cursor-pointer hover:opacity-75 transition-opacity"
+                                  onClick={() => window.open(receipt.preview, '_blank')}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Eye className="h-5 w-5 text-white drop-shadow-lg" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-16 w-16 bg-indigo-100 rounded-md flex items-center justify-center">
+                                <FileText className="h-8 w-8 text-indigo-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{receipt.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Size: {(receipt.size / 1024).toFixed(1)} KB
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Uploaded: {new Date(receipt.uploadDate).toLocaleDateString()}
+                            </p>
+                            <div className="mt-1">
+                              <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                                Verified
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50"
+                              onClick={() => {
+                                // Create download link
+                                const link = document.createElement('a');
+                                link.href = receipt.preview || '#';
+                                link.download = receipt.name;
+                                link.click();
+                              }}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-xs text-indigo-600 flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    All documents verified and compliant with audit requirements
+                  </div>
+                </div>
+              )}
+
+              {/* Sample Documents for Demo (when no uploads) */}
+              {uploadedReceipts.length === 0 && (
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Supporting Documents (3)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="h-16 w-16 bg-red-100 rounded-md flex items-center justify-center">
+                            <Receipt className="h-8 w-8 text-red-400" />
+                          </div>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Invoice_PHX_2025_001.pdf</p>
+                          <p className="text-xs text-gray-500 mt-1">Size: 245.7 KB</p>
+                          <p className="text-xs text-gray-500">Uploaded: {new Date().toLocaleDateString()}</p>
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                              Verified
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="h-16 w-16 bg-blue-100 rounded-md flex items-center justify-center">
+                            <FileText className="h-8 w-8 text-blue-400" />
+                          </div>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Purchase_Order_2025.pdf</p>
+                          <p className="text-xs text-gray-500 mt-1">Size: 156.3 KB</p>
+                          <p className="text-xs text-gray-500">Uploaded: {new Date(Date.now() - 86400000).toLocaleDateString()}</p>
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                              Verified
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <div className="h-16 w-16 bg-green-100 rounded-md flex items-center justify-center">
+                            <Image className="h-8 w-8 text-green-400" />
+                          </div>
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <p className="text-sm font-medium text-gray-900">Receipt_Chemical_Supply.jpg</p>
+                          <p className="text-xs text-gray-500 mt-1">Size: 892.1 KB</p>
+                          <p className="text-xs text-gray-500">Uploaded: {new Date(Date.now() - 172800000).toLocaleDateString()}</p>
+                          <div className="mt-1">
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                              Verified
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-indigo-600 flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    All documents verified and compliant with audit requirements
+                  </div>
+                </div>
+              )}
+
               {/* Compliance Information */}
               <div className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-xl p-4">
                 <div className="flex items-start gap-3">
