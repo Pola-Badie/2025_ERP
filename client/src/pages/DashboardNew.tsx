@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Users, 
   DollarSign, 
@@ -13,7 +16,9 @@ import {
   BarChart3,
   PieChart,
   LineChart,
-  Maximize2
+  Maximize2,
+  Expand,
+  X
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -66,10 +71,27 @@ const salesData = [
 ];
 
 const DashboardNew = () => {
+  const [expandedChart, setExpandedChart] = useState<string | null>(null);
+  
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
     queryKey: ['/api/dashboard/summary'],
   });
+
+  const salesDistributionData = [
+    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
+    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
+    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
+  ];
+
+  const categoryPerformanceData = [
+    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
+    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
+    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
+    { name: 'Other', value: 6.0, color: '#CAF0F8' },
+  ];
 
   return (
     <div className="space-y-6 px-6 pt-2 pb-6">
@@ -156,6 +178,14 @@ const DashboardNew = () => {
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">SALES OVERVIEW</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpandedChart('sales-overview')}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
+              <Expand className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -197,17 +227,20 @@ const DashboardNew = () => {
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">SALES DISTRIBUTION</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpandedChart('sales-distribution')}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
+              <Expand className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
-                  data={[
-                    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
-                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-                    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
-                    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
-                  ]}
+                  data={salesDistributionData}
                   cx="50%"
                   cy="50%"
                   outerRadius={60}
@@ -217,12 +250,7 @@ const DashboardNew = () => {
                   labelLine={false}
                   fontSize={10}
                 >
-                  {[
-                    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
-                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-                    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
-                    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
-                  ].map((entry, index) => (
+                  {salesDistributionData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -243,6 +271,14 @@ const DashboardNew = () => {
         <Card className="bg-white border rounded-md shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
             <CardTitle className="text-sm font-medium text-gray-700">CATEGORY PERFORMANCE</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpandedChart('category-performance')}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
+              <Expand className="h-4 w-4" />
+            </Button>
           </CardHeader>
           <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
