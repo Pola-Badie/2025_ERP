@@ -1783,9 +1783,59 @@ export default function Reports() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
+                    <CardTitle>Production Efficiency</CardTitle>
+                    <CardDescription>
+                      Production efficiency trends over time
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Production Efficiency - Expanded View"
+                    description="Detailed production efficiency analysis over time"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={salesData}
+                        margin={{ top: 30, right: 30, left: 30, bottom: 30 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={3} name="Efficiency %" />
+                        <Line type="monotone" dataKey="sales" stroke="#f59e0b" strokeWidth={3} name="Quality Score" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={salesData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} name="Efficiency %" />
+                    <Line type="monotone" dataKey="sales" stroke="#f59e0b" strokeWidth={2} name="Quality Score" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
                     <CardTitle>Production Output</CardTitle>
                     <CardDescription>
-                      Daily production output trends
+                      Daily production output distribution
                     </CardDescription>
                   </div>
                   <ChartModal
