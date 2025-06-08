@@ -1573,7 +1573,7 @@ const Inventory: React.FC = () => {
             </div>
           )}
           
-          <DialogFooter className="gap-3 pt-6 border-t">
+          <DialogFooter className={`gap-3 pt-6 border-t ${isRTL ? 'space-x-reverse' : ''}`}>
             <Button
               variant="outline"
               onClick={() => setIsHistoryDialogOpen(false)}
@@ -1585,7 +1585,7 @@ const Inventory: React.FC = () => {
               variant="outline"
               className="border-blue-300 text-blue-600 hover:bg-blue-50"
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               Export Report
             </Button>
             <Button 
@@ -1593,13 +1593,13 @@ const Inventory: React.FC = () => {
               onClick={() => setIsTransferDialogOpen(true)}
               className="border-green-300 text-green-600 hover:bg-green-50"
             >
-              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              <ArrowRightLeft className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               Transfer to Warehouse
             </Button>
             <Button 
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               Edit Product
             </Button>
           </DialogFooter>

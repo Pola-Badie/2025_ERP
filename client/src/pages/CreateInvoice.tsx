@@ -156,6 +156,8 @@ const defaultFormValues: InvoiceFormValues = {
 };
 
 const CreateInvoice = () => {
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const { toast } = useToast();
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
