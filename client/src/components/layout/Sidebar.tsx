@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="font-bold text-lg ml-3">Morgan ERP</span>
+          <span className="font-bold text-lg ml-3">PREMIER ERP</span>
         </div>
         
         {isMobile && (
@@ -171,7 +171,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           </button>
         )}
       </div>
-
       {/* Navigation with proper scrolling */}
       <div className="flex-1 overflow-hidden">
         <nav 
@@ -219,7 +218,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           </ul>
         </nav>
       </div>
-
       {/* Footer */}
       <div className="p-4 border-t border-[#2A3F55] flex-shrink-0 space-y-3">
         {/* Language Selector */}
