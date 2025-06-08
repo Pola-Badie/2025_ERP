@@ -62,7 +62,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="flex h-screen bg-slate-100">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <Sidebar />
       </div>
 
@@ -80,7 +80,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-auto md:pl-64">
+      <div className="flex-1 flex flex-col overflow-hidden md:pl-64">
         {/* Desktop Header */}
         <div className="hidden md:flex border-b border-slate-200 bg-white px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between w-full">
@@ -283,23 +283,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
         
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 hover:scrollbar-thumb-gray-500">
-          <div className="min-h-full">
-            {/* Enhanced Content Container */}
-            <div className="max-w-full mx-auto p-4 md:p-6 lg:p-8">
-              <div className="relative">
-                {/* Subtle Background Pattern */}
-                <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
-                
-                {/* Content Wrapper with Glass Effect */}
-                <div className="relative backdrop-blur-sm">
-                  {/* Page Navigation */}
-                  <PageNavigation />
-                  
-                  {children}
-                </div>
-              </div>
-            </div>
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+          <div className="p-4 md:p-6 lg:p-8">
+            <PageNavigation />
+            {children}
           </div>
         </main>
 
