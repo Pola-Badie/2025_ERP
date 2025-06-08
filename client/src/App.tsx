@@ -1,5 +1,5 @@
 import { Switch, Route } from "wouter";
-import React, { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { LanguageProvider } from "./contexts/LanguageContext";
