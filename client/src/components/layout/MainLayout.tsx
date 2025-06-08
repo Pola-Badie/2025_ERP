@@ -4,6 +4,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
+import { useSidebarContext } from "@/contexts/SidebarContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import EnhancedNotifications from "@/components/EnhancedNotifications";
 import { ProfileDialog } from "@/components/dialogs/ProfileDialog";
@@ -28,6 +29,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { language } = useLanguage();
   const { currentPage, setCurrentPage, getTotalPages } = usePagination();
+  const { isCollapsed } = useSidebarContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
@@ -62,7 +64,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="flex h-screen bg-slate-100">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+      <div className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ${isCollapsed ? 'md:w-16' : 'md:w-64'}`}>
         <Sidebar />
       </div>
       {/* Mobile Menu */}
@@ -78,7 +80,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
       )}
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden md:pl-64">
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? 'md:pl-16' : 'md:pl-64'}`}>
         {/* Desktop Header */}
         <div className="hidden md:flex border-b border-slate-200 bg-white px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between w-full">
