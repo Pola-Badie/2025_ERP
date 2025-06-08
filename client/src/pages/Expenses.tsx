@@ -37,8 +37,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText,
-  Eye, Edit, Copy, X
+  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText
 } from 'lucide-react';
 
 // Define types for Expense and Category if they're not in schema.ts
@@ -369,10 +368,10 @@ const Expenses: React.FC = () => {
     const expense = expenses?.find(exp => exp.id === expenseId);
     if (expense) {
       toast({
-        title: "Expense Details",
-        description: `Viewing expense: ${expense.description}`,
+        title: "Receipt Details",
+        description: `Viewing receipt for: ${expense.description}`,
       });
-      // Here you could open a detailed view dialog
+      // Here you could open a detailed receipt view dialog
     }
   };
 
@@ -382,20 +381,8 @@ const Expenses: React.FC = () => {
       // Pre-populate form with expense data and open the form dialog
       setIsExpenseFormOpen(true);
       toast({
-        title: "Edit Mode",
-        description: `Editing expense: ${expense.description}`,
-      });
-    }
-  };
-
-  const handleDuplicateExpense = (expenseId: number) => {
-    const expense = expenses?.find(exp => exp.id === expenseId);
-    if (expense) {
-      // Open form with duplicated data (without ID)
-      setIsExpenseFormOpen(true);
-      toast({
-        title: "Duplicate Created",
-        description: `Duplicating expense: ${expense.description}`,
+        title: "Edit Entry",
+        description: `Editing: ${expense.description}`,
       });
     }
   };
@@ -406,8 +393,8 @@ const Expenses: React.FC = () => {
       // In a real application, you'd show a confirmation dialog first
       if (window.confirm(`Are you sure you want to delete "${expense.description}"?`)) {
         toast({
-          title: "Expense Deleted",
-          description: `Deleted expense: ${expense.description}`,
+          title: "Entry Deleted",
+          description: `Deleted: ${expense.description}`,
           variant: "destructive",
         });
         // Here you would make an API call to delete the expense
@@ -805,28 +792,15 @@ const Expenses: React.FC = () => {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
+                          <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewExpense(expense.id)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              View Receipt
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditExpense(expense.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Expense
+                              Edit Entry
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateExpense(expense.id)}>
-                              <Copy className="mr-2 h-4 w-4" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteExpense(expense.id)}
-                              className="text-red-600 focus:text-red-600"
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete
+                            <DropdownMenuItem onClick={() => handleDeleteExpense(expense.id)}>
+                              Delete Entry
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
