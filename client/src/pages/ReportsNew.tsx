@@ -666,9 +666,63 @@ const Reports = () => {
               </CardContent>
             </Card>
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Asset vs Liability Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={[
+                    { month: 'Jan', assets: 6500, liabilities: 2100 },
+                    { month: 'Feb', assets: 6800, liabilities: 2200 },
+                    { month: 'Mar', assets: 7100, liabilities: 2150 },
+                    { month: 'Apr', assets: 7300, liabilities: 2300 },
+                    { month: 'May', assets: 7500, liabilities: 2250 },
+                    { month: 'Jun', assets: 7611, liabilities: 2284 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="assets" stroke="#1976D2" strokeWidth={2} />
+                    <Line type="monotone" dataKey="liabilities" stroke="#F44336" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Health Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Assets', value: 7611, fill: '#1976D2' },
+                        { name: 'Liabilities', value: 2284, fill: '#F44336' },
+                        { name: 'Equity', value: 5327, fill: '#4CAF50' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        {/* Additional tabs would follow similar pattern... */}
+        {/* Inventory Report */}
         <TabsContent value="inventory" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
@@ -708,6 +762,354 @@ const Reports = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{(inventoryData as any)?.summary?.categories || '6'}</div>
                 <p className="text-xs text-gray-600 mt-1">Active categories</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock Level Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={[
+                    { month: 'Jan', inStock: 120, lowStock: 8, outOfStock: 2 },
+                    { month: 'Feb', inStock: 115, lowStock: 6, outOfStock: 1 },
+                    { month: 'Mar', inStock: 118, lowStock: 5, outOfStock: 3 },
+                    { month: 'Apr', inStock: 125, lowStock: 4, outOfStock: 1 },
+                    { month: 'May', inStock: 130, lowStock: 3, outOfStock: 2 },
+                    { month: 'Jun', inStock: 135, lowStock: 3, outOfStock: 1 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="inStock" stackId="1" stroke="#4CAF50" fill="#4CAF50" fillOpacity={0.8} />
+                    <Area type="monotone" dataKey="lowStock" stackId="1" stroke="#FF9800" fill="#FF9800" fillOpacity={0.8} />
+                    <Area type="monotone" dataKey="outOfStock" stackId="1" stroke="#F44336" fill="#F44336" fillOpacity={0.8} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Inventory by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={[
+                    { category: 'Antibiotics', count: 25, value: 18500 },
+                    { category: 'Pain Relief', count: 30, value: 22000 },
+                    { category: 'Vitamins', count: 18, value: 12000 },
+                    { category: 'Supplements', count: 22, value: 16500 },
+                    { category: 'Injections', count: 15, value: 28000 },
+                    { category: 'Syrups', count: 20, value: 15500 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#1976D2" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Customers Report */}
+        <TabsContent value="customers" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Customers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(customersData as any)?.summary?.totalCustomers || '10'}</div>
+                <p className="text-xs text-green-600 mt-1">↗ 15% vs last month</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">New Customers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(customersData as any)?.summary?.newCustomers || '3'}</div>
+                <p className="text-xs text-green-600 mt-1">This month</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Active Customers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(customersData as any)?.summary?.activeCustomers || '8'}</div>
+                <p className="text-xs text-green-600 mt-1">↗ 12% engagement</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Retention Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">92%</div>
+                <p className="text-xs text-green-600 mt-1">↗ 5% improvement</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Growth Trend</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={[
+                    { month: 'Jan', total: 45, new: 8, active: 38 },
+                    { month: 'Feb', total: 52, new: 7, active: 44 },
+                    { month: 'Mar', total: 58, new: 6, active: 50 },
+                    { month: 'Apr', total: 65, new: 7, active: 56 },
+                    { month: 'May', total: 72, new: 7, active: 62 },
+                    { month: 'Jun', total: 80, new: 8, active: 68 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="total" stroke="#1976D2" strokeWidth={2} />
+                    <Line type="monotone" dataKey="active" stroke="#4CAF50" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Segmentation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Premium', value: 25, fill: '#1976D2' },
+                        { name: 'Regular', value: 45, fill: '#42A5F5' },
+                        { name: 'New', value: 20, fill: '#90CAF9' },
+                        { name: 'Inactive', value: 10, fill: '#E3F2FD' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Production Report */}
+        <TabsContent value="production" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Production</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(productionData as any)?.summary?.totalProduction || '295'} units</div>
+                <p className="text-xs text-green-600 mt-1">↗ 18% vs last month</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Efficiency Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(productionData as any)?.summary?.efficiencyRate || '94.2'}%</div>
+                <p className="text-xs text-green-600 mt-1">↗ 3% improvement</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Quality Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">98.5%</div>
+                <p className="text-xs text-green-600 mt-1">↗ 1.2% improvement</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Downtime</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">2.3 hrs</div>
+                <p className="text-xs text-red-600 mt-1">↘ 15% reduction</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Production Efficiency Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={[
+                    { month: 'Jan', production: 245, efficiency: 89.2, quality: 96.8 },
+                    { month: 'Feb', production: 260, efficiency: 91.5, quality: 97.2 },
+                    { month: 'Mar', production: 275, efficiency: 92.8, quality: 97.8 },
+                    { month: 'Apr', production: 280, efficiency: 93.2, quality: 98.1 },
+                    { month: 'May', production: 290, efficiency: 93.8, quality: 98.3 },
+                    { month: 'Jun', production: 295, efficiency: 94.2, quality: 98.5 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="efficiency" stroke="#1976D2" fill="#1976D2" fillOpacity={0.3} />
+                    <Area type="monotone" dataKey="quality" stroke="#4CAF50" fill="#4CAF50" fillOpacity={0.3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Production by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={[
+                    { category: 'Tablets', count: 85, efficiency: 95.2 },
+                    { category: 'Capsules', count: 75, efficiency: 93.8 },
+                    { category: 'Syrups', count: 45, efficiency: 96.1 },
+                    { category: 'Injections', count: 35, efficiency: 92.5 },
+                    { category: 'Powders', count: 30, efficiency: 94.7 },
+                    { category: 'Creams', count: 25, efficiency: 97.3 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="category" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#1976D2" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Refining Report */}
+        <TabsContent value="refining" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Raw Materials</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(refiningData as any)?.summary?.totalRawMaterials || '100'} kg</div>
+                <p className="text-xs text-green-600 mt-1">↗ 8% vs last month</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Yield Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{(refiningData as any)?.summary?.yieldRate || '87.5'}%</div>
+                <p className="text-xs text-green-600 mt-1">↗ 2.3% improvement</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Purity Level</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">99.8%</div>
+                <p className="text-xs text-green-600 mt-1">↗ 0.3% improvement</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Waste Reduction</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">12.5%</div>
+                <p className="text-xs text-red-600 mt-1">↘ 23% reduction</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Refining Process Efficiency</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={[
+                    { month: 'Jan', yield: 82.5, purity: 99.2, waste: 17.5 },
+                    { month: 'Feb', yield: 84.1, purity: 99.4, waste: 15.9 },
+                    { month: 'Mar', yield: 85.3, purity: 99.5, waste: 14.7 },
+                    { month: 'Apr', yield: 86.2, purity: 99.6, waste: 13.8 },
+                    { month: 'May', yield: 86.8, purity: 99.7, waste: 13.2 },
+                    { month: 'Jun', yield: 87.5, purity: 99.8, waste: 12.5 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="yield" stroke="#1976D2" strokeWidth={2} />
+                    <Line type="monotone" dataKey="purity" stroke="#4CAF50" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Chemical Composition Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Active Compounds', value: 45, fill: '#1976D2' },
+                        { name: 'Stabilizers', value: 25, fill: '#42A5F5' },
+                        { name: 'Excipients', value: 20, fill: '#90CAF9' },
+                        { name: 'Preservatives', value: 10, fill: '#E3F2FD' }
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
