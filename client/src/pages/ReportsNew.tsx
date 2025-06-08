@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Download, FileDown, Printer, BarChart3, TrendingUp, DollarSign, Package, Users, Factory } from 'lucide-react';
-import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
+// import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import { DateRange } from 'react-day-picker';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import jsPDF from 'jspdf';
@@ -49,8 +49,8 @@ const Reports = () => {
     enabled: true
   });
 
-  // Enhanced export functionality
-  const getReportData = (reportType: string) => {
+  // Enhanced export functionality with proper typing
+  const getReportData = (reportType: string): any => {
     switch (reportType.toLowerCase()) {
       case 'sales': return salesData;
       case 'financial': return financialData;
@@ -107,7 +107,7 @@ const Reports = () => {
       let yPosition = 90;
       
       // Executive Summary Section
-      if (reportData.summary) {
+      if (reportData && reportData.summary) {
         pdf.setFillColor(248, 249, 250);
         pdf.rect(15, yPosition - 5, pageWidth - 30, 8, 'F');
         
@@ -225,7 +225,8 @@ const Reports = () => {
       const chartElements = document.querySelectorAll('.recharts-responsive-container');
       let chartCount = 0;
       
-      for (const chartElement of chartElements) {
+      for (let i = 0; i < chartElements.length; i++) {
+        const chartElement = chartElements[i];
         if (chartCount >= 3) break;
         
         if (yPosition > pageHeight - 120) {
@@ -334,8 +335,8 @@ const Reports = () => {
       const workbook = XLSX.utils.book_new();
       
       // Executive Summary sheet
-      const summaryData = [];
-      if (reportData.summary) {
+      const summaryData: any[] = [];
+      if (reportData && reportData.summary) {
         Object.entries(reportData.summary).forEach(([key, value]) => {
           const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
           const formattedValue = typeof value === 'number' ? 
@@ -486,10 +487,10 @@ const Reports = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3">
-          <DatePickerWithRange
-            date={dateRange}
-            onDateChange={setDateRange}
-          />
+          <div className="flex items-center gap-2 px-3 py-2 border rounded-md">
+            <Calendar className="h-4 w-4" />
+            <span className="text-sm">{dateRange?.from?.toLocaleDateString() || 'Last 30 Days'} - {dateRange?.to?.toLocaleDateString() || 'Present'}</span>
+          </div>
           
           <div className="flex gap-2">
             <Button
@@ -549,7 +550,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${salesData?.summary?.totalSales?.toLocaleString() || '3,816'}</div>
+                <div className="text-2xl font-bold">${(salesData as any)?.summary?.totalSales?.toLocaleString() || '3,816'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 12% vs previous period</p>
               </CardContent>
             </Card>
@@ -559,7 +560,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Transactions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{salesData?.summary?.transactionCount || '6'}</div>
+                <div className="text-2xl font-bold">{(salesData as any)?.summary?.transactionCount || '6'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 8% vs previous period</p>
               </CardContent>
             </Card>
@@ -569,7 +570,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Average Order</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${salesData?.summary?.averageOrderValue?.toFixed(2) || '636.00'}</div>
+                <div className="text-2xl font-bold">${(salesData as any)?.summary?.averageOrderValue?.toFixed(2) || '636.00'}</div>
                 <p className="text-xs text-red-600 mt-1">↘ 2% vs previous period</p>
               </CardContent>
             </Card>
@@ -579,7 +580,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Top Category</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{salesData?.summary?.topCategory || 'Pain Relievers'}</div>
+                <div className="text-2xl font-bold">{(salesData as any)?.summary?.topCategory || 'Pain Relievers'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 15% growth</p>
               </CardContent>
             </Card>
