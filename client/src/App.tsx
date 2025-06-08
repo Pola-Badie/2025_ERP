@@ -12,7 +12,7 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 import Dashboard from "@/pages/DashboardNew";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
-import Reports from "@/pages/Reports";
+import Reports from "@/pages/ReportsNew";
 import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";

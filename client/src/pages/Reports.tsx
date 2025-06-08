@@ -165,48 +165,53 @@ export default function Reports() {
   };
 
   const exportToPDF = async (reportType: string) => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    
-    // Professional header with company branding
-    pdf.setFillColor(25, 118, 210);
-    pdf.rect(0, 0, pageWidth, 30, 'F');
-    
-    pdf.setFontSize(24);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text('PHARMACEUTICAL ERP SYSTEM', 20, 20);
-    
-    pdf.setFontSize(12);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text('Analytics & Business Intelligence Report', 20, 27);
-    
-    // Report title section
-    pdf.setFontSize(18);
-    pdf.setTextColor(25, 118, 210);
-    pdf.text(`${reportType.toUpperCase()} REPORT`, 20, 45);
-    
-    // Report metadata
-    pdf.setFontSize(10);
-    pdf.setTextColor(100, 100, 100);
-    const currentDate = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', month: 'long', day: 'numeric' 
-    });
-    const reportPeriod = `${new Date(Date.now() - 30*24*60*60*1000).toLocaleDateString('en-US', { 
-      month: 'short', day: 'numeric' 
-    })} - ${new Date().toLocaleDateString('en-US', { 
-      month: 'short', day: 'numeric', year: 'numeric' 
-    })}`;
-    
-    pdf.text(`Generated: ${currentDate}`, 20, 52);
-    pdf.text(`Report Period: ${reportPeriod}`, 20, 57);
-    pdf.text(`Department: Operations & Analytics`, 20, 62);
-    
-    let yPosition = 75;
-    
-    // Executive Summary Section
-    const reportData = getReportData(reportType);
-    if (reportData?.summary) {
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+      require('jspdf-autotable');
+      
+      const reportData = getReportData(reportType);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Enhanced professional header
+      pdf.setFillColor(25, 118, 210);
+      pdf.rect(0, 0, pageWidth, 35, 'F');
+      
+      pdf.setFontSize(22);
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('MORGAN CHEMICAL ERP', 20, 22);
+      
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Advanced Analytics & Business Intelligence Platform', 20, 30);
+      
+      // Report title and metadata section
+      pdf.setFontSize(20);
+      pdf.setTextColor(25, 118, 210);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`${reportType.toUpperCase()} ANALYTICS REPORT`, 20, 50);
+      
+      // Professional metadata with real data context
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.setFont('helvetica', 'normal');
+      const currentDate = new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      });
+      const reportPeriod = `${dateRange?.from?.toLocaleDateString() || 'Current Month'} - ${dateRange?.to?.toLocaleDateString() || 'Present'}`;
+      
+      pdf.text(`Generated: ${currentDate} at ${new Date().toLocaleTimeString()}`, 20, 58);
+      pdf.text(`Report Period: ${reportPeriod}`, 20, 64);
+      pdf.text(`Data Source: Live ERP Database | Classification: Confidential`, 20, 70);
+      pdf.text(`Authorized by: Operations & Analytics Department`, 20, 76);
+      
+      let yPosition = 90;
+      
+      // Executive Summary Section with real data
+      if (reportData && 'summary' in reportData && reportData.summary) {
       // Section header
       pdf.setFillColor(248, 249, 250);
       pdf.rect(15, yPosition - 5, pageWidth - 30, 8, 'F');
