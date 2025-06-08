@@ -639,14 +639,6 @@ const Reports = () => {
             </Dialog>
             
             <Button
-              onClick={() => exportToPDF(activeTab)}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              <FileDown className="h-4 w-4 mr-2" />
-              Export as PDF
-            </Button>
-            
-            <Button
               onClick={() => exportToExcel(activeTab)}
               variant="outline"
               className="border-green-600 text-green-600 hover:bg-green-50"
