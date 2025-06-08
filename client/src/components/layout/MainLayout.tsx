@@ -5,6 +5,7 @@ import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
+import EnhancedNotifications from "@/components/EnhancedNotifications";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -84,41 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </div>
             <div className="flex items-center space-x-3">
               {/* Notifications */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="relative p-2">
-                    <Bell className="h-5 w-5" />
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
-                      3
-                    </Badge>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <span className="font-medium text-sm">Low Stock Alert</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Panadol Advance is running low (5 units left)</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span className="font-medium text-sm">Expiry Warning</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Antibiotics expire in 15 days</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="font-medium text-sm">New Invoice</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Invoice #INV-2025-001 created successfully</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <EnhancedNotifications />
 
               {/* Profile Menu */}
               <DropdownMenu>
