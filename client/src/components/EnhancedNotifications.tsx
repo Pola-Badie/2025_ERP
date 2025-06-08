@@ -13,10 +13,17 @@ import { Link } from "wouter";
 const EnhancedNotifications: React.FC = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   
-  // Get recent unread notifications for preview
-  const recentNotifications = notifications
-    .filter(n => !n.isRead)
-    .slice(0, 6);
+  // Get recent unread notifications for preview with safe defaults
+  const recentNotifications = React.useMemo(() => {
+    try {
+      return (notifications || [])
+        .filter(n => n && !n.isRead)
+        .slice(0, 6);
+    } catch (error) {
+      console.error('Error filtering notifications:', error);
+      return [];
+    }
+  }, [notifications]);
 
   const getIcon = (type: string, category: string) => {
     if (type === 'error' || category === 'inventory') return AlertTriangle;
@@ -49,10 +56,10 @@ const EnhancedNotifications: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative p-2">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="sm" className="relative p-3 hover:bg-gray-100 transition-all duration-200">
+          <Bell className={`h-6 w-6 transition-colors duration-200 ${unreadCount > 0 ? 'text-blue-600' : 'text-gray-600'}`} />
           {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
+            <Badge className="absolute -top-1 -right-1 h-7 w-7 flex items-center justify-center text-sm font-bold bg-gradient-to-r from-red-500 to-red-600 text-white border-2 border-white shadow-xl rounded-full animate-bounce">
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
@@ -96,15 +103,20 @@ const EnhancedNotifications: React.FC = () => {
         ) : (
           <div className="max-h-80 overflow-y-auto">
             {recentNotifications.map((notification) => {
-              const IconComponent = getIcon(notification.type, notification.category);
+              if (!notification || !notification.id) return null;
+              const IconComponent = getIcon(notification.type || 'info', notification.category || 'system');
               return (
                 <div 
                   key={notification.id}
                   className={`p-3 border-b hover:bg-gray-50 cursor-pointer ${getPriorityColor(notification.priority)}`}
                   onClick={() => {
-                    markAsRead(notification.id);
-                    if (notification.actionUrl) {
-                      window.location.href = notification.actionUrl;
+                    try {
+                      markAsRead(notification.id);
+                      if (notification.actionUrl) {
+                        window.location.href = notification.actionUrl;
+                      }
+                    } catch (error) {
+                      console.error('Error handling notification click:', error);
                     }
                   }}
                 >
