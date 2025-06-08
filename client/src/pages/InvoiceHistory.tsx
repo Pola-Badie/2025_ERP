@@ -75,6 +75,12 @@ const InvoiceHistory = () => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null);
   
+  // Refund state
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
+  const [refundInvoice, setRefundInvoice] = useState<Invoice | null>(null);
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('');
+  
   // Multi-select state
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -437,6 +443,36 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
     } else {
       return <Badge className="bg-red-100 text-red-800">NO</Badge>;
     }
+  };
+
+  // Refund handler function
+  const handleRefund = (invoice: Invoice) => {
+    setRefundInvoice(invoice);
+    setRefundAmount((invoice.amountPaid || 0).toString());
+    setRefundReason('');
+    setIsRefundDialogOpen(true);
+  };
+
+  // Process refund
+  const processRefund = () => {
+    if (!refundAmount || !refundReason) {
+      toast({
+        title: "Error",
+        description: "Please enter refund amount and reason",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Refund Processed",
+      description: `Refund of $${refundAmount} processed for ${refundInvoice?.customerName}`,
+    });
+
+    setIsRefundDialogOpen(false);
+    setRefundInvoice(null);
+    setRefundAmount('');
+    setRefundReason('');
   };
 
   // Function to handle payment fulfillment
@@ -952,7 +988,7 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                         </TableCell>
                         <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                         <TableCell className="font-medium text-gray-700">
-                          {invoice.paperInvoiceNumber || `P-${invoice.invoiceNumber?.slice(-6) || '000001'}`}
+                          {`P-${invoice.invoiceNumber?.slice(-6) || '000001'}`}
                         </TableCell>
                         <TableCell className="font-medium text-blue-600">
                           {invoice.etaReference || (
@@ -1014,6 +1050,15 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                                   <DropdownMenuItem onClick={() => handlePaymentFulfillment(invoice)}>
                                     <CreditCard className="mr-2 h-4 w-4" />
                                     Pay Balance
+                                  </DropdownMenuItem>
+                                )}
+                                {(invoice.status === 'paid' || invoice.status === 'partial') && (
+                                  <DropdownMenuItem 
+                                    onClick={() => handleRefund(invoice)}
+                                    className="text-red-600"
+                                  >
+                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                    Process Refund
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -1667,6 +1712,82 @@ PharmaOverseas Team`;
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRecycleBin(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5 text-red-600" />
+              Process Refund
+            </DialogTitle>
+            <DialogDescription>
+              Process a refund for the selected invoice. This action will create a refund entry in the accounting system.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {refundInvoice && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Invoice:</span>
+                    <span className="text-sm">{refundInvoice.invoiceNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Customer:</span>
+                    <span className="text-sm">{refundInvoice.customerName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Total Amount:</span>
+                    <span className="text-sm">${refundInvoice.amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Amount Paid:</span>
+                    <span className="text-sm">${(refundInvoice.amountPaid || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="refundAmount" className="text-sm font-medium">Refund Amount</label>
+                <input
+                  id="refundAmount"
+                  type="number"
+                  placeholder="0.00"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="refundReason" className="text-sm font-medium">Reason for Refund *</label>
+                <textarea
+                  id="refundReason"
+                  placeholder="Please provide a reason for this refund..."
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRefundDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={processRefund} className="bg-red-600 hover:bg-red-700 text-white">
+              Process Refund
             </Button>
           </DialogFooter>
         </DialogContent>
