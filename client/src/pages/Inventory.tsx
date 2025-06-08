@@ -1778,7 +1778,7 @@ const Inventory: React.FC = () => {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -1787,7 +1787,7 @@ const Inventory: React.FC = () => {
                 setTargetWarehouse('');
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button 
               onClick={() => {
@@ -1796,8 +1796,8 @@ const Inventory: React.FC = () => {
                   const currentWarehouseName = warehouses.find(w => w.id === selectedWarehouse)?.name;
                   
                   toast({
-                    title: "Transfer Initiated",
-                    description: `Transferring ${transferQuantity} ${selectedProductHistory.unitOfMeasure} of ${selectedProductHistory.name} from ${currentWarehouseName} to ${targetWarehouseName}`
+                    title: t('transferInitiated'),
+                    description: `${t('transferringProduct')} ${transferQuantity} ${selectedProductHistory.unitOfMeasure} ${t('of')} ${selectedProductHistory.name} ${t('from')} ${currentWarehouseName} ${t('to')} ${targetWarehouseName}`
                   });
                   
                   setIsTransferDialogOpen(false);
@@ -1808,8 +1808,8 @@ const Inventory: React.FC = () => {
               disabled={!targetWarehouse || !transferQuantity || Number(transferQuantity) <= 0 || Number(transferQuantity) > (selectedProductHistory?.currentStock || 0)}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <ArrowRightLeft className="h-4 w-4 mr-2" />
-              Confirm Transfer
+              <ArrowRightLeft className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              {t('confirmTransfer')}
             </Button>
           </DialogFooter>
         </DialogContent>
