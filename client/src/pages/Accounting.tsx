@@ -124,6 +124,7 @@ import ProfitAndLoss from '@/components/accounting/ProfitAndLoss';
 import BalanceSheet from '@/components/accounting/BalanceSheet';
 import CustomerPayments from '@/components/accounting/CustomerPayments';
 import AccountingPeriods from '@/components/accounting/AccountingPeriods';
+import ExpenseForm from '@/components/expenses/ExpenseForm';
 
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -1852,6 +1853,94 @@ const Accounting: React.FC = () => {
   const { data: categories } = useQuery({
     queryKey: ['/api/categories'],
     queryFn: () => fetch('/api/categories').then(res => res.json())
+  });
+
+  // Mutations for expenses
+  const expensesMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/expenses', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/expenses'] });
+      toast({
+        title: "Success",
+        description: "Expense created successfully.",
+      });
+      setIsExpenseFormOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create expense. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const categoriesMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/categories', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: "Success",
+        description: "Category created successfully.",
+      });
+      setNewCategoryName('');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create category. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, data }: any) => {
+      const response = await apiRequest('PATCH', `/api/categories/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: "Success",
+        description: "Category updated successfully.",
+      });
+      setEditingCategory(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update category. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/categories/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      toast({
+        title: "Success",
+        description: "Category deleted successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete category. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   // Card component for dashboard stats
