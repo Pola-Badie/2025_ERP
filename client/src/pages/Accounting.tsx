@@ -4989,6 +4989,12 @@ const Accounting: React.FC = () => {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem>View Invoice</DropdownMenuItem>
                               <DropdownMenuItem>Download Receipt</DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleRefund('INV-2025-012')}
+                                className="text-red-600"
+                              >
+                                Process Refund
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -5016,6 +5022,12 @@ const Accounting: React.FC = () => {
                               <DropdownMenuItem>Send Reminder</DropdownMenuItem>
                               <DropdownMenuItem>View Invoice</DropdownMenuItem>
                               <DropdownMenuItem>Record Payment</DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleRefund('INV-2025-018')}
+                                className="text-red-600"
+                              >
+                                Process Refund
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -9132,6 +9144,80 @@ const Accounting: React.FC = () => {
             >
               <DollarSign className="h-4 w-4 mr-2" />
               Add Pay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              Process Refund
+            </DialogTitle>
+            <DialogDescription>
+              Process a refund for the selected invoice. This action will create a refund entry in the accounting system.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {refundInvoice && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Invoice:</span>
+                    <span className="text-sm">{refundInvoice.number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Customer:</span>
+                    <span className="text-sm">{refundInvoice.customer}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Total Amount:</span>
+                    <span className="text-sm">{refundInvoice.amount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Amount Paid:</span>
+                    <span className="text-sm">{refundInvoice.paid}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="refundAmount">Refund Amount</Label>
+                <Input
+                  id="refundAmount"
+                  type="number"
+                  placeholder="0.00"
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="refundReason">Reason for Refund *</Label>
+                <Textarea
+                  id="refundReason"
+                  placeholder="Please provide a reason for this refund..."
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRefundDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={processRefund} className="bg-red-600 hover:bg-red-700">
+              Process Refund
             </Button>
           </DialogFooter>
         </DialogContent>
