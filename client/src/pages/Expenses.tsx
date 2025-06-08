@@ -293,7 +293,7 @@ const Expenses: React.FC = () => {
       const transformedExpense = {
         id: `EXP-2025-${String(Number(expense.id)).padStart(3, '0')}`,
         description: expense.description,
-        amount: formatCurrency(expense.amount),
+        amount: formatCurrency(Number(expense.amount)),
         date: formatDate(expense.date),
         accountType: expense.category === 'Utilities' ? 'Operations' : 
                      expense.category === 'Transportation' ? 'Operations' :
@@ -498,7 +498,7 @@ const Expenses: React.FC = () => {
                           expense.category === 'Marketing' ? 'Bank Transfer' : 'Bank Transfer')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
-                        {formatCurrency(expense.amount)}
+                        {formatCurrency(Number(expense.amount))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <DropdownMenu>

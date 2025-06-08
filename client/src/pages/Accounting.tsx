@@ -5430,7 +5430,11 @@ const Accounting: React.FC = () => {
                                   src={receipt.preview} 
                                   alt="Receipt preview" 
                                   className="h-16 w-16 object-cover rounded-md border cursor-pointer hover:opacity-75 transition-opacity"
-                                  onClick={() => window.open(receipt.preview, '_blank')}
+                                  onClick={() => {
+                                    if (receipt.preview) {
+                                      window.open(receipt.preview, '_blank');
+                                    }
+                                  }}
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Eye className="h-5 w-5 text-white drop-shadow-lg" />
