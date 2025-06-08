@@ -495,31 +495,7 @@ export default function Procurement() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'sent')}>
-                                Mark as Sent
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'received')}>
-                                Mark as Received
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'cancelled')}>
-                                Mark as Cancelled
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeletePurchaseOrder(order)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+
                         </div>
                       </td>
                     </tr>
