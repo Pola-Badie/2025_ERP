@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
@@ -13,6 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [location, setLocation] = useLocation();
   const { language, setLanguage, t } = useLanguage();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
@@ -85,13 +86,15 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
 
   return (
     <div className={cn(
-      "flex flex-col h-screen bg-[#1C3149] text-white w-64",
+      "flex flex-col h-screen bg-[#1C3149] text-white transition-all duration-300",
+      isCollapsed ? "w-16" : "w-64",
       className
     )}>
       {/* Header */}
-      <div className="p-4 border-b border-[#2A3F55] flex-shrink-0">
-        <div className="flex items-center">
-          <svg
+      <div className="p-4 border-b border-[#2A3F55] flex-shrink-0 relative">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <svg
             width="32"
             height="32"
             viewBox="0 0 24 24"
@@ -156,20 +159,31 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="font-bold text-lg ml-3">PREMIER SYSTEMS</span>
+          {!isCollapsed && <span className="font-bold text-lg ml-3">PREMIER SYSTEMS</span>}
+          </div>
+          
+          {/* Collapse Button */}
+          {!isMobile && (
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="p-1 rounded-md text-gray-300 hover:text-white hover:bg-[#26405A] transition-colors"
+            >
+              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
+          )}
+          
+          {isMobile && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-300 hover:text-white"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="m18 6-12 12"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            </button>
+          )}
         </div>
-        
-        {isMobile && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-300 hover:text-white"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="m18 6-12 12"></path>
-              <path d="m6 6 12 12"></path>
-            </svg>
-          </button>
-        )}
       </div>
       {/* Navigation with proper scrolling */}
       <div className="flex-1 overflow-hidden">
@@ -199,13 +213,15 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                   )}>
                     {renderIcon(item.icon)}
                   </span>
-                  <span className={cn(
-                    "text-sm font-medium",
-                    location === item.path && "text-[#3BCEAC]"
-                  )}>
-                    {t(item.key).toUpperCase()}
-                  </span>
-                  {location === item.path && (
+                  {!isCollapsed && (
+                    <span className={cn(
+                      "text-sm font-medium",
+                      location === item.path && "text-[#3BCEAC]"
+                    )}>
+                      {t(item.key).toUpperCase()}
+                    </span>
+                  )}
+                  {!isCollapsed && location === item.path && (
                     <span className={language === 'ar' ? 'mr-auto' : 'ml-auto'}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d={language === 'ar' ? "M15 18L9 12L15 6" : "M9 18L15 12L9 6"} stroke="#3BCEAC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -221,30 +237,32 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       {/* Footer */}
       <div className="p-4 border-t border-[#2A3F55] flex-shrink-0 space-y-3">
         {/* Language Selector */}
-        <div className={`flex items-center justify-center mb-2 ${language === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
-          <button 
-            className={cn(
-              "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
-              language === 'en' 
-                ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
-                : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
-            )}
-            onClick={() => setLanguage('en')}
-          >
-            English
-          </button>
-          <button 
-            className={cn(
-              "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
-              language === 'ar' 
-                ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
-                : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
-            )}
-            onClick={() => setLanguage('ar')}
-          >
-            عربي
-          </button>
-        </div>
+        {!isCollapsed && (
+          <div className={`flex items-center justify-center mb-2 ${language === 'ar' ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+            <button 
+              className={cn(
+                "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
+                language === 'en' 
+                  ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
+                  : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
+              )}
+              onClick={() => setLanguage('en')}
+            >
+              English
+            </button>
+            <button 
+              className={cn(
+                "text-sm px-3 py-1 border rounded-md transition-colors flex-1",
+                language === 'ar' 
+                  ? "bg-[#3BCEAC] text-white border-[#3BCEAC]" 
+                  : "text-[#3BCEAC] border-[#3BCEAC] hover:bg-[#26405A]"
+              )}
+              onClick={() => setLanguage('ar')}
+            >
+              عربي
+            </button>
+          </div>
+        )}
         
         {/* Logout Button */}
         <div className="flex items-center justify-center">
