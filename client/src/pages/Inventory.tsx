@@ -1024,12 +1024,12 @@ const Inventory: React.FC = () => {
                       disabled={currentPage === totalPages}
                       className="flex items-center gap-1"
                     >
-                      Next
+                      {t('next')}
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                     
                     <div className="text-sm text-muted-foreground ml-4">
-                      Page {currentPage} of {totalPages}
+                      {t('page')} {currentPage} {t('of')} {totalPages}
                     </div>
                   </div>
                 </div>
