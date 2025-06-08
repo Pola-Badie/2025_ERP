@@ -88,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 alt="Morgan ERP Logo" 
                 className="w-12 h-12 object-contain"
               />
-              <h1 className="font-semibold text-gray-900 text-[21px]">Morgan ERP</h1>
+              <h1 className="font-semibold text-gray-900 text-[20px]">Morgan ERP</h1>
             </div>
             <div className="flex items-center space-x-3">
               {/* Enhanced Notifications */}
