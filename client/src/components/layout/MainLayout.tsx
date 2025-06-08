@@ -4,7 +4,7 @@ import MobileNav from "@/components/layout/MobileNav";
 import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
-import { ChevronLeft, ChevronRight, Bell, Settings, User, LogOut, Moon, Sun } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import EnhancedNotifications from "@/components/EnhancedNotifications";
 
 interface MainLayoutProps {
   children: React.ReactNode;
