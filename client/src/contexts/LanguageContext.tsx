@@ -135,6 +135,9 @@ const translations = {
     newLocationPlaceholder: 'New location type',
     done: 'Done',
     
+    // Additional ProductForm translations
+    chemicalName: 'Chemical Name',
+    
     // Create Invoice
     createInvoiceModule: 'Create Invoice',
     customerInfo: 'Customer Information',
@@ -298,6 +301,7 @@ const translations = {
     
     // Additional ProductForm translations
     drugName: 'اسم الدواء',
+    chemicalName: 'الاسم الكيميائي',
     description: 'الوصف',
     unitOfMeasure: 'وحدة القياس',
     lowStockThreshold: 'حد المخزون المنخفض',

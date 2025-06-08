@@ -232,10 +232,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="drugName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('drugName')}</FormLabel>
+                <FormLabel>{t('chemicalName')}</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="Enter pharmaceutical name" 
+                    placeholder="Enter chemical name" 
                     {...field} 
                     className={isRTL ? 'text-right' : 'text-left'}
                   />
