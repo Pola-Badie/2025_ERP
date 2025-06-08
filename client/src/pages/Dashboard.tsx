@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { 
@@ -106,7 +106,7 @@ const categoryPerformanceData = [
   { name: 'Other', value: 6.0, color: '#CAF0F8' },
 ];
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isExpiringProductsCollapsed, setIsExpiringProductsCollapsed] = useState(false);
@@ -345,7 +345,7 @@ const Dashboard: React.FC = () => {
   const [chartSettings, setChartSettings] = useState(getChartSettings());
   
   // Check screen width on component mount and when window resizes
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       setIsMobile(width < 768);
@@ -585,7 +585,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
-              {isLoading ? "..." : `EGP ${dashboardData?.monthSales.toLocaleString() || "12,500"}`}
+              {isLoading ? "..." : `EGP ${dashboardData?.monthSales?.toLocaleString() || "12,500"}`}
             </div>
             <p className="text-xs mt-1">Monthly</p>
           </CardContent>
@@ -600,7 +600,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : `EGP ${(dashboardData?.monthSales * 0.14 || 1750).toLocaleString()}`}
+              {isLoading ? "..." : `EGP ${((dashboardData?.monthSales || 0) * 0.14).toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">14% VAT collected from sales</p>
           </CardContent>
