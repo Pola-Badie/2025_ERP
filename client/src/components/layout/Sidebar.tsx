@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="font-bold text-lg ml-3">PREMIER ERP</span>
+          <span className="font-bold text-lg ml-3">PREMIER SYSTEMS</span>
         </div>
         
         {isMobile && (
