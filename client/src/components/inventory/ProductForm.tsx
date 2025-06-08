@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
@@ -72,6 +73,8 @@ interface Category {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initialData }) => {
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -204,16 +207,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`space-y-4 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Product Name</FormLabel>
+                <FormLabel>{t('productName')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter product name" {...field} />
+                  <Input 
+                    placeholder="Enter product name" 
+                    {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -227,7 +234,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
               <FormItem>
                 <FormLabel>Drug Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter pharmaceutical name" {...field} />
+                  <Input 
+                    placeholder="Enter pharmaceutical name" 
+                    {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -241,13 +252,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="categoryId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>{t('category')}</FormLabel>
                 <Select 
                   onValueChange={(value) => field.onChange(Number(value))} 
                   value={field.value ? field.value.toString() : "0"}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                   </FormControl>
@@ -273,9 +284,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="sku"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Batch No.</FormLabel>
+                <FormLabel>{t('batchNo')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter SKU (optional)" {...field} />
+                  <Input 
+                    placeholder="Enter SKU (optional)" 
+                    {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -288,8 +303,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
           name="gs1Code"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="flex items-center gap-2">
-                GS1 Code 
+              <FormLabel className={`flex items-center gap-2 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                {t('gs1Code')}
                 <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">
                   ETA Compatible
                 </span>
@@ -299,7 +314,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                   placeholder="Enter GS1 Code for ETA compliance (optional)" 
                   {...field}
                   value={field.value || ''}
-                  className="font-mono"
+                  className={`font-mono ${isRTL ? 'text-right' : 'text-left'}`}
                 />
               </FormControl>
               <FormMessage />
@@ -318,6 +333,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                   placeholder="Product description..." 
                   {...field} 
                   value={field.value || ''}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
               </FormControl>
               <FormMessage />
@@ -331,7 +347,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="quantity"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantity</FormLabel>
+                <FormLabel>{t('quantity')}</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -339,6 +355,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     min="0"
                     step="1"
                     {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
                   />
                 </FormControl>
                 <FormMessage />
@@ -357,7 +374,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                   value={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
                   </FormControl>
@@ -603,7 +620,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
           />
         </div>
         
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className={`flex ${isRTL ? 'justify-start space-x-reverse' : 'justify-end'} space-x-2 pt-4`}>
           <Button 
             type="button" 
             variant="outline" 

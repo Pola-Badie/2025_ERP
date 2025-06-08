@@ -268,6 +268,18 @@ const translations = {
     comprehensiveHistory: 'تاريخ شامل وتحليلات الأداء لـ',
     loadingProductDetails: 'جاري تحميل تفاصيل المنتج...',
     
+    // Additional ProductForm translations
+    drugName: 'اسم الدواء',
+    description: 'الوصف',
+    unitOfMeasure: 'وحدة القياس',
+    lowStockThreshold: 'حد المخزون المنخفض',
+    costPrice: 'سعر التكلفة',
+    sellingPrice: 'سعر البيع',
+    warehouse: 'المستودع',
+    shelfNumber: 'رقم الرف',
+    status: 'الحالة',
+    productType: 'نوع المنتج',
+    
     // Create Invoice
     createInvoice: 'إنشاء فاتورة',
     customerInfo: 'معلومات العميل',
