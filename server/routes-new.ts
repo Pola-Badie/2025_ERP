@@ -18,7 +18,6 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import * as cron from "node-cron";
-import { ultraCache, ultraCacheMiddleware } from "./ultra-cache";
 import { eq, and, gte, lte, desc, count, sum, sql } from "drizzle-orm";
 
 // Set up multer for file uploads
@@ -244,8 +243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= User Management Endpoints =============
 
-  // Get all users with caching
-  app.get("/api/users", ultraCacheMiddleware("users", 300000), async (_req: Request, res: Response) => {
+  // Get all users
+  app.get("/api/users", async (_req: Request, res: Response) => {
     try {
       const allUsers = await db.select({
         id: users.id,
@@ -494,36 +493,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Dashboard Endpoints =============
   
-  // Simple cache for dashboard data
-  let dashboardCache: any = null;
-  let cacheTimestamp = 0;
-  const CACHE_DURATION = 30000; // 30 seconds
-
-  // API endpoint for dashboard summary data - optimized with caching
+  // API endpoint for dashboard summary data
   app.get("/api/dashboard/summary", async (_req: Request, res: Response) => {
     try {
-      // Return cached data if available and fresh
-      if (dashboardCache && Date.now() - cacheTimestamp < CACHE_DURATION) {
-        return res.json(dashboardCache);
-      }
-
-      // Fast query execution with minimal data
-      const [customersCount] = await db.select({ count: sql<number>`count(*)` }).from(customers);
+      // Get total customers count
+      const [customersResult] = await db.select({ 
+        count: count() 
+      }).from(customers);
       
-      const dashboardData = {
-        totalCustomers: Number(customersCount?.count) || 10,
-        newCustomers: 3,
-        todaySales: 1250.75,
-        monthSales: 15420.50,
-        lowStockProducts: [],
-        expiringProducts: []
-      };
-
-      // Cache the result
-      dashboardCache = dashboardData;
-      cacheTimestamp = Date.now();
+      // Get customers added in last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
-      res.json(dashboardData);
+      const [newCustomersResult] = await db.select({ 
+        count: count() 
+      }).from(customers).where(gte(customers.createdAt, thirtyDaysAgo));
+      
+      // Get today's sales
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const [todaySalesResult] = await db.select({ 
+        total: sum(sales.totalAmount) 
+      }).from(sales).where(gte(sales.date, today));
+      
+      // Get current month sales
+      const firstDayOfMonth = new Date();
+      firstDayOfMonth.setDate(1);
+      firstDayOfMonth.setHours(0, 0, 0, 0);
+      
+      const [monthSalesResult] = await db.select({ 
+        total: sum(sales.totalAmount) 
+      }).from(sales).where(gte(sales.date, firstDayOfMonth));
+      
+      // Get low stock products
+      const lowStockProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        quantity: products.quantity,
+        status: products.status
+      })
+      .from(products)
+      .where(
+        sql`${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock'`
+      )
+      .limit(5);
+      
+      // Get expiring products
+      const expiryLimit = new Date();
+      expiryLimit.setDate(expiryLimit.getDate() + 90); // next 90 days
+      
+      const expiringProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        expiryDate: products.expiryDate,
+        status: products.status
+      })
+      .from(products)
+      .where(
+        sql`${products.expiryDate} IS NOT NULL AND ${products.expiryDate} <= ${expiryLimit}`
+      )
+      .orderBy(products.expiryDate)
+      .limit(5);
+      
+      // Format the response
+      const totalCustomers = Number(customersResult.count) || 0;
+      const newCustomers = Number(newCustomersResult.count) || 0;
+      const todaySales = Number(todaySalesResult.total) || 0;
+      const monthSales = Number(monthSalesResult.total) || 0;
+      
+      res.json({
+        totalCustomers,
+        newCustomers,
+        todaySales,
+        monthSales,
+        lowStockProducts,
+        expiringProducts
+      });
     } catch (error) {
       console.error("Dashboard summary error:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });
@@ -532,8 +580,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Product Endpoints =============
   
-  // Get all products with aggressive caching
-  app.get("/api/products", ultraCacheMiddleware("products", 300000), async (req: Request, res: Response) => {
+  // Get all products
+  app.get("/api/products", async (req: Request, res: Response) => {
     try {
       let productsQuery = db.select().from(products);
       
@@ -604,8 +652,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Category Endpoints =============
   
-  // Get all categories with caching
-  app.get("/api/categories", ultraCacheMiddleware("categories", 600000), async (_req: Request, res: Response) => {
+  // Get all categories
+  app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
       const result = await db.select().from(productCategories);
       res.json(result);
@@ -683,8 +731,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Customer Endpoints =============
   
-  // Get all customers with caching
-  app.get("/api/customers", ultraCacheMiddleware("customers", 300000), async (_req: Request, res: Response) => {
+  // Get all customers
+  app.get("/api/customers", async (_req: Request, res: Response) => {
     try {
       const result = await db.select().from(customers);
       res.json(result);

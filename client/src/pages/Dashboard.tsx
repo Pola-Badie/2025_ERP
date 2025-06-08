@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy, memo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { 
@@ -25,15 +25,13 @@ import {
   Plus, Thermometer, AlertCircle, Maximize2, Minimize2,
   Bell, UserPlus, Receipt, PackagePlus, UserCog, AlertTriangle, Eye,
   User, Settings, LogOut, ChevronDown, Edit2, Save, X, Upload, Trash2,
-  Camera, Image, Edit, MoreHorizontal, TrendingUp, BarChart2 as BarChartIcon,
-  Loader2
+  Camera, Image, Edit, MoreHorizontal, TrendingUp, BarChart2 as BarChartIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-
 import { 
   LineChart, 
   Line, 
@@ -147,7 +145,6 @@ const Dashboard: React.FC = () => {
     joinDate: '2023-01-15',
     lastLogin: new Date().toISOString(),
     avatar: '',
-    location: 'Cairo, Egypt',
   });
 
   // Profile picture upload states
@@ -168,14 +165,10 @@ const Dashboard: React.FC = () => {
       push: true,
       lowStock: true,
       expiration: true,
-      marketing: false,
-      sound: true,
     },
     theme: 'light',
     autoLogout: 30,
     defaultView: 'dashboard',
-    fontSize: 'medium',
-    compactMode: false,
   });
   
   const { toast } = useToast();
@@ -607,7 +600,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : `EGP ${((dashboardData?.monthSales || 0) * 0.14 || 1750).toLocaleString()}`}
+              {isLoading ? "..." : `EGP ${(dashboardData?.monthSales * 0.14 || 1750).toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">14% VAT collected from sales</p>
           </CardContent>
@@ -1961,7 +1954,7 @@ const Dashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground">Promotional content and updates</p>
                     </div>
                     <Switch
-                      checked={settingsData.notifications?.marketing || false}
+                      checked={settingsData.notifications?.marketing}
                       onCheckedChange={(checked) => handleNotificationChange('marketing', checked)}
                     />
                   </div>
@@ -1972,7 +1965,7 @@ const Dashboard: React.FC = () => {
                       <p className="text-xs text-muted-foreground">Play notification sounds</p>
                     </div>
                     <Switch
-                      checked={settingsData.notifications?.sound || false}
+                      checked={settingsData.notifications?.sound}
                       onCheckedChange={(checked) => handleNotificationChange('sound', checked)}
                     />
                   </div>
@@ -2008,7 +2001,7 @@ const Dashboard: React.FC = () => {
                   <div className="space-y-2">
                     <Label htmlFor="fontSize">Font Size</Label>
                     <Select
-                      value={settingsData.fontSize || 'medium'}
+                      value={settingsData.fontSize}
                       onValueChange={(value) => handleSettingsChange('fontSize', value)}
                     >
                       <SelectTrigger>
@@ -2030,7 +2023,7 @@ const Dashboard: React.FC = () => {
                         <p className="text-xs text-muted-foreground">Show more content with reduced spacing</p>
                       </div>
                       <Switch
-                        checked={settingsData.compactMode || false}
+                        checked={settingsData.compactMode}
                         onCheckedChange={(checked) => handleSettingsChange('compactMode', checked)}
                       />
                     </div>

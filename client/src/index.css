@@ -48,44 +48,6 @@
   }
 
 /* Enhanced Dashboard Styles */
-
-/* Scrollable Tabs Navigation with visible scrollbar */
-.tabs-scrollable {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) transparent;
-}
-
-.tabs-scrollable::-webkit-scrollbar {
-  height: 8px;
-}
-
-.tabs-scrollable::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-
-.tabs-scrollable::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
-  border-radius: 4px;
-  border: 1px solid hsl(var(--background));
-}
-
-.tabs-scrollable::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground));
-}
-
-/* Smooth tab transitions */
-.tab-trigger {
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  flex-shrink: 0;
-  min-width: fit-content;
-}
-
-/* Tab container styling */
-.tabs-container {
-  width: 100%;
-}
 .bg-grid-pattern {
   background-image: 
     linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),

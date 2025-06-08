@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +13,7 @@ import {
   FileTextIcon,
   SettingsIcon,
   ReceiptIcon,
-  FileDownIcon,
-  Building2
+  FileDownIcon
 } from 'lucide-react';
 
 // Import tab components
@@ -25,22 +24,18 @@ import SecuritySettingsTab from '@/components/system-preferences/SecuritySetting
 import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
 import BackupTab from '@/components/system-preferences/BackupTab';
 import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
-import { CompanySettingsTab } from '@/components/system-preferences/CompanySettingsTab';
-import { InvoiceSettingsTab } from '@/components/system-preferences/InvoiceSettingsTab';
-import { QuotationSettingsTab } from '@/components/system-preferences/QuotationSettingsTab';
+import QuotationPreviewSettingsTab from '@/components/system-preferences/QuotationPreviewSettingsTab';
+import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePreviewSettingsTab';
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('users');
-  const tabsListRef = useRef<HTMLDivElement>(null);
 
   // Fetch system preferences
   const { data: preferences, isLoading, isError, refetch } = useQuery({
     queryKey: ['/api/system-preferences'],
     refetchOnWindowFocus: false,
   });
-
-
 
   const renderTabIcon = (tabValue: string) => {
     const activeClass = activeTab === tabValue ? 'text-primary' : 'text-muted-foreground';
@@ -64,8 +59,6 @@ const SystemPreferences: React.FC = () => {
         return <FileDownIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'invoice-preview':
         return <ReceiptIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'company':
-        return <Building2 className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
@@ -109,13 +102,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <div className="w-full">
-              {/* Scrollable tabs container with visible scrollbar */}
-              <div className="overflow-x-auto tabs-scrollable">
-                <TabsList 
-                  ref={tabsListRef}
-                  className="flex w-auto border-b rounded-none h-auto gap-1 px-2 min-w-full"
-                >
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-10 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -180,22 +167,13 @@ const SystemPreferences: React.FC = () => {
                 <span className="hidden lg:inline ml-1 truncate">Invoice</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="company" 
-                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
-              >
-                {renderTabIcon('company')}
-                <span className="hidden lg:inline ml-1 truncate">Company</span>
-              </TabsTrigger>
-              <TabsTrigger 
                 value="modules" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('modules')}
                 <span className="hidden lg:inline ml-1 truncate">Modules</span>
               </TabsTrigger>
-                </TabsList>
-              </div>
-            </div>
+            </TabsList>
             
             <div className="p-6">
               <TabsContent value="users" className="mt-0">
@@ -227,15 +205,11 @@ const SystemPreferences: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="quotation-preview" className="mt-0">
-                <QuotationSettingsTab />
+                <QuotationPreviewSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="invoice-preview" className="mt-0">
-                <InvoiceSettingsTab />
-              </TabsContent>
-              
-              <TabsContent value="company" className="mt-0">
-                <CompanySettingsTab />
+                <InvoicePreviewSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="modules" className="mt-0">

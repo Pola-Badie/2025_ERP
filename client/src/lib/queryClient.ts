@@ -25,15 +25,32 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  console.log(`API ${method} request to ${url}:`, data);
+  
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
+    
+    if (!res.ok) {
+      console.error(`API error response from ${url}:`, { status: res.status, statusText: res.statusText });
+      try {
+        const errorBody = await res.clone().json();
+        console.error('Error response body:', errorBody);
+      } catch (e) {
+        console.error('Could not parse error response body as JSON');
+      }
+    }
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`API request to ${url} failed:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -60,18 +77,11 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      refetchOnMount: true,
-      refetchOnReconnect: false,
-      staleTime: 2 * 60 * 1000, // 2 minutes for faster updates
-      gcTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      retryDelay: 500,
-      networkMode: 'online',
+      staleTime: Infinity,
+      retry: false,
     },
     mutations: {
-      retry: 1,
-      retryDelay: 500,
-      networkMode: 'online',
+      retry: false,
     },
   },
 });

@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Calendar, DollarSign, Package, Minus, Upload, FileText, Download } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Supplier {
   id: number;
@@ -21,14 +17,15 @@ interface Supplier {
   email: string;
   phone: string;
   address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  taxId: string;
-  paymentTerms: string;
-  currency: string;
-  status: string;
+}
+
+interface PurchaseOrderItem {
+  id: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
 }
 
 interface PurchaseOrder {
@@ -36,357 +33,230 @@ interface PurchaseOrder {
   poNumber: string;
   supplier: string;
   supplierId: number;
-  orderDate: string;
-  expectedDeliveryDate: string;
+  date: string;
   status: 'draft' | 'sent' | 'received' | 'cancelled' | 'pending';
-  subtotal: number;
-  taxRate: number;
-  taxAmount: number;
   totalAmount: number;
-  paymentMethod: string;
-  paymentTerms: string;
-  paymentDueDate: string;
-  notes: string;
-  createdAt: string;
+  items: PurchaseOrderItem[];
+  materials?: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+  }>;
+  paymentMethod?: string;
+  paymentTerms?: string;
+  paymentDueDate?: string;
+  documents?: Array<{
+    id: number;
+    name: string;
+    type: string;
+    uploadDate: string;
+    size: string;
+  }>;
 }
 
 export default function Procurement() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isPurchaseOrderFormOpen, setIsPurchaseOrderFormOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<PurchaseOrder | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [detailsOrder, setDetailsOrder] = useState<PurchaseOrder | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    supplierId: "",
-    poNumber: "",
-    orderDate: new Date().toISOString().split('T')[0],
-    expectedDeliveryDate: "",
-    subtotal: "0",
-    taxRate: "14",
-    taxAmount: "0",
-    totalAmount: "0",
-    paymentMethod: "",
-    paymentTerms: "Net 30",
-    notes: ""
-  });
 
-  // Items state
-  const [items, setItems] = useState([
+  // Sample purchase orders data with materials
+  const samplePurchaseOrders: PurchaseOrder[] = [
     {
-      id: Date.now(),
-      productId: "",
-      productName: "",
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      total: 0
-    }
-  ]);
-
-  // Document/Receipt upload state
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{[key: string]: number}>({});
-
-  // Fetch suppliers
-  const { data: suppliers = [] } = useQuery({
-    queryKey: ['/api/procurement/suppliers'],
-    queryFn: async () => {
-      const response = await fetch('/api/procurement/suppliers');
-      if (!response.ok) throw new Error('Failed to fetch suppliers');
-      return response.json();
-    }
-  });
-
-  // Fetch products
-  const { data: products = [] } = useQuery({
-    queryKey: ['/api/products'],
-    queryFn: async () => {
-      const response = await fetch('/api/products');
-      if (!response.ok) throw new Error('Failed to fetch products');
-      return response.json();
-    }
-  });
-
-  // Fetch purchase orders
-  const { data: purchaseOrders = [], isLoading } = useQuery({
-    queryKey: ['/api/procurement/purchase-orders', statusFilter, searchTerm],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (searchTerm) params.append('search', searchTerm);
-      
-      const response = await fetch(`/api/procurement/purchase-orders?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch purchase orders');
-      return response.json();
-    }
-  });
-
-  // Create purchase order mutation
-  const createPurchaseOrder = useMutation({
-    mutationFn: async (orderData: any) => {
-      const response = await fetch('/api/procurement/purchase-orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      });
-      if (!response.ok) throw new Error('Failed to create purchase order');
-      return response.json();
+      id: 1,
+      poNumber: "PO-2024-001",
+      supplier: "MedChem Supplies Ltd",
+      supplierId: 1,
+      date: "2024-05-20",
+      status: 'pending',
+      totalAmount: 25420.00,
+      items: [
+        { productId: 1, productName: "Acetaminophen API", quantity: 500, unitPrice: 42.50, total: 21250.00 },
+        { productId: 2, productName: "Microcrystalline Cellulose", quantity: 200, unitPrice: 18.50, total: 3700.00 },
+        { productId: 3, productName: "Magnesium Stearate", quantity: 25, unitPrice: 18.80, total: 470.00 }
+      ],
+      materials: [
+        { name: "Acetaminophen API", quantity: 500, unit: "kg" },
+        { name: "Microcrystalline Cellulose", quantity: 200, unit: "kg" },
+        { name: "Magnesium Stearate", quantity: 25, unit: "kg" }
+      ],
+      paymentMethod: "Bank Transfer",
+      paymentTerms: "Net 30 Days",
+      paymentDueDate: "2024-06-20",
+      documents: [
+        { id: 1, name: "Receipt_PO-2024-001.pdf", type: "Receipt", uploadDate: "2024-05-21", size: "2.4 MB" },
+        { id: 2, name: "Delivery_Note_001.pdf", type: "Delivery Note", uploadDate: "2024-05-21", size: "1.2 MB" }
+      ]
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/procurement/purchase-orders'] });
-      toast({
-        title: "Success",
-        description: "Purchase order created successfully"
-      });
-      setIsPurchaseOrderFormOpen(false);
-      resetForm();
+    {
+      id: 2,
+      poNumber: "PO-2024-002", 
+      supplier: "PharmaCorp International",
+      supplierId: 2,
+      date: "2024-05-18",
+      status: 'received',
+      totalAmount: 18950.00,
+      items: [
+        { productId: 4, productName: "Ibuprofen API", quantity: 300, unitPrice: 55.00, total: 16500.00 },
+        { productId: 5, productName: "Lactose Monohydrate", quantity: 150, unitPrice: 12.50, total: 1875.00 },
+        { productId: 6, productName: "Croscarmellose Sodium", quantity: 10, unitPrice: 57.50, total: 575.00 }
+      ],
+      materials: [
+        { name: "Ibuprofen API", quantity: 300, unit: "kg" },
+        { name: "Lactose Monohydrate", quantity: 150, unit: "kg" },
+        { name: "Croscarmellose Sodium", quantity: 10, unit: "kg" }
+      ],
+      paymentMethod: "Letter of Credit",
+      paymentTerms: "Net 45 Days",
+      paymentDueDate: "2024-07-05"
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create purchase order",
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Update purchase order status mutation
-  const updateOrderStatus = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
-      const response = await fetch(`/api/procurement/purchase-orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
-      });
-      if (!response.ok) throw new Error('Failed to update status');
-      return response.json();
+    {
+      id: 3,
+      poNumber: "PO-2024-003",
+      supplier: "Global Chemical Solutions",
+      supplierId: 3,
+      date: "2024-05-15",
+      status: 'draft',
+      totalAmount: 31200.00,
+      items: [],
+      materials: [
+        { name: "Amoxicillin Trihydrate", quantity: 250, unit: "kg" },
+        { name: "Clavulanic Acid", quantity: 50, unit: "kg" },
+        { name: "Sodium Starch Glycolate", quantity: 15, unit: "kg" },
+        { name: "Colloidal Silicon Dioxide", quantity: 5, unit: "kg" }
+      ],
+      paymentMethod: "Cash on Delivery",
+      paymentTerms: "Immediate Payment"
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/procurement/purchase-orders'] });
-      toast({
-        title: "Success",
-        description: "Purchase order status updated successfully"
-      });
+    {
+      id: 4,
+      poNumber: "PO-2024-004",
+      supplier: "BioActive Materials Inc",
+      supplierId: 4,
+      date: "2024-05-12",
+      status: 'cancelled',
+      totalAmount: 8950.00,
+      items: [],
+      materials: [
+        { name: "Aspirin API", quantity: 100, unit: "kg" },
+        { name: "Corn Starch", quantity: 75, unit: "kg" }
+      ]
+    },
+    {
+      id: 5,
+      poNumber: "PO-2024-005",
+      supplier: "Precision Pharmaceuticals",
+      supplierId: 5,
+      date: "2024-05-10",
+      status: 'pending',
+      totalAmount: 22300.00,
+      items: [],
+      materials: [
+        { name: "Metformin HCl", quantity: 400, unit: "kg" },
+        { name: "Hydroxypropyl Methylcellulose", quantity: 50, unit: "kg" },
+        { name: "Polyethylene Glycol", quantity: 20, unit: "kg" }
+      ]
+    },
+    {
+      id: 6,
+      poNumber: "PO-2024-006",
+      supplier: "ChemSource Distribution",
+      supplierId: 6,
+      date: "2024-05-08",
+      status: 'sent',
+      totalAmount: 14750.00,
+      items: [],
+      materials: [
+        { name: "Calcium Carbonate", quantity: 300, unit: "kg" },
+        { name: "Vitamin D3", quantity: 5, unit: "kg" },
+        { name: "Talc", quantity: 25, unit: "kg" }
+      ]
     }
-  });
+  ];
 
-  // Item management functions
-  const addItem = () => {
-    setItems([...items, {
-      id: Date.now(),
-      productId: "",
-      productName: "",
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      total: 0
-    }]);
-  };
+  // Use sample data instead of API for now
+  const [purchaseOrders, setPurchaseOrders] = useState(samplePurchaseOrders);
+  const isLoading = false;
 
-  const removeItem = (id: number) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
-    }
-  };
-
-  const updateItem = (id: number, field: string, value: any) => {
-    setItems(items.map(item => {
-      if (item.id === id) {
-        const updatedItem = { ...item, [field]: value };
-        
-        // If product is selected, update product name
-        if (field === 'productId' && value) {
-          const product = products.find((p: any) => p.id === parseInt(value));
-          if (product) {
-            updatedItem.productName = product.name;
-            updatedItem.unitPrice = parseFloat(product.sellingPrice) || 0;
-          }
-        }
-        
-        // Calculate total
-        if (field === 'quantity' || field === 'unitPrice' || field === 'productId') {
-          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
-        }
-        
-        return updatedItem;
-      }
-      return item;
-    }));
-  };
-
-  const calculateItemTotals = () => {
-    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-    const taxRate = parseFloat(formData.taxRate) || 0;
-    const taxAmount = (subtotal * taxRate) / 100;
-    const totalAmount = subtotal + taxAmount;
-
-    setFormData(prev => ({
-      ...prev,
-      subtotal: subtotal.toFixed(2),
-      taxAmount: taxAmount.toFixed(2),
-      totalAmount: totalAmount.toFixed(2)
-    }));
-  };
-
-  // File upload functions
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const fileArray = Array.from(files);
-      setUploadedFiles(prev => [...prev, ...fileArray]);
-      
-      // Simulate upload progress
-      fileArray.forEach(file => {
-        const fileName = file.name;
-        setUploadProgress(prev => ({ ...prev, [fileName]: 0 }));
-        
-        // Simulate progress
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 20;
-          setUploadProgress(prev => ({ ...prev, [fileName]: progress }));
-          
-          if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              setUploadProgress(prev => {
-                const newProgress = { ...prev };
-                delete newProgress[fileName];
-                return newProgress;
-              });
-            }, 1000);
-          }
-        }, 200);
-      });
-    }
-  };
-
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const resetForm = () => {
-    setFormData({
-      supplierId: "",
-      poNumber: "",
-      orderDate: new Date().toISOString().split('T')[0],
-      expectedDeliveryDate: "",
-      subtotal: "0",
-      taxRate: "14",
-      taxAmount: "0",
-      totalAmount: "0",
-      paymentMethod: "",
-      paymentTerms: "Net 30",
-      notes: ""
-    });
-    setItems([{
-      id: Date.now(),
-      productId: "",
-      productName: "",
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      total: 0
-    }]);
-    setUploadedFiles([]);
-    setUploadProgress({});
-    setEditingOrder(null);
-  };
-
-  const handleFormSubmit = () => {
-    if (!formData.supplierId || items.length === 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a supplier and add at least one item",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate items
-    const invalidItems = items.filter(item => !item.productId || item.quantity <= 0 || item.unitPrice <= 0);
-    if (invalidItems.length > 0) {
-      toast({
-        title: "Validation Error",
-        description: "Please ensure all items have a product, quantity, and unit price",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const orderData = {
-      ...formData,
-      supplierId: parseInt(formData.supplierId),
-      subtotal: parseFloat(formData.subtotal),
-      taxRate: parseFloat(formData.taxRate),
-      taxAmount: parseFloat(formData.taxAmount),
-      totalAmount: parseFloat(formData.totalAmount),
-      userId: 1, // TODO: Get from auth context
-      items: items.map(item => ({
-        productId: item.productId ? parseInt(item.productId) : null,
-        productName: item.productName,
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.total
-      }))
-    };
-
-    createPurchaseOrder.mutate(orderData);
-  };
-
-  const calculateTotals = () => {
-    const subtotal = parseFloat(formData.subtotal) || 0;
-    const taxRate = parseFloat(formData.taxRate) || 0;
-    const taxAmount = (subtotal * taxRate) / 100;
-    const totalAmount = subtotal + taxAmount;
-
-    setFormData(prev => ({
-      ...prev,
-      taxAmount: taxAmount.toFixed(2),
-      totalAmount: totalAmount.toFixed(2)
-    }));
-  };
-
+  // Fetch suppliers from API
   useEffect(() => {
-    calculateItemTotals();
-  }, [items, formData.taxRate]);
+    fetch('/api/suppliers')
+      .then(res => res.json())
+      .then(data => setSuppliers(data))
+      .catch(err => console.error('Error fetching suppliers:', err));
+  }, []);
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      draft: { color: "bg-gray-100 text-gray-800", label: "Draft" },
-      sent: { color: "bg-blue-100 text-blue-800", label: "Sent" },
-      pending: { color: "bg-yellow-100 text-yellow-800", label: "Pending" },
-      received: { color: "bg-green-100 text-green-800", label: "Received" },
-      cancelled: { color: "bg-red-100 text-red-800", label: "Cancelled" }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    return <Badge className={config.color}>{config.label}</Badge>;
+  // Handler functions for purchase order actions
+  const handleEditPurchaseOrder = (order: PurchaseOrder) => {
+    setEditingOrder(order);
+    setIsPurchaseOrderFormOpen(true);
+    toast({
+      title: "Edit Purchase Order",
+      description: `Opening ${order.poNumber} for editing`,
+    });
   };
 
-  const filteredOrders = purchaseOrders.filter((order: PurchaseOrder) => {
-    const matchesSearch = !searchTerm || 
-      order.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+  const handleChangePurchaseOrderStatus = (order: PurchaseOrder, newStatus: string) => {
+    setPurchaseOrders(prev => 
+      prev.map(po => 
+        po.id === order.id 
+          ? { ...po, status: newStatus as PurchaseOrder['status'] }
+          : po
+      )
+    );
+    toast({
+      title: "Status Updated", 
+      description: `${order.poNumber} marked as ${newStatus}`,
+    });
+  };
+
+  const handleDeletePurchaseOrder = (order: PurchaseOrder) => {
+    setPurchaseOrders(prev => prev.filter(po => po.id !== order.id));
+    toast({
+      title: "Purchase Order Deleted",
+      description: `${order.poNumber} has been deleted`,
+      variant: "destructive",
+    });
+  };
+
+  const handleCreatePurchaseOrder = () => {
+    setEditingOrder(null);
+    setIsPurchaseOrderFormOpen(true);
+  };
+
+  // Filter purchase orders based on search term and status
+  const filteredPurchaseOrders = purchaseOrders?.filter(po => {
+    const matchesSearch = 
+      po.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      po.supplier.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || po.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
+
+  // Function to get status badge styling
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case 'draft':
+        return <Badge variant="outline" className="bg-slate-100 text-slate-700">Draft</Badge>;
+      case 'sent':
+        return <Badge variant="outline" className="bg-blue-100 text-blue-700">Sent</Badge>;
+      case 'received':
+        return <Badge variant="outline" className="bg-green-100 text-green-700">Received</Badge>;
+      case 'cancelled':
+        return <Badge variant="outline" className="bg-red-100 text-red-700">Cancelled</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-700">Pending</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -397,36 +267,27 @@ export default function Procurement() {
             Manage purchase orders and supplier inventory
           </p>
         </div>
-        <Button 
-          onClick={() => setIsPurchaseOrderFormOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Purchase Order
-        </Button>
       </div>
 
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search purchase orders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by PO number or supplier..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="sent">Sent</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -439,88 +300,92 @@ export default function Procurement() {
       </Card>
 
       {/* Purchase Orders List */}
-      <div className="space-y-4">
+      <div className="grid gap-4">
         {isLoading ? (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Loading purchase orders...</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : filteredOrders.length > 0 ? (
-          filteredOrders.map((order: PurchaseOrder) => (
+          <div className="text-center py-8">Loading purchase orders...</div>
+        ) : filteredPurchaseOrders && filteredPurchaseOrders.length > 0 ? (
+          filteredPurchaseOrders.map((order) => (
             <Card key={order.id} className="hover:shadow-md transition-shadow">
               <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-3">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg">{order.poNumber}</h3>
                       {getStatusBadge(order.status)}
                     </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p><strong>Supplier:</strong> {order.supplier}</p>
-                      <p><strong>Order Date:</strong> {new Date(order.orderDate).toLocaleDateString()}</p>
-                      {order.expectedDeliveryDate && (
-                        <p><strong>Expected Delivery:</strong> {new Date(order.expectedDeliveryDate).toLocaleDateString()}</p>
-                      )}
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Supplier:</strong> {order.supplier}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Date:</strong> {new Date(order.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-muted-foreground mb-1">
+                      <strong>Payment:</strong> {(order as any).paymentMethod || 'Not specified'} | <strong>Terms:</strong> {(order as any).paymentTerms || 'Not specified'}
+                    </p>
+                    {(order as any).paymentDueDate && (
+                      <p className="text-muted-foreground mb-1">
+                        <strong>Payment Due:</strong> <span className="text-red-600 font-medium">{new Date((order as any).paymentDueDate).toLocaleDateString()}</span>
+                      </p>
+                    )}
+                    <div className="mb-2">
+                      <strong className="text-sm text-muted-foreground">Materials Procured:</strong>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {(order as any).materials && (order as any).materials.length > 0 ? (
+                          (order as any).materials.map((material: any, index: number) => (
+                            <span 
+                              key={index}
+                              className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                            >
+                              {material.name} ({material.quantity} {material.unit})
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">No materials specified</span>
+                        )}
+                      </div>
                     </div>
+                    <p className="text-lg font-semibold text-green-600">
+                      ${order.totalAmount.toLocaleString()}
+                    </p>
                   </div>
                   
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-green-600">
-                        ${order.totalAmount.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Total Amount
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDetailsOrder(order);
+                        setIsDetailsDialogOpen(true);
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Show Details
+                    </Button>
+
                     
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="outline" size="sm">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setDetailsOrder(order);
-                            setIsDetailsDialogOpen(true);
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'sent')}>
+                          Mark as Sent
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingOrder(order);
-                            setIsPurchaseOrderFormOpen(true);
-                          }}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'received')}>
+                          Mark as Received
                         </DropdownMenuItem>
-                        {order.status === 'sent' && (
-                          <DropdownMenuItem
-                            onClick={() => updateOrderStatus.mutate({
-                              orderId: order.id,
-                              status: 'received'
-                            })}
-                          >
-                            Mark as Received
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => updateOrderStatus.mutate({
-                            orderId: order.id,
-                            status: 'cancelled'
-                          })}
+                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'cancelled')}>
+                          Mark as Cancelled
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeletePurchaseOrder(order)}
                           className="text-red-600"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Cancel Order
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -543,343 +408,75 @@ export default function Procurement() {
         )}
       </div>
 
-      {/* Purchase Order Form Dialog */}
+      {/* Edit Purchase Order Dialog */}
       <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <Package className="h-5 w-5 mr-2 text-blue-600" />
+            <DialogTitle>
               {editingOrder ? `Edit ${editingOrder.poNumber}` : 'New Purchase Order'}
             </DialogTitle>
-            <DialogDescription>
-              Create a new purchase order with detailed item specifications
-            </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Supplier and Basic Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Purchase Order Details</CardTitle>
-                <CardDescription>Basic information for this purchase order</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="supplier">Supplier *</Label>
-                    <Select 
-                      value={formData.supplierId} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, supplierId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select supplier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {suppliers.map((supplier: Supplier) => (
-                          <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="orderDate">Order Date</Label>
-                    <Input 
-                      type="date"
-                      value={formData.orderDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, orderDate: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="expectedDelivery">Expected Delivery</Label>
-                    <Input 
-                      type="date"
-                      value={formData.expectedDeliveryDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
-                    <Select 
-                      value={formData.paymentTerms} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, paymentTerms: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Net 15">Net 15 Days</SelectItem>
-                        <SelectItem value="Net 30">Net 30 Days</SelectItem>
-                        <SelectItem value="Net 45">Net 45 Days</SelectItem>
-                        <SelectItem value="Net 60">Net 60 Days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Purchase Order Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Purchase Order Items</CardTitle>
-                <CardDescription>Add products to this purchase order</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between mb-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={addItem}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
-                </div>
-
-                {/* Items Table */}
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[300px]">Product</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-[100px]">Qty</TableHead>
-                        <TableHead className="w-[120px]">Unit Price</TableHead>
-                        <TableHead className="w-[120px]">Total</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {items.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <Select
-                              value={item.productId}
-                              onValueChange={(value) => updateItem(item.id, 'productId', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select product" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {products.map((product: any) => (
-                                  <SelectItem key={product.id} value={product.id.toString()}>
-                                    {product.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={item.description}
-                              onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                              placeholder="Item description"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              value={item.unitPrice}
-                              onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium">
-                              ${item.total.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {items.length > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeItem(item.id)}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Totals */}
-                <div className="mt-6 space-y-4">
-                  <div className="flex justify-end">
-                    <div className="w-80 space-y-2">
-                      <div className="flex justify-between">
-                        <span>Subtotal:</span>
-                        <span>${formData.subtotal}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>Tax Rate:</span>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={formData.taxRate}
-                            onChange={(e) => setFormData(prev => ({ ...prev, taxRate: e.target.value }))}
-                            className="w-20"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Tax Amount:</span>
-                        <span>${formData.taxAmount}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total Amount:</span>
-                        <span>${formData.totalAmount}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea 
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Additional notes, requirements, or special instructions..."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Upload Receipt/Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents & Receipts</CardTitle>
-                <CardDescription>
-                  Upload receipts, invoices, or other relevant documents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Upload Area */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium">Upload Receipt or Documents</p>
-                      <p className="text-sm text-muted-foreground">
-                        Drag and drop files here, or click to browse
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Supports: PDF, JPG, PNG, DOC, DOCX (Max 10MB per file)
-                      </p>
-                    </div>
-                    <Input
-                      type="file"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="receipt-upload"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => document.getElementById('receipt-upload')?.click()}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Choose Files
-                    </Button>
-                  </div>
-
-                  {/* Uploaded Files List */}
-                  {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Uploaded Documents</h4>
-                      <div className="space-y-2">
-                        {uploadedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-3">
-                              <FileText className="h-5 w-5 text-blue-600" />
-                              <div>
-                                <p className="font-medium text-sm">{file.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {formatFileSize(file.size)} • {file.type || 'Unknown type'}
-                                </p>
-                              </div>
-                            </div>
-                            
-                            {/* Progress Bar */}
-                            {uploadProgress[file.name] !== undefined && (
-                              <div className="flex items-center space-x-2">
-                                <div className="w-20 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${uploadProgress[file.name]}%` }}
-                                  ></div>
-                                </div>
-                                <span className="text-xs">{uploadProgress[file.name]}%</span>
-                              </div>
-                            )}
-                            
-                            {/* Actions */}
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFile(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-4">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="supplier">Supplier</Label>
+              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.name}>
+                      {supplier.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="materials">Materials</Label>
+              <Input 
+                id="materials" 
+                placeholder="Enter materials needed"
+              />
+            </div>
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <Input 
+                id="amount" 
+                defaultValue={editingOrder?.totalAmount || ''} 
+                placeholder="Enter amount"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select defaultValue={editingOrder?.status || 'draft'}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="received">Received</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
               <Button 
-                onClick={handleFormSubmit}
-                disabled={createPurchaseOrder.isPending}
+                onClick={() => {
+                  toast({
+                    title: "Purchase Order Saved",
+                    description: `${editingOrder?.poNumber || 'New order'} has been saved successfully`,
+                  });
+                  setIsPurchaseOrderFormOpen(false);
+                }}
                 className="flex-1"
               >
-                {createPurchaseOrder.isPending ? 'Saving...' : 'Save Purchase Order'}
+                Save Changes
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setIsPurchaseOrderFormOpen(false);
-                  resetForm();
-                }}
+                onClick={() => setIsPurchaseOrderFormOpen(false)}
               >
                 Cancel
               </Button>
@@ -893,142 +490,144 @@ export default function Procurement() {
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {detailsOrder ? `${detailsOrder.poNumber} - Details` : 'Purchase Order Details'}
+              {detailsOrder ? `${detailsOrder.poNumber} - Detailed Breakdown` : 'Purchase Order Details'}
             </DialogTitle>
           </DialogHeader>
           {detailsOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground">Supplier</h4>
-                  <p>{detailsOrder.supplier}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Supplier</p>
+                  <p className="font-semibold">{detailsOrder.supplier}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground">Status</h4>
+                  <p className="text-sm font-medium text-muted-foreground">Date</p>
+                  <p className="font-semibold">{new Date(detailsOrder.date).toLocaleDateString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
                   {getStatusBadge(detailsOrder.status)}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground">Order Date</h4>
-                  <p>{new Date(detailsOrder.orderDate).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
+                  <p className="font-semibold text-green-600">${detailsOrder.totalAmount.toLocaleString()}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground">Expected Delivery</h4>
-                  <p>{detailsOrder.expectedDeliveryDate ? new Date(detailsOrder.expectedDeliveryDate).toLocaleDateString() : 'Not specified'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Payment Method</p>
+                  <p className="font-semibold">{(detailsOrder as any).paymentMethod || 'Not specified'}</p>
                 </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <h4 className="font-semibold">Financial Summary</h4>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>${detailsOrder.subtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax ({detailsOrder.taxRate}%):</span>
-                    <span>${detailsOrder.taxAmount.toLocaleString()}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-semibold">
-                    <span>Total Amount:</span>
-                    <span>${detailsOrder.totalAmount.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-              
-              {detailsOrder.notes && (
                 <div>
-                  <h4 className="font-semibold mb-2">Notes</h4>
-                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded">
-                    {detailsOrder.notes}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Payment Terms</p>
+                  <p className="font-semibold">{(detailsOrder as any).paymentTerms || 'Not specified'}</p>
                 </div>
-              )}
-
-              {/* Uploaded Documents Section */}
-              <div>
-                <h4 className="font-semibold mb-3">Uploaded Documents</h4>
-                {/* Sample documents - in production this would come from API */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="font-medium text-sm">Receipt_{detailsOrder.poNumber}.pdf</p>
-                        <p className="text-xs text-muted-foreground">
-                          2.4 MB • PDF Document • Uploaded {new Date(detailsOrder.orderDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          // In production, this would download the actual file
-                          toast({
-                            title: "Download Started",
-                            description: `Downloading Receipt_${detailsOrder.poNumber}.pdf`
-                          });
-                        }}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-medium text-sm">Delivery_Note_{detailsOrder.poNumber}.pdf</p>
-                        <p className="text-xs text-muted-foreground">
-                          1.2 MB • PDF Document • Uploaded {new Date(detailsOrder.orderDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          toast({
-                            title: "Download Started",
-                            description: `Downloading Delivery_Note_${detailsOrder.poNumber}.pdf`
-                          });
-                        }}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Upload more documents option */}
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Add more documents to this purchase order
+                {(detailsOrder as any).paymentDueDate && (
+                  <div className="col-span-2">
+                    <p className="text-sm font-medium text-muted-foreground">Payment Due Date</p>
+                    <p className="font-semibold text-red-600 text-lg">
+                      {new Date((detailsOrder as any).paymentDueDate).toLocaleDateString()}
                     </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        toast({
-                          title: "Upload Feature",
-                          description: "Document upload functionality would be implemented here"
-                        });
-                      }}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Document
-                    </Button>
                   </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-semibold mb-3">Items Breakdown</h4>
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-3 text-left text-sm font-medium">Product</th>
+                        <th className="p-3 text-right text-sm font-medium">Quantity</th>
+                        <th className="p-3 text-right text-sm font-medium">Unit Price</th>
+                        <th className="p-3 text-right text-sm font-medium">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {(detailsOrder as any).items?.map((item: any, index: number) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="p-3">
+                            <div className="font-medium">{item.productName}</div>
+                          </td>
+                          <td className="p-3 text-right">{item.quantity}</td>
+                          <td className="p-3 text-right">${item.unitPrice.toFixed(2)}</td>
+                          <td className="p-3 text-right font-semibold">${item.total.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50">
+                      <tr>
+                        <td className="p-3 font-semibold" colSpan={3}>Total Amount</td>
+                        <td className="p-3 text-right font-bold text-green-600">${detailsOrder.totalAmount.toFixed(2)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
+              </div>
+
+              {/* Documents Section */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold">Uploaded Documents & Receipts</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: "Document Upload",
+                        description: "Document upload functionality initiated",
+                      });
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Document
+                  </Button>
+                </div>
+                <div className="border rounded-lg p-4">
+                  {(detailsOrder as any).documents && (detailsOrder as any).documents.length > 0 ? (
+                    <div className="space-y-3">
+                      {(detailsOrder as any).documents.map((doc: any) => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium text-sm">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {doc.type} • {doc.size} • Uploaded {new Date(doc.uploadDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Download Started",
+                                description: `Downloading ${doc.name}`,
+                              });
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No documents uploaded yet</p>
+                      <p className="text-sm">Upload receipts, delivery notes, or invoices</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                  Close
+                </Button>
               </div>
             </div>
           )}

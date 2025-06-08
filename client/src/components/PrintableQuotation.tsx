@@ -1,43 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
 import logoPath from '@assets/P_1749320448134.png';
-
-interface CompanySettings {
-  id: number;
-  companyName: string;
-  companyLegalName?: string;
-  logo?: string;
-  tagline?: string;
-  website?: string;
-  email: string;
-  phone: string;
-  fax?: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  taxId?: string;
-  vatNumber?: string;
-  registrationNumber?: string;
-  currency: string;
-  currencySymbol: string;
-  timezone: string;
-  dateFormat: string;
-  languageCode: string;
-  fiscalYearStart: string;
-  reportFooter?: string;
-  invoiceTerms?: string;
-  quotationTerms?: string;
-  bankName?: string;
-  bankAccountNumber?: string;
-  bankRoutingNumber?: string;
-  bankSwiftCode?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface QuotationItem {
   id: string;
@@ -102,15 +65,6 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
 }) => {
   const validUntilDate = validUntil ? new Date(validUntil) : new Date(date.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  // Fetch company settings for branding
-  const { data: companySettings } = useQuery<CompanySettings>({
-    queryKey: ['/api/company-settings'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Use currency symbol from company settings
-  const currencySymbol = companySettings?.currencySymbol || 'EGP';
-
   const getQuotationTypeLabel = (type: string) => {
     switch (type) {
       case 'manufacturing': return 'Manufacturing Services';
@@ -139,23 +93,18 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       <div className="flex justify-between items-start mb-8 border-b pb-6">
         <div className="company-info flex items-start gap-4">
           <img 
-            src={companySettings?.logo || logoPath} 
-            alt={`${companySettings?.companyName || 'Morgan ERP'} Logo`} 
+            src={logoPath} 
+            alt="Morgan ERP Logo" 
             className="w-16 h-16 object-contain"
           />
           <div>
-            <h1 className="text-3xl font-bold text-blue-600 mb-2">
-              {companySettings?.companyName || 'Morgan ERP'}
-            </h1>
-            <p className="text-gray-600 text-sm">
-              {companySettings?.tagline || 'Enterprise Resource Planning System'}
-            </p>
+            <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
+            <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
             <div className="mt-4 text-sm text-gray-600">
-              <p>{companySettings?.address || '123 Business District'}</p>
-              <p>{companySettings?.city || 'Cairo'}, {companySettings?.state || 'Egypt'} {companySettings?.zipCode || '11511'}</p>
-              <p>Phone: {companySettings?.phone || '+20 2 1234 5678'}</p>
-              <p>Email: {companySettings?.email || 'info@morganerp.com'}</p>
-              {companySettings?.website && <p>Website: {companySettings.website}</p>}
+              <p>123 Business District</p>
+              <p>Cairo, Egypt 11511</p>
+              <p>Phone: +20 2 1234 5678</p>
+              <p>Email: info@morganerp.com</p>
             </div>
           </div>
         </div>
@@ -282,24 +231,24 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
           <div className="border border-gray-300 bg-gray-50">
             <div className="flex justify-between px-4 py-2 border-b border-gray-300">
               <span className="font-medium">Subtotal:</span>
-              <span>{currencySymbol} {subtotal.toFixed(2)}</span>
+              <span>EGP {subtotal.toFixed(2)}</span>
             </div>
             
             {transportationFees > 0 && (
               <div className="flex justify-between px-4 py-2 border-b border-gray-300">
                 <span className="font-medium">Transportation:</span>
-                <span>{currencySymbol} {transportationFees.toFixed(2)}</span>
+                <span>EGP {transportationFees.toFixed(2)}</span>
               </div>
             )}
             
             <div className="flex justify-between px-4 py-2 border-b border-gray-300">
               <span className="font-medium">VAT ({vatPercentage}%):</span>
-              <span>{currencySymbol} {vatAmount.toFixed(2)}</span>
+              <span>EGP {vatAmount.toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between px-4 py-3 bg-blue-600 text-white font-bold text-lg">
               <span>Total Amount:</span>
-              <span>{currencySymbol} {grandTotal.toFixed(2)}</span>
+              <span>EGP {grandTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -328,19 +277,10 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       {/* Footer */}
       <div className="footer border-t pt-6 mt-8">
         <div className="text-center text-sm text-gray-600">
-          <p className="font-semibold mb-2">
-            Thank you for considering {companySettings?.companyName || 'Morgan ERP'} for your pharmaceutical needs!
-          </p>
+          <p className="font-semibold mb-2">Thank you for considering Morgan ERP for your pharmaceutical needs!</p>
           <p>This quotation was generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-          <p className="mt-2">
-            For any questions regarding this quotation, please contact us at {companySettings?.email || 'info@morganerp.com'}
-          </p>
-          <p className="mt-1 text-xs">
-            All prices are in {companySettings?.currency || 'USD'} and exclude applicable taxes unless otherwise stated.
-          </p>
-          {companySettings?.reportFooter && (
-            <p className="mt-2 text-xs italic">{companySettings.reportFooter}</p>
-          )}
+          <p className="mt-2">For any questions regarding this quotation, please contact us at info@morganerp.com</p>
+          <p className="mt-1 text-xs">All prices are in USD and exclude applicable taxes unless otherwise stated.</p>
         </div>
       </div>
 

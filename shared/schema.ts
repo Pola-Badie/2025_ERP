@@ -116,13 +116,7 @@ export const suppliers = pgTable("suppliers", {
   city: text("city"),
   state: text("state"),
   zipCode: text("zip_code"),
-  country: text("country"),
-  taxId: text("tax_id"),
-  paymentTerms: text("payment_terms").default("Net 30"),
-  currency: text("currency").default("USD"),
-  status: text("status").default("active").notNull(),
   materials: text("materials"),
-  totalPurchases: numeric("total_purchases").default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -135,15 +129,8 @@ export const purchaseOrders = pgTable("purchase_orders", {
   userId: integer("user_id").references(() => users.id).notNull(),
   orderDate: timestamp("order_date").defaultNow().notNull(),
   expectedDeliveryDate: date("expected_delivery_date"),
-  status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled', 'draft', 'sent'
-  subtotal: numeric("subtotal").default("0"),
-  taxRate: numeric("tax_rate").default("0"),
-  taxAmount: numeric("tax_amount").default("0"),
+  status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled'
   totalAmount: numeric("total_amount").notNull(),
-  paymentMethod: text("payment_method"),
-  paymentTerms: text("payment_terms"),
-  paymentDueDate: date("payment_due_date"),
-  receivedDate: date("received_date"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -152,26 +139,11 @@ export const purchaseOrders = pgTable("purchase_orders", {
 export const purchaseOrderItems = pgTable("purchase_order_items", {
   id: serial("id").primaryKey(),
   purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id).notNull(),
-  productId: integer("product_id").references(() => products.id),
-  productName: text("product_name").notNull(),
-  description: text("description"),
+  productId: integer("product_id").references(() => products.id).notNull(),
   quantity: integer("quantity").notNull(),
   unitPrice: numeric("unit_price").notNull(),
   total: numeric("total").notNull(),
   receivedQuantity: integer("received_quantity").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-// Purchase Order Documents
-export const purchaseOrderDocuments = pgTable("purchase_order_documents", {
-  id: serial("id").primaryKey(),
-  purchaseOrderId: integer("purchase_order_id").references(() => purchaseOrders.id).notNull(),
-  fileName: text("file_name").notNull(),
-  filePath: text("file_path").notNull(),
-  fileType: text("file_type").notNull(),
-  fileSize: integer("file_size").notNull(),
-  uploadedBy: integer("uploaded_by").references(() => users.id).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Inventory transactions
@@ -436,45 +408,6 @@ export const accountsPayable = pgTable("accounts_payable", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-
-
-// Company Settings for ERP Branding
-export const companySettings = pgTable("company_settings", {
-  id: serial("id").primaryKey(),
-  companyName: text("company_name").notNull(),
-  companyLegalName: text("company_legal_name"),
-  logo: text("logo"), // Path to uploaded logo file
-  tagline: text("tagline"),
-  website: text("website"),
-  email: text("email").notNull(),
-  phone: text("phone").notNull(),
-  fax: text("fax"),
-  address: text("address").notNull(),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  zipCode: text("zip_code").notNull(),
-  country: text("country").default("Egypt").notNull(),
-  taxId: text("tax_id"),
-  vatNumber: text("vat_number"),
-  registrationNumber: text("registration_number"),
-  currency: text("currency").default("USD").notNull(),
-  currencySymbol: text("currency_symbol").default("$").notNull(),
-  timezone: text("timezone").default("Africa/Cairo").notNull(),
-  dateFormat: text("date_format").default("DD/MM/YYYY").notNull(),
-  languageCode: text("language_code").default("en").notNull(),
-  fiscalYearStart: text("fiscal_year_start").default("01-01").notNull(),
-  reportFooter: text("report_footer"),
-  invoiceTerms: text("invoice_terms"),
-  quotationTerms: text("quotation_terms"),
-  bankName: text("bank_name"),
-  bankAccountNumber: text("bank_account_number"),
-  bankRoutingNumber: text("bank_routing_number"),
-  bankSwiftCode: text("bank_swift_code"),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 // The parent-child relationship for accounts is already handled by the column reference
 // We don't need to explicitly define the foreign key with Drizzle this way
 
@@ -568,39 +501,17 @@ export const insertSupplierSchema = createInsertSchema(suppliers).pick({
   city: true,
   state: true,
   zipCode: true,
-  country: true,
-  taxId: true,
-  paymentTerms: true,
-  currency: true,
-  status: true,
+  materials: true,
 });
 
 export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).pick({
   poNumber: true,
   supplierId: true,
-  orderDate: true,
-  expectedDelivery: true,
-  status: true,
-  subtotal: true,
-  taxRate: true,
-  taxAmount: true,
-  totalAmount: true,
-  paymentMethod: true,
-  paymentTerms: true,
-  paymentDueDate: true,
-  notes: true,
   userId: true,
-});
-
-export const insertPurchaseOrderItemSchema = createInsertSchema(purchaseOrderItems).pick({
-  purchaseOrderId: true,
-  productId: true,
-  productName: true,
-  description: true,
-  quantity: true,
-  unitPrice: true,
-  total: true,
-  receivedQuantity: true,
+  expectedDeliveryDate: true,
+  status: true,
+  totalAmount: true,
+  notes: true,
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoices).pick({
@@ -684,39 +595,6 @@ export const insertLoginLogSchema = createInsertSchema(loginLogs).pick({
   success: true,
 });
 
-export const insertCompanySettingsSchema = createInsertSchema(companySettings).pick({
-  companyName: true,
-  companyLegalName: true,
-  logo: true,
-  tagline: true,
-  website: true,
-  email: true,
-  phone: true,
-  fax: true,
-  address: true,
-  city: true,
-  state: true,
-  zipCode: true,
-  country: true,
-  taxId: true,
-  vatNumber: true,
-  registrationNumber: true,
-  currency: true,
-  currencySymbol: true,
-  timezone: true,
-  dateFormat: true,
-  languageCode: true,
-  fiscalYearStart: true,
-  reportFooter: true,
-  invoiceTerms: true,
-  quotationTerms: true,
-  bankName: true,
-  bankAccountNumber: true,
-  bankRoutingNumber: true,
-  bankSwiftCode: true,
-  isActive: true,
-});
-
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -796,9 +674,6 @@ export type RolePermission = typeof rolePermissions.$inferSelect;
 
 export type InsertLoginLog = z.infer<typeof insertLoginLogSchema>;
 export type LoginLog = typeof loginLogs.$inferSelect;
-
-export type InsertCompanySettings = z.infer<typeof insertCompanySettingsSchema>;
-export type CompanySettings = typeof companySettings.$inferSelect;
 
 // Accounting module schemas and types
 export const insertAccountSchema = createInsertSchema(accounts).pick({

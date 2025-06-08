@@ -18,28 +18,29 @@ import {
   insertPaymentAllocationSchema,
 } from "@shared/schema";
 import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
-import { ultraCacheMiddleware } from "./ultra-cache";
 
 export function registerAccountingRoutes(app: Express) {
   // Accounting API Routes
 
-  // Get accounting summary for dashboard - optimized with aggressive caching
-  app.get("/api/accounting/summary", ultraCacheMiddleware("accounting-summary", 300000), async (_req: Request, res: Response) => {
+  // Get accounting summary for dashboard
+  app.get("/api/accounting/summary", async (_req: Request, res: Response) => {
     try {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Execute queries in parallel for better performance
-      const [accountsCount, journalEntriesCount, monthlyJournalEntries] = await Promise.all([
-        db.select({ count: sql<number>`count(*)` }).from(accounts),
-        db.select({ count: sql<number>`count(*)` }).from(journalEntries),
-        db.select().from(journalEntries).where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]))
-      ]);
+      // Get actual counts from database
+      const accountsResult = await db.select().from(accounts);
+      const journalEntriesResult = await db.select().from(journalEntries);
       
-      const totalAccounts = Number(accountsCount[0]?.count) || 0;
-      const totalJournalEntries = Number(journalEntriesCount[0]?.count) || 0;
+      const totalAccounts = accountsResult.length;
+      const totalJournalEntries = journalEntriesResult.length;
 
       // Calculate revenue and expenses from journal entries this month
+      const monthlyJournalEntries = await db
+        .select()
+        .from(journalEntries)
+        .where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]));
+
       let revenueThisMonth = 0;
       let expensesThisMonth = 0;
 
