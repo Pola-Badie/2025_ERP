@@ -14,12 +14,12 @@ const EnhancedNotifications: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative p-2">
           <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white rounded-full border-2 border-white font-medium">
+          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
             7
-          </span>
+          </Badge>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80 max-h-80 overflow-y-auto z-50 shadow-lg border border-gray-200">
+      <DropdownMenuContent align="end" className="w-96 max-h-96 overflow-y-auto">
         <div className="flex items-center justify-between p-3 border-b">
           <div className="flex items-center space-x-2">
             <Bell className="h-4 w-4" />
@@ -32,106 +32,145 @@ const EnhancedNotifications: React.FC = () => {
         </div>
         
         {/* High Priority Notifications */}
-        <div className="p-2 border-b bg-red-50/30">
-          <div className="flex items-center space-x-1 mb-1">
-            <AlertTriangle className="h-3 w-3 text-red-500" />
+        <div className="p-3 border-b bg-red-50/50">
+          <div className="flex items-center space-x-2 mb-2">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
             <span className="text-xs font-medium text-red-700">HIGH PRIORITY</span>
           </div>
           
-          <div className="space-y-1">
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-red-500">
-              <AlertTriangle className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+          <div className="space-y-2">
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-red-500">
+              <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">Critical Stock Alert</p>
-                  <span className="text-xs text-gray-500">2m</span>
+                  <p className="text-sm font-medium text-gray-900">Critical Stock Alert</p>
+                  <span className="text-xs text-gray-500">2m ago</span>
                 </div>
-                <p className="text-xs text-gray-600">Panadol Advance - Only 2 units left</p>
+                <p className="text-xs text-gray-600">Panadol Advance - Only 2 units remaining</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="destructive" className="text-xs">URGENT</Badge>
+                  <span className="text-xs text-gray-500">Inventory</span>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-red-500">
-              <Shield className="h-3 w-3 text-red-500 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-red-500">
+              <Shield className="h-4 w-4 text-red-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">Security Alert</p>
-                  <span className="text-xs text-gray-500">5m</span>
+                  <p className="text-sm font-medium text-gray-900">Security Alert</p>
+                  <span className="text-xs text-gray-500">5m ago</span>
                 </div>
-                <p className="text-xs text-gray-600">Multiple failed login attempts</p>
+                <p className="text-xs text-gray-600">Multiple failed login attempts detected</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="destructive" className="text-xs">HIGH</Badge>
+                  <span className="text-xs text-gray-500">Security</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Moderate Priority Notifications */}
-        <div className="p-2 border-b bg-orange-50/30">
-          <div className="flex items-center space-x-1 mb-1">
-            <Clock className="h-3 w-3 text-orange-500" />
-            <span className="text-xs font-medium text-orange-700">MODERATE</span>
+        <div className="p-3 border-b bg-orange-50/50">
+          <div className="flex items-center space-x-2 mb-2">
+            <Clock className="h-4 w-4 text-orange-500" />
+            <span className="text-xs font-medium text-orange-700">MODERATE PRIORITY</span>
           </div>
           
-          <div className="space-y-1">
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-orange-500">
-              <Clock className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
+          <div className="space-y-2">
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-orange-500">
+              <Clock className="h-4 w-4 text-orange-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">Expiry Warning</p>
-                  <span className="text-xs text-gray-500">15m</span>
+                  <p className="text-sm font-medium text-gray-900">Expiry Warning</p>
+                  <span className="text-xs text-gray-500">15m ago</span>
                 </div>
                 <p className="text-xs text-gray-600">Amoxicillin expires in 10 days</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">MODERATE</Badge>
+                  <span className="text-xs text-gray-500">Inventory</span>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-orange-500">
-              <Activity className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-orange-500">
+              <Activity className="h-4 w-4 text-orange-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">User Login</p>
-                  <span className="text-xs text-gray-500">1h</span>
+                  <p className="text-sm font-medium text-gray-900">User Login</p>
+                  <span className="text-xs text-gray-500">1h ago</span>
                 </div>
-                <p className="text-xs text-gray-600">Sarah Ahmed from new device</p>
+                <p className="text-xs text-gray-600">Sarah Ahmed logged in from new device</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">MODERATE</Badge>
+                  <span className="text-xs text-gray-500">Security</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Low Priority Notifications */}
-        <div className="p-2 bg-green-50/30">
-          <div className="flex items-center space-x-1 mb-1">
-            <CheckCircle className="h-3 w-3 text-green-500" />
-            <span className="text-xs font-medium text-green-700">RECENT</span>
+        <div className="p-3 bg-green-50/50">
+          <div className="flex items-center space-x-2 mb-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span className="text-xs font-medium text-green-700">LOW PRIORITY</span>
           </div>
           
-          <div className="space-y-1">
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-green-500">
-              <CheckCircle className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+          <div className="space-y-2">
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-green-500">
+              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">Invoice Generated</p>
-                  <span className="text-xs text-gray-500">2h</span>
+                  <p className="text-sm font-medium text-gray-900">Invoice Generated</p>
+                  <span className="text-xs text-gray-500">2h ago</span>
                 </div>
-                <p className="text-xs text-gray-600">Invoice #INV-2025-001 created</p>
+                <p className="text-xs text-gray-600">Invoice #INV-2025-001 created successfully</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">LOW</Badge>
+                  <span className="text-xs text-gray-500">Sales</span>
+                </div>
               </div>
             </div>
             
-            <div className="flex items-start space-x-2 p-2 bg-white rounded border-l-2 border-green-500">
-              <User className="h-3 w-3 text-green-500 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-green-500">
+              <User className="h-4 w-4 text-green-500 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-gray-900">Login Success</p>
-                  <span className="text-xs text-gray-500">3h</span>
+                  <p className="text-sm font-medium text-gray-900">Successful Login</p>
+                  <span className="text-xs text-gray-500">3h ago</span>
                 </div>
-                <p className="text-xs text-gray-600">Ahmed Hassan logged in</p>
+                <p className="text-xs text-gray-600">Ahmed Hassan logged in successfully</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">LOW</Badge>
+                  <span className="text-xs text-gray-500">Authentication</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3 p-2 bg-white rounded border-l-2 border-green-500">
+              <Activity className="h-4 w-4 text-green-500 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-900">System Backup</p>
+                  <span className="text-xs text-gray-500">4h ago</span>
+                </div>
+                <p className="text-xs text-gray-600">Daily backup completed successfully</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">LOW</Badge>
+                  <span className="text-xs text-gray-500">System</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-2 border-t bg-gray-50">
+        <div className="p-3 border-t bg-gray-50">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">Updated: Just now</span>
-            <Button variant="outline" size="sm" className="text-xs h-6 px-2">
+            <span className="text-xs text-gray-500">Last updated: Just now</span>
+            <Button variant="outline" size="sm" className="text-xs">
               Mark All Read
             </Button>
           </div>
