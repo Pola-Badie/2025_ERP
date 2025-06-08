@@ -1241,13 +1241,13 @@ const Inventory: React.FC = () => {
               </div>
               <div>
                 <DialogTitle className="text-xl font-bold text-gray-900">
-                  {productToEdit ? 'Edit Product Information' : 'Add New Product'}
+                  {productToEdit ? t('editProductInfo') : t('addNewProduct')}
                 </DialogTitle>
-                <p className="text-sm text-gray-600 mt-1">
+                <DialogDescription className="text-sm text-gray-600 mt-1">
                   {productToEdit 
-                    ? 'Update comprehensive product details and inventory information' 
-                    : 'Register a new pharmaceutical product with complete details and specifications'}
-                </p>
+                    ? t('updateProductDetails') 
+                    : t('registerNewProduct')}
+                </DialogDescription>
               </div>
             </div>
           </DialogHeader>
@@ -1273,10 +1273,10 @@ const Inventory: React.FC = () => {
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold text-gray-900">Product History & Analytics</DialogTitle>
-                <p className="text-sm text-gray-600 mt-1">
-                  {selectedProductHistory ? `Comprehensive history and performance analytics for ${selectedProductHistory.name}` : 'Loading product details...'}
-                </p>
+                <DialogTitle className="text-xl font-bold text-gray-900">{t('productHistory')}</DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 mt-1">
+                  {selectedProductHistory ? `${t('comprehensiveHistory')} ${selectedProductHistory.name}` : t('loadingProductDetails')}
+                </DialogDescription>
               </div>
             </div>
           </DialogHeader>

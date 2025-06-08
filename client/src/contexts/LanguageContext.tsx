@@ -112,6 +112,15 @@ const translations = {
     addFirstProduct: 'Add your first product to get started',
     addProduct: 'Add Product',
     
+    // Dialog translations
+    editProductInfo: 'Edit Product Information',
+    addNewProduct: 'Add New Product',
+    updateProductDetails: 'Update comprehensive product details and inventory information',
+    registerNewProduct: 'Register a new pharmaceutical product with complete details and specifications',
+    productHistory: 'Product History & Analytics',
+    comprehensiveHistory: 'Comprehensive history and performance analytics for',
+    loadingProductDetails: 'Loading product details...',
+    
     // Create Invoice
     createInvoice: 'Create Invoice',
     customerInfo: 'Customer Information',
@@ -249,6 +258,15 @@ const translations = {
     tryAdjustingFilters: 'جرب تعديل المرشحات',
     addFirstProduct: 'أضف منتجك الأول للبدء',
     addProduct: 'إضافة منتج',
+    
+    // Dialog translations
+    editProductInfo: 'تحرير معلومات المنتج',
+    addNewProduct: 'إضافة منتج جديد',
+    updateProductDetails: 'تحديث تفاصيل المنتج الشاملة ومعلومات المخزون',
+    registerNewProduct: 'تسجيل منتج صيدلاني جديد بتفاصيل ومواصفات كاملة',
+    productHistory: 'تاريخ المنتج والتحليلات',
+    comprehensiveHistory: 'تاريخ شامل وتحليلات الأداء لـ',
+    loadingProductDetails: 'جاري تحميل تفاصيل المنتج...',
     
     // Create Invoice
     createInvoice: 'إنشاء فاتورة',
