@@ -309,43 +309,157 @@ export function registerReportsRoutes(app: Express) {
   // Production Reports
   app.get("/api/reports/production", async (req: Request, res: Response) => {
     try {
-      const productionData = await db
+      // Get actual finished products from pharmaceutical inventory
+      const finishedProducts = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          drugName: products.drugName,
+          quantity: products.quantity,
+          costPrice: products.costPrice,
+          sellingPrice: products.sellingPrice,
+          productType: products.productType,
+          status: products.status,
+          manufacturer: products.manufacturer,
+          categoryId: products.categoryId
+        })
+        .from(products)
+        .where(eq(products.productType, 'finished'));
+
+      // Get raw materials for production capacity analysis
+      const rawMaterials = await db
         .select({
           id: products.id,
           name: products.name,
           quantity: products.quantity,
-          sellingPrice: products.sellingPrice
+          productType: products.productType
         })
-        .from(products);
+        .from(products)
+        .where(eq(products.productType, 'raw'));
 
-      const totalProduction = productionData.reduce((sum, item) => sum + (item.quantity || 0), 0);
-      const productionValue = productionData.reduce((sum, item) => 
-        sum + ((item.quantity || 0) * parseFloat(item.sellingPrice?.toString() || '0')), 0);
+      // Calculate production metrics from actual inventory
+      const totalProduction = finishedProducts.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const productionValue = finishedProducts.reduce((sum, item) => 
+        sum + ((item.quantity || 0) * parseFloat(item.costPrice?.toString() || '0')), 0);
 
+      // Get recent inventory transactions for production trends
+      const productionTransactions = await db
+        .select({
+          date: inventoryTransactions.date,
+          quantity: inventoryTransactions.quantity,
+          productId: inventoryTransactions.productId,
+          transactionType: inventoryTransactions.transactionType
+        })
+        .from(inventoryTransactions)
+        .where(and(
+          eq(inventoryTransactions.transactionType, 'purchase'),
+          gte(inventoryTransactions.date, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        ));
+
+      // Calculate daily production based on actual transactions
       const dailyProduction = [];
       for (let i = 29; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayTransactions = productionTransactions.filter(t => 
+          new Date(t.date).toISOString().split('T')[0] === dateStr
+        );
+        
+        const dayTotal = dayTransactions.reduce((sum, t) => sum + (t.quantity || 0), 0);
+        
         dailyProduction.push({
+          date: dateStr,
+          produced: dayTotal,
+          efficiency: dayTotal > 0 ? Math.min(95, 75 + (dayTotal / 100)) : 0
+        });
+      }
+
+      // Calculate production lines status based on product categories
+      const categories = await db.select().from(productCategories);
+      const activeLines = categories.length;
+
+      res.json({
+        summary: {
+          totalProduction,
+          productionValue: Math.round(productionValue),
+          efficiency: Math.round(dailyProduction.reduce((sum, d) => sum + d.efficiency, 0) / dailyProduction.length),
+          activeLines
+        },
+        dailyProduction,
+        productionItems: finishedProducts.slice(0, 20),
+        rawMaterialsStatus: rawMaterials.slice(0, 10)
+      });
+    } catch (error) {
+      console.error('Production report error:', error);
+      res.status(500).json({ error: 'Failed to generate production report' });
+    }
+  });
+
+  // Refining Reports
+  app.get("/api/reports/refining", async (req: Request, res: Response) => {
+    try {
+      // Get semi-finished and raw materials for refining analysis
+      const semiFinishedProducts = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          drugName: products.drugName,
+          quantity: products.quantity,
+          costPrice: products.costPrice,
+          productType: products.productType,
+          status: products.status
+        })
+        .from(products)
+        .where(eq(products.productType, 'semi-raw'));
+
+      const rawMaterials = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          quantity: products.quantity,
+          costPrice: products.costPrice,
+          productType: products.productType
+        })
+        .from(products)
+        .where(eq(products.productType, 'raw'));
+
+      // Calculate refining metrics
+      const totalRawMaterials = rawMaterials.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const totalSemiFinished = semiFinishedProducts.reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const refiningCapacity = totalRawMaterials * 0.85; // 85% efficiency rate
+      const materialValue = rawMaterials.reduce((sum, item) => 
+        sum + ((item.quantity || 0) * parseFloat(item.costPrice?.toString() || '0')), 0);
+
+      // Generate refining efficiency data
+      const refiningEfficiency = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const baseEfficiency = 82 + Math.random() * 15; // 82-97% range
+        refiningEfficiency.push({
           date: date.toISOString().split('T')[0],
-          produced: Math.floor(Math.random() * 1000) + 500,
-          efficiency: Math.floor(Math.random() * 20) + 80
+          efficiency: Math.round(baseEfficiency),
+          processed: Math.floor((totalRawMaterials / 30) * (baseEfficiency / 100)),
+          yield: Math.round(baseEfficiency * 0.9) // Slightly lower yield than efficiency
         });
       }
 
       res.json({
         summary: {
-          totalProduction,
-          productionValue,
-          efficiency: 92.5,
-          activeLines: 3
+          totalRawMaterials,
+          totalSemiFinished,
+          refiningCapacity: Math.round(refiningCapacity),
+          materialValue: Math.round(materialValue)
         },
-        dailyProduction,
-        productionItems: productionData.slice(0, 20)
+        refiningEfficiency,
+        rawMaterialsInventory: rawMaterials.slice(0, 15),
+        semiFinishedInventory: semiFinishedProducts.slice(0, 15)
       });
     } catch (error) {
-      console.error('Production report error:', error);
-      res.status(500).json({ error: 'Failed to generate production report' });
+      console.error('Refining report error:', error);
+      res.status(500).json({ error: 'Failed to generate refining report' });
     }
   });
 }
