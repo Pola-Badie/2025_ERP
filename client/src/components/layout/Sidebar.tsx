@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
               strokeLinejoin="round"
             />
           </svg>
-          {!isCollapsed && <span className="font-bold text-lg ml-3">PREMIER SYSTEMS</span>}
+          {!isCollapsed && <span className="font-bold text-lg ml-3">ACCOUNT TYPE</span>}
           
           {isMobile && (
             <button
