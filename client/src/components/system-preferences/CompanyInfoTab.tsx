@@ -10,7 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { Building2, MapPin, Phone, Mail, Globe, FileText } from 'lucide-react';
 
 interface CompanyInfoTabProps {
-  preferences: any[];
+  preferences: any[] | undefined;
   refetch: () => void;
 }
 

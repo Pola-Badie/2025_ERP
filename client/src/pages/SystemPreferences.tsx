@@ -188,7 +188,7 @@ const SystemPreferences: React.FC = () => {
             
             <div className="p-6">
               <TabsContent value="company" className="mt-0">
-                <CompanyInfoTab preferences={preferences} refetch={refetch} />
+                <CompanyInfoTab preferences={preferences as any[] || []} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="users" className="mt-0">
