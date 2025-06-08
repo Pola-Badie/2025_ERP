@@ -50,7 +50,7 @@ interface Invoice {
   amount: number;
   amountPaid?: number;
   paymentMethod?: string;
-  status: 'paid' | 'unpaid' | 'partial' | 'overdue';
+  status: 'paid' | 'unpaid' | 'partial' | 'overdue' | 'refunded';
   etaUploaded?: boolean;
   etaReference?: string;
   items: {
@@ -464,6 +464,15 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
       return;
     }
 
+    if (!refundInvoice) return;
+
+    // Update the invoice status to "refunded"
+    setInvoices(prev => prev.map(invoice => 
+      invoice.id === refundInvoice.id 
+        ? { ...invoice, status: 'refunded' as const }
+        : invoice
+    ));
+
     toast({
       title: "Refund Processed",
       description: `Refund of $${refundAmount} processed for ${refundInvoice?.customerName}`,
@@ -589,6 +598,8 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
         return <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>;
       case 'overdue':
         return <Badge className="bg-red-100 text-red-800">Overdue</Badge>;
+      case 'refunded':
+        return <Badge className="bg-purple-100 text-purple-800">Refunded</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }

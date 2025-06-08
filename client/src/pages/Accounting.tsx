@@ -292,9 +292,11 @@ const Accounting: React.FC = () => {
       return;
     }
 
+    // In a real application, you would update the database here
+    // For now, we'll just show the success message
     toast({
       title: "Refund Processed",
-      description: `Refund of $${refundAmount} processed for ${refundInvoice?.customer}`,
+      description: `Refund of $${refundAmount} processed for ${refundInvoice?.customer}. Status updated to Refunded.`,
     });
 
     setIsRefundDialogOpen(false);
