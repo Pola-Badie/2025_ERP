@@ -30,7 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { currentPage, setCurrentPage, getTotalPages } = usePagination();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [totalItems, setTotalItems] = useState(0); // Will be set by actual data
+  const [totalItems, setTotalItems] = useState(0);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -41,13 +41,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       setIsMobile(window.innerWidth < 768);
     };
 
-    // Set initial value
     handleResize();
-
-    // Add event listener
     window.addEventListener("resize", handleResize);
 
-    // Clean up
     return () => {
       window.removeEventListener("resize", handleResize);
     };
@@ -61,12 +57,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     setIsMobileMenuOpen(false);
   };
 
-  // We'll keep language-switching functionality simple without layout changes
+  const totalPages = getTotalPages(totalItems);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen bg-slate-100">
       {/* Desktop Sidebar */}
-      <Sidebar className="hidden md:flex md:w-64 flex-col fixed inset-y-0 z-50 left-0" />
+      <div className="hidden md:flex">
+        <Sidebar />
+      </div>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
@@ -90,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <h1 className="text-xl font-semibold text-gray-900">Morgan ERP</h1>
             </div>
             <div className="flex items-center space-x-3">
-              {/* Notifications */}
+              {/* Enhanced Notifications */}
               <EnhancedNotifications />
 
               {/* Profile Menu */}
@@ -114,20 +112,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>Notifications</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/notifications" className="flex items-center">
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -233,44 +233,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              {/* Notifications */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="relative p-2">
-                    <Bell className="h-5 w-5" />
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
-                      3
-                    </Badge>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80">
-                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <span className="font-medium text-sm">Low Stock Alert</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Panadol Advance is running low (5 units left)</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span className="font-medium text-sm">Expiry Warning</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Antibiotics expire in 15 days</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="font-medium text-sm">New Invoice</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">Invoice #INV-2025-001 created successfully</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Mobile Enhanced Notifications */}
+              <EnhancedNotifications />
 
-              {/* Profile Menu */}
+              {/* Mobile Profile Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -291,20 +257,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>Notifications</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/notifications" className="flex items-center">
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
