@@ -1730,28 +1730,86 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Raw Materials', value: 45, fill: '#0088FE' },
-                        { name: 'Labor Costs', value: 25, fill: '#00C49F' },
-                        { name: 'Equipment', value: 15, fill: '#FFBB28' },
-                        { name: 'Transportation', value: 8, fill: '#FF8042' },
-                        { name: 'Quality Control', value: 4, fill: '#8884D8' },
-                        { name: 'Storage', value: 3, fill: '#82CA9D' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
+                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 shadow-lg">
+                    <PieChart>
+                      <defs>
+                        <filter id="productionPieDropShadow">
+                          <feDropShadow dx="2" dy="2" stdDeviation="4" floodOpacity="0.3"/>
+                        </filter>
+                        <linearGradient id="rawMaterialsGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#0088FE" />
+                          <stop offset="100%" stopColor="#0070CC" />
+                        </linearGradient>
+                        <linearGradient id="laborCostsGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#00C49F" />
+                          <stop offset="100%" stopColor="#00A085" />
+                        </linearGradient>
+                        <linearGradient id="equipmentGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#FFBB28" />
+                          <stop offset="100%" stopColor="#E6A623" />
+                        </linearGradient>
+                        <linearGradient id="transportationGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#FF8042" />
+                          <stop offset="100%" stopColor="#E6733B" />
+                        </linearGradient>
+                        <linearGradient id="qualityControlGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#8884D8" />
+                          <stop offset="100%" stopColor="#7A75C2" />
+                        </linearGradient>
+                        <linearGradient id="storageGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#82CA9D" />
+                          <stop offset="100%" stopColor="#73B58A" />
+                        </linearGradient>
+                      </defs>
+                      <Pie
+                        data={[
+                          { name: 'Raw Materials', value: 45 },
+                          { name: 'Labor Costs', value: 25 },
+                          { name: 'Equipment', value: 15 },
+                          { name: 'Transportation', value: 8 },
+                          { name: 'Quality Control', value: 4 },
+                          { name: 'Storage', value: 3 }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={85}
+                        innerRadius={35}
+                        fill="#8884d8"
+                        dataKey="value"
+                        filter="url(#productionPieDropShadow)"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      >
+                        {[
+                          'url(#rawMaterialsGradient)',
+                          'url(#laborCostsGradient)',
+                          'url(#equipmentGradient)',
+                          'url(#transportationGradient)',
+                          'url(#qualityControlGradient)',
+                          'url(#storageGradient)'
+                        ].map((gradient, index) => (
+                          <Cell key={`cell-${index}`} fill={gradient} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      />
+                    </PieChart>
+                  </div>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -1765,25 +1823,91 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={[
-                      { month: 'Jan', orders: 95, revenue: 380000, costs: 250000 },
-                      { month: 'Feb', orders: 102, revenue: 420000, costs: 275000 },
-                      { month: 'Mar', orders: 118, revenue: 485000, costs: 315000 },
-                      { month: 'Apr', orders: 127, revenue: 525000, costs: 340000 },
-                      { month: 'May', orders: 134, revenue: 560000, costs: 365000 },
-                      { month: 'Jun', orders: 141, revenue: 595000, costs: 385000 }
-                    ]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="revenue" stroke="#0088FE" name="Revenue ($)" />
-                    <Line type="monotone" dataKey="costs" stroke="#FF8042" name="Costs ($)" />
-                  </LineChart>
+                  <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 shadow-lg">
+                    <LineChart
+                      data={[
+                        { month: 'Jan', orders: 95, revenue: 380000, costs: 250000 },
+                        { month: 'Feb', orders: 102, revenue: 420000, costs: 275000 },
+                        { month: 'Mar', orders: 118, revenue: 485000, costs: 315000 },
+                        { month: 'Apr', orders: 127, revenue: 525000, costs: 340000 },
+                        { month: 'May', orders: 134, revenue: 560000, costs: 365000 },
+                        { month: 'Jun', orders: 141, revenue: 595000, costs: 385000 }
+                      ]}
+                      margin={{ top: 15, right: 30, left: 20, bottom: 15 }}
+                    >
+                      <defs>
+                        <linearGradient id="productionRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0088FE" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#0088FE" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="productionCostsGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#FF8042" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#FF8042" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <filter id="productionDropShadow">
+                          <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+                        </filter>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.5} />
+                      <XAxis 
+                        dataKey="month" 
+                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          paddingTop: '10px',
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="url(#productionRevenueGradient)"
+                        strokeWidth={3}
+                        name="Revenue ($)"
+                        activeDot={{ 
+                          r: 6, 
+                          fill: '#0088FE', 
+                          stroke: '#ffffff', 
+                          strokeWidth: 3,
+                          filter: 'url(#productionDropShadow)'
+                        }} 
+                        dot={{ r: 4, fill: '#0088FE', stroke: '#ffffff', strokeWidth: 2 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="costs" 
+                        stroke="url(#productionCostsGradient)"
+                        strokeWidth={3}
+                        name="Costs ($)"
+                        activeDot={{ 
+                          r: 6, 
+                          fill: '#FF8042', 
+                          stroke: '#ffffff', 
+                          strokeWidth: 3,
+                          filter: 'url(#productionDropShadow)'
+                        }} 
+                        dot={{ r: 4, fill: '#FF8042', stroke: '#ffffff', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </div>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -1964,29 +2088,92 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Base Processing', value: 35, fill: '#0088FE' },
-                        { name: 'Raw Materials', value: 28, fill: '#00C49F' },
-                        { name: 'Labor Costs', value: 18, fill: '#FFBB28' },
-                        { name: 'Equipment', value: 12, fill: '#FF8042' },
-                        { name: 'Transportation', value: 4, fill: '#8884D8' },
-                        { name: 'Quality Control', value: 2, fill: '#82CA9D' },
-                        { name: 'Storage', value: 1, fill: '#FFC658' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
+                  <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 rounded-lg p-4 shadow-lg">
+                    <PieChart>
+                      <defs>
+                        <filter id="refiningPieDropShadow">
+                          <feDropShadow dx="2" dy="2" stdDeviation="4" floodOpacity="0.3"/>
+                        </filter>
+                        <linearGradient id="baseProcessingGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#0088FE" />
+                          <stop offset="100%" stopColor="#0070CC" />
+                        </linearGradient>
+                        <linearGradient id="refiningRawMaterialsGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#00C49F" />
+                          <stop offset="100%" stopColor="#00A085" />
+                        </linearGradient>
+                        <linearGradient id="refiningLaborGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#FFBB28" />
+                          <stop offset="100%" stopColor="#E6A623" />
+                        </linearGradient>
+                        <linearGradient id="refiningEquipmentGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#FF8042" />
+                          <stop offset="100%" stopColor="#E6733B" />
+                        </linearGradient>
+                        <linearGradient id="refiningTransportGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#8884D8" />
+                          <stop offset="100%" stopColor="#7A75C2" />
+                        </linearGradient>
+                        <linearGradient id="refiningQualityGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#82CA9D" />
+                          <stop offset="100%" stopColor="#73B58A" />
+                        </linearGradient>
+                        <linearGradient id="refiningStorageGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#FFC658" />
+                          <stop offset="100%" stopColor="#E6B04F" />
+                        </linearGradient>
+                      </defs>
+                      <Pie
+                        data={[
+                          { name: 'Base Processing', value: 35 },
+                          { name: 'Raw Materials', value: 28 },
+                          { name: 'Labor Costs', value: 18 },
+                          { name: 'Equipment', value: 12 },
+                          { name: 'Transportation', value: 4 },
+                          { name: 'Quality Control', value: 2 },
+                          { name: 'Storage', value: 1 }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={85}
+                        innerRadius={35}
+                        fill="#8884d8"
+                        dataKey="value"
+                        filter="url(#refiningPieDropShadow)"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      >
+                        {[
+                          'url(#baseProcessingGradient)',
+                          'url(#refiningRawMaterialsGradient)',
+                          'url(#refiningLaborGradient)',
+                          'url(#refiningEquipmentGradient)',
+                          'url(#refiningTransportGradient)',
+                          'url(#refiningQualityGradient)',
+                          'url(#refiningStorageGradient)'
+                        ].map((gradient, index) => (
+                          <Cell key={`cell-${index}`} fill={gradient} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      />
+                    </PieChart>
+                  </div>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -2494,28 +2681,70 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={salesData}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sales" 
-                      stroke="#8884d8" 
-                      name="New Customers"
-                      activeDot={{ r: 8 }} 
-                    />
-                  </LineChart>
+                  <div className="relative bg-gradient-to-br from-cyan-50 to-blue-50 rounded-lg p-4 shadow-lg">
+                    <LineChart
+                      data={salesData}
+                      margin={{
+                        top: 15,
+                        right: 30,
+                        left: 20,
+                        bottom: 15,
+                      }}
+                    >
+                      <defs>
+                        <linearGradient id="customerLineGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0891B2" stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor="#0891B2" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <filter id="customerDropShadow">
+                          <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+                        </filter>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.5} />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#6B7280' }}
+                        axisLine={{ stroke: '#D1D5DB' }}
+                        tickLine={{ stroke: '#D1D5DB' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          paddingTop: '10px',
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="sales" 
+                        stroke="url(#customerLineGradient)"
+                        strokeWidth={3}
+                        name="New Customers"
+                        activeDot={{ 
+                          r: 6, 
+                          fill: '#0891B2', 
+                          stroke: '#ffffff', 
+                          strokeWidth: 3,
+                          filter: 'url(#customerDropShadow)'
+                        }} 
+                        dot={{ r: 4, fill: '#0891B2', stroke: '#ffffff', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </div>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -2529,29 +2758,74 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'On Time', value: 68 },
-                        { name: '1-7 Days Late', value: 18 },
-                        { name: '8-30 Days Late', value: 10 },
-                        { name: '30+ Days Late', value: 4 },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
+                  <div className="relative bg-gradient-to-br from-rose-50 to-pink-50 rounded-lg p-4 shadow-lg">
+                    <PieChart>
+                      <defs>
+                        <filter id="paymentPieDropShadow">
+                          <feDropShadow dx="2" dy="2" stdDeviation="4" floodOpacity="0.3"/>
+                        </filter>
+                        <linearGradient id="onTimeGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#10B981" />
+                          <stop offset="100%" stopColor="#059669" />
+                        </linearGradient>
+                        <linearGradient id="earlyLateGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#F59E0B" />
+                          <stop offset="100%" stopColor="#D97706" />
+                        </linearGradient>
+                        <linearGradient id="lateLateGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#EF4444" />
+                          <stop offset="100%" stopColor="#DC2626" />
+                        </linearGradient>
+                        <linearGradient id="veryLateGradient" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#7C2D12" />
+                          <stop offset="100%" stopColor="#451A03" />
+                        </linearGradient>
+                      </defs>
+                      <Pie
+                        data={[
+                          { name: 'On Time', value: 68 },
+                          { name: '1-7 Days Late', value: 18 },
+                          { name: '8-30 Days Late', value: 10 },
+                          { name: '30+ Days Late', value: 4 },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={85}
+                        innerRadius={35}
+                        fill="#8884d8"
+                        dataKey="value"
+                        filter="url(#paymentPieDropShadow)"
+                        stroke="#ffffff"
+                        strokeWidth={2}
+                      >
+                        {[
+                          'url(#onTimeGradient)',
+                          'url(#earlyLateGradient)',
+                          'url(#lateLateGradient)',
+                          'url(#veryLateGradient)'
+                        ].map((gradient, index) => (
+                          <Cell key={`cell-${index}`} fill={gradient} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(10px)'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{
+                          fontSize: '12px',
+                          fontWeight: 500
+                        }}
+                      />
+                    </PieChart>
+                  </div>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
