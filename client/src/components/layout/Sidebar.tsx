@@ -18,7 +18,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
 
   const navItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
-    { path: '/inventory', key: 'products', icon: 'package' },
+    { path: '/inventory', key: 'inventory', icon: 'package' },
     { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
     { path: '/accounting', key: 'accounting', icon: 'landmark' },
     { path: '/suppliers', key: 'suppliers', icon: 'truck' },

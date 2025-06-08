@@ -17,6 +17,7 @@ const translations = {
     // Navigation
     dashboard: 'Dashboard',
     products: 'Products',
+    inventory: 'Inventory',
     expenses: 'Expenses',
     accounting: 'Accounting',
     suppliers: 'Suppliers',
@@ -164,6 +165,7 @@ const translations = {
     // Navigation
     dashboard: 'لوحة التحكم',
     products: 'المنتجات',
+    inventory: 'المخزون',
     expenses: 'المصروفات',
     accounting: 'المحاسبة',
     suppliers: 'الموردين',
