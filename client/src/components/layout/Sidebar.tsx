@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useSidebarContext } from '@/contexts/SidebarContext';
 
 interface SidebarProps {
   className?: string;
@@ -13,7 +14,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [location, setLocation] = useLocation();
   const { language, setLanguage, t } = useLanguage();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, toggleCollapsed } = useSidebarContext();
 
   const navItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
@@ -94,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
       <div className="p-4 border-b border-[#2A3F55] flex-shrink-0 relative">
         <div 
           className="flex items-center cursor-pointer hover:bg-[#26405A] rounded-md p-2 -m-2 transition-colors duration-200"
-          onClick={() => !isMobile && setIsCollapsed(!isCollapsed)}
+          onClick={() => !isMobile && toggleCollapsed()}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg

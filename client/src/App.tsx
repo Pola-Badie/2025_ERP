@@ -6,6 +6,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import { CSVProvider } from "./contexts/CSVContext";
 import { PaginationProvider } from "./contexts/PaginationContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { SidebarProvider } from "./contexts/SidebarContext";
 
 // Import components directly to avoid issues with wouter
 import Dashboard from "@/pages/DashboardNew";
@@ -43,7 +44,8 @@ function App() {
       <CSVProvider>
         <PaginationProvider>
           <NotificationProvider>
-            <MainLayout>
+            <SidebarProvider>
+              <MainLayout>
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/inventory" component={Inventory} />
@@ -70,7 +72,8 @@ function App() {
                 <Route path="/login" component={Login} />
                 <Route component={NotFound} />
               </Switch>
-            </MainLayout>
+              </MainLayout>
+            </SidebarProvider>
           </NotificationProvider>
         </PaginationProvider>
       </CSVProvider>
