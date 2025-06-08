@@ -122,7 +122,7 @@ const translations = {
     loadingProductDetails: 'Loading product details...',
     
     // Create Invoice
-    createInvoice: 'Create Invoice',
+    createInvoiceModule: 'Create Invoice',
     customerInfo: 'Customer Information',
     chooseCustomer: 'Choose Customer',
     customerName: 'Customer Name',
@@ -281,13 +281,12 @@ const translations = {
     productType: 'نوع المنتج',
     
     // Form buttons
-    cancel: 'إلغاء',
     saving: 'جاري الحفظ...',
     saveProduct: 'حفظ المنتج',
     updateProduct: 'تحديث المنتج',
     
     // Create Invoice
-    createInvoice: 'إنشاء فاتورة',
+    createInvoiceArabic: 'إنشاء فاتورة',
     customerInfo: 'معلومات العميل',
     chooseCustomer: 'اختر العميل',
     customerName: 'اسم العميل',
