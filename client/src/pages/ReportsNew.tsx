@@ -51,7 +51,7 @@ const Reports = () => {
     enabled: true
   });
 
-  // Enhanced export functionality with proper typing
+  // Helper functions for export functionality
   const getReportData = (reportType: string): any => {
     switch (reportType.toLowerCase()) {
       case 'sales': return salesData;
@@ -62,6 +62,86 @@ const Reports = () => {
       case 'refining': return refiningData;
       default: return null;
     }
+  };
+
+  const getDetailedTableData = (reportType: string) => {
+    switch (reportType.toLowerCase()) {
+      case 'sales':
+        return {
+          headers: ['Invoice #', 'Customer', 'Product', 'Amount', 'Date'],
+          rows: [
+            ['INV-2024-001', 'Alexandria Medical Center', 'Panadol Advance 500mg', '$847.50', '2024-06-15'],
+            ['INV-2024-002', 'City General Hospital', 'Amoxicillin 250mg', '$1,245.00', '2024-06-14'],
+            ['INV-2024-003', 'MedCare Pharmacy', 'Ibuprofen 400mg', '$623.75', '2024-06-13'],
+            ['INV-2024-004', 'HealthPlus Clinic', 'Vitamin D3 1000IU', '$389.25', '2024-06-12']
+          ]
+        };
+      case 'financial':
+        return {
+          headers: ['Account Code', 'Account Name', 'Type', 'Balance', 'Status'],
+          rows: [
+            ['1001', 'Cash and Cash Equivalents', 'Asset', '$2,847,500', 'Active'],
+            ['1200', 'Accounts Receivable', 'Asset', '$1,245,800', 'Active'],
+            ['1300', 'Inventory Assets', 'Asset', '$3,518,200', 'Active'],
+            ['2001', 'Accounts Payable', 'Liability', '$845,650', 'Active']
+          ]
+        };
+      case 'inventory':
+        return {
+          headers: ['Product Name', 'SKU', 'Category', 'Stock Level', 'Status'],
+          rows: [
+            ['Panadol Advance 500mg', 'SKU-001', 'Pain Relief', '2,847 units', 'In Stock'],
+            ['Amoxicillin 250mg', 'SKU-002', 'Antibiotics', '1,245 units', 'In Stock'],
+            ['Aspirin 100mg', 'SKU-003', 'Pain Relief', '89 units', 'Low Stock'],
+            ['Cephalexin 500mg', 'SKU-004', 'Antibiotics', '0 units', 'Out of Stock']
+          ]
+        };
+      case 'customers':
+        return {
+          headers: ['Customer Name', 'Contact Person', 'Last Order', 'Total Purchases', 'Status'],
+          rows: [
+            ['Alexandria Medical Center', 'Dr. Sarah Johnson', '2024-06-15', '$12,450.00', 'Premium'],
+            ['City General Hospital', 'Ms. Maria Garcia', '2024-06-14', '$8,975.50', 'Regular'],
+            ['MedCare Pharmacy', 'Mr. Ahmed Hassan', '2024-06-13', '$6,230.75', 'Regular'],
+            ['HealthPlus Clinic', 'Dr. Michael Brown', '2024-06-12', '$3,890.25', 'New']
+          ]
+        };
+      case 'production':
+        return {
+          headers: ['Batch ID', 'Product', 'Quantity', 'Quality Score', 'Status'],
+          rows: [
+            ['BTH-2024-0815', 'Panadol Advance 500mg', '10,000 tablets', '98.5%', 'Completed'],
+            ['BTH-2024-0814', 'Amoxicillin 250mg', '5,000 capsules', '97.8%', 'Completed'],
+            ['BTH-2024-0813', 'Vitamin D3 1000IU', '8,000 tablets', '94.2%', 'In Progress'],
+            ['BTH-2024-0812', 'Ibuprofen 400mg', '12,000 tablets', '-', 'Scheduled']
+          ]
+        };
+      case 'refining':
+        return {
+          headers: ['Material ID', 'Chemical Name', 'Purity Level', 'Yield Rate', 'Process Status'],
+          rows: [
+            ['RM-001', 'Acetaminophen API', '99.8%', '87.5%', 'Refined'],
+            ['RM-002', 'Amoxicillin Trihydrate', '99.6%', '86.2%', 'Refined'],
+            ['RM-003', 'Ibuprofen API', '98.9%', '84.1%', 'Processing'],
+            ['RM-004', 'Vitamin D3 Cholecalciferol', '-', '-', 'Pending']
+          ]
+        };
+      default:
+        return null;
+    }
+  };
+
+  const getChartTitle = (reportType: string, chartIndex: number): string => {
+    const titles: { [key: string]: string[] } = {
+      'sales': ['Sales Trend Analysis', 'Transaction Volume Metrics', 'Revenue Distribution'],
+      'financial': ['Asset vs Liability Trend', 'Financial Health Distribution', 'Cash Flow Analysis'],
+      'inventory': ['Stock Level Trends', 'Inventory by Category', 'Product Performance'],
+      'customers': ['Customer Growth Trend', 'Customer Segmentation', 'Retention Analytics'],
+      'production': ['Production Efficiency Trends', 'Quality Metrics Over Time', 'Batch Completion Rates'],
+      'refining': ['Raw Material Processing', 'Purity Distribution', 'Yield Performance']
+    };
+    
+    return titles[reportType.toLowerCase()]?.[chartIndex] || `${reportType} Analysis Chart ${chartIndex + 1}`;
   };
 
   const exportToPDF = async (reportType: string) => {
@@ -283,6 +363,49 @@ const Reports = () => {
         }
       }
       
+      // Add detailed data tables section
+      if (yPosition > pageHeight - 80) {
+        pdf.addPage();
+        yPosition = 30;
+      }
+      
+      pdf.setFontSize(16);
+      pdf.setTextColor(25, 118, 210);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('DETAILED DATA ANALYSIS', 20, yPosition);
+      yPosition += 20;
+      
+      // Generate detailed tables based on report type
+      const detailedTableData = getDetailedTableData(reportType);
+      if (detailedTableData) {
+        (pdf as any).autoTable({
+          head: [detailedTableData.headers],
+          body: detailedTableData.rows,
+          startY: yPosition,
+          theme: 'grid',
+          styles: { 
+            fontSize: 8,
+            cellPadding: 2,
+            lineColor: [220, 220, 220],
+            lineWidth: 0.1
+          },
+          headStyles: { 
+            fillColor: [25, 118, 210],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 9
+          },
+          alternateRowStyles: {
+            fillColor: [248, 249, 250]
+          },
+          columnStyles: {
+            0: { fontStyle: 'bold', textColor: [25, 118, 210] }
+          }
+        });
+        
+        yPosition = (pdf as any).lastAutoTable.finalY + 20;
+      }
+
       // Professional footer
       const totalPages = pdf.internal.pages.length - 1;
       for (let i = 1; i <= totalPages; i++) {
@@ -314,18 +437,7 @@ const Reports = () => {
     }
   };
 
-  // Helper function for chart titles
-  const getChartTitle = (reportType: string, index: number): string => {
-    const titles: Record<string, string[]> = {
-      sales: ['Sales Trend Analysis', 'Category Distribution', 'Performance Metrics'],
-      financial: ['Revenue vs Receivables', 'Asset Distribution', 'Profit Analysis'],
-      inventory: ['Stock Level Trends', 'Category Analysis', 'Turnover Rates'],
-      customers: ['Customer Growth', 'Segmentation Analysis', 'Retention Metrics'],
-      production: ['Efficiency Trends', 'Output Analysis', 'Quality Metrics'],
-      refining: ['Process Efficiency', 'Yield Analysis', 'Quality Distribution']
-    };
-    return titles[reportType.toLowerCase()]?.[index] || `${reportType} Chart ${index + 1}`;
-  };
+
 
   // Enhanced Excel export with comprehensive data
   const exportToExcel = async (reportType: string) => {
@@ -362,10 +474,20 @@ const Reports = () => {
       XLSX.utils.book_append_sheet(workbook, summarySheet, 'Executive Summary');
       
       // Detailed Analytics sheet
-      const analyticsData = generateDetailedAnalytics(reportType, reportData);
-      const analyticsSheet = XLSX.utils.json_to_sheet(analyticsData);
-      analyticsSheet['!cols'] = Array(10).fill({ width: 12 });
-      XLSX.utils.book_append_sheet(workbook, analyticsSheet, 'Detailed Analytics');
+      const detailedTableData = getDetailedTableData(reportType);
+      if (detailedTableData) {
+        const analyticsData = detailedTableData.rows.map((row, index) => {
+          const rowData: any = {};
+          detailedTableData.headers.forEach((header, i) => {
+            rowData[header] = row[i];
+          });
+          return rowData;
+        });
+        
+        const analyticsSheet = XLSX.utils.json_to_sheet(analyticsData);
+        analyticsSheet['!cols'] = Array(detailedTableData.headers.length).fill({ width: 18 });
+        XLSX.utils.book_append_sheet(workbook, analyticsSheet, 'Detailed Analytics');
+      }
       
       // Performance Benchmarks sheet
       const benchmarkData = [
