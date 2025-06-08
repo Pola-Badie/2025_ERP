@@ -4,8 +4,17 @@ import MobileNav from "@/components/layout/MobileNav";
 import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, Settings, User, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -161,13 +170,85 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <span className="font-bold text-lg ml-1">Morgan ERP</span>
               </div>
             </div>
-            <button type="button" className="p-1 rounded-full">
-              <img
-                className="w-8 h-8 rounded-full"
-                src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
-                alt="Profile"
-              />
-            </button>
+            <div className="flex items-center space-x-3">
+              {/* Notifications */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="relative p-2">
+                    <Bell className="h-5 w-5" />
+                    <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
+                      3
+                    </Badge>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-80">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span className="font-medium text-sm">Low Stock Alert</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Panadol Advance is running low (5 units left)</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span className="font-medium text-sm">Expiry Warning</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Antibiotics expire in 15 days</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="flex flex-col items-start space-y-1 p-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="font-medium text-sm">New Invoice</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">Invoice #INV-2025-001 created successfully</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Profile Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <img
+                      className="w-10 h-10 rounded-full object-cover"
+                      src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
+                      alt="Profile"
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">Ahmed Hassan</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        ahmed.hassan@morgan-erp.com
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bell className="mr-2 h-4 w-4" />
+                    <span>Notifications</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
         
