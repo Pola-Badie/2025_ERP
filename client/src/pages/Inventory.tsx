@@ -1607,24 +1607,26 @@ const Inventory: React.FC = () => {
       </Dialog>
       {/* Warehouse Dialog */}
       <Dialog open={isWarehouseDialogOpen} onOpenChange={setIsWarehouseDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className={`sm:max-w-[500px] ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>{warehouseToEdit ? 'Edit Warehouse' : 'Add New Warehouse'}</DialogTitle>
-            <DialogDescription>
-              {warehouseToEdit ? 'Update the details for this warehouse' : 'Enter the details for the new warehouse'}
+            <DialogTitle className={isRTL ? 'text-right' : 'text-left'}>
+              {warehouseToEdit ? t('editWarehouse') : t('addNewWarehouse')}
+            </DialogTitle>
+            <DialogDescription className={isRTL ? 'text-right' : 'text-left'}>
+              {warehouseToEdit ? t('updateWarehouseDetails') : t('enterWarehouseDetails')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="text-right font-medium">
-                Name
+            <div className={`grid grid-cols-4 items-center gap-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className={`font-medium ${isRTL ? 'text-left' : 'text-right'}`}>
+                {t('name')}
               </div>
               <Input
                 id="warehouse-name"
                 value={warehouseToEdit ? warehouseToEdit.name : ''}
-                placeholder="Warehouse name"
-                className="col-span-3"
+                placeholder={t('warehouseNamePlaceholder')}
+                className={`col-span-3 ${isRTL ? 'text-right' : 'text-left'}`}
                 onChange={(e) => {
                   if (warehouseToEdit) {
                     setWarehouseToEdit({...warehouseToEdit, name: e.target.value});
@@ -1634,15 +1636,15 @@ const Inventory: React.FC = () => {
                 }}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="text-right font-medium">
-                Location
+            <div className={`grid grid-cols-4 items-center gap-4 ${isRTL ? 'text-right' : 'text-left'}`}>
+              <div className={`font-medium ${isRTL ? 'text-left' : 'text-right'}`}>
+                {t('location')}
               </div>
               <Input
                 id="warehouse-location"
                 value={warehouseToEdit ? warehouseToEdit.location : ''}
-                placeholder="Warehouse location"
-                className="col-span-3"
+                placeholder={t('warehouseLocationPlaceholder')}
+                className={`col-span-3 ${isRTL ? 'text-right' : 'text-left'}`}
                 onChange={(e) => {
                   if (warehouseToEdit) {
                     setWarehouseToEdit({...warehouseToEdit, location: e.target.value});
@@ -1652,12 +1654,12 @@ const Inventory: React.FC = () => {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
             <Button variant="outline" onClick={() => {
               setWarehouseToEdit(null);
               setIsWarehouseDialogOpen(false);
             }}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button onClick={() => {
               if (warehouseToEdit) {
@@ -1667,8 +1669,8 @@ const Inventory: React.FC = () => {
                     w.id === warehouseToEdit.id ? warehouseToEdit : w
                   ));
                   toast({
-                    title: "Warehouse updated",
-                    description: "The warehouse details have been updated successfully."
+                    title: t('warehouseUpdated'),
+                    description: t('warehouseUpdatedSuccess')
                   });
                 } else {
                   // Add new warehouse
@@ -1680,8 +1682,8 @@ const Inventory: React.FC = () => {
                   setWarehouses([...warehouses, newWarehouse]);
                   setSelectedWarehouse(newWarehouse.id);
                   toast({
-                    title: "Warehouse added",
-                    description: "The new warehouse has been added successfully."
+                    title: t('warehouseAdded'),
+                    description: t('warehouseAddedSuccess')
                   });
                 }
                 setWarehouseToEdit(null);
@@ -1690,42 +1692,46 @@ const Inventory: React.FC = () => {
             }}
             disabled={!warehouseToEdit || !warehouseToEdit.name}
             >
-              {warehouseToEdit && warehouseToEdit.id ? 'Save Changes' : 'Add Warehouse'}
+              {warehouseToEdit && warehouseToEdit.id ? t('saveChanges') : t('addWarehouse')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       {/* Warehouse Transfer Dialog */}
       <Dialog open={isTransferDialogOpen} onOpenChange={setIsTransferDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className={`sm:max-w-[500px] ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
               <ArrowRightLeft className="h-5 w-5 text-green-600" />
-              Transfer Product to Another Warehouse
+              {t('transferProductToWarehouse')}
             </DialogTitle>
-            <DialogDescription>
-              Transfer stock from the current warehouse to a different warehouse location
+            <DialogDescription className={isRTL ? 'text-right' : 'text-left'}>
+              {t('transferStockDescription')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-6 py-4">
             {selectedProductHistory && (
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-2">Product Details</h4>
-                <div className="space-y-1 text-sm">
-                  <p><span className="font-medium">Product:</span> {selectedProductHistory.name}</p>
-                  <p><span className="font-medium">Current Stock:</span> {selectedProductHistory.currentStock} {selectedProductHistory.unitOfMeasure}</p>
-                  <p><span className="font-medium">Current Warehouse:</span> {warehouses.find(w => w.id === selectedWarehouse)?.name || 'Unknown'}</p>
+                <h4 className={`font-semibold text-blue-900 mb-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('productDetails')}
+                </h4>
+                <div className={`space-y-1 text-sm ${isRTL ? 'text-right' : 'text-left'}`}>
+                  <p><span className="font-medium">{t('product')}:</span> {selectedProductHistory.name}</p>
+                  <p><span className="font-medium">{t('currentStock')}:</span> {selectedProductHistory.currentStock} {selectedProductHistory.unitOfMeasure}</p>
+                  <p><span className="font-medium">{t('currentWarehouse')}:</span> {warehouses.find(w => w.id === selectedWarehouse)?.name || t('unknown')}</p>
                 </div>
               </div>
             )}
             
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label htmlFor="target-warehouse">Target Warehouse</Label>
+                <Label htmlFor="target-warehouse" className={isRTL ? 'text-right' : 'text-left'}>
+                  {t('targetWarehouse')}
+                </Label>
                 <Select value={targetWarehouse} onValueChange={setTargetWarehouse}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select target warehouse" />
+                  <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
+                    <SelectValue placeholder={t('selectTargetWarehouse')} />
                   </SelectTrigger>
                   <SelectContent>
                     {warehouses
@@ -1740,27 +1746,33 @@ const Inventory: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="transfer-quantity">Transfer Quantity</Label>
+                <Label htmlFor="transfer-quantity" className={isRTL ? 'text-right' : 'text-left'}>
+                  {t('transferQuantity')}
+                </Label>
                 <Input
                   id="transfer-quantity"
                   type="number"
-                  placeholder="Enter quantity to transfer"
+                  placeholder={t('enterQuantityToTransfer')}
                   value={transferQuantity}
                   onChange={(e) => setTransferQuantity(e.target.value)}
                   max={selectedProductHistory?.currentStock || 0}
                   min="1"
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
-                <p className="text-xs text-gray-600">
-                  Maximum: {selectedProductHistory?.currentStock || 0} {selectedProductHistory?.unitOfMeasure}
+                <p className={`text-xs text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>
+                  {t('maximum')}: {selectedProductHistory?.currentStock || 0} {selectedProductHistory?.unitOfMeasure}
                 </p>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="transfer-notes">Transfer Notes (Optional)</Label>
+                <Label htmlFor="transfer-notes" className={isRTL ? 'text-right' : 'text-left'}>
+                  {t('transferNotesOptional')}
+                </Label>
                 <Textarea
                   id="transfer-notes"
-                  placeholder="Add any notes about this transfer..."
+                  placeholder={t('addTransferNotes')}
                   rows={3}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
               </div>
             </div>
