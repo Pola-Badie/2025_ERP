@@ -760,10 +760,10 @@ const Inventory: React.FC = () => {
                 >
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by category" />
+                    <SelectValue placeholder={t('filterByCategory')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">{t('allCategories')}</SelectItem>
                     {categories?.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
@@ -785,11 +785,11 @@ const Inventory: React.FC = () => {
               ) : filteredProducts.length === 0 ? (
                 <div className="p-8 text-center">
                   <AlertCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                  <h3 className="text-lg font-medium text-slate-700 mb-1">No products found</h3>
+                  <h3 className="text-lg font-medium text-slate-700 mb-1">{t('noProductsFound')}</h3>
                   <p className="text-slate-500 mb-4">
                     {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
-                      ? 'Try adjusting your filters'
-                      : 'Add your first product to get started'}
+                      ? t('tryAdjustingFilters')
+                      : t('addFirstProduct')}
                   </p>
                   {!(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
                     <Button onClick={() => {
@@ -797,7 +797,7 @@ const Inventory: React.FC = () => {
                       setIsProductFormOpen(true);
                     }}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Product
+                      {t('addProduct')}
                     </Button>
                   )}
                 </div>
@@ -822,17 +822,17 @@ const Inventory: React.FC = () => {
                             <label htmlFor="select-all" className="ml-2 cursor-pointer">All</label>
                           </div>
                         </th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Product</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Category</th>
-                        <th className="px-6 py-3 text-left font-medium text-slate-500">Batch No.</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">GS1 Code</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Type</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Quantity</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Location</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Shelf</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Price</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Expiry Date</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('product')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('category')}</th>
+                        <th className="px-6 py-3 text-left font-medium text-slate-500">{t('batchNo')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('gs1Code')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('type')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('quantity')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('location')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('shelf')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('price')}</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('expiryDate')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-slate-500">{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -936,11 +936,11 @@ const Inventory: React.FC = () => {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handleCreateLabel(product)}>
                                     <Tag className="h-4 w-4 mr-2" />
-                                    Create Label
+                                    {t('createLabel')}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleShowHistory(product)}>
                                     <Calendar className="h-4 w-4 mr-2" />
-                                    Show History
+                                    {t('showHistory')}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                                     <Pencil className="h-4 w-4 mr-2" />
@@ -977,7 +977,7 @@ const Inventory: React.FC = () => {
                       className="flex items-center gap-1"
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      {t('previous')}
                     </Button>
                     
                     <div className="flex items-center gap-1 mx-4">
