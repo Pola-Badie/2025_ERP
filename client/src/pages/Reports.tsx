@@ -1091,7 +1091,7 @@ const ReportsPage: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="h-80">
-{salesLoading ? (
+                {salesLoading ? (
                   <div className="h-full flex items-center justify-center">
                     <div className="animate-pulse">Loading chart data...</div>
                   </div>
@@ -1179,7 +1179,6 @@ const ReportsPage: React.FC = () => {
                         />
                       </LineChart>
                     </ResponsiveContainer>
-                  </div>
                 )}
               </CardContent>
             </Card>
@@ -1193,8 +1192,7 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 shadow-lg">
-                    <PieChart>
+                  <PieChart>
                       <defs>
                         <filter id="pieDropShadow">
                           <feDropShadow dx="2" dy="2" stdDeviation="4" floodOpacity="0.3"/>
