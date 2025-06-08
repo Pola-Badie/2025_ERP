@@ -63,9 +63,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const totalPages = getTotalPages(totalItems);
 
   return (
-    <div className="flex h-screen bg-slate-100">
+    <div className={`flex h-screen bg-slate-100 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Desktop Sidebar */}
-      <div className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ${isCollapsed ? 'md:w-16' : 'md:w-64'}`}>
+      <div className={`hidden md:flex md:flex-col md:fixed md:inset-y-0 transition-all duration-300 ${isRTL ? 'md:right-0' : 'md:left-0'} ${isCollapsed ? 'md:w-16' : 'md:w-64'}`}>
         <Sidebar />
       </div>
       {/* Mobile Menu */}
@@ -75,25 +75,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             className="fixed inset-0 bg-slate-600 bg-opacity-75"
             onClick={closeMobileMenu}
           />
-          <div className="relative flex flex-col w-72 max-w-xs bg-white h-full">
+          <div className={`relative flex flex-col w-72 max-w-xs bg-white h-full ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
             <Sidebar isMobile onClose={closeMobileMenu} />
           </div>
         </div>
       )}
       {/* Main Content */}
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? 'md:pl-16' : 'md:pl-64'}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isRTL ? (isCollapsed ? 'md:pr-16' : 'md:pr-64') : (isCollapsed ? 'md:pl-16' : 'md:pl-64')}`}>
         {/* Desktop Header */}
         <div className="hidden md:flex border-b border-slate-200 bg-white px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
               <img 
                 src="/attached_assets/Untitled design-7_1749347391766.png" 
                 alt="Morgan ERP Logo" 
                 className="w-12 h-12 object-contain"
               />
-              <h1 className="font-semibold text-gray-900 text-[20px]">Morgan Chemical ERP</h1>
+              <h1 className="font-semibold text-gray-900 text-[20px]">{t('companyName')}</h1>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              {/* Language Selector */}
+              <LanguageSelector />
+              
               {/* Enhanced Notifications */}
               <EnhancedNotifications />
 
@@ -294,7 +297,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <span className="font-bold text-lg ml-1">Morgan ERP</span>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              {/* Mobile Language Selector */}
+              <LanguageSelector />
+              
               {/* Mobile Enhanced Notifications */}
               <EnhancedNotifications />
 
