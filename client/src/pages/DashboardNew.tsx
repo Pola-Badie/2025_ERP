@@ -284,13 +284,7 @@ const DashboardNew = () => {
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
-                  data={[
-                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-                    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
-                    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
-                    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
-                    { name: 'Other', value: 6.0, color: '#CAF0F8' },
-                  ]}
+                  data={categoryPerformanceData}
                   cx="50%"
                   cy="50%"
                   outerRadius={60}
@@ -300,13 +294,7 @@ const DashboardNew = () => {
                   labelLine={false}
                   fontSize={10}
                 >
-                  {[
-                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-                    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
-                    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
-                    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
-                    { name: 'Other', value: 6.0, color: '#CAF0F8' },
-                  ].map((entry, index) => (
+                  {categoryPerformanceData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -390,6 +378,216 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Enhanced Modal Dialogs for Expanded Charts */}
+      <Dialog open={expandedChart === 'sales-overview'} onOpenChange={() => setExpandedChart(null)}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-xl font-semibold">Sales Overview - Enhanced View</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpandedChart(null)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="h-full">
+            <ResponsiveContainer width="100%" height="90%">
+              <RechartsLineChart
+                data={salesData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={true}
+                  tickLine={true}
+                  fontSize={12}
+                  tick={{ fill: '#6b7280' }}
+                />
+                <YAxis 
+                  axisLine={true}
+                  tickLine={true}
+                  fontSize={12}
+                  tick={{ fill: '#6b7280' }}
+                />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="sales" 
+                  stroke="#1D3E78" 
+                  strokeWidth={3}
+                  dot={{ fill: '#1D3E78', strokeWidth: 2, r: 5 }}
+                  activeDot={{ r: 7, fill: '#1D3E78' }}
+                  name="Sales (EGP)"
+                />
+              </RechartsLineChart>
+            </ResponsiveContainer>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expandedChart === 'sales-distribution'} onOpenChange={() => setExpandedChart(null)}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-xl font-semibold">Sales Distribution - Enhanced View</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpandedChart(null)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <div className="h-full">
+              <ResponsiveContainer width="100%" height="90%">
+                <RechartsPieChart>
+                  <Pie
+                    data={salesDistributionData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                    labelLine={true}
+                    fontSize={12}
+                  >
+                    {salesDistributionData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Distribution Details</h3>
+              <div className="space-y-3">
+                {salesDistributionData.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full" 
+                        style={{ backgroundColor: item.color }}
+                      ></div>
+                      <span className="font-medium">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-semibold">{item.value}%</span>
+                      <p className="text-sm text-gray-500">
+                        EGP {((dashboardData?.monthSales || 12500) * item.value / 100).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={expandedChart === 'category-performance'} onOpenChange={() => setExpandedChart(null)}>
+        <DialogContent className="max-w-4xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-xl font-semibold">Category Performance - Enhanced View</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpandedChart(null)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+            <div className="h-full">
+              <ResponsiveContainer width="100%" height="90%">
+                <RechartsPieChart>
+                  <Pie
+                    data={categoryPerformanceData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                    labelLine={true}
+                    fontSize={12}
+                  >
+                    {categoryPerformanceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Performance Metrics</h3>
+              <div className="space-y-3">
+                {categoryPerformanceData.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-5 h-5 rounded-full border-2 border-white shadow-sm" 
+                        style={{ backgroundColor: item.color }}
+                      ></div>
+                      <div>
+                        <span className="font-medium text-gray-800">{item.name}</span>
+                        <p className="text-xs text-gray-500">Category</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-gray-800">{item.value}%</span>
+                      <p className="text-sm font-medium text-green-600">
+                        +{(Math.random() * 10 + 5).toFixed(1)}% vs last month
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
