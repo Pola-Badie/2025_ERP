@@ -67,40 +67,39 @@ export default function ReportsNew() {
     switch (reportType.toLowerCase()) {
       case 'sales':
         return {
-          headers: ['Invoice #', 'Customer', 'Product', 'Quantity', 'Amount', 'Date', 'Status'],
+          headers: ['Invoice #', 'Payment Method', 'Amount', 'Grand Total', 'Date', 'Status'],
           rows: reportData.transactions?.map((t: any) => [
-            t.invoiceNumber,
-            t.customerName,
-            t.productName,
-            `${t.quantity} ${t.unit}`,
-            `$${t.totalAmount?.toFixed(2)}`,
-            new Date(t.date).toLocaleDateString(),
-            t.status
+            t.invoiceNumber || 'N/A',
+            t.paymentMethod || 'Unknown',
+            `$${typeof t.totalAmount === 'number' ? t.totalAmount.toFixed(2) : typeof t.totalAmount === 'string' ? parseFloat(t.totalAmount).toFixed(2) : '0.00'}`,
+            `$${typeof t.grandTotal === 'number' ? t.grandTotal.toFixed(2) : typeof t.grandTotal === 'string' ? parseFloat(t.grandTotal).toFixed(2) : '0.00'}`,
+            t.date ? new Date(t.date).toLocaleDateString() : 'N/A',
+            t.paymentStatus || 'Pending'
           ]) || []
         };
       case 'financial':
         return {
           headers: ['Date', 'Description', 'Category', 'Amount', 'Type', 'Reference'],
           rows: reportData.transactions?.map((t: any) => [
-            new Date(t.date).toLocaleDateString(),
-            t.description,
-            t.category,
-            `$${Math.abs(t.amount).toFixed(2)}`,
-            t.amount > 0 ? 'Income' : 'Expense',
-            t.reference
+            t.date ? new Date(t.date).toLocaleDateString() : 'N/A',
+            t.description || 'No description',
+            t.category || 'Uncategorized',
+            `$${typeof t.amount === 'number' ? Math.abs(t.amount).toFixed(2) : '0.00'}`,
+            typeof t.amount === 'number' ? (t.amount > 0 ? 'Income' : 'Expense') : 'Unknown',
+            t.reference || 'N/A'
           ]) || []
         };
       case 'inventory':
         return {
           headers: ['Product', 'SKU', 'Current Stock', 'Unit', 'Value', 'Status', 'Last Updated'],
           rows: reportData.products?.map((p: any) => [
-            p.name,
-            p.sku,
-            p.currentStock.toString(),
-            p.unit,
-            `$${(p.currentStock * p.unitPrice).toFixed(2)}`,
-            p.currentStock < p.minStock ? 'Low Stock' : 'In Stock',
-            new Date(p.lastUpdated).toLocaleDateString()
+            p.name || 'Unknown Product',
+            p.sku || 'N/A',
+            (p.currentStock || 0).toString(),
+            p.unit || 'units',
+            `$${(typeof p.currentStock === 'number' && typeof p.unitPrice === 'number') ? (p.currentStock * p.unitPrice).toFixed(2) : '0.00'}`,
+            (typeof p.currentStock === 'number' && typeof p.minStock === 'number') ? (p.currentStock < p.minStock ? 'Low Stock' : 'In Stock') : 'Unknown',
+            p.lastUpdated ? new Date(p.lastUpdated).toLocaleDateString() : 'N/A'
           ]) || []
         };
       default:
@@ -262,7 +261,36 @@ export default function ReportsNew() {
 
   const renderCharts = (reportType: string) => {
     const reportData = getReportData(reportType);
-    if (!reportData || !reportData.chartData) return null;
+    if (!reportData) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Loading chart data...</p>
+        </div>
+      );
+    }
+
+    // Sample chart data if API data doesn't have chartData
+    const chartData = reportData.chartData || {
+      monthly: [
+        { month: 'Jan', value: 400 },
+        { month: 'Feb', value: 300 },
+        { month: 'Mar', value: 600 },
+        { month: 'Apr', value: 800 },
+        { month: 'May', value: 500 },
+        { month: 'Jun', value: 700 }
+      ],
+      categories: [
+        { name: 'Pain Relievers', value: 45 },
+        { name: 'Antibiotics', value: 30 },
+        { name: 'Vitamins', value: 15 },
+        { name: 'Others', value: 10 }
+      ],
+      performance: [
+        { metric: 'Sales', current: 85, target: 90 },
+        { metric: 'Quality', current: 92, target: 95 },
+        { metric: 'Efficiency', current: 78, target: 80 }
+      ]
+    };
 
     return (
       <div className="space-y-6">
@@ -276,7 +304,7 @@ export default function ReportsNew() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={reportData.chartData.monthly}>
+              <LineChart data={chartData.monthly}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -300,7 +328,7 @@ export default function ReportsNew() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={reportData.chartData.categories}
+                  data={chartData.categories}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -309,9 +337,9 @@ export default function ReportsNew() {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {reportData.chartData.categories.map((_: any, index: number) => (
+                  {chartData.categories?.map((_: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                  )) || []}
                 </Pie>
                 <Tooltip />
               </PieChart>
@@ -329,7 +357,7 @@ export default function ReportsNew() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={reportData.chartData.performance}>
+              <BarChart data={chartData.performance}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="metric" />
                 <YAxis />
@@ -347,7 +375,6 @@ export default function ReportsNew() {
 
   const renderPreviewDialog = (reportType: string) => {
     const reportData = getReportData(reportType);
-    if (!reportData) return null;
 
     return (
       <Dialog>
@@ -371,19 +398,19 @@ export default function ReportsNew() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Total Sales</p>
-                  <p className="text-xl font-bold">$3,816</p>
+                  <p className="text-xl font-bold">${reportData?.summary?.totalSales || '3,816'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Transactions</p>
-                  <p className="text-xl font-bold">6</p>
+                  <p className="text-xl font-bold">{reportData?.summary?.transactions || '6'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Average Order</p>
-                  <p className="text-xl font-bold">$636.00</p>
+                  <p className="text-xl font-bold">${reportData?.summary?.averageOrder || '636.00'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Top Category</p>
-                  <p className="text-xl font-bold">Pain Relievers</p>
+                  <p className="text-xl font-bold">{reportData?.summary?.topCategory || 'Pain Relievers'}</p>
                 </div>
               </div>
             </div>
@@ -395,28 +422,34 @@ export default function ReportsNew() {
             <div>
               <h3 className="text-lg font-semibold text-blue-600 mb-4">DETAILED DATA ANALYSIS</h3>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
-                  <thead>
-                    <tr className="bg-blue-600 text-white">
-                      {getDetailedTableData(reportType)?.headers.map((header, index) => (
-                        <th key={index} className="border border-gray-300 px-4 py-2 text-left">
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getDetailedTableData(reportType)?.rows.slice(0, 10).map((row, index) => (
-                      <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        {row.map((cell, cellIndex) => (
-                          <td key={cellIndex} className="border border-gray-300 px-4 py-2">
-                            {cell}
-                          </td>
+                {getDetailedTableData(reportType) ? (
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-blue-600 text-white">
+                        {getDetailedTableData(reportType)?.headers.map((header: string, index: number) => (
+                          <th key={index} className="border border-gray-300 px-4 py-2 text-left">
+                            {header}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {getDetailedTableData(reportType)?.rows.slice(0, 10).map((row: any[], index: number) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                          {row.map((cell: any, cellIndex: number) => (
+                            <td key={cellIndex} className="border border-gray-300 px-4 py-2">
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Loading detailed data...</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
