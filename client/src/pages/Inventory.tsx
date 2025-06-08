@@ -1285,36 +1285,36 @@ const Inventory: React.FC = () => {
             <div className="space-y-6">
               {/* Product Information Section */}
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
-                  <Package className="h-5 w-5 mr-2" />
-                  Product Information
+                <h3 className={`text-lg font-semibold text-blue-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                  <Package className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('productInformation')}
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">Product Name</label>
-                    <div className="text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productName')}</label>
+                    <div className={`text-lg font-bold text-blue-900 bg-white p-3 rounded border border-blue-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {selectedProductHistory.name}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">SKU Code</label>
-                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('skuCode')}</label>
+                    <div className={`text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 font-mono ${isRTL ? 'text-right' : 'text-left'}`}>
                       {selectedProductHistory.sku}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">Drug Name</label>
-                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('chemicalName')}</label>
+                    <div className={`text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {selectedProductHistory.drugName}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">Status</label>
-                    <div className="bg-white p-3 rounded border border-blue-200">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('status')}</label>
+                    <div className={`bg-white p-3 rounded border border-blue-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         selectedProductHistory.status === 'Active' ? 'bg-green-100 text-green-800' :
                         selectedProductHistory.status === 'Low Stock' ? 'bg-yellow-100 text-yellow-800' :
@@ -1328,15 +1328,15 @@ const Inventory: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">Category</label>
-                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('category')}</label>
+                    <div className={`text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {selectedProductHistory.category}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-blue-700">Manufacturer</label>
-                    <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
+                    <label className={`text-sm font-medium text-blue-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('manufacturer')}</label>
+                    <div className={`text-sm text-blue-800 bg-white p-3 rounded border border-blue-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       Global Pharma Solutions
                     </div>
                   </div>
@@ -1345,36 +1345,36 @@ const Inventory: React.FC = () => {
 
               {/* Inventory Details Section */}
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
-                  <Archive className="h-5 w-5 mr-2" />
-                  Inventory Details
+                <h3 className={`text-lg font-semibold text-green-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                  <Archive className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('inventoryDetails')}
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Current Quantity</label>
-                    <div className="text-2xl font-bold text-green-900 bg-white p-3 rounded border border-green-200">
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('currentQuantity')}</label>
+                    <div className={`text-2xl font-bold text-green-900 bg-white p-3 rounded border border-green-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Warehouse Location</label>
-                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
-                      {warehouses.find(w => w.id === selectedWarehouse)?.name || 'Main Warehouse'}
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('warehouseLocation')}</label>
+                    <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {warehouses.find(w => w.id === selectedWarehouse)?.name || t('mainWarehouse')}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Reorder Level</label>
-                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('reorderLevel')}</label>
+                    <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       25 {selectedProductHistory.unitOfMeasure}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Stock Value</label>
-                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-bold">
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('stockValue')}</label>
+                    <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-bold ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatCurrency(selectedProductHistory.quantity * selectedProductHistory.costPrice)}
                     </div>
                   </div>
@@ -1382,16 +1382,16 @@ const Inventory: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Last Stock Movement</label>
-                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
-                      +50 units received on {formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('lastStockMovement')}</label>
+                    <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      +50 {t('unitsReceived')} {formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-green-700">Average Monthly Usage</label>
-                    <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
-                      45 {selectedProductHistory.unitOfMeasure}/month
+                    <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('averageMonthlyUsage')}</label>
+                    <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      45 {selectedProductHistory.unitOfMeasure}/{t('month')}
                     </div>
                   </div>
                 </div>
@@ -1399,36 +1399,36 @@ const Inventory: React.FC = () => {
 
               {/* Pricing Information Section */}
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
-                  <DollarSign className="h-5 w-5 mr-2" />
-                  Pricing Information
+                <h3 className={`text-lg font-semibold text-purple-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                  <DollarSign className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('pricingInformation')}
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Cost Price</label>
-                    <div className="text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('costPrice')}</label>
+                    <div className={`text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatCurrency(selectedProductHistory.costPrice)}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Selling Price</label>
-                    <div className="text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('sellingPrice')}</label>
+                    <div className={`text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatCurrency(selectedProductHistory.sellingPrice)}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Profit Margin</label>
-                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('profitMargin')}</label>
+                    <div className={`text-sm text-purple-800 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {((selectedProductHistory.sellingPrice - selectedProductHistory.costPrice) / selectedProductHistory.costPrice * 100).toFixed(1)}%
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Profit per Unit</label>
-                    <div className="text-sm font-bold text-purple-800 bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('profitPerUnit')}</label>
+                    <div className={`text-sm font-bold text-purple-800 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatCurrency(selectedProductHistory.sellingPrice - selectedProductHistory.costPrice)}
                     </div>
                   </div>
@@ -1436,17 +1436,17 @@ const Inventory: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Last Price Update</label>
-                    <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('lastPriceUpdate')}</label>
+                    <div className={`text-sm text-purple-800 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatDate(new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString())}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-purple-700">Price Trend</label>
-                    <div className="bg-white p-3 rounded border border-purple-200">
+                    <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('priceTrend')}</label>
+                    <div className={`bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ↗ Increasing
+                        ↗ {t('increasing')}
                       </span>
                     </div>
                   </div>
@@ -1455,15 +1455,15 @@ const Inventory: React.FC = () => {
 
               {/* Compliance & Quality Section */}
               <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
-                  Compliance & Quality
+                <h3 className={`text-lg font-semibold text-orange-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                  <Shield className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('complianceQuality')}
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-orange-700">Expiry Date</label>
-                    <div className={`text-sm font-bold bg-white p-3 rounded border border-orange-200 ${
+                    <label className={`text-sm font-medium text-orange-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('expiryDate')}</label>
+                    <div className={`text-sm font-bold bg-white p-3 rounded border border-orange-200 ${isRTL ? 'text-right' : 'text-left'} ${
                       new Date(selectedProductHistory.expiryDate) < new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) 
                         ? 'text-red-600' : 'text-orange-800'
                     }`}>
@@ -1472,17 +1472,17 @@ const Inventory: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-orange-700">Batch Number</label>
-                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 font-mono">
+                    <label className={`text-sm font-medium text-orange-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('batchNumber')}</label>
+                    <div className={`text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 font-mono ${isRTL ? 'text-right' : 'text-left'}`}>
                       BATCH-{selectedProductHistory.id}2025
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-orange-700">Quality Status</label>
-                    <div className="bg-white p-3 rounded border border-orange-200">
+                    <label className={`text-sm font-medium text-orange-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('qualityStatus')}</label>
+                    <div className={`bg-white p-3 rounded border border-orange-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Approved
+                        ✓ {t('approved')}
                       </span>
                     </div>
                   </div>
@@ -1490,16 +1490,16 @@ const Inventory: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-orange-700">Last Quality Check</label>
-                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+                    <label className={`text-sm font-medium text-orange-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('lastQualityCheck')}</label>
+                    <div className={`text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 ${isRTL ? 'text-right' : 'text-left'}`}>
                       {formatDate(new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-orange-700">Regulatory Status</label>
-                    <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
-                      EDA Approved - License #EDA{selectedProductHistory.id}
+                    <label className={`text-sm font-medium text-orange-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('regulatoryStatus')}</label>
+                    <div className={`text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 ${isRTL ? 'text-right' : 'text-left'}`}>
+                      {t('edaApproved')} #EDA{selectedProductHistory.id}
                     </div>
                   </div>
                 </div>
@@ -1507,65 +1507,65 @@ const Inventory: React.FC = () => {
 
               {/* Activity Timeline Section */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Clock className="h-5 w-5 mr-2" />
-                  Activity Timeline
+                <h3 className={`text-lg font-semibold text-gray-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
+                  <Clock className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('activityTimeline')}
                 </h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start border-l-4 border-blue-500 pl-4 pb-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4 flex-shrink-0">
+                  <div className={`flex items-start border-l-4 border-blue-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                    <div className={`w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
                       <Pencil className="h-6 w-6 text-blue-600" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="font-medium text-gray-900">Product Information Updated</p>
-                        <span className="text-xs text-gray-500">{formatDate(new Date().toISOString())}</span>
+                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productInfoUpdated')}</p>
+                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date().toISOString())}</span>
                       </div>
-                      <p className="text-sm text-gray-600">Quantity changed from 150 to {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
-                      <p className="text-xs text-gray-500 mt-1">Updated by: System Administrator</p>
+                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('quantityChanged')} {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
+                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('updatedBy')}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start border-l-4 border-green-500 pl-4 pb-4">
-                    <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mr-4 flex-shrink-0">
+                  <div className={`flex items-start border-l-4 border-green-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                    <div className={`w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
                       <Package className="h-6 w-6 text-green-600" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="font-medium text-gray-900">Stock Received</p>
-                        <span className="text-xs text-gray-500">{formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}</span>
+                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('stockReceived')}</p>
+                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
-                      <p className="text-sm text-gray-600">Received 50 {selectedProductHistory.unitOfMeasure} from supplier</p>
-                      <p className="text-xs text-gray-500 mt-1">Purchase Order: PO-2025-{selectedProductHistory.id}</p>
+                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('receivedUnits')} 50 {selectedProductHistory.unitOfMeasure} {t('fromSupplier')}</p>
+                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('purchaseOrder')}: PO-2025-{selectedProductHistory.id}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start border-l-4 border-purple-500 pl-4 pb-4">
-                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mr-4 flex-shrink-0">
+                  <div className={`flex items-start border-l-4 border-purple-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                    <div className={`w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
                       <Tag className="h-6 w-6 text-purple-600" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="font-medium text-gray-900">Label Generated</p>
-                        <span className="text-xs text-gray-500">{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</span>
+                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('labelGenerated')}</p>
+                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</span>
                       </div>
-                      <p className="text-sm text-gray-600">Product label created for batch #BATCH-{selectedProductHistory.id}2025</p>
-                      <p className="text-xs text-gray-500 mt-1">Label Type: Pharmaceutical Grade</p>
+                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productLabelCreated')} #BATCH-{selectedProductHistory.id}2025</p>
+                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('labelType')}</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start border-l-4 border-yellow-500 pl-4">
-                    <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4 flex-shrink-0">
+                  <div className={`flex items-start border-l-4 border-yellow-500 pl-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                    <div className={`w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
                       <Plus className="h-6 w-6 text-yellow-600" />
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="font-medium text-gray-900">Product Added to Inventory</p>
-                        <span className="text-xs text-gray-500">{formatDate(selectedProductHistory.createdAt)}</span>
+                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productAddedInventory')}</p>
+                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(selectedProductHistory.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-gray-600">Initial stock: 100 {selectedProductHistory.unitOfMeasure}</p>
-                      <p className="text-xs text-gray-500 mt-1">Created by: Inventory Manager</p>
+                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('initialStock')}: 100 {selectedProductHistory.unitOfMeasure}</p>
+                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('createdBy')}</p>
                     </div>
                   </div>
                 </div>
