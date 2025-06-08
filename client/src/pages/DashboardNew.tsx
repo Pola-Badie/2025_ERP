@@ -187,12 +187,12 @@ const DashboardNew = () => {
               <Expand className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="p-4">
-            <div className="h-[280px] w-full">
+          <CardContent className="p-6">
+            <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsLineChart
                   data={salesData}
-                  margin={{ top: 20, right: 20, left: 10, bottom: 30 }}
+                  margin={{ top: 15, right: 25, left: 15, bottom: 20 }}
                 >
                   <defs>
                     <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
@@ -207,14 +207,14 @@ const DashboardNew = () => {
                     tickLine={false}
                     fontSize={11}
                     tick={{ fill: '#6b7280', fontWeight: 500 }}
-                    height={40}
+                    height={35}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
                     fontSize={10}
                     tick={{ fill: '#9ca3af' }}
-                    width={50}
+                    width={45}
                   />
                   <Tooltip 
                     contentStyle={{
