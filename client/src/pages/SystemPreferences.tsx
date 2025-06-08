@@ -13,10 +13,12 @@ import {
   FileTextIcon,
   SettingsIcon,
   ReceiptIcon,
-  FileDownIcon
+  FileDownIcon,
+  Building2Icon
 } from 'lucide-react';
 
 // Import tab components
+import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
 import UserManagementTab from '@/components/system-preferences/UserManagementTab-new';
 import InventorySettingsTab from '@/components/system-preferences/InventorySettingsTab';
 import FinancialConfigurationTab from '@/components/system-preferences/FinancialConfigurationTab';
@@ -29,7 +31,7 @@ import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePr
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('company');
 
   // Fetch system preferences
   const { data: preferences, isLoading, isError, refetch } = useQuery({
@@ -41,6 +43,8 @@ const SystemPreferences: React.FC = () => {
     const activeClass = activeTab === tabValue ? 'text-primary' : 'text-muted-foreground';
     
     switch (tabValue) {
+      case 'company':
+        return <Building2Icon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'users':
         return <UsersIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'inventory':
@@ -102,7 +106,14 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-10 border-b rounded-none h-auto gap-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 border-b rounded-none h-auto gap-1">
+              <TabsTrigger 
+                value="company" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('company')}
+                <span className="hidden sm:inline ml-1 truncate">Company</span>
+              </TabsTrigger>
               <TabsTrigger 
                 value="users" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -176,6 +187,10 @@ const SystemPreferences: React.FC = () => {
             </TabsList>
             
             <div className="p-6">
+              <TabsContent value="company" className="mt-0">
+                <CompanyInfoTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
               <TabsContent value="users" className="mt-0">
                 <UserManagementTab preferences={preferences} refetch={refetch} />
               </TabsContent>
