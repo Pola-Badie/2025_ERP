@@ -595,10 +595,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${salesReportData?.summary?.totalSales?.toLocaleString() || '11,152'}
+                  ${salesReportData?.summary?.totalSales?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 12%</span> vs previous period
+                  <span className="text-green-500">↑ {salesReportData?.summary?.growthRate || '12'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Revenue Target: ${salesReportData?.summary?.revenueTarget?.toLocaleString() || '15,000'}
                 </div>
               </CardContent>
             </Card>
@@ -609,10 +612,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {salesReportData?.summary?.transactionCount || '89'}
+                  {salesReportData?.summary?.transactionCount?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 8%</span> vs previous period
+                  <span className="text-green-500">↑ {salesReportData?.summary?.transactionGrowth || '8'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Daily Avg: {Math.round((salesReportData?.summary?.transactionCount || 0) / 30)}
                 </div>
               </CardContent>
             </Card>
@@ -623,10 +629,15 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${salesReportData?.summary?.averageOrderValue?.toFixed(2) || '125.31'}
+                  ${salesReportData?.summary?.averageOrderValue?.toFixed(2) || '0.00'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-red-500">↓ 2%</span> vs previous period
+                  <span className={`${(salesReportData?.summary?.averageOrderChange || -2) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {(salesReportData?.summary?.averageOrderChange || -2) >= 0 ? '↑' : '↓'} {Math.abs(salesReportData?.summary?.averageOrderChange || 2)}%
+                  </span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Median: ${salesReportData?.summary?.medianOrderValue?.toFixed(2) || '95.00'}
                 </div>
               </CardContent>
             </Card>
@@ -637,10 +648,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {salesReportData?.summary?.topCategory || 'Antibiotics'}
+                  {salesReportData?.summary?.topCategory || 'Loading...'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 15%</span> growth
+                  <span className="text-green-500">↑ {salesReportData?.summary?.topCategoryGrowth || '15'}%</span> growth
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Share: {salesReportData?.summary?.topCategoryShare || '32'}% of total sales
                 </div>
               </CardContent>
             </Card>
@@ -909,40 +923,72 @@ export default function Reports() {
 
         {/* Financial Reports Tab */}
         <TabsContent value="financial" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Total Revenue</CardTitle>
+                <CardTitle className="text-lg">Total Assets</CardTitle>
+                <CardDescription>Balance Sheet</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${financialReportData?.balanceSheet?.assets?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ {financialReportData?.balanceSheet?.assetGrowth || '8'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Liquidity Ratio: {financialReportData?.balanceSheet?.liquidityRatio || '2.4'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Liabilities</CardTitle>
+                <CardDescription>Outstanding Obligations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${financialReportData?.balanceSheet?.liabilities?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ {financialReportData?.balanceSheet?.liabilityGrowth || '3'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Debt-to-Equity: {financialReportData?.balanceSheet?.debtToEquity || '0.65'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Net Equity</CardTitle>
+                <CardDescription>Owner's Equity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${financialReportData?.balanceSheet?.equity?.toLocaleString() || '0'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ {financialReportData?.balanceSheet?.equityGrowth || '12'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  ROE: {financialReportData?.balanceSheet?.roe || '15.2'}%
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Net Income</CardTitle>
                 <CardDescription>Current Period</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$32,580</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 8%</span> vs previous period
+                <div className="text-2xl font-bold">
+                  ${financialReportData?.profitLoss?.netIncome?.toLocaleString() || '0'}
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Outstanding Receivables</CardTitle>
-                <CardDescription>Unpaid Invoices</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$8,790</div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-red-500">↑ 3%</span> vs previous period
+                  <span className="text-green-500">↑ {financialReportData?.profitLoss?.netIncomeGrowth || '18'}%</span> vs previous period
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Tax Collected</CardTitle>
-                <CardDescription>VAT/Sales Tax</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$4,890</div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 6%</span> vs previous period
+                <div className="text-xs text-gray-500 mt-1">
+                  Profit Margin: {financialReportData?.profitLoss?.profitMargin || '22.5'}%
                 </div>
               </CardContent>
             </Card>
@@ -1197,10 +1243,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {inventoryReportData?.summary?.totalProducts || '245'}
+                  {inventoryReportData?.summary?.totalProducts?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 5%</span> vs previous period
+                  <span className="text-green-500">↑ {inventoryReportData?.summary?.productGrowth || '5'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Active SKUs: {inventoryReportData?.summary?.activeSKUs || '0'}
                 </div>
               </CardContent>
             </Card>
@@ -1211,10 +1260,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  {inventoryReportData?.summary?.lowStockItems || '12'}
+                  {inventoryReportData?.summary?.lowStockItems?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-red-500">↑ 2</span> new alerts
+                  <span className="text-red-500">↑ {inventoryReportData?.summary?.newAlerts || '2'}</span> new alerts
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Critical: {inventoryReportData?.summary?.criticalStock || '3'}
                 </div>
               </CardContent>
             </Card>
@@ -1225,10 +1277,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${inventoryReportData?.summary?.totalValue?.toLocaleString() || '125,840'}
+                  ${inventoryReportData?.summary?.totalValue?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 3%</span> vs previous period
+                  <span className="text-green-500">↑ {inventoryReportData?.summary?.valueGrowth || '3'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Avg. Unit Value: ${inventoryReportData?.summary?.avgUnitValue?.toFixed(2) || '0.00'}
                 </div>
               </CardContent>
             </Card>
@@ -1239,10 +1294,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {inventoryReportData?.summary?.categories || '8'}
+                  {inventoryReportData?.summary?.categories?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
                   Active categories
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Turnover Rate: {inventoryReportData?.summary?.turnoverRate || '4.2'}x/year
                 </div>
               </CardContent>
             </Card>
@@ -1441,10 +1499,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {customerReportData?.summary?.totalCustomers || '168'}
+                  {customerReportData?.summary?.totalCustomers?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 7%</span> vs previous period
+                  <span className="text-green-500">↑ {customerReportData?.summary?.customerGrowth || '7'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Active Rate: {customerReportData?.summary?.activeRate || '89'}%
                 </div>
               </CardContent>
             </Card>
@@ -1455,10 +1516,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {customerReportData?.summary?.newCustomers || '23'}
+                  {customerReportData?.summary?.newCustomers?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 15%</span> growth
+                  <span className="text-green-500">↑ {customerReportData?.summary?.newCustomerGrowth || '15'}%</span> growth
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Acquisition Cost: ${customerReportData?.summary?.acquisitionCost?.toFixed(2) || '0.00'}
                 </div>
               </CardContent>
             </Card>
@@ -1469,10 +1533,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${customerReportData?.summary?.averageLifetimeValue?.toLocaleString() || '2,450'}
+                  ${customerReportData?.summary?.averageLifetimeValue?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 4%</span> vs previous period
+                  <span className="text-green-500">↑ {customerReportData?.summary?.clvGrowth || '4'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Avg. Order Frequency: {customerReportData?.summary?.orderFrequency || '3.2'}/month
                 </div>
               </CardContent>
             </Card>
@@ -1483,10 +1550,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {customerReportData?.summary?.retentionRate || '92%'}
+                  {customerReportData?.summary?.retentionRate || '0'}%
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 2%</span> improvement
+                  <span className="text-green-500">↑ {customerReportData?.summary?.retentionImprovement || '2'}%</span> improvement
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Churn Rate: {customerReportData?.summary?.churnRate || '8'}%
                 </div>
               </CardContent>
             </Card>
@@ -1645,10 +1715,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {productionReportData?.summary?.totalProduction?.toLocaleString() || '15,820'}
+                  {productionReportData?.summary?.totalProduction?.toLocaleString() || '0'}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 12%</span> vs previous period
+                  <span className="text-green-500">↑ {productionReportData?.summary?.productionGrowth || '12'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Daily Avg: {Math.round((productionReportData?.summary?.totalProduction || 0) / 30).toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -1659,10 +1732,13 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  {productionReportData?.summary?.efficiencyRate || '94.2%'}
+                  {productionReportData?.summary?.efficiencyRate || '0'}%
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 3%</span> improvement
+                  <span className="text-green-500">↑ {productionReportData?.summary?.efficiencyImprovement || '3'}%</span> improvement
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Target: {productionReportData?.summary?.efficiencyTarget || '95'}%
                 </div>
               </CardContent>
             </Card>
@@ -1673,24 +1749,30 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {productionReportData?.summary?.qualityScore || '98.5%'}
+                  {productionReportData?.summary?.qualityScore || '0'}%
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-green-500">↑ 1%</span> vs previous period
+                  <span className="text-green-500">↑ {productionReportData?.summary?.qualityImprovement || '1'}%</span> vs previous period
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Defect Rate: {productionReportData?.summary?.defectRate || '1.5'}%
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Downtime</CardTitle>
-                <CardDescription>Hours Lost</CardDescription>
+                <CardDescription>Equipment Downtime</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  {productionReportData?.summary?.downtime || '8.5h'}
+                  {productionReportData?.summary?.downtime || '0'}hrs
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  <span className="text-red-500">↑ 2h</span> vs previous period
+                  <span className="text-red-500">↓ {productionReportData?.summary?.downtimeReduction || '15'}%</span> reduction
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Planned: {productionReportData?.summary?.plannedDowntime || '8'}hrs
                 </div>
               </CardContent>
             </Card>
