@@ -968,64 +968,87 @@ export default function Procurement() {
                 </div>
               </div>
 
-              {/* Documents Section */}
+              {/* Document Upload Section */}
               <div>
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold">Uploaded Documents & Receipts</h4>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      toast({
-                        title: "Document Upload",
-                        description: "Document upload functionality initiated",
-                      });
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload Document
-                  </Button>
+                <Label>Supporting Documents</Label>
+                <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
+                    onChange={handleDocumentUpload}
+                    className="hidden"
+                    id="details-document-upload"
+                  />
+                  <label htmlFor="details-document-upload" className="cursor-pointer">
+                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PDF, DOC, JPG, PNG, TXT, XLS (max 10MB each)
+                    </p>
+                  </label>
                 </div>
-                <div className="border rounded-lg p-4">
-                  {(detailsOrder as any).documents && (detailsOrder as any).documents.length > 0 ? (
-                    <div className="space-y-3">
-                      {(detailsOrder as any).documents.map((doc: any) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <p className="font-medium text-sm">{doc.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {doc.type} • {doc.size} • Uploaded {new Date(doc.uploadDate).toLocaleDateString()}
-                              </p>
-                            </div>
+                
+                {/* Uploaded Documents List */}
+                {(uploadedDocuments.length > 0 || ((detailsOrder as any).documents && (detailsOrder as any).documents.length > 0)) && (
+                  <div className="mt-3 space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700">Uploaded Documents:</h4>
+                    <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                      {/* Show existing documents from order */}
+                      {(detailsOrder as any).documents && (detailsOrder as any).documents.map((doc: any, index: number) => (
+                        <div key={`existing-${index}`} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                          <div className="flex items-center space-x-2">
+                            <Paperclip className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-700 truncate">{doc.name}</span>
+                            <span className="text-xs text-gray-500">({doc.size})</span>
                           </div>
                           <Button
-                            variant="ghost"
                             size="sm"
+                            variant="ghost"
                             onClick={() => {
                               toast({
                                 title: "Download Started",
                                 description: `Downloading ${doc.name}`,
                               });
                             }}
-                            className="flex items-center gap-2"
+                            className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
                           >
-                            <Download className="h-4 w-4" />
-                            Download
+                            <Download className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                      {/* Show newly uploaded documents */}
+                      {uploadedDocuments.map((file, index) => (
+                        <div key={`new-${index}`} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                          <div className="flex items-center space-x-2">
+                            <Paperclip className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                            <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeDocument(index)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No documents uploaded yet</p>
-                      <p className="text-sm">Upload receipts, delivery notes, or invoices</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
+                
+                {/* Show message when no documents */}
+                {uploadedDocuments.length === 0 && !((detailsOrder as any).documents && (detailsOrder as any).documents.length > 0) && (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No documents uploaded yet</p>
+                    <p className="text-sm">Upload receipts, delivery notes, or invoices</p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end">
