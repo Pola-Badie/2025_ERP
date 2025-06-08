@@ -7,6 +7,7 @@ import { usePagination } from "@/contexts/PaginationContext";
 import { useSidebarContext } from "@/contexts/SidebarContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import EnhancedNotifications from "@/components/EnhancedNotifications";
+import LanguageSelector from "@/components/LanguageSelector";
 import { ProfileDialog } from "@/components/dialogs/ProfileDialog";
 import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
 import { LogoutDialog } from "@/components/dialogs/LogoutDialog";
@@ -27,7 +28,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { language } = useLanguage();
+  const { language, isRTL, t } = useLanguage();
   const { currentPage, setCurrentPage, getTotalPages } = usePagination();
   const { isCollapsed } = useSidebarContext();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
