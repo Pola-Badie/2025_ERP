@@ -472,6 +472,13 @@ const ReportsPage: React.FC = () => {
         csvContent += 'In Production,7\n';
         csvContent += 'Production Efficiency,94.2%\n\n';
         
+        csvContent += 'CHART DATA - PRODUCTION TRENDS\n';
+        csvContent += 'Month,Batches Completed,Production Volume,Efficiency Rate\n';
+        salesData.forEach((item: any) => {
+          csvContent += `${item.name},${Math.floor(item.sales / 300)},${item.revenue * 50},${(88 + Math.random() * 12).toFixed(1)}%\n`;
+        });
+        csvContent += '\n';
+        
         csvContent += 'PRODUCTION DETAILS\n';
         csvContent += 'Batch Number,Product,Quantity,Status,Start Date,Completion Date,Total Cost,Revenue\n';
         detailedData = [
@@ -511,7 +518,7 @@ const ReportsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const printReport = () => {
+  const printReport = async () => {
     // Create a new window for printing
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -520,6 +527,28 @@ const ReportsPage: React.FC = () => {
     const dateText = dateRange ? 
       `${format(dateRange.from, 'PP')} to ${format(dateRange.to, 'PP')}` : 
       'All Time';
+
+    // Capture charts before creating print content
+    let chartImages: string[] = [];
+    try {
+      const chartElements = document.querySelectorAll('.recharts-wrapper');
+      for (let i = 0; i < Math.min(chartElements.length, 2); i++) {
+        const chartElement = chartElements[i] as HTMLElement;
+        try {
+          const canvas = await html2canvas(chartElement, {
+            backgroundColor: '#ffffff',
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true
+          });
+          chartImages.push(canvas.toDataURL('image/jpeg', 0.9));
+        } catch (chartError) {
+          console.warn('Failed to capture chart for print:', chartError);
+        }
+      }
+    } catch (error) {
+      console.warn('Chart capture not available for print:', error);
+    }
 
     let printContent = `
       <!DOCTYPE html>
@@ -748,7 +777,29 @@ const ReportsPage: React.FC = () => {
     printContent += `
         </div>
       </div>
+    `;
+
+    // Add captured charts to print content
+    if (chartImages.length > 0) {
+      printContent += `
+        <div class="section">
+          <div class="section-title">Data Visualizations</div>
+      `;
       
+      chartImages.forEach((imageData, index) => {
+        printContent += `
+          <div style="text-align: center; margin-bottom: 20px; page-break-inside: avoid;">
+            <img src="${imageData}" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px;" />
+          </div>
+        `;
+      });
+      
+      printContent += `
+        </div>
+      `;
+    }
+      
+    printContent += `
       <div class="section">
         <div class="section-title">Detailed Analysis</div>
         <table>
