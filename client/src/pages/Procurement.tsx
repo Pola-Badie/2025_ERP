@@ -260,153 +260,226 @@ export default function Procurement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Procurement</h2>
-          <p className="text-muted-foreground">
-            Manage purchase orders and supplier inventory
+          <h1 className="text-2xl font-bold text-slate-900">Purchases Management</h1>
+          <p className="text-slate-600 mt-1">
+            Manage purchase records, suppliers, and inventory-related accounting
           </p>
+        </div>
+        <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              toast({
+                title: "Export Started",
+                description: "Purchase orders data is being exported...",
+              });
+            }}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+          <Button 
+            onClick={() => {
+              setEditingOrder(null);
+              setSelectedSupplier('');
+              setIsPurchaseOrderFormOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Purchase
+          </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative flex-1 min-w-[280px]">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <Input
                 placeholder="Search by PO number or supplier..."
-                className="pl-10"
+                className="pl-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="received">Received</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="status-filter" className="whitespace-nowrap text-sm font-medium">Status:</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger id="status-filter" className="w-[160px]">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">Sent</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="received">Received</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Purchase Orders List */}
-      <div className="grid gap-4">
-        {isLoading ? (
-          <div className="text-center py-8">Loading purchase orders...</div>
-        ) : filteredPurchaseOrders && filteredPurchaseOrders.length > 0 ? (
-          filteredPurchaseOrders.map((order) => (
-            <Card key={order.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{order.poNumber}</h3>
-                      {getStatusBadge(order.status)}
-                    </div>
-                    <p className="text-muted-foreground mb-1">
-                      <strong>Supplier:</strong> {order.supplier}
-                    </p>
-                    <p className="text-muted-foreground mb-1">
-                      <strong>Date:</strong> {new Date(order.date).toLocaleDateString()}
-                    </p>
-                    <p className="text-muted-foreground mb-1">
-                      <strong>Payment:</strong> {(order as any).paymentMethod || 'Not specified'} | <strong>Terms:</strong> {(order as any).paymentTerms || 'Not specified'}
-                    </p>
-                    {(order as any).paymentDueDate && (
-                      <p className="text-muted-foreground mb-1">
-                        <strong>Payment Due:</strong> <span className="text-red-600 font-medium">{new Date((order as any).paymentDueDate).toLocaleDateString()}</span>
-                      </p>
-                    )}
-                    <div className="mb-2">
-                      <strong className="text-sm text-muted-foreground">Materials Procured:</strong>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {(order as any).materials && (order as any).materials.length > 0 ? (
-                          (order as any).materials.map((material: any, index: number) => (
-                            <span 
-                              key={index}
-                              className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                            >
-                              {material.name} ({material.quantity} {material.unit})
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">No materials specified</span>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-lg font-semibold text-green-600">
-                      ${order.totalAmount.toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDetailsOrder(order);
-                        setIsDetailsDialogOpen(true);
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Show Details
-                    </Button>
-
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'sent')}>
-                          Mark as Sent
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'received')}>
-                          Mark as Received
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'cancelled')}>
-                          Mark as Cancelled
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeletePurchaseOrder(order)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No purchase orders found</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Try adjusting your search or create a new purchase order
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Purchase Orders Table */}
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-8 flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredPurchaseOrders && filteredPurchaseOrders.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice No</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA No.</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredPurchaseOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {order.poNumber}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">
+                        ETA{order.id.toString().padStart(8, '0')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(order.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        })}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {order.supplier}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="max-w-xs">
+                          {(order as any).materials && (order as any).materials.length > 0 ? (
+                            <div className="space-y-1">
+                              {(order as any).materials.slice(0, 2).map((material: any, index: number) => (
+                                <div key={index} className="text-xs">
+                                  {material.name} ({material.quantity} {material.unit})
+                                </div>
+                              ))}
+                              {(order as any).materials.length > 2 && (
+                                <div className="text-xs text-gray-500">
+                                  +{(order as any).materials.length - 2} more items
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-500 italic">No items specified</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {(order as any).paymentMethod || 'Bank Transfer'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(order.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                        ${order.totalAmount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setEditingOrder(order);
+                              setSelectedSupplier(order.supplier);
+                              setIsPurchaseOrderFormOpen(true);
+                            }}
+                            className="h-8 w-8 p-0"
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setDetailsOrder(order);
+                              setIsDetailsDialogOpen(true);
+                            }}
+                            className="h-8 w-8 p-0"
+                            title="View"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'sent')}>
+                                Mark as Sent
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'received')}>
+                                Mark as Received
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleChangePurchaseOrderStatus(order, 'cancelled')}>
+                                Mark as Cancelled
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleDeletePurchaseOrder(order)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-slate-500 mb-4">No purchase orders found</p>
+              <p className="text-sm text-slate-400 mb-4">
+                Try adjusting your search or create a new purchase order
+              </p>
+              <Button 
+                onClick={() => {
+                  setEditingOrder(null);
+                  setSelectedSupplier('');
+                  setIsPurchaseOrderFormOpen(true);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create Purchase Order
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Edit Purchase Order Dialog */}
       <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
