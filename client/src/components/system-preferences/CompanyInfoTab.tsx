@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Building2, MapPin, Phone, Mail, Globe, FileText } from 'lucide-react';
+import { Building2, MapPin, Phone, Mail, Globe, FileText, Upload, X } from 'lucide-react';
 
 interface CompanyInfoTabProps {
   preferences: any[] | undefined;
@@ -43,6 +43,9 @@ const CompanyInfoTab: React.FC<CompanyInfoTabProps> = ({ preferences, refetch })
     employeeCount: getPreferenceValue('company_employees') || ''
   });
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const updatePreferenceMutation = useMutation({
     mutationFn: async (data: { key: string; value: string; category: string }) => {
       const response = await fetch('/api/system-preferences', {
@@ -67,6 +70,38 @@ const CompanyInfoTab: React.FC<CompanyInfoTabProps> = ({ preferences, refetch })
       toast({
         title: "Error",
         description: "Failed to update company information",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const uploadLogoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch('/api/upload-logo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error('Failed to upload logo');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      handleInputChange('companyLogo', data.url);
+      setLogoFile(null);
+      setIsUploading(false);
+      toast({
+        title: "Success",
+        description: "Logo uploaded successfully",
+      });
+    },
+    onError: (error) => {
+      setIsUploading(false);
+      toast({
+        title: "Error",
+        description: "Failed to upload logo",
         variant: "destructive",
       });
     },
@@ -104,6 +139,45 @@ const CompanyInfoTab: React.FC<CompanyInfoTabProps> = ({ preferences, refetch })
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "File size must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setLogoFile(file);
+    }
+  };
+
+  const handleUploadLogo = async () => {
+    if (!logoFile) return;
+    
+    setIsUploading(true);
+    uploadLogoMutation.mutate(logoFile);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    handleInputChange('companyLogo', '');
   };
 
   return (
@@ -338,9 +412,85 @@ const CompanyInfoTab: React.FC<CompanyInfoTabProps> = ({ preferences, refetch })
               </p>
             </div>
 
+            <div className="relative">
+              <Label>Or Upload Logo</Label>
+              <div className="mt-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <label htmlFor="logo-upload">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 cursor-pointer hover:border-muted-foreground/50 transition-colors">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Upload className="h-8 w-8 text-muted-foreground" />
+                      <div className="text-sm text-center">
+                        <span className="font-medium">Click to upload</span>
+                        <p className="text-muted-foreground">PNG, JPG, GIF up to 5MB</p>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {logoFile && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-muted/10 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-sm">
+                      <p className="font-medium">{logoFile.name}</p>
+                      <p className="text-muted-foreground">
+                        {(logoFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      onClick={handleUploadLogo}
+                      disabled={isUploading || uploadLogoMutation.isPending}
+                    >
+                      {isUploading || uploadLogoMutation.isPending ? (
+                        <>
+                          <Upload className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setLogoFile(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {companyInfo.companyLogo && (
               <div>
-                <Label>Logo Preview</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Logo Preview</Label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRemoveLogo}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
                 <div className="mt-2 p-4 border rounded-lg bg-muted/10">
                   <img
                     src={companyInfo.companyLogo}

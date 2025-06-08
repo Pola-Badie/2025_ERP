@@ -491,6 +491,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= File Upload Endpoints =============
+  
+  // Logo upload endpoint
+  app.post("/api/upload-logo", upload.single("image"), async (req: any, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(req.file.mimetype)) {
+        // Delete the uploaded file if it's not a valid type
+        await fs.unlink(req.file.path).catch(console.error);
+        return res.status(400).json({ message: "Invalid file type. Only JPEG, PNG, and GIF files are allowed." });
+      }
+
+      // Generate URL for the uploaded file
+      const fileUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({
+        url: fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      });
+    } catch (error) {
+      console.error("Logo upload error:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
+    }
+  });
+
   // ============= Dashboard Endpoints =============
   
   // API endpoint for dashboard summary data
