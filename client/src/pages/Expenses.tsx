@@ -15,8 +15,10 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogDescription,
-  DialogFooter 
+  DialogFooter,
+  DialogTrigger 
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils';
@@ -27,7 +29,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight
+  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText
 } from 'lucide-react';
 
 // Define types for Expense and Category if they're not in schema.ts
@@ -50,12 +52,17 @@ interface Category {
 const Expenses: React.FC = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
+  const [isExpenseExportOpen, setIsExpenseExportOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<{ id: number, name: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [exportDateRange, setExportDateRange] = useState('this-month');
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [exportFormat, setExportFormat] = useState('excel');
   const itemsPerPage = 9; // 3x3 grid for better display
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -270,15 +277,311 @@ const Expenses: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleExpenseExport = () => {
+    if (!expenses?.length) {
+      toast({
+        title: "No Data",
+        description: "No expense data available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Filter data based on selected filters
+      let dataToExport = sortedExpenses;
+      
+      // Apply date range filtering if custom range is selected
+      if (exportDateRange === 'custom' && exportStartDate && exportEndDate) {
+        dataToExport = dataToExport.filter(expense => {
+          const expenseDate = new Date(expense.date);
+          const startDate = new Date(exportStartDate);
+          const endDate = new Date(exportEndDate);
+          return expenseDate >= startDate && expenseDate <= endDate;
+        });
+      }
+
+      if (exportFormat === 'csv') {
+        const headers = ['Date', 'Description', 'Account Type', 'Cost Center', 'Payment Method', 'Amount'];
+        const csvContent = [
+          headers.join(','),
+          ...dataToExport.map(expense => [
+            expense.date,
+            `"${expense.description}"`,
+            expense.category === 'Utilities' ? 'Operations' : 
+            expense.category === 'Transportation' ? 'Operations' :
+            expense.category === 'Office Supplies' ? 'Marketing' :
+            expense.category === 'Communications' ? 'Fixed Assets' :
+            expense.category === 'Equipment' ? 'Operations' :
+            expense.category === 'Marketing' ? 'Marketing' : 'Operations',
+            expense.category === 'Utilities' ? 'Operations' : 
+            expense.category === 'Transportation' ? 'Operations' :
+            expense.category === 'Office Supplies' ? 'Admin' :
+            expense.category === 'Communications' ? 'Admin' :
+            expense.category === 'Equipment' ? 'Operations' :
+            expense.category === 'Marketing' ? 'Marketing' : 'Operations',
+            expense.category === 'Utilities' ? 'Bank Transfer' : 
+            expense.category === 'Transportation' ? 'Credit Card' :
+            expense.category === 'Office Supplies' ? 'Cash' :
+            expense.category === 'Communications' ? 'Bank Transfer' :
+            expense.category === 'Equipment' ? 'Credit Card' :
+            expense.category === 'Marketing' ? 'Bank Transfer' : 'Bank Transfer',
+            expense.amount
+          ].join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `expenses-report-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setIsExpenseExportOpen(false);
+      toast({
+        title: "Export Complete",
+        description: `Successfully exported ${dataToExport.length} expense records`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export expense data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Expenses</h1>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-          <Button variant="outline" onClick={exportToCsv} disabled={!expenses?.length}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
-          </Button>
+          <Dialog open={isExpenseExportOpen} onOpenChange={setIsExpenseExportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={!expenses?.length}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+              <DialogHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="bg-green-100 p-2 rounded-lg">
+                    <Download className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl font-bold text-gray-900">Export Expenses Report</DialogTitle>
+                    <p className="text-sm text-gray-600 mt-1">Choose date range and export format for your expense data</p>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="space-y-6 py-4">
+                {/* Date Range Selection */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Date Range
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label>Quick Selection</Label>
+                      <Select defaultValue="this-month" onValueChange={(value) => setExportDateRange(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="this-week">This Week</SelectItem>
+                          <SelectItem value="this-month">This Month</SelectItem>
+                          <SelectItem value="last-month">Last Month</SelectItem>
+                          <SelectItem value="this-quarter">This Quarter</SelectItem>
+                          <SelectItem value="last-quarter">Last Quarter</SelectItem>
+                          <SelectItem value="this-year">This Year</SelectItem>
+                          <SelectItem value="last-year">Last Year</SelectItem>
+                          <SelectItem value="custom">Custom Range</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {exportDateRange === 'custom' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="export-start-date">Start Date</Label>
+                          <Input
+                            id="export-start-date"
+                            type="date"
+                            value={exportStartDate}
+                            onChange={(e) => setExportStartDate(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="export-end-date">End Date</Label>
+                          <Input
+                            id="export-end-date"
+                            type="date"
+                            value={exportEndDate}
+                            onChange={(e) => setExportEndDate(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Export Format Selection */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Export Format
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div 
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        exportFormat === 'excel' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setExportFormat('excel')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-green-100 rounded">
+                          <FileText className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium">Excel (.xlsx)</div>
+                          <div className="text-sm text-gray-600">Spreadsheet format</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        exportFormat === 'csv' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setExportFormat('csv')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-blue-100 rounded">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium">CSV</div>
+                          <div className="text-sm text-gray-600">Comma separated</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        exportFormat === 'pdf' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setExportFormat('pdf')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-red-100 rounded">
+                          <FileText className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium">PDF</div>
+                          <div className="text-sm text-gray-600">Printable report</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        exportFormat === 'json' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setExportFormat('json')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-purple-100 rounded">
+                          <FileText className="h-5 w-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium">JSON</div>
+                          <div className="text-sm text-gray-600">Data format</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter Options */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Filter className="h-5 w-5 mr-2" />
+                    Filter Options
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Account Type</Label>
+                      <Select defaultValue="all">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="operations">Operations</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="fixed-assets">Fixed Assets</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Cost Center</Label>
+                      <Select defaultValue="all">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Centers</SelectItem>
+                          <SelectItem value="operations">Operations</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="projects">Projects</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Amount Range</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input type="number" placeholder="Min amount" step="0.01" />
+                      <Input type="number" placeholder="Max amount" step="0.01" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-3 pt-6 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsExpenseExportOpen(false)}
+                  className="border-gray-300 hover:bg-gray-50"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleExpenseExport}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Report
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
           <Button onClick={() => setIsExpenseFormOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             New Expense
