@@ -1098,87 +1098,35 @@ const ReportsPage: React.FC = () => {
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                        data={salesReportData?.chartData || []}
-                        margin={{
-                          top: 15,
-                          right: 30,
-                          left: 20,
-                          bottom: 15,
-                        }}
-                      >
-                        <defs>
-                          <linearGradient id="salesLineGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#1D4ED8" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#1D4ED8" stopOpacity={0.1}/>
-                          </linearGradient>
-                          <linearGradient id="transactionsLineGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#059669" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#059669" stopOpacity={0.1}/>
-                          </linearGradient>
-                          <filter id="dropShadow">
-                            <feDropShadow dx="2" dy="2" stdDeviation="3" floodOpacity="0.3"/>
-                          </filter>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.5} />
-                        <XAxis 
-                          dataKey="date" 
-                          tick={{ fontSize: 12, fill: '#6B7280' }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
-                        />
-                        <YAxis 
-                          tick={{ fontSize: 12, fill: '#6B7280' }}
-                          axisLine={{ stroke: '#D1D5DB' }}
-                          tickLine={{ stroke: '#D1D5DB' }}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            border: '1px solid #E5E7EB',
-                            borderRadius: '8px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                        />
-                        <Legend 
-                          wrapperStyle={{
-                            paddingTop: '10px',
-                            fontSize: '12px',
-                            fontWeight: 500
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="amount" 
-                          stroke="url(#salesLineGradient)"
-                          strokeWidth={3}
-                          activeDot={{ 
-                            r: 6, 
-                            fill: '#1D4ED8', 
-                            stroke: '#ffffff', 
-                            strokeWidth: 3,
-                            filter: 'url(#dropShadow)'
-                          }} 
-                          name="Sales Amount"
-                          dot={{ r: 4, fill: '#1D4ED8', stroke: '#ffffff', strokeWidth: 2 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="transactions" 
-                          stroke="url(#transactionsLineGradient)"
-                          strokeWidth={3}
-                          activeDot={{ 
-                            r: 6, 
-                            fill: '#059669', 
-                            stroke: '#ffffff', 
-                            strokeWidth: 3,
-                            filter: 'url(#dropShadow)'
-                          }}
-                          name="Transactions"
-                          dot={{ r: 4, fill: '#059669', stroke: '#ffffff', strokeWidth: 2 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                      data={salesReportData?.chartData || []}
+                      margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5,
+                      }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="amount" 
+                        stroke="#8884d8"
+                        strokeWidth={2}
+                        name="Sales Amount"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="transactions" 
+                        stroke="#82ca9d"
+                        strokeWidth={2}
+                        name="Transactions"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 )}
               </CardContent>
             </Card>
@@ -1193,78 +1141,23 @@ const ReportsPage: React.FC = () => {
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                      <defs>
-                        <filter id="pieDropShadow">
-                          <feDropShadow dx="2" dy="2" stdDeviation="4" floodOpacity="0.3"/>
-                        </filter>
-                        <linearGradient id="antibioticsGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#8B5CF6" />
-                          <stop offset="100%" stopColor="#A855F7" />
-                        </linearGradient>
-                        <linearGradient id="painkillersGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#06B6D4" />
-                          <stop offset="100%" stopColor="#0891B2" />
-                        </linearGradient>
-                        <linearGradient id="supplementsGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#10B981" />
-                          <stop offset="100%" stopColor="#059669" />
-                        </linearGradient>
-                        <linearGradient id="antiInflammatoryGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#F59E0B" />
-                          <stop offset="100%" stopColor="#D97706" />
-                        </linearGradient>
-                        <linearGradient id="cardiovascularGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#EF4444" />
-                          <stop offset="100%" stopColor="#DC2626" />
-                        </linearGradient>
-                      </defs>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={85}
-                        innerRadius={35}
-                        fill="#8884d8"
-                        dataKey="value"
-                        filter="url(#pieDropShadow)"
-                        stroke="#ffffff"
-                        strokeWidth={2}
-                      >
-                        {categoryData.map((entry, index) => {
-                          const gradients = [
-                            'url(#antibioticsGradient)',
-                            'url(#painkillersGradient)', 
-                            'url(#supplementsGradient)',
-                            'url(#antiInflammatoryGradient)',
-                            'url(#cardiovascularGradient)'
-                          ];
-                          return (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={gradients[index % gradients.length]}
-                            />
-                          );
-                        })}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          border: '1px solid #E5E7EB',
-                          borderRadius: '8px',
-                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      />
-                      <Legend 
-                        wrapperStyle={{
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      />
-                    </PieChart>
-                  </div>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -1409,8 +1302,7 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 shadow-lg">
-                    <BarChart
+                  <BarChart
                       data={salesData}
                       margin={{
                         top: 15,
@@ -1474,8 +1366,7 @@ const ReportsPage: React.FC = () => {
                         filter="url(#barDropShadow)"
                         radius={[4, 4, 0, 0]}
                       />
-                    </BarChart>
-                  </div>
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -1489,8 +1380,7 @@ const ReportsPage: React.FC = () => {
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <div className="relative bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4 shadow-lg">
-                    <LineChart
+                  <LineChart
                       data={salesData}
                       margin={{
                         top: 15,
@@ -1551,8 +1441,7 @@ const ReportsPage: React.FC = () => {
                         }} 
                         dot={{ r: 4, fill: '#F59E0B', stroke: '#ffffff', strokeWidth: 2 }}
                       />
-                    </LineChart>
-                  </div>
+                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
