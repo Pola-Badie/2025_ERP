@@ -1097,8 +1097,7 @@ const ReportsPage: React.FC = () => {
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 shadow-lg">
-                      <LineChart
+                    <LineChart
                         data={salesReportData?.chartData || []}
                         margin={{
                           top: 15,
@@ -1179,8 +1178,8 @@ const ReportsPage: React.FC = () => {
                           dot={{ r: 4, fill: '#059669', stroke: '#ffffff', strokeWidth: 2 }}
                         />
                       </LineChart>
-                    </div>
-                  </ResponsiveContainer>
+                    </ResponsiveContainer>
+                  </div>
                 )}
               </CardContent>
             </Card>
