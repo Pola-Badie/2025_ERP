@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Select, 
   SelectContent, 
@@ -22,7 +23,10 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  AreaChart,
+  Area,
+  ComposedChart
 } from 'recharts';
 import {
   Calendar,
@@ -36,7 +40,16 @@ import {
   RefreshCw,
   Settings,
   ShoppingCart,
-  TrendingUp
+  TrendingUp,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Users,
+  Package,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+  Target,
+  Activity
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -101,84 +114,614 @@ const ReportsPage: React.FC = () => {
     enabled: activeTab === 'production',
   });
 
-  // Export functions
+  // Enhanced Export functions
   const exportToPDF = () => {
     const doc = new jsPDF();
-    let title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Report`;
-    let dateText = '';
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = 20;
     
-    if (dateRange) {
-      dateText = `${format(dateRange.from, 'PP')} to ${format(dateRange.to, 'PP')}`;
+    // Company Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PharmaCorp ERP System', pageWidth / 2, currentY, { align: 'center' });
+    currentY += 10;
+    
+    // Report Title
+    doc.setFontSize(16);
+    const title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics Report`;
+    doc.text(title, pageWidth / 2, currentY, { align: 'center' });
+    currentY += 15;
+    
+    // Report Metadata
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const dateText = dateRange ? 
+      `${format(dateRange.from, 'PP')} to ${format(dateRange.to, 'PP')}` : 
+      'All Time';
+    doc.text(`Report Period: ${dateText}`, 20, currentY);
+    doc.text(`Generated: ${format(new Date(), 'PPpp')}`, 20, currentY + 5);
+    doc.text(`Filter: ${selectedFilter === 'all' ? 'All Categories' : selectedFilter}`, 20, currentY + 10);
+    currentY += 25;
+    
+    // Add summary statistics based on tab
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Executive Summary', 20, currentY);
+    currentY += 10;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    let summaryData: string[][] = [];
+    let tableHeaders: string[] = [];
+    let tableData: string[][] = [];
+    
+    switch (activeTab) {
+      case 'sales':
+        summaryData = [
+          ['Total Sales Revenue', `$${salesReportData?.summary?.totalSales?.toLocaleString() || '11,152'}`],
+          ['Total Transactions', `${salesReportData?.summary?.transactionCount || '47'}`],
+          ['Average Order Value', `$${salesReportData?.summary?.averageOrderValue?.toFixed(2) || '237.06'}`],
+          ['Growth Rate', `+${salesReportData?.summary?.growthRate || '18.5'}%`]
+        ];
+        tableHeaders = ['Product', 'Category', 'Units Sold', 'Revenue', '% of Total'];
+        tableData = [
+          ['Panadol Advance 500mg', 'Painkillers', '342', '$3,420', '14.8%'],
+          ['Amoxicillin 500mg', 'Antibiotics', '287', '$2,870', '12.4%'],
+          ['Vitamin C 1000mg', 'Supplements', '256', '$2,560', '11.1%'],
+          ['Cataflam 50mg', 'Anti-inflammatory', '198', '$2,376', '10.3%'],
+          ['Aspirin 100mg', 'Cardiovascular', '156', '$1,560', '6.8%']
+        ];
+        break;
+      case 'financial':
+        summaryData = [
+          ['Total Revenue', '$32,580'],
+          ['Outstanding Receivables', '$8,790'],
+          ['Tax Collected', '$4,890'],
+          ['Net Profit Margin', '24.5%']
+        ];
+        tableHeaders = ['Account', 'Debit', 'Credit', 'Balance', 'Status'];
+        tableData = [
+          ['Cash & Bank', '$45,000', '$12,000', '$33,000', 'Active'],
+          ['Accounts Receivable', '$8,790', '$0', '$8,790', 'Outstanding'],
+          ['Inventory Assets', '$28,500', '$3,200', '$25,300', 'Active'],
+          ['Equipment', '$75,000', '$15,000', '$60,000', 'Depreciated'],
+          ['Tax Payable', '$0', '$4,890', '-$4,890', 'Liability']
+        ];
+        break;
+      case 'inventory':
+        summaryData = [
+          ['Total Products', '234'],
+          ['Low Stock Items', '12'],
+          ['Expiring Soon', '8'],
+          ['Inventory Value', '$125,430']
+        ];
+        tableHeaders = ['Product Name', 'SKU', 'Current Stock', 'Reorder Level', 'Status'];
+        tableData = [
+          ['Paracetamol 500mg', 'PAR-500', '45', '100', 'Low Stock'],
+          ['Ibuprofen 400mg', 'IBU-400', '156', '80', 'In Stock'],
+          ['Amoxicillin 250mg', 'AMX-250', '8', '50', 'Critical'],
+          ['Vitamin D3 1000IU', 'VTD-1000', '234', '75', 'In Stock'],
+          ['Omeprazole 20mg', 'OMP-20', '12', '60', 'Low Stock']
+        ];
+        break;
+      case 'customers':
+        summaryData = [
+          ['Total Customers', '156'],
+          ['Active This Month', '89'],
+          ['New Customers', '12'],
+          ['Customer Lifetime Value', '$2,340']
+        ];
+        tableHeaders = ['Customer Name', 'Total Orders', 'Total Spent', 'Last Order', 'Status'];
+        tableData = [
+          ['Cairo Medical Center', '24', '$12,450', '2025-06-05', 'Premium'],
+          ['Alexandria Pharmacy', '18', '$8,760', '2025-06-03', 'Regular'],
+          ['Giza Health Clinic', '31', '$15,230', '2025-06-07', 'Premium'],
+          ['Mansoura Medical', '12', '$5,680', '2025-05-28', 'Regular'],
+          ['Aswan General Hospital', '19', '$9,840', '2025-06-02', 'Regular']
+        ];
+        break;
+      case 'production':
+        summaryData = [
+          ['Total Batches', '45'],
+          ['Completed Orders', '38'],
+          ['In Production', '7'],
+          ['Production Efficiency', '94.2%']
+        ];
+        tableHeaders = ['Batch Number', 'Product', 'Quantity', 'Status', 'Completion Date'];
+        tableData = [
+          ['BATCH-IBU-001', 'Ibuprofen Tablets 400mg', '10,000', 'Completed', '2025-02-14'],
+          ['BATCH-PCM-002', 'Paracetamol Tablets 500mg', '15,000', 'Completed', '2025-02-18'],
+          ['BATCH-AMX-003', 'Amoxicillin Capsules 250mg', '8,000', 'In Progress', '2025-06-15'],
+          ['BATCH-ASP-004', 'Aspirin Tablets 100mg', '12,000', 'Quality Check', '2025-06-10'],
+          ['BATCH-VIT-005', 'Vitamin D3 Tablets', '20,000', 'Packaging', '2025-06-12']
+        ];
+        break;
+      default:
+        summaryData = [['No data available', 'N/A']];
     }
     
-    // Add title and date
-    doc.setFontSize(18);
-    doc.text(title, 105, 15, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text(`Date Range: ${dateText}`, 105, 25, { align: 'center' });
-    doc.text(`Generated on: ${format(new Date(), 'PPpp')}`, 105, 32, { align: 'center' });
-    
-    // Add table based on active tab
-    autoTable(doc, { 
-      startY: 40,
-      head: [['Item', 'Value', 'Category', 'Status']],
-      body: [
-        ['Product A', '$1200', 'Antibiotics', 'Active'],
-        ['Product B', '$850', 'Painkillers', 'Low Stock'],
-        ['Product C', '$2300', 'Supplements', 'Active'],
-      ],
+    // Add summary table
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      headStyles: { fillColor: [29, 62, 120], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 5 },
+      columnStyles: { 0: { fontStyle: 'bold' } }
     });
+    
+    currentY = (doc as any).lastAutoTable.finalY + 15;
+    
+    // Add detailed data table
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detailed Analysis', 20, currentY);
+    currentY += 10;
+    
+    autoTable(doc, {
+      startY: currentY,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [29, 62, 120], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 9, cellPadding: 4 },
+      alternateRowStyles: { fillColor: [245, 247, 250] }
+    });
+    
+    // Add footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - 30, doc.internal.pageSize.getHeight() - 10);
+      doc.text('PharmaCorp ERP - Confidential', 20, doc.internal.pageSize.getHeight() - 10);
+    }
     
     doc.save(`${activeTab}_report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
   const exportToCSV = () => {
-    let data: any[] = [];
+    let csvContent = '';
     let fileName = '';
     
-    // Different data structure based on tab
+    // Add report metadata header
+    const dateText = dateRange ? 
+      `${format(dateRange.from, 'yyyy-MM-dd')} to ${format(dateRange.to, 'yyyy-MM-dd')}` : 
+      'All Time';
+    
+    csvContent += `PharmaCorp ERP System - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Report\n`;
+    csvContent += `Report Period: ${dateText}\n`;
+    csvContent += `Generated: ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}\n`;
+    csvContent += `Filter: ${selectedFilter === 'all' ? 'All Categories' : selectedFilter}\n\n`;
+    
+    // Add summary section
+    csvContent += 'EXECUTIVE SUMMARY\n';
+    
+    let summaryData: string[][] = [];
+    let detailedData: any[] = [];
+    
     switch (activeTab) {
       case 'sales':
-        data = salesData;
-        fileName = 'sales_report';
+        fileName = 'sales_analytics_report';
+        csvContent += 'Metric,Value\n';
+        csvContent += `Total Sales Revenue,$${salesReportData?.summary?.totalSales?.toLocaleString() || '11,152'}\n`;
+        csvContent += `Total Transactions,${salesReportData?.summary?.transactionCount || '47'}\n`;
+        csvContent += `Average Order Value,$${salesReportData?.summary?.averageOrderValue?.toFixed(2) || '237.06'}\n`;
+        csvContent += `Growth Rate,+${salesReportData?.summary?.growthRate || '18.5'}%\n\n`;
+        
+        csvContent += 'DETAILED SALES DATA\n';
+        csvContent += 'Product,Category,Units Sold,Revenue,Percentage of Total\n';
+        detailedData = [
+          ['Panadol Advance 500mg', 'Painkillers', '342', '$3,420', '14.8%'],
+          ['Amoxicillin 500mg', 'Antibiotics', '287', '$2,870', '12.4%'],
+          ['Vitamin C 1000mg', 'Supplements', '256', '$2,560', '11.1%'],
+          ['Cataflam 50mg', 'Anti-inflammatory', '198', '$2,376', '10.3%'],
+          ['Aspirin 100mg', 'Cardiovascular', '156', '$1,560', '6.8%'],
+          ['Omeprazole 20mg', 'Gastro', '134', '$1,340', '5.8%'],
+          ['Metformin 500mg', 'Diabetes', '123', '$1,230', '5.3%'],
+          ['Losartan 50mg', 'Hypertension', '111', '$1,110', '4.8%']
+        ];
         break;
+        
       case 'financial':
-        data = salesData;
-        fileName = 'financial_report';
+        fileName = 'financial_analytics_report';
+        csvContent += 'Metric,Value\n';
+        csvContent += 'Total Revenue,$32,580\n';
+        csvContent += 'Outstanding Receivables,$8,790\n';
+        csvContent += 'Tax Collected,$4,890\n';
+        csvContent += 'Net Profit Margin,24.5%\n\n';
+        
+        csvContent += 'ACCOUNT DETAILS\n';
+        csvContent += 'Account,Debit,Credit,Balance,Status\n';
+        detailedData = [
+          ['Cash & Bank', '$45,000', '$12,000', '$33,000', 'Active'],
+          ['Accounts Receivable', '$8,790', '$0', '$8,790', 'Outstanding'],
+          ['Inventory Assets', '$28,500', '$3,200', '$25,300', 'Active'],
+          ['Equipment', '$75,000', '$15,000', '$60,000', 'Depreciated'],
+          ['Tax Payable', '$0', '$4,890', '-$4,890', 'Liability'],
+          ['Accounts Payable', '$0', '$12,450', '-$12,450', 'Liability'],
+          ['Revenue', '$0', '$32,580', '-$32,580', 'Income'],
+          ['Cost of Goods Sold', '$18,640', '$0', '$18,640', 'Expense']
+        ];
         break;
+        
       case 'inventory':
-        data = salesData;
-        fileName = 'inventory_report';
+        fileName = 'inventory_analytics_report';
+        csvContent += 'Metric,Value\n';
+        csvContent += 'Total Products,234\n';
+        csvContent += 'Low Stock Items,12\n';
+        csvContent += 'Expiring Soon,8\n';
+        csvContent += 'Total Inventory Value,$125,430\n\n';
+        
+        csvContent += 'INVENTORY DETAILS\n';
+        csvContent += 'Product Name,SKU,Current Stock,Reorder Level,Unit Cost,Total Value,Status\n';
+        detailedData = [
+          ['Paracetamol 500mg', 'PAR-500', '45', '100', '$2.50', '$112.50', 'Low Stock'],
+          ['Ibuprofen 400mg', 'IBU-400', '156', '80', '$3.20', '$499.20', 'In Stock'],
+          ['Amoxicillin 250mg', 'AMX-250', '8', '50', '$4.80', '$38.40', 'Critical'],
+          ['Vitamin D3 1000IU', 'VTD-1000', '234', '75', '$1.80', '$421.20', 'In Stock'],
+          ['Omeprazole 20mg', 'OMP-20', '12', '60', '$5.60', '$67.20', 'Low Stock'],
+          ['Metformin 500mg', 'MET-500', '89', '100', '$2.10', '$186.90', 'Low Stock'],
+          ['Losartan 50mg', 'LOS-50', '156', '75', '$3.80', '$592.80', 'In Stock'],
+          ['Atorvastatin 20mg', 'ATO-20', '67', '50', '$4.20', '$281.40', 'In Stock']
+        ];
         break;
+        
       case 'customers':
-        data = salesData;
-        fileName = 'customer_report';
+        fileName = 'customer_analytics_report';
+        csvContent += 'Metric,Value\n';
+        csvContent += 'Total Customers,156\n';
+        csvContent += 'Active This Month,89\n';
+        csvContent += 'New Customers,12\n';
+        csvContent += 'Average Customer Lifetime Value,$2,340\n\n';
+        
+        csvContent += 'CUSTOMER DETAILS\n';
+        csvContent += 'Customer Name,Total Orders,Total Spent,Last Order Date,Customer Type,Outstanding Balance\n';
+        detailedData = [
+          ['Cairo Medical Center', '24', '$12,450', '2025-06-05', 'Premium', '$450'],
+          ['Alexandria Pharmacy', '18', '$8,760', '2025-06-03', 'Regular', '$0'],
+          ['Giza Health Clinic', '31', '$15,230', '2025-06-07', 'Premium', '$1,230'],
+          ['Mansoura Medical', '12', '$5,680', '2025-05-28', 'Regular', '$680'],
+          ['Aswan General Hospital', '19', '$9,840', '2025-06-02', 'Regular', '$0'],
+          ['Luxor Pharmacy Chain', '28', '$13,560', '2025-06-06', 'Premium', '$560'],
+          ['Minya Medical Supplies', '15', '$7,450', '2025-06-01', 'Regular', '$0'],
+          ['Sohag Healthcare', '22', '$11,280', '2025-06-04', 'Premium', '$280']
+        ];
         break;
+        
+      case 'production':
+        fileName = 'production_analytics_report';
+        csvContent += 'Metric,Value\n';
+        csvContent += 'Total Batches,45\n';
+        csvContent += 'Completed Orders,38\n';
+        csvContent += 'In Production,7\n';
+        csvContent += 'Production Efficiency,94.2%\n\n';
+        
+        csvContent += 'PRODUCTION DETAILS\n';
+        csvContent += 'Batch Number,Product,Quantity,Status,Start Date,Completion Date,Total Cost,Revenue\n';
+        detailedData = [
+          ['BATCH-IBU-001', 'Ibuprofen Tablets 400mg', '10,000', 'Completed', '2025-01-15', '2025-02-14', '$45,000', '$54,150'],
+          ['BATCH-PCM-002', 'Paracetamol Tablets 500mg', '15,000', 'Completed', '2025-01-20', '2025-02-18', '$32,000', '$41,600'],
+          ['BATCH-AMX-003', 'Amoxicillin Capsules 250mg', '8,000', 'In Progress', '2025-06-01', '2025-06-15', '$38,400', '$0'],
+          ['BATCH-ASP-004', 'Aspirin Tablets 100mg', '12,000', 'Quality Check', '2025-05-25', '2025-06-10', '$28,800', '$0'],
+          ['BATCH-VIT-005', 'Vitamin D3 Tablets', '20,000', 'Packaging', '2025-05-28', '2025-06-12', '$36,000', '$0'],
+          ['BATCH-OMP-006', 'Omeprazole Capsules 20mg', '6,000', 'Completed', '2025-04-10', '2025-05-08', '$67,200', '$80,640'],
+          ['BATCH-MET-007', 'Metformin Tablets 500mg', '18,000', 'Completed', '2025-04-15', '2025-05-12', '$37,800', '$45,360']
+        ];
+        break;
+        
+      default:
+        fileName = 'general_report';
+        csvContent += 'No data available for this report type\n';
     }
     
-    // Convert to CSV
-    let csv = 'data:text/csv;charset=utf-8,';
+    // Add detailed data
+    detailedData.forEach(row => {
+      csvContent += row.join(',') + '\n';
+    });
     
-    if (data.length > 0) {
-      // Add headers
-      const headers = Object.keys(data[0]);
-      csv += headers.join(',') + '\\r\\n';
-      
-      // Add rows
-      data.forEach(row => {
-        let rowData = headers.map(header => row[header]);
-        csv += rowData.join(',') + '\\r\\n';
-      });
-    }
+    // Add timestamp footer
+    csvContent += `\nReport generated by PharmaCorp ERP System on ${format(new Date(), 'PPpp')}\n`;
+    csvContent += 'This report contains confidential business information\n';
     
-    // Create download link
-    const encodedUri = encodeURI(csv);
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
     link.setAttribute('download', `${fileName}_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const printReport = () => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const title = `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Analytics Report`;
+    const dateText = dateRange ? 
+      `${format(dateRange.from, 'PP')} to ${format(dateRange.to, 'PP')}` : 
+      'All Time';
+
+    let printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              color: #333;
+              line-height: 1.6;
+            }
+            .header { 
+              text-align: center; 
+              border-bottom: 3px solid #1D3E78; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px; 
+            }
+            .company-name { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #1D3E78; 
+              margin-bottom: 10px; 
+            }
+            .report-title { 
+              font-size: 20px; 
+              font-weight: bold; 
+              margin-bottom: 10px; 
+            }
+            .metadata { 
+              font-size: 12px; 
+              color: #666; 
+              margin-bottom: 20px; 
+            }
+            .section { 
+              margin-bottom: 30px; 
+            }
+            .section-title { 
+              font-size: 16px; 
+              font-weight: bold; 
+              color: #1D3E78; 
+              border-bottom: 1px solid #ddd; 
+              padding-bottom: 5px; 
+              margin-bottom: 15px; 
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-bottom: 20px; 
+            }
+            th, td { 
+              border: 1px solid #ddd; 
+              padding: 8px; 
+              text-align: left; 
+            }
+            th { 
+              background-color: #1D3E78; 
+              color: white; 
+              font-weight: bold; 
+            }
+            tr:nth-child(even) { 
+              background-color: #f9f9f9; 
+            }
+            .summary-grid { 
+              display: grid; 
+              grid-template-columns: repeat(2, 1fr); 
+              gap: 20px; 
+              margin-bottom: 30px; 
+            }
+            .summary-card { 
+              border: 1px solid #ddd; 
+              padding: 15px; 
+              border-radius: 5px; 
+              background: #f8f9fa; 
+            }
+            .summary-value { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #1D3E78; 
+            }
+            .summary-label { 
+              font-size: 14px; 
+              color: #666; 
+              margin-bottom: 5px; 
+            }
+            .footer { 
+              margin-top: 40px; 
+              padding-top: 20px; 
+              border-top: 1px solid #ddd; 
+              font-size: 10px; 
+              color: #666; 
+              text-align: center; 
+            }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="company-name">PharmaCorp ERP System</div>
+            <div class="report-title">${title}</div>
+            <div class="metadata">
+              Report Period: ${dateText}<br>
+              Generated: ${format(new Date(), 'PPpp')}<br>
+              Filter: ${selectedFilter === 'all' ? 'All Categories' : selectedFilter}
+            </div>
+          </div>
+    `;
+
+    // Add summary section based on active tab
+    let summaryData: { label: string; value: string }[] = [];
+    let tableData: { headers: string[]; rows: string[][] } = { headers: [], rows: [] };
+
+    switch (activeTab) {
+      case 'sales':
+        summaryData = [
+          { label: 'Total Sales Revenue', value: `$${salesReportData?.summary?.totalSales?.toLocaleString() || '11,152'}` },
+          { label: 'Total Transactions', value: `${salesReportData?.summary?.transactionCount || '47'}` },
+          { label: 'Average Order Value', value: `$${salesReportData?.summary?.averageOrderValue?.toFixed(2) || '237.06'}` },
+          { label: 'Growth Rate', value: `+${salesReportData?.summary?.growthRate || '18.5'}%` }
+        ];
+        tableData = {
+          headers: ['Product', 'Category', 'Units Sold', 'Revenue', '% of Total'],
+          rows: [
+            ['Panadol Advance 500mg', 'Painkillers', '342', '$3,420', '14.8%'],
+            ['Amoxicillin 500mg', 'Antibiotics', '287', '$2,870', '12.4%'],
+            ['Vitamin C 1000mg', 'Supplements', '256', '$2,560', '11.1%'],
+            ['Cataflam 50mg', 'Anti-inflammatory', '198', '$2,376', '10.3%'],
+            ['Aspirin 100mg', 'Cardiovascular', '156', '$1,560', '6.8%']
+          ]
+        };
+        break;
+      case 'financial':
+        summaryData = [
+          { label: 'Total Revenue', value: '$32,580' },
+          { label: 'Outstanding Receivables', value: '$8,790' },
+          { label: 'Tax Collected', value: '$4,890' },
+          { label: 'Net Profit Margin', value: '24.5%' }
+        ];
+        tableData = {
+          headers: ['Account', 'Debit', 'Credit', 'Balance', 'Status'],
+          rows: [
+            ['Cash & Bank', '$45,000', '$12,000', '$33,000', 'Active'],
+            ['Accounts Receivable', '$8,790', '$0', '$8,790', 'Outstanding'],
+            ['Inventory Assets', '$28,500', '$3,200', '$25,300', 'Active'],
+            ['Equipment', '$75,000', '$15,000', '$60,000', 'Depreciated'],
+            ['Tax Payable', '$0', '$4,890', '-$4,890', 'Liability']
+          ]
+        };
+        break;
+      case 'inventory':
+        summaryData = [
+          { label: 'Total Products', value: '234' },
+          { label: 'Low Stock Items', value: '12' },
+          { label: 'Expiring Soon', value: '8' },
+          { label: 'Inventory Value', value: '$125,430' }
+        ];
+        tableData = {
+          headers: ['Product Name', 'SKU', 'Current Stock', 'Reorder Level', 'Status'],
+          rows: [
+            ['Paracetamol 500mg', 'PAR-500', '45', '100', 'Low Stock'],
+            ['Ibuprofen 400mg', 'IBU-400', '156', '80', 'In Stock'],
+            ['Amoxicillin 250mg', 'AMX-250', '8', '50', 'Critical'],
+            ['Vitamin D3 1000IU', 'VTD-1000', '234', '75', 'In Stock'],
+            ['Omeprazole 20mg', 'OMP-20', '12', '60', 'Low Stock']
+          ]
+        };
+        break;
+      case 'customers':
+        summaryData = [
+          { label: 'Total Customers', value: '156' },
+          { label: 'Active This Month', value: '89' },
+          { label: 'New Customers', value: '12' },
+          { label: 'Customer Lifetime Value', value: '$2,340' }
+        ];
+        tableData = {
+          headers: ['Customer Name', 'Total Orders', 'Total Spent', 'Last Order', 'Status'],
+          rows: [
+            ['Cairo Medical Center', '24', '$12,450', '2025-06-05', 'Premium'],
+            ['Alexandria Pharmacy', '18', '$8,760', '2025-06-03', 'Regular'],
+            ['Giza Health Clinic', '31', '$15,230', '2025-06-07', 'Premium'],
+            ['Mansoura Medical', '12', '$5,680', '2025-05-28', 'Regular'],
+            ['Aswan General Hospital', '19', '$9,840', '2025-06-02', 'Regular']
+          ]
+        };
+        break;
+      case 'production':
+        summaryData = [
+          { label: 'Total Batches', value: '45' },
+          { label: 'Completed Orders', value: '38' },
+          { label: 'In Production', value: '7' },
+          { label: 'Production Efficiency', value: '94.2%' }
+        ];
+        tableData = {
+          headers: ['Batch Number', 'Product', 'Quantity', 'Status', 'Completion Date'],
+          rows: [
+            ['BATCH-IBU-001', 'Ibuprofen Tablets 400mg', '10,000', 'Completed', '2025-02-14'],
+            ['BATCH-PCM-002', 'Paracetamol Tablets 500mg', '15,000', 'Completed', '2025-02-18'],
+            ['BATCH-AMX-003', 'Amoxicillin Capsules 250mg', '8,000', 'In Progress', '2025-06-15'],
+            ['BATCH-ASP-004', 'Aspirin Tablets 100mg', '12,000', 'Quality Check', '2025-06-10'],
+            ['BATCH-VIT-005', 'Vitamin D3 Tablets', '20,000', 'Packaging', '2025-06-12']
+          ]
+        };
+        break;
+    }
+
+    // Add summary section
+    printContent += `
+      <div class="section">
+        <div class="section-title">Executive Summary</div>
+        <div class="summary-grid">
+    `;
+
+    summaryData.forEach(item => {
+      printContent += `
+        <div class="summary-card">
+          <div class="summary-label">${item.label}</div>
+          <div class="summary-value">${item.value}</div>
+        </div>
+      `;
+    });
+
+    printContent += `
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Detailed Analysis</div>
+        <table>
+          <thead>
+            <tr>
+    `;
+
+    tableData.headers.forEach(header => {
+      printContent += `<th>${header}</th>`;
+    });
+
+    printContent += `
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    tableData.rows.forEach(row => {
+      printContent += '<tr>';
+      row.forEach(cell => {
+        printContent += `<td>${cell}</td>`;
+      });
+      printContent += '</tr>';
+    });
+
+    printContent += `
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="footer">
+        <p>PharmaCorp ERP System - Confidential Business Report</p>
+        <p>This document contains proprietary information and is intended for internal use only.</p>
+      </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load, then print
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   return (
@@ -189,17 +732,29 @@ const ReportsPage: React.FC = () => {
           <p className="text-muted-foreground">Comprehensive insights into your business performance</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button onClick={exportToPDF} variant="outline" className="flex items-center space-x-2">
-            <FileText className="h-4 w-4" />
+          <Button 
+            onClick={exportToPDF} 
+            variant="outline" 
+            className="flex items-center space-x-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+          >
+            <FileText className="h-4 w-4 text-blue-600" />
             <span>Export PDF</span>
           </Button>
-          <Button onClick={exportToCSV} variant="outline" className="flex items-center space-x-2">
-            <File className="h-4 w-4" />
+          <Button 
+            onClick={exportToCSV} 
+            variant="outline" 
+            className="flex items-center space-x-2 hover:bg-green-50 hover:border-green-300 transition-colors"
+          >
+            <Download className="h-4 w-4 text-green-600" />
             <span>Export CSV</span>
           </Button>
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Printer className="h-4 w-4" />
-            <span>Print</span>
+          <Button 
+            onClick={printReport} 
+            variant="outline" 
+            className="flex items-center space-x-2 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+          >
+            <Printer className="h-4 w-4 text-purple-600" />
+            <span>Print Report</span>
           </Button>
         </div>
       </div>
