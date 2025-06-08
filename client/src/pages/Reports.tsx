@@ -1071,42 +1071,90 @@ export default function Reports() {
                       Monthly breakdown of collected VAT/sales tax
                     </CardDescription>
                   </div>
-                  <ChartModal
-                    title="Tax Summary - Expanded View"
-                    description="Detailed monthly breakdown of collected VAT/sales tax"
-                    trigger={
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
-                    }
-                  >
-                    <div data-chart-expanded="financial-tax">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={salesData}
-                          margin={{
-                            top: 30,
-                            right: 30,
-                            left: 30,
-                            bottom: 30,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="revenue" 
-                            stroke="#8884d8"
-                            strokeWidth={3}
-                            name="Tax Collected"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </ChartModal>
+                  <div className="flex items-center space-x-2">
+                    <ChartModal
+                      title="Tax Summary - Expanded View"
+                      description="Detailed monthly breakdown of collected VAT/sales tax"
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    >
+                      <div data-chart-expanded="financial-tax">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={salesData}
+                            margin={{
+                              top: 30,
+                              right: 30,
+                              left: 30,
+                              bottom: 30,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="revenue" 
+                              stroke="#8884d8"
+                              strokeWidth={3}
+                              name="Tax Collected"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </ChartModal>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <TableProperties className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Tax Summary Data</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Period</TableHead>
+                                <TableHead>Gross Sales</TableHead>
+                                <TableHead>VAT Collected</TableHead>
+                                <TableHead>Tax Rate</TableHead>
+                                <TableHead>Net Sales</TableHead>
+                                <TableHead>Compliance</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {salesData.map((row: any, index: number) => {
+                                const vatRate = 14;
+                                const grossSales = row.revenue || 0;
+                                const vatAmount = (grossSales * vatRate / 100);
+                                const netSales = grossSales - vatAmount;
+                                return (
+                                  <TableRow key={index}>
+                                    <TableCell className="font-medium">{row.name}</TableCell>
+                                    <TableCell>${grossSales.toLocaleString()}</TableCell>
+                                    <TableCell>${vatAmount.toFixed(2)}</TableCell>
+                                    <TableCell>{vatRate}%</TableCell>
+                                    <TableCell>${netSales.toFixed(2)}</TableCell>
+                                    <TableCell>
+                                      <Badge variant="default">Compliant</Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="h-80">
@@ -1210,34 +1258,81 @@ export default function Reports() {
                       Current inventory levels across product categories
                     </CardDescription>
                   </div>
-                  <ChartModal
-                    title="Stock Levels by Category - Expanded View"
-                    description="Detailed inventory levels across all product categories"
-                    trigger={
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
-                    }
-                  >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={categoryData}
-                        margin={{
-                          top: 30,
-                          right: 30,
-                          left: 30,
-                          bottom: 30,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Bar dataKey="value" fill="#8884d8" name="Stock Level" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartModal>
+                  <div className="flex items-center space-x-2">
+                    <ChartModal
+                      title="Stock Levels by Category - Expanded View"
+                      description="Detailed inventory levels across all product categories"
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      }
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={categoryData}
+                          margin={{
+                            top: 30,
+                            right: 30,
+                            left: 30,
+                            bottom: 30,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="value" fill="#8884d8" name="Stock Level" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartModal>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <TableProperties className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                        <DialogHeader>
+                          <DialogTitle>Stock Levels by Category Data</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Category</TableHead>
+                                <TableHead>Current Stock</TableHead>
+                                <TableHead>Reorder Level</TableHead>
+                                <TableHead>Stock Value</TableHead>
+                                <TableHead>Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {categoryData.map((row: any, index: number) => {
+                                const reorderLevel = Math.floor(row.value * 0.2);
+                                const stockValue = row.value * 45;
+                                const status = row.value > reorderLevel * 2 ? 'Healthy' : row.value > reorderLevel ? 'Moderate' : 'Low Stock';
+                                return (
+                                  <TableRow key={index}>
+                                    <TableCell className="font-medium">{row.name}</TableCell>
+                                    <TableCell>{row.value.toLocaleString()} units</TableCell>
+                                    <TableCell>{reorderLevel.toLocaleString()} units</TableCell>
+                                    <TableCell>${stockValue.toLocaleString()}</TableCell>
+                                    <TableCell>
+                                      <Badge variant={status === 'Healthy' ? "default" : status === 'Moderate' ? "secondary" : "destructive"}>
+                                        {status}
+                                      </Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="h-80">
