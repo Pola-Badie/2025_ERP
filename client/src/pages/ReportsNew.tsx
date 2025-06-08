@@ -1225,32 +1225,34 @@ const Reports = () => {
 
       {/* Report Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-          <TabsTrigger value="sales" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Sales
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Financial
-          </TabsTrigger>
-          <TabsTrigger value="inventory" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Inventory
-          </TabsTrigger>
-          <TabsTrigger value="customers" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Customers
-          </TabsTrigger>
-          <TabsTrigger value="production" className="flex items-center gap-2">
-            <Factory className="h-4 w-4" />
-            Production
-          </TabsTrigger>
-          <TabsTrigger value="refining" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Refining
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto">
+          <TabsList className="flex w-max min-w-full h-12 bg-white border-b border-gray-200 rounded-none p-0">
+            <TabsTrigger value="sales" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Sales
+            </TabsTrigger>
+            <TabsTrigger value="financial" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Financial
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger value="customers" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Customers
+            </TabsTrigger>
+            <TabsTrigger value="production" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <Factory className="h-4 w-4" />
+              Production
+            </TabsTrigger>
+            <TabsTrigger value="refining" className="flex-shrink-0 px-4 py-3 whitespace-nowrap flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Refining
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Sales Report */}
         <TabsContent value="sales" className="space-y-6">
