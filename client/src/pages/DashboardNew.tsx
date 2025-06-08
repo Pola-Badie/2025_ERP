@@ -187,36 +187,53 @@ const DashboardNew = () => {
               <Expand className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="p-0 h-[220px]">
+          <CardContent className="p-4 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart
                 data={salesData}
-                margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
+                margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <defs>
+                  <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1D3E78" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#1D3E78" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false}
                   tickLine={false}
-                  fontSize={10}
-                  tick={{ fill: '#6b7280' }}
+                  fontSize={11}
+                  tick={{ fill: '#6b7280', fontWeight: 500 }}
+                  height={30}
                 />
-                <YAxis hide />
+                <YAxis 
+                  axisLine={false}
+                  tickLine={false}
+                  fontSize={10}
+                  tick={{ fill: '#9ca3af' }}
+                  width={40}
+                />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: '#ffffff',
                     border: '1px solid #e2e8f0',
-                    borderRadius: '6px',
-                    fontSize: '12px'
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    padding: '12px'
                   }}
+                  labelStyle={{ color: '#374151', fontWeight: 600 }}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="sales" 
                   stroke="#1D3E78" 
-                  strokeWidth={2}
-                  dot={{ fill: '#1D3E78', strokeWidth: 2, r: 3 }}
-                  activeDot={{ r: 5, fill: '#1D3E78' }}
+                  strokeWidth={3}
+                  dot={{ fill: '#ffffff', stroke: '#1D3E78', strokeWidth: 3, r: 4 }}
+                  activeDot={{ r: 6, fill: '#1D3E78', stroke: '#ffffff', strokeWidth: 2 }}
+                  fill="url(#salesGradient)"
                 />
               </RechartsLineChart>
             </ResponsiveContainer>
@@ -236,31 +253,51 @@ const DashboardNew = () => {
               <Expand className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="p-0 h-[220px]">
+          <CardContent className="p-6 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
+                <defs>
+                  {salesDistributionData.map((entry, index) => (
+                    <filter key={`shadow-${index}`} id={`shadow-${index}`}>
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
+                    </filter>
+                  ))}
+                </defs>
                 <Pie
                   data={salesDistributionData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={60}
+                  innerRadius={30}
+                  outerRadius={70}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                  fontSize={10}
+                  stroke="#ffffff"
+                  strokeWidth={2}
                 >
                   {salesDistributionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color}
+                      filter={`url(#shadow-${index})`}
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: '#ffffff',
                     border: '1px solid #e2e8f0',
-                    borderRadius: '6px',
-                    fontSize: '12px'
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    padding: '10px'
                   }}
+                  formatter={(value: any) => [`${value}%`, '']}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '11px', fontWeight: 500 }}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>
@@ -280,31 +317,51 @@ const DashboardNew = () => {
               <Expand className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="p-0 h-[220px]">
+          <CardContent className="p-6 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
+                <defs>
+                  {categoryPerformanceData.map((entry, index) => (
+                    <filter key={`perf-shadow-${index}`} id={`perf-shadow-${index}`}>
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
+                    </filter>
+                  ))}
+                </defs>
                 <Pie
                   data={categoryPerformanceData}
                   cx="50%"
                   cy="50%"
-                  outerRadius={60}
+                  innerRadius={25}
+                  outerRadius={65}
                   fill="#8884d8"
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                  fontSize={10}
+                  stroke="#ffffff"
+                  strokeWidth={2}
                 >
                   {categoryPerformanceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color}
+                      filter={`url(#perf-shadow-${index})`}
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: '#f8fafc',
+                    backgroundColor: '#ffffff',
                     border: '1px solid #e2e8f0',
-                    borderRadius: '6px',
-                    fontSize: '12px'
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    padding: '10px'
                   }}
+                  formatter={(value: any) => [`${value}%`, '']}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: '11px', fontWeight: 500 }}
                 />
               </RechartsPieChart>
             </ResponsiveContainer>
