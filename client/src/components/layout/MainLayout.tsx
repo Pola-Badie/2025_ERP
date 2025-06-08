@@ -84,7 +84,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         {/* Desktop Header */}
         <div className="hidden md:flex border-b border-slate-200 bg-white px-6 py-4 sticky top-0 z-30">
           <div className="flex items-center justify-between w-full">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/attached_assets/Untitled design-7_1749347391766.png" 
+                alt="Morgan ERP Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-xl font-semibold text-gray-900">Morgan ERP</h1>
             </div>
             <div className="flex items-center space-x-3">
