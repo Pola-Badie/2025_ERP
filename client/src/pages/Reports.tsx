@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Select, 
   SelectContent, 
@@ -50,7 +51,9 @@ import {
   ArrowDownRight,
   CheckCircle,
   AlertCircle,
-  XCircle
+  XCircle,
+  Maximize2,
+  X
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
@@ -77,6 +80,31 @@ const salesData = [
   { name: 'May', sales: 1890, revenue: 4800 },
   { name: 'Jun', sales: 2390, revenue: 3800 },
 ];
+
+// Chart Modal Component
+const ChartModal = ({ title, description, children, trigger }: { 
+  title: string; 
+  description: string; 
+  children: React.ReactNode; 
+  trigger: React.ReactNode;
+}) => {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        {trigger}
+      </DialogTrigger>
+      <DialogContent className="max-w-6xl h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </DialogHeader>
+        <div className="flex-1 min-h-0">
+          {children}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default function Reports() {
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>({
@@ -229,10 +257,55 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Sales Trend</CardTitle>
-                <CardDescription>
-                  Sales trend over the selected period
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Sales Trend</CardTitle>
+                    <CardDescription>
+                      Sales trend over the selected period
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Sales Trend - Expanded View"
+                    description="Detailed sales trend analysis over the selected period"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={salesReportData?.chartData || salesData}
+                        margin={{
+                          top: 20,
+                          right: 30,
+                          left: 20,
+                          bottom: 20,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="amount" 
+                          stroke="#8884d8"
+                          strokeWidth={3}
+                          name="Sales Amount"
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="transactions" 
+                          stroke="#82ca9d"
+                          strokeWidth={3}
+                          name="Transactions"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
               </CardHeader>
               <CardContent className="h-80">
                 {salesLoading ? (
@@ -277,10 +350,45 @@ export default function Reports() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Sales by Category</CardTitle>
-                <CardDescription>
-                  Distribution of sales across product categories
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Sales by Category</CardTitle>
+                    <CardDescription>
+                      Distribution of sales across product categories
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Sales by Category - Expanded View"
+                    description="Detailed breakdown of sales distribution across product categories"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={120}
+                          innerRadius={40}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -352,10 +460,43 @@ export default function Reports() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Revenue vs. Receivables</CardTitle>
-                <CardDescription>
-                  Comparison between collected revenue and outstanding receivables
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Revenue vs. Receivables</CardTitle>
+                    <CardDescription>
+                      Comparison between collected revenue and outstanding receivables
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Revenue vs. Receivables - Expanded View"
+                    description="Detailed comparison between collected revenue and outstanding receivables"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={salesData}
+                        margin={{
+                          top: 30,
+                          right: 30,
+                          left: 30,
+                          bottom: 30,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
+                        <Bar dataKey="sales" fill="#82ca9d" name="Receivables" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -382,10 +523,48 @@ export default function Reports() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Tax Summary</CardTitle>
-                <CardDescription>
-                  Monthly breakdown of collected VAT/sales tax
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Tax Summary</CardTitle>
+                    <CardDescription>
+                      Monthly breakdown of collected VAT/sales tax
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Tax Summary - Expanded View"
+                    description="Detailed monthly breakdown of collected VAT/sales tax"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={salesData}
+                        margin={{
+                          top: 30,
+                          right: 30,
+                          left: 30,
+                          bottom: 30,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="revenue" 
+                          stroke="#8884d8"
+                          strokeWidth={3}
+                          name="Tax Collected"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
               </CardHeader>
               <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -419,18 +598,403 @@ export default function Reports() {
 
         {/* Other tabs with similar structure... */}
         <TabsContent value="inventory" className="space-y-4">
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Inventory Reports</h3>
-            <p className="mt-1 text-sm text-gray-500">Coming soon...</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Products</CardTitle>
+                <CardDescription>Active Inventory</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {inventoryReportData?.summary?.totalProducts || '245'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 5%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Low Stock Items</CardTitle>
+                <CardDescription>Need Reorder</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {inventoryReportData?.summary?.lowStockItems || '12'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-red-500">↑ 2</span> new alerts
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Value</CardTitle>
+                <CardDescription>Inventory Worth</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${inventoryReportData?.summary?.totalValue?.toLocaleString() || '125,840'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 3%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Categories</CardTitle>
+                <CardDescription>Product Types</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {inventoryReportData?.summary?.categories || '8'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Active categories
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Stock Levels by Category</CardTitle>
+                    <CardDescription>
+                      Current inventory levels across product categories
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Stock Levels by Category - Expanded View"
+                    description="Detailed inventory levels across all product categories"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={categoryData}
+                        margin={{
+                          top: 30,
+                          right: 30,
+                          left: 30,
+                          bottom: 30,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value" fill="#8884d8" name="Stock Level" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={categoryData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8884d8" name="Stock Level" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Inventory Turnover</CardTitle>
+                    <CardDescription>
+                      Monthly inventory turnover rates
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Inventory Turnover - Expanded View"
+                    description="Detailed monthly inventory turnover analysis"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={salesData}
+                        margin={{
+                          top: 30,
+                          right: 30,
+                          left: 30,
+                          bottom: 30,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke="#82ca9d"
+                          strokeWidth={3}
+                          name="Turnover Rate"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#82ca9d"
+                      strokeWidth={2}
+                      name="Turnover Rate"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="customers" className="space-y-4">
-          <div className="text-center py-12">
-            <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Customer Reports</h3>
-            <p className="mt-1 text-sm text-gray-500">Coming soon...</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total Customers</CardTitle>
+                <CardDescription>Active Customers</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {customerReportData?.summary?.totalCustomers || '168'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 7%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">New Customers</CardTitle>
+                <CardDescription>This Month</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {customerReportData?.summary?.newCustomers || '23'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 15%</span> growth
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Customer Lifetime Value</CardTitle>
+                <CardDescription>Average CLV</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${customerReportData?.summary?.averageLifetimeValue?.toLocaleString() || '2,450'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 4%</span> vs previous period
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Retention Rate</CardTitle>
+                <CardDescription>Customer Retention</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {customerReportData?.summary?.retentionRate || '92%'}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-green-500">↑ 2%</span> improvement
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Customer Acquisition</CardTitle>
+                    <CardDescription>
+                      Monthly new customer acquisition trends
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Customer Acquisition - Expanded View"
+                    description="Detailed monthly customer acquisition trends and patterns"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={salesData}
+                        margin={{
+                          top: 30,
+                          right: 30,
+                          left: 30,
+                          bottom: 30,
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Area 
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke="#8884d8"
+                          fillOpacity={0.6}
+                          fill="#8884d8"
+                          name="New Customers"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={salesData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area 
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#8884d8"
+                      fillOpacity={0.6}
+                      fill="#8884d8"
+                      name="New Customers"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Customer Segments</CardTitle>
+                    <CardDescription>
+                      Distribution of customers by business type
+                    </CardDescription>
+                  </div>
+                  <ChartModal
+                    title="Customer Segments - Expanded View"
+                    description="Detailed customer distribution across business segments"
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Maximize2 className="h-4 w-4" />
+                      </Button>
+                    }
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={120}
+                          innerRadius={40}
+                          fill="#82ca9d"
+                          dataKey="value"
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartModal>
+                </div>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#82ca9d"
+                      dataKey="value"
+                    >
+                      {categoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
