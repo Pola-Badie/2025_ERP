@@ -612,7 +612,7 @@ const Inventory: React.FC = () => {
               variant="outline" 
               size="icon" 
               onClick={() => setIsInventorySettingsOpen(true)}
-              title="Inventory Settings"
+              title={t('inventorySettings')}
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -621,7 +621,7 @@ const Inventory: React.FC = () => {
               setIsProductFormOpen(true);
             }}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Item
+              {t('addItem')}
             </Button>
           </div>
         </div>
@@ -632,7 +632,7 @@ const Inventory: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex flex-col space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Warehouse Selector</h3>
+                <h3 className="text-lg font-medium">{t('warehouseSelector')}</h3>
                 <div className="flex items-center space-x-2">
                   <Button 
                     variant="outline" 
@@ -640,7 +640,7 @@ const Inventory: React.FC = () => {
                     onClick={() => setIsWarehouseDialogOpen(true)}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Warehouse
+                    {t('addWarehouse')}
                   </Button>
                   <Button 
                     variant="outline" 
@@ -652,7 +652,7 @@ const Inventory: React.FC = () => {
                     }}
                   >
                     <Pencil className="h-4 w-4 mr-2" />
-                    Edit Warehouse
+                    {t('editWarehouse')}
                   </Button>
                 </div>
               </div>
@@ -668,7 +668,7 @@ const Inventory: React.FC = () => {
                   onClick={() => setSelectedWarehouse(0)}
                 >
                   <Database className="h-4 w-4" />
-                  All Stock
+                  {t('allStock')}
                 </Button>
                 {warehouses.map((warehouse) => (
                   <Button 
@@ -691,10 +691,10 @@ const Inventory: React.FC = () => {
               
               <div className="text-sm text-muted-foreground">
                 {selectedWarehouse === 0 ? (
-                  <span>Viewing inventory across <span className="font-medium">all warehouses</span></span>
+                  <span>{t('viewingInventory')} <span className="font-medium">{t('allWarehouses')}</span></span>
                 ) : (
                   <>
-                    Viewing inventory for <span className="font-medium">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span> 
+                    {t('viewingInventoryFor')} <span className="font-medium">{warehouses.find(w => w.id === selectedWarehouse)?.name}</span> 
                     {" - "}{warehouses.find(w => w.id === selectedWarehouse)?.location}
                   </>
                 )}
@@ -710,13 +710,13 @@ const Inventory: React.FC = () => {
               value="inventory" 
               className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
             >
-              Inventory
+              {t('inventory')}
             </TabsTrigger>
             <TabsTrigger 
               value="categories" 
               className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
             >
-              Categories
+              {t('categories')}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -730,7 +730,7 @@ const Inventory: React.FC = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
-                    placeholder="Search inventory..."
+                    placeholder={t('searchInventory')}
                     className="pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -743,13 +743,13 @@ const Inventory: React.FC = () => {
                 >
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by status" />
+                    <SelectValue placeholder={t('filterByStatus')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">In Stock</SelectItem>
-                    <SelectItem value="out_of_stock">Out of Stock</SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                    <SelectItem value="active">{t('inStock')}</SelectItem>
+                    <SelectItem value="out_of_stock">{t('outOfStock')}</SelectItem>
+                    <SelectItem value="expired">{t('expired')}</SelectItem>
                     <SelectItem value="near">NEAR</SelectItem>
                   </SelectContent>
                 </Select>
