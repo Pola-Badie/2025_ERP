@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Receipt } from 'lucide-react';
 
-const Dashboard = () => {
+const DashboardNew = () => {
   return (
     <div className="space-y-6 p-6">
       <div>
@@ -56,4 +56,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardNew;

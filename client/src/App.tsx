@@ -7,7 +7,7 @@ import { CSVProvider } from "./contexts/CSVContext";
 import { PaginationProvider } from "./contexts/PaginationContext";
 
 // Import components directly to avoid issues with wouter
-import Dashboard from "@/pages/Dashboard";
+import Dashboard from "@/pages/DashboardNew";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
 import Reports from "@/pages/Reports";
