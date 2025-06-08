@@ -776,7 +776,7 @@ const Inventory: React.FC = () => {
           </Card>
 
           {/* Products Table */}
-          <Card>
+          <Card className={isRTL ? 'rtl' : 'ltr'}>
             <CardContent className="p-0">
               {isLoadingProducts ? (
                 <div className="p-8 flex justify-center">
@@ -796,18 +796,18 @@ const Inventory: React.FC = () => {
                       setProductToEdit(null);
                       setIsProductFormOpen(true);
                     }}>
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                       {t('addProduct')}
                     </Button>
                   )}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className={`w-full text-sm ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">
-                          <div className="flex items-center">
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>
+                          <div className={`flex items-center ${isRTL ? 'justify-end' : 'justify-start'}`}>
                             <Checkbox 
                               id="select-all" 
                               onCheckedChange={(checked) => {
@@ -819,20 +819,20 @@ const Inventory: React.FC = () => {
                               }}
                               checked={selectedProducts.length === paginatedProducts.length && paginatedProducts.length > 0}
                             />
-                            <label htmlFor="select-all" className="ml-2 cursor-pointer">All</label>
+                            <label htmlFor="select-all" className={`${isRTL ? 'mr-2' : 'ml-2'} cursor-pointer`}>All</label>
                           </div>
                         </th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('product')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('category')}</th>
-                        <th className="px-6 py-3 text-left font-medium text-slate-500">{t('batchNo')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('gs1Code')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('type')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('quantity')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('location')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('shelf')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('price')}</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">{t('expiryDate')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-500">{t('actions')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('product')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('category')}</th>
+                        <th className={`px-6 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('batchNo')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('gs1Code')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('type')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('quantity')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('location')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('shelf')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('price')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('expiryDate')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-left' : 'text-right'} font-medium text-slate-500`}>{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -840,7 +840,7 @@ const Inventory: React.FC = () => {
                         const expiryStatus = getExpiryStatus(product.expiryDate);
                         return (
                           <tr key={product.id} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <Checkbox 
                                 checked={selectedProducts.includes(product.id)}
                                 onCheckedChange={(checked) => {
@@ -852,22 +852,22 @@ const Inventory: React.FC = () => {
                                 }}
                               />
                             </td>
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <div>
                                 <div className="font-medium">{product.name}</div>
                                 <div className="text-slate-500 text-xs">{product.drugName}</div>
                               </div>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.category}
                             </td>
-                            <td className="px-6 py-3 font-mono text-xs whitespace-nowrap">
+                            <td className={`px-6 py-3 font-mono text-xs whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
                               {`BATCH-${product.sku?.slice(-4) || '0000'}-${new Date().getFullYear().toString().slice(-2)}`}
                             </td>
-                            <td className="px-4 py-3 font-mono text-xs text-blue-600 whitespace-nowrap">
+                            <td className={`px-4 py-3 font-mono text-xs text-blue-600 whitespace-nowrap ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.gs1Code || `GS1-${product.sku?.slice(-6) || '000000'}`}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.productType ? (
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                                   product.productType === 'raw' 
@@ -880,10 +880,10 @@ const Inventory: React.FC = () => {
                                 </span>
                               ) : '-'}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.quantity} {product.unitOfMeasure}
                             </td>
-                            <td className="px-4 py-3 text-slate-600">
+                            <td className={`px-4 py-3 text-slate-600 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <div className="flex flex-col">
                                 {selectedWarehouse === 0 ? (
                                   <>
@@ -900,21 +900,21 @@ const Inventory: React.FC = () => {
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-slate-600 text-xs">
+                            <td className={`px-4 py-3 text-slate-600 text-xs ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.shelf || '-'}
                             </td>
-                            <td className="px-4 py-3 font-medium">
+                            <td className={`px-4 py-3 font-medium ${isRTL ? 'text-right' : 'text-left'}`}>
                               {formatCurrency(product.sellingPrice)}
                             </td>
-                            <td className="px-4 py-3">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.expiryDate ? (
-                                <div className="flex items-center">
+                                <div className={`flex items-center ${isRTL ? 'justify-end' : 'justify-start'}`}>
                                   <span className={expiryStatus?.status === 'expired' ? 'text-red-500' : 
                                                  expiryStatus?.status === 'near-expiry' ? 'text-orange-700' : ''}>
                                     {formatDate(product.expiryDate)}
                                   </span>
                                   {expiryStatus && (
-                                    <span className={`ml-2 text-xs ${expiryStatus.status === 'expired' ? 'text-red-500' : 
+                                    <span className={`${isRTL ? 'mr-2' : 'ml-2'} text-xs ${expiryStatus.status === 'expired' ? 'text-red-500' : 
                                                  expiryStatus.status === 'near-expiry' ? 'text-orange-700' : ''}`}>
                                       {expiryStatus.status === 'expired' ? 
                                         `(Expired ${expiryStatus.days} days ago)` : 
@@ -926,24 +926,24 @@ const Inventory: React.FC = () => {
                                 <span className="text-slate-400">N/A</span>
                               )}
                             </td>
-                            <td className="px-4 py-3 text-right">
+                            <td className={`px-4 py-3 ${isRTL ? 'text-left' : 'text-right'}`}>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align={isRTL ? 'start' : 'end'}>
                                   <DropdownMenuItem onClick={() => handleCreateLabel(product)}>
-                                    <Tag className="h-4 w-4 mr-2" />
+                                    <Tag className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                                     {t('createLabel')}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleShowHistory(product)}>
-                                    <Calendar className="h-4 w-4 mr-2" />
+                                    <Calendar className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                                     {t('showHistory')}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditProduct(product)}>
-                                    <Pencil className="h-4 w-4 mr-2" />
+                                    <Pencil className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
@@ -951,7 +951,7 @@ const Inventory: React.FC = () => {
                                     className="text-red-600"
                                     onClick={() => handleDeleteProduct(product)}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <Trash2 className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                                     Delete
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -967,7 +967,7 @@ const Inventory: React.FC = () => {
               
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center mt-6 p-4 bg-white rounded-lg border shadow-sm">
+                <div className={`flex items-center justify-center mt-6 p-4 bg-white rounded-lg border shadow-sm ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -976,7 +976,7 @@ const Inventory: React.FC = () => {
                       disabled={currentPage === 1}
                       className="flex items-center gap-1"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                       {t('previous')}
                     </Button>
                     
@@ -1025,10 +1025,10 @@ const Inventory: React.FC = () => {
                       className="flex items-center gap-1"
                     >
                       {t('next')}
-                      <ChevronRight className="h-4 w-4" />
+                      {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                     </Button>
                     
-                    <div className="text-sm text-muted-foreground ml-4">
+                    <div className={`text-sm text-muted-foreground ${isRTL ? 'mr-4' : 'ml-4'}`}>
                       {t('page')} {currentPage} {t('of')} {totalPages}
                     </div>
                   </div>
@@ -1039,12 +1039,12 @@ const Inventory: React.FC = () => {
         </TabsContent>
         
         {/* Categories Tab */}
-        <TabsContent value="categories">
+        <TabsContent value="categories" className={isRTL ? 'rtl' : 'ltr'} dir={isRTL ? 'rtl' : 'ltr'}>
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="flex flex-row justify-between items-center">
+              <div className={`flex flex-row ${isRTL ? 'justify-start' : 'justify-between'} items-center`}>
                 <div>
-                  <h3 className="text-lg font-medium">Categories</h3>
+                  <h3 className="text-lg font-medium">{t('categories')}</h3>
                   <p className="text-sm text-slate-500">Manage product categories used in inventory and sales</p>
                 </div>
               </div>
@@ -1052,7 +1052,7 @@ const Inventory: React.FC = () => {
           </Card>
 
           {/* Categories Table */}
-          <Card>
+          <Card className={isRTL ? 'rtl' : 'ltr'}>
             <CardContent className="p-0">
               {isLoadingCategories ? (
                 <div className="p-8 flex justify-center">
@@ -1066,21 +1066,21 @@ const Inventory: React.FC = () => {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className={`w-full text-sm ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Name</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-500">Description</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-500">Actions</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>Name</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>Description</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-left' : 'text-right'} font-medium text-slate-500`}>{t('actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {categories?.map((category: Category) => (
                         <tr key={category.id} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="px-4 py-3 font-medium">{category.name}</td>
-                          <td className="px-4 py-3">{category.description || '-'}</td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
+                          <td className={`px-4 py-3 font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{category.name}</td>
+                          <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>{category.description || '-'}</td>
+                          <td className={`px-4 py-3 ${isRTL ? 'text-left' : 'text-right'}`}>
+                            <div className={`flex ${isRTL ? 'justify-start space-x-reverse' : 'justify-end'} space-x-2`}>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -1116,6 +1116,7 @@ const Inventory: React.FC = () => {
                           value={categoryName}
                           onChange={(e) => setCategoryName(e.target.value)}
                           required
+                          className={isRTL ? 'text-right' : 'text-left'}
                         />
                       </div>
                       <div className="md:col-span-2">
@@ -1123,16 +1124,16 @@ const Inventory: React.FC = () => {
                           placeholder="Description (optional)"
                           value={categoryDescription}
                           onChange={(e) => setCategoryDescription(e.target.value)}
-                          className="h-10 py-2"
+                          className={`h-10 py-2 ${isRTL ? 'text-right' : 'text-left'}`}
                         />
                       </div>
                     </div>
-                    <div className="flex justify-end">
+                    <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
                       <Button 
                         type="submit" 
                         disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
                       >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                         {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
                       </Button>
                     </div>
@@ -1145,7 +1146,7 @@ const Inventory: React.FC = () => {
       </Tabs>
       {/* Delete Category Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className={`max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
@@ -1153,7 +1154,7 @@ const Inventory: React.FC = () => {
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className={`${isRTL ? 'space-x-reverse' : ''}`}>
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
@@ -1173,7 +1174,7 @@ const Inventory: React.FC = () => {
       </Dialog>
       {/* Edit Category Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className={`max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
             <DialogDescription>
@@ -1192,7 +1193,7 @@ const Inventory: React.FC = () => {
                   onChange={(e) => setCategoryToEdit(prev => 
                     prev ? { ...prev, name: e.target.value } : null
                   )}
-                  className="mt-1"
+                  className={`mt-1 ${isRTL ? 'text-right' : 'text-left'}`}
                 />
               </div>
               <div>
@@ -1205,12 +1206,12 @@ const Inventory: React.FC = () => {
                   onChange={(e) => setCategoryToEdit(prev => 
                     prev ? { ...prev, description: e.target.value } : null
                   )}
-                  className="mt-1"
+                  className={`mt-1 ${isRTL ? 'text-right' : 'text-left'}`}
                 />
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className={`${isRTL ? 'space-x-reverse' : ''}`}>
             <Button
               variant="outline"
               onClick={() => setEditDialogOpen(false)}
@@ -1232,9 +1233,9 @@ const Inventory: React.FC = () => {
         setIsProductFormOpen(open);
         if (!open) setProductToEdit(null);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+        <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
               <div className="bg-blue-100 p-2 rounded-lg">
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
@@ -1265,9 +1266,9 @@ const Inventory: React.FC = () => {
         setIsHistoryDialogOpen(open);
         if (!open) setSelectedProductHistory(null);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+        <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
               <div className="bg-blue-100 p-2 rounded-lg">
                 <Package className="h-6 w-6 text-blue-600" />
               </div>
