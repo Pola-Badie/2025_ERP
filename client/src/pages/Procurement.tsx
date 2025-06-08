@@ -481,79 +481,194 @@ export default function Procurement() {
         </CardContent>
       </Card>
 
-      {/* Edit Purchase Order Dialog */}
+      {/* Professional New Purchase Dialog */}
       <Dialog open={isPurchaseOrderFormOpen} onOpenChange={setIsPurchaseOrderFormOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-100 bg-gradient-to-br from-slate-50 to-blue-50 border-0 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Plus className="h-6 w-6 text-blue-600" />
+              </div>
               {editingOrder ? `Edit ${editingOrder.poNumber}` : 'New Purchase Order'}
             </DialogTitle>
+            <p className="text-gray-600 mt-2">
+              Create a detailed pharmaceutical purchase order with itemized products and pricing
+            </p>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="supplier">Supplier</Label>
-              <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.map((supplier) => (
-                    <SelectItem key={supplier.id} value={supplier.name}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          
+          <div className="space-y-6 py-6">
+            {/* Purchase Header Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="purchase-supplier">Supplier</Label>
+                <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.name}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="purchase-date">Purchase Date</Label>
+                <Input
+                  id="purchase-date"
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="purchase-eta">ETA Number</Label>
+                <Input
+                  id="purchase-eta"
+                  placeholder="Auto-generated ETA number"
+                  defaultValue={`ETA${new Date().toISOString().slice(2,10).replace(/-/g, '')}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`}
+                />
+              </div>
+              <div>
+                <Label htmlFor="payment-terms">Payment Terms</Label>
+                <Select defaultValue="net30">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment terms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="net15">Net 15 days</SelectItem>
+                    <SelectItem value="net30">Net 30 days</SelectItem>
+                    <SelectItem value="net45">Net 45 days</SelectItem>
+                    <SelectItem value="cod">Cash on Delivery</SelectItem>
+                    <SelectItem value="advance">Advance Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Materials Section */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <Plus className="h-5 w-5 mr-2" />
+                Materials & Products
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="materials">Materials Needed</Label>
+                  <Input 
+                    id="materials" 
+                    placeholder="Active Pharmaceutical Ingredients, Packaging Materials, etc."
+                    defaultValue={editingOrder ? (editingOrder as any).materials?.map((m: any) => `${m.name} (${m.quantity} ${m.unit})`).join(', ') : ''}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="total-amount">Total Amount ($)</Label>
+                    <Input 
+                      id="total-amount" 
+                      type="number"
+                      step="0.01"
+                      defaultValue={editingOrder?.totalAmount || ''} 
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="payment-method">Payment Method</Label>
+                    <Select defaultValue="bank-transfer">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="credit-card">Credit Card</SelectItem>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="check">Check</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Purchase Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="delivery-date">Expected Delivery Date</Label>
+                <Input
+                  id="delivery-date"
+                  type="date"
+                />
+              </div>
+              <div>
+                <Label htmlFor="purchase-status">Purchase Status</Label>
+                <Select defaultValue={editingOrder?.status || 'draft'}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="sent">Sent</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="received">Received</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Notes Section */}
             <div>
-              <Label htmlFor="materials">Materials</Label>
-              <Input 
-                id="materials" 
-                placeholder="Enter materials needed"
+              <Label htmlFor="purchase-notes">Purchase Notes</Label>
+              <Input
+                id="purchase-notes"
+                placeholder="Special instructions, delivery requirements, quality specifications..."
               />
             </div>
-            <div>
-              <Label htmlFor="amount">Amount</Label>
-              <Input 
-                id="amount" 
-                defaultValue={editingOrder?.totalAmount || ''} 
-                placeholder="Enter amount"
-              />
+
+            {/* ETA Compliance Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-blue-100 rounded-full">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-900">ETA Compliance Information</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    This purchase order includes a valid ETA number for Egyptian Tax Authority compliance. All pharmaceutical purchases must be properly documented.
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select defaultValue={editingOrder?.status || 'draft'}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="sent">Sent</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="received">Received</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => {
-                  toast({
-                    title: "Purchase Order Saved",
-                    description: `${editingOrder?.poNumber || 'New order'} has been saved successfully`,
-                  });
-                  setIsPurchaseOrderFormOpen(false);
-                }}
-                className="flex-1"
-              >
-                Save Changes
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsPurchaseOrderFormOpen(false)}
-              >
-                Cancel
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPurchaseOrderFormOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsPurchaseOrderFormOpen(false);
+                toast({
+                  title: "Purchase Order Saved",
+                  description: `${editingOrder?.poNumber || 'New purchase order'} has been saved successfully.`,
+                  variant: "default"
+                });
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {editingOrder ? 'Save Changes' : 'Create Purchase Order'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
