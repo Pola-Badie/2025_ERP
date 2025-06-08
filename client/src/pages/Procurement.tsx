@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download, ShoppingBag, Paperclip, Landmark } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
@@ -227,6 +228,73 @@ export default function Procurement() {
   const handleCreatePurchaseOrder = () => {
     setEditingOrder(null);
     setIsPurchaseOrderFormOpen(true);
+  };
+
+  // Purchase Items State
+  const [purchaseItems, setPurchaseItems] = useState([
+    {
+      id: 1,
+      name: "Ibuprofen 500mg",
+      description: "Active Pharmaceutical Ingredient",
+      quantity: 500,
+      unit: "kg",
+      unitPrice: 25.50,
+      total: 12750.00
+    }
+  ]);
+  const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
+  const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
+
+  // Purchase Item Functions
+  const addPurchaseItem = () => {
+    const newItem = {
+      id: Date.now(),
+      name: "",
+      description: "",
+      quantity: 0,
+      unit: "kg",
+      unitPrice: 0,
+      total: 0
+    };
+    setPurchaseItems([...purchaseItems, newItem]);
+  };
+
+  const updatePurchaseItem = (id: number, field: string, value: any) => {
+    setPurchaseItems(items => items.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  const removePurchaseItem = (id: number) => {
+    setPurchaseItems(items => items.filter(item => item.id !== id));
+  };
+
+  const calculatePurchaseSubtotal = () => {
+    return purchaseItems.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculatePurchaseVAT = () => {
+    return calculatePurchaseSubtotal() * (purchaseVatPercentage / 100);
+  };
+
+  const calculatePurchaseGrandTotal = () => {
+    return calculatePurchaseSubtotal() + calculatePurchaseVAT();
+  };
+
+  const handleDocumentUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    setUploadedDocuments(prev => [...prev, ...files]);
+  };
+
+  const removeDocument = (index: number) => {
+    setUploadedDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
   // Filter purchase orders based on search term and status
@@ -487,13 +555,13 @@ export default function Procurement() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
               <div className="p-2 bg-blue-100 rounded-lg">
-                <Plus className="h-6 w-6 text-blue-600" />
+                <ShoppingBag className="h-6 w-6 text-blue-600" />
               </div>
               {editingOrder ? `Edit ${editingOrder.poNumber}` : 'New Purchase Order'}
             </DialogTitle>
-            <p className="text-gray-600 mt-2">
+            <DialogDescription className="text-gray-600 mt-2">
               Create a detailed pharmaceutical purchase order with itemized products and pricing
-            </p>
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-6">
@@ -550,47 +618,144 @@ export default function Procurement() {
               </div>
             </div>
 
-            {/* Materials Section */}
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
-                <Plus className="h-5 w-5 mr-2" />
-                Materials & Products
-              </h3>
+            {/* Detailed Product Items Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-lg font-semibold">Purchase Items</Label>
+                <Button 
+                  type="button" 
+                  onClick={addPurchaseItem}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="materials">Materials Needed</Label>
-                  <Input 
-                    id="materials" 
-                    placeholder="Active Pharmaceutical Ingredients, Packaging Materials, etc."
-                    defaultValue={editingOrder ? (editingOrder as any).materials?.map((m: any) => `${m.name} (${m.quantity} ${m.unit})`).join(', ') : ''}
-                  />
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
+                    <div className="col-span-2">Product Name</div>
+                    <div className="col-span-3">Description</div>
+                    <div className="col-span-1">Qty</div>
+                    <div className="col-span-1">Unit</div>
+                    <div className="col-span-2">Unit Price ($)</div>
+                    <div className="col-span-2">Total ($)</div>
+                    <div className="col-span-1">Action</div>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="total-amount">Total Amount ($)</Label>
-                    <Input 
-                      id="total-amount" 
-                      type="number"
-                      step="0.01"
-                      defaultValue={editingOrder?.totalAmount || ''} 
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="payment-method">Payment Method</Label>
-                    <Select defaultValue="bank-transfer">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="credit-card">Credit Card</SelectItem>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="check">Check</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                  {purchaseItems.map((item, index) => (
+                    <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      <div className="grid grid-cols-12 gap-2 items-center">
+                        <div className="col-span-2">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => updatePurchaseItem(item.id, 'name', e.target.value)}
+                            placeholder="Product name"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => updatePurchaseItem(item.id, 'description', e.target.value)}
+                            placeholder="Product description"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => updatePurchaseItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-1">
+                          <Select value={item.unit} onValueChange={(value) => updatePurchaseItem(item.id, 'unit', value)}>
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="kg">kg</SelectItem>
+                              <SelectItem value="g">g</SelectItem>
+                              <SelectItem value="mg">mg</SelectItem>
+                              <SelectItem value="L">L</SelectItem>
+                              <SelectItem value="mL">mL</SelectItem>
+                              <SelectItem value="units">units</SelectItem>
+                              <SelectItem value="boxes">boxes</SelectItem>
+                              <SelectItem value="bottles">bottles</SelectItem>
+                              <SelectItem value="vials">vials</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="col-span-2">
+                          <input
+                            type="number"
+                            value={item.unitPrice}
+                            onChange={(e) => updatePurchaseItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            min="0"
+                            step="0.01"
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <div className="text-sm font-medium text-right">
+                            ${item.total.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="col-span-1">
+                          <Button
+                            type="button"
+                            onClick={() => removePurchaseItem(item.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Purchase Totals Section */}
+                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal:</span>
+                      <span className="font-medium">${calculatePurchaseSubtotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2">
+                        <span>VAT:</span>
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={purchaseVatPercentage}
+                            onChange={(e) => setPurchaseVatPercentage(parseFloat(e.target.value) || 0)}
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            className="w-16 px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          <span className="text-xs">%</span>
+                        </div>
+                      </div>
+                      <span className="font-medium">${calculatePurchaseVAT().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+                      <span>Grand Total:</span>
+                      <span className="text-blue-600">${calculatePurchaseGrandTotal().toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -625,10 +790,61 @@ export default function Procurement() {
             {/* Notes Section */}
             <div>
               <Label htmlFor="purchase-notes">Purchase Notes</Label>
-              <Input
+              <Textarea
                 id="purchase-notes"
                 placeholder="Special instructions, delivery requirements, quality specifications..."
+                rows={3}
               />
+            </div>
+
+            {/* Document Upload Section */}
+            <div>
+              <Label>Supporting Documents</Label>
+              <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.xls,.xlsx"
+                  onChange={handleDocumentUpload}
+                  className="hidden"
+                  id="purchase-document-upload"
+                />
+                <label htmlFor="purchase-document-upload" className="cursor-pointer">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium text-blue-600 hover:text-blue-500">Click to upload</span> or drag and drop
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    PDF, DOC, JPG, PNG, TXT, XLS (max 10MB each)
+                  </p>
+                </label>
+              </div>
+              
+              {/* Uploaded Documents List */}
+              {uploadedDocuments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <h4 className="text-sm font-medium text-gray-700">Uploaded Documents:</h4>
+                  <div className="max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+                    {uploadedDocuments.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                          <span className="text-xs text-gray-500">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeDocument(index)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ETA Compliance Section */}
@@ -647,7 +863,7 @@ export default function Procurement() {
             </div>
           </div>
           
-          <div className="flex gap-2 pt-4 border-t">
+          <DialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsPurchaseOrderFormOpen(false)}
@@ -659,17 +875,17 @@ export default function Procurement() {
               onClick={() => {
                 setIsPurchaseOrderFormOpen(false);
                 toast({
-                  title: "Purchase Order Saved",
-                  description: `${editingOrder?.poNumber || 'New purchase order'} has been saved successfully.`,
+                  title: "Purchase Order Created",
+                  description: `New purchase order with ${purchaseItems.length} items has been created successfully.`,
                   variant: "default"
                 });
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {editingOrder ? 'Save Changes' : 'Create Purchase Order'}
+              Create Purchase Order
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
