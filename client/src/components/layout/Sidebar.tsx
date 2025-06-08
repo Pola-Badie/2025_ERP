@@ -92,9 +92,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     )}>
       {/* Header */}
       <div className="p-4 border-b border-[#2A3F55] flex-shrink-0 relative">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <svg
+        <div className="flex items-center">
+          <svg
             width="32"
             height="32"
             viewBox="0 0 24 24"
@@ -160,17 +159,6 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
             />
           </svg>
           {!isCollapsed && <span className="font-bold text-lg ml-3">PREMIER SYSTEMS</span>}
-          </div>
-          
-          {/* Collapse Button */}
-          {!isMobile && (
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1 rounded-md text-gray-300 hover:text-white hover:bg-[#26405A] transition-colors"
-            >
-              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-            </button>
-          )}
           
           {isMobile && (
             <button
@@ -185,6 +173,18 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           )}
         </div>
       </div>
+      
+      {/* External Collapse Button */}
+      {!isMobile && (
+        <div className="absolute top-4 -right-3 z-10">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-6 h-6 bg-[#3BCEAC] hover:bg-[#2EAD8A] rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-200 hover:scale-110"
+          >
+            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
+        </div>
+      )}
       {/* Navigation with proper scrolling */}
       <div className="flex-1 overflow-hidden">
         <nav 
