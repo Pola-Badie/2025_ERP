@@ -199,7 +199,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
               <li key={item.path}>
                 <div
                   className={cn(
-                    "flex items-center space-x-3 px-4 py-3 border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
+                    "flex items-center border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
+                    isCollapsed ? "justify-center px-2 py-4" : "space-x-3 px-4 py-3",
                     location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
                   )}
                   onClick={() => {
@@ -266,11 +267,17 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         
         {/* Logout Button */}
         <div className="flex items-center justify-center">
-          <button className="text-white bg-red-600 hover:bg-red-700 rounded-md px-4 py-2 w-full flex items-center justify-center transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button className={cn(
+            "text-white bg-red-600 hover:bg-red-700 rounded-md py-2 flex items-center justify-center transition-colors",
+            isCollapsed ? "w-10 h-10 p-0" : "px-4 w-full"
+          )}>
+            <svg xmlns="http://www.w3.org/2000/svg" className={cn(
+              "h-5 w-5",
+              !isCollapsed && (language === 'ar' ? 'ml-2' : 'mr-2')
+            )} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={language === 'ar' ? "M7 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 003 3h4a3 3 0 003-3V7a3 3 0 00-3-3h-4a3 3 0 00-3 3v1" : "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"} />
             </svg>
-            {t('logout')}
+            {!isCollapsed && t('logout')}
           </button>
         </div>
       </div>
