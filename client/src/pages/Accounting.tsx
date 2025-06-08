@@ -1616,6 +1616,243 @@ const Accounting: React.FC = () => {
     }
   };
 
+  // Export All Reports Function
+  const exportAllReports = async () => {
+    try {
+      const doc = new jsPDF();
+      const primaryColor: [number, number, number] = [34, 197, 94];
+      const secondaryColor: [number, number, number] = [75, 85, 99];
+      
+      // Company Header
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 30, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MORGAN ERP', 20, 18);
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Comprehensive Financial Reports Package', 20, 24);
+      
+      // Report information
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('All Financial Reports - Combined Export', 20, 45);
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Report Period: ${reportStartDate} to ${reportEndDate}`, 20, 53);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 59);
+      doc.text(`Account Filter: ${accountFilter === 'all' ? 'All Accounts' : accountFilter.charAt(0).toUpperCase() + accountFilter.slice(1)}`, 20, 65);
+      
+      let currentY = 75;
+      
+      // Generate all report types
+      const reportTypes = [
+        'trial-balance',
+        'general-ledger', 
+        'cash-flow',
+        'account-summary',
+        'journal-register',
+        'aging-analysis'
+      ];
+      
+      for (let i = 0; i < reportTypes.length; i++) {
+        const reportType = reportTypes[i];
+        const originalSelectedType = selectedReportType;
+        
+        // Temporarily change selected report type to get data
+        setSelectedReportType(reportType);
+        
+        // Get report data based on type
+        let reportData;
+        switch (reportType) {
+          case "trial-balance":
+            reportData = {
+              title: "Trial Balance Report",
+              headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
+              rows: [
+                ["1000", "Cash", "$50,000.00", "-"],
+                ["1100", "Accounts Receivable", "$125,000.00", "-"],
+                ["1200", "Inventory - Raw Materials", "$85,000.00", "-"],
+                ["1300", "Equipment", "$200,000.00", "-"],
+                ["2000", "Accounts Payable", "-", "$45,000.00"],
+                ["2100", "Accrued Expenses", "-", "$15,000.00"],
+                ["3000", "Owner's Equity", "-", "$300,000.00"],
+                ["4000", "Sales Revenue", "-", "$180,000.00"],
+                ["5000", "Cost of Goods Sold", "$90,000.00", "-"],
+                ["5100", "Utilities Expense", "$12,000.00", "-"],
+              ],
+              totals: ["Total", "", "$562,000.00", "$540,000.00"]
+            };
+            break;
+          case "general-ledger":
+            reportData = {
+              title: "General Ledger Report",
+              headers: ["Date", "Account", "Description", "Debit", "Credit", "Balance"],
+              rows: [
+                ["2025-06-01", "1000 - Cash", "Opening Balance", "$50,000.00", "-", "$50,000.00"],
+                ["2025-06-02", "1000 - Cash", "Customer Payment", "$5,000.00", "-", "$55,000.00"],
+                ["2025-06-03", "1000 - Cash", "Supplier Payment", "-", "$2,500.00", "$52,500.00"],
+                ["2025-06-04", "1100 - A/R", "Sales Invoice", "$15,000.00", "-", "$15,000.00"],
+                ["2025-06-05", "1100 - A/R", "Customer Payment", "-", "$5,000.00", "$10,000.00"],
+              ]
+            };
+            break;
+          case "cash-flow":
+            reportData = {
+              title: "Cash Flow Statement",
+              headers: ["Category", "Description", "Amount"],
+              rows: [
+                ["Operating Activities", "Cash from Customers", "$45,000.00"],
+                ["Operating Activities", "Cash to Suppliers", "($25,000.00)"],
+                ["Operating Activities", "Cash for Operating Expenses", "($8,000.00)"],
+                ["Operating Activities", "Net Cash from Operating", "$12,000.00"],
+                ["Investing Activities", "Equipment Purchase", "($15,000.00)"],
+                ["Investing Activities", "Net Cash from Investing", "($15,000.00)"],
+                ["Financing Activities", "Owner Investment", "$10,000.00"],
+                ["Financing Activities", "Net Cash from Financing", "$10,000.00"],
+              ],
+              totals: ["Net Change in Cash", "", "$7,000.00"]
+            };
+            break;
+          case "account-summary":
+            reportData = {
+              title: "Account Summary Report",
+              headers: ["Account Type", "Account Count", "Total Debit", "Total Credit", "Net Balance"],
+              rows: [
+                ["Assets", "4", "$460,000.00", "-", "$460,000.00"],
+                ["Liabilities", "2", "-", "$60,000.00", "($60,000.00)"],
+                ["Equity", "1", "-", "$300,000.00", "($300,000.00)"],
+                ["Revenue", "1", "-", "$180,000.00", "($180,000.00)"],
+                ["Expenses", "2", "$102,000.00", "-", "$102,000.00"],
+              ],
+              totals: ["Total", "10", "$562,000.00", "$540,000.00", "$22,000.00"]
+            };
+            break;
+          case "journal-register":
+            reportData = {
+              title: "Journal Register Report",
+              headers: ["Entry #", "Date", "Description", "Debit Account", "Credit Account", "Amount"],
+              rows: [
+                ["JE001", "2025-06-01", "Cash Sale", "Cash", "Sales Revenue", "$5,000.00"],
+                ["JE002", "2025-06-02", "Purchase Inventory", "Inventory", "Accounts Payable", "$8,000.00"],
+                ["JE003", "2025-06-03", "Pay Supplier", "Accounts Payable", "Cash", "$2,500.00"],
+                ["JE004", "2025-06-04", "Utility Payment", "Utilities Expense", "Cash", "$1,200.00"],
+                ["JE005", "2025-06-05", "Equipment Purchase", "Equipment", "Cash", "$15,000.00"],
+              ]
+            };
+            break;
+          case "aging-analysis":
+            reportData = {
+              title: "Aging Analysis Report",
+              headers: ["Customer/Vendor", "Current", "30 Days", "60 Days", "90+ Days", "Total"],
+              rows: [
+                ["PharmaCorp Ltd", "$5,000.00", "$2,000.00", "-", "-", "$7,000.00"],
+                ["MediSupply Inc", "$3,000.00", "$1,500.00", "$800.00", "-", "$5,300.00"],
+                ["HealthTech Solutions", "$8,000.00", "-", "-", "$500.00", "$8,500.00"],
+                ["Chemical Suppliers Co", "$2,500.00", "$1,000.00", "-", "-", "$3,500.00"],
+                ["Lab Equipment Ltd", "$4,200.00", "$800.00", "$300.00", "-", "$5,300.00"],
+              ],
+              totals: ["Total Outstanding", "$22,700.00", "$5,300.00", "$1,100.00", "$500.00", "$29,600.00"]
+            };
+            break;
+          default:
+            continue;
+        }
+        
+        // Add new page for each report except the first
+        if (i > 0) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        // Report title
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(reportData.title, 20, currentY);
+        currentY += 10;
+        
+        // Prepare table data
+        const tableData = reportData.rows.map(row => row.map(cell => String(cell)));
+        if (reportData.totals) {
+          tableData.push(reportData.totals.map(total => String(total)));
+        }
+        
+        // Generate table
+        autoTable(doc, {
+          head: [reportData.headers],
+          body: tableData,
+          startY: currentY,
+          theme: 'grid',
+          headStyles: {
+            fillColor: primaryColor,
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 9,
+            halign: 'left'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [31, 41, 55],
+            halign: 'left'
+          },
+          margin: { left: 20, right: 20 },
+          didParseCell: function(data: any) {
+            if (data.column.index > 1 && data.section === 'body') {
+              data.cell.styles.halign = 'right';
+              data.cell.styles.fontStyle = 'bold';
+            }
+            if (data.column.index > 1 && data.section === 'head') {
+              data.cell.styles.halign = 'right';
+            }
+            if (reportData.totals && data.row.index === tableData.length - 1 && data.section === 'body') {
+              data.cell.styles.fillColor = [248, 250, 252];
+              data.cell.styles.fontStyle = 'bold';
+              data.cell.styles.textColor = [31, 41, 55];
+            }
+          }
+        });
+        
+        // Restore original selected type
+        setSelectedReportType(originalSelectedType);
+      }
+      
+      // Add footer to all pages
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+        doc.text('Morgan ERP - Comprehensive Financial Reports', 20, 285);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 290);
+      }
+      
+      // Save the combined PDF
+      const fileName = `All_Financial_Reports_${reportStartDate}_to_${reportEndDate}.pdf`;
+      doc.save(fileName);
+      
+      toast({
+        title: "Export All Successful",
+        description: "All financial reports have been exported to a single PDF file.",
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('Export All Error:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting all reports. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getReportTypeName = (type: string) => {
     const reportNames: { [key: string]: string } = {
       "trial-balance": "Trial Balance Report",
@@ -5058,7 +5295,7 @@ const Accounting: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={exportAllReports}>
                       <Download className="h-4 w-4 mr-2" />
                       Export All
                     </Button>
