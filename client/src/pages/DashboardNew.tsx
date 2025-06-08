@@ -36,8 +36,13 @@ interface DashboardSummary {
   newCustomers: number;
   todaySales: number;
   monthSales: number;
+  vatCollected: number;
+  monthExpenses: number;
+  salesGrowth: number;
   lowStockProducts: Product[];
   expiringProducts: Product[];
+  salesChartData: Array<{ name: string; sales: number }>;
+  categorySales: Array<{ name: string; value: number; color: string }>;
 }
 
 interface Product {
