@@ -92,7 +92,11 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     )}>
       {/* Header */}
       <div className="p-4 border-b border-[#2A3F55] flex-shrink-0 relative">
-        <div className="flex items-center">
+        <div 
+          className="flex items-center cursor-pointer hover:bg-[#26405A] rounded-md p-2 -m-2 transition-colors duration-200"
+          onClick={() => !isMobile && setIsCollapsed(!isCollapsed)}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
           <svg
             width="32"
             height="32"
