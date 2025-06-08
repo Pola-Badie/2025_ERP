@@ -18,6 +18,14 @@ import {
   DialogFooter,
   DialogTrigger 
 } from '@/components/ui/dialog';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +37,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText
+  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText,
+  Eye, Edit, Copy, X
 } from 'lucide-react';
 
 // Define types for Expense and Category if they're not in schema.ts
@@ -352,6 +361,58 @@ const Expenses: React.FC = () => {
         description: "Failed to export expense data. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  // Action handlers for the dropdown menu
+  const handleViewExpense = (expenseId: number) => {
+    const expense = expenses?.find(exp => exp.id === expenseId);
+    if (expense) {
+      toast({
+        title: "Expense Details",
+        description: `Viewing expense: ${expense.description}`,
+      });
+      // Here you could open a detailed view dialog
+    }
+  };
+
+  const handleEditExpense = (expenseId: number) => {
+    const expense = expenses?.find(exp => exp.id === expenseId);
+    if (expense) {
+      // Pre-populate form with expense data and open the form dialog
+      setIsExpenseFormOpen(true);
+      toast({
+        title: "Edit Mode",
+        description: `Editing expense: ${expense.description}`,
+      });
+    }
+  };
+
+  const handleDuplicateExpense = (expenseId: number) => {
+    const expense = expenses?.find(exp => exp.id === expenseId);
+    if (expense) {
+      // Open form with duplicated data (without ID)
+      setIsExpenseFormOpen(true);
+      toast({
+        title: "Duplicate Created",
+        description: `Duplicating expense: ${expense.description}`,
+      });
+    }
+  };
+
+  const handleDeleteExpense = (expenseId: number) => {
+    const expense = expenses?.find(exp => exp.id === expenseId);
+    if (expense) {
+      // In a real application, you'd show a confirmation dialog first
+      if (window.confirm(`Are you sure you want to delete "${expense.description}"?`)) {
+        toast({
+          title: "Expense Deleted",
+          description: `Deleted expense: ${expense.description}`,
+          variant: "destructive",
+        });
+        // Here you would make an API call to delete the expense
+        // For now, we'll just show the toast
+      }
     }
   };
 
@@ -738,9 +799,37 @@ const Expenses: React.FC = () => {
                         {formatCurrency(expense.amount)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleViewExpense(expense.id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditExpense(expense.id)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Expense
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicateExpense(expense.id)}>
+                              <Copy className="mr-2 h-4 w-4" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteExpense(expense.id)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
