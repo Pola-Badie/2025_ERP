@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { usePagination } from '@/contexts/PaginationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -102,6 +103,7 @@ interface Product {
 const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t, isRTL } = useLanguage();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('inventory');
   const [currentPage, setCurrentPage] = useState(1);
@@ -563,9 +565,9 @@ const Inventory: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className={isRTL ? 'rtl' : 'ltr'} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Inventory Management</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('inventoryManagement')}</h1>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
           {activeTab === 'inventory' && (
             <>
@@ -573,14 +575,14 @@ const Inventory: React.FC = () => {
               <div className="flex gap-2 mr-2">
                 <CSVImport 
                   onImport={handleImportProducts}
-                  buttonText="Import CSV"
+                  buttonText={t('importCsv')}
                   variant="outline"
                   size="sm"
                 />
                 <CSVExport 
                   data={filteredProducts} 
                   filename="inventory-products.csv"
-                  buttonText="Export CSV"
+                  buttonText={t('exportCsv')}
                   variant="outline"
                   size="sm"
                 />
@@ -591,15 +593,15 @@ const Inventory: React.FC = () => {
                     onClick={() => {
                       const selectedProductItems = filteredProducts.filter(p => selectedProducts.includes(p.id));
                       toast({
-                        title: "Creating Labels",
-                        description: `Creating labels for ${selectedProducts.length} selected items`,
+                        title: t('createLabels'),
+                        description: `${t('createLabels')} ${selectedProducts.length} selected items`,
                       });
                       // Navigate to label page
                       window.location.href = '/label';
                     }}
                   >
                     <Tag className="h-4 w-4 mr-2" />
-                    Create Labels ({selectedProducts.length})
+                    {t('createLabels')} ({selectedProducts.length})
                   </Button>
                 )}
               </div>
