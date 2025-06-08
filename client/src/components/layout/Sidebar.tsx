@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           </button>
         )}
       </div>
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 hover:scrollbar-thumb-gray-500">
         <ul className="space-y-0">
           {navItems.map((item) => (
             <li key={item.path}>
