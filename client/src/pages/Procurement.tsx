@@ -337,19 +337,6 @@ export default function Procurement() {
         </div>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
           <Button 
-            variant="outline"
-            onClick={() => {
-              toast({
-                title: "Export Started",
-                description: "Purchase orders data is being exported...",
-              });
-            }}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button 
             onClick={() => {
               setEditingOrder(null);
               setSelectedSupplier('');

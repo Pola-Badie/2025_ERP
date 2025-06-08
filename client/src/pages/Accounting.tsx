@@ -148,6 +148,12 @@ const Accounting: React.FC = () => {
 
   // Invoice action dialogs state
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  
+  // Refund state
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
+  const [refundInvoice, setRefundInvoice] = useState<any>(null);
+  const [refundAmount, setRefundAmount] = useState('');
+  const [refundReason, setRefundReason] = useState('');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isAddPayDialogOpen, setIsAddPayDialogOpen] = useState(false);
   
@@ -244,6 +250,57 @@ const Accounting: React.FC = () => {
       title: "Edit Payroll",
       description: `Opening edit form for ${employeeName}'s payroll`,
     });
+  };
+
+  // Refund handler function
+  const handleRefund = (invoiceNumber: string) => {
+    // Find the invoice data based on invoice number
+    const invoiceData = {
+      'INV-2025-012': {
+        number: 'INV-2025-012',
+        customer: 'Cairo Medical Center',
+        amount: '$8,245.00',
+        paid: '$8,245.00',
+        balance: '$0.00'
+      },
+      'INV-2025-018': {
+        number: 'INV-2025-018',
+        customer: 'Aswan Medical Supplies',
+        amount: '$6,420.00',
+        paid: '$3,000.00',
+        balance: '$3,420.00'
+      }
+    };
+
+    const invoice = invoiceData[invoiceNumber as keyof typeof invoiceData];
+    if (invoice) {
+      setRefundInvoice(invoice);
+      setRefundAmount(invoice.paid.replace('$', '').replace(',', ''));
+      setRefundReason('');
+      setIsRefundDialogOpen(true);
+    }
+  };
+
+  // Process refund
+  const processRefund = () => {
+    if (!refundAmount || !refundReason) {
+      toast({
+        title: "Error",
+        description: "Please enter refund amount and reason",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Refund Processed",
+      description: `Refund of $${refundAmount} processed for ${refundInvoice?.customer}`,
+    });
+
+    setIsRefundDialogOpen(false);
+    setRefundInvoice(null);
+    setRefundAmount('');
+    setRefundReason('');
   };
 
   // Employee list for dropdown with salary information
