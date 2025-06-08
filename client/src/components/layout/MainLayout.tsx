@@ -88,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <img 
                 src="/attached_assets/Untitled design-7_1749347391766.png" 
                 alt="Morgan ERP Logo" 
-                className="w-10 h-10 object-contain"
+                className="w-12 h-12 object-contain"
               />
               <h1 className="text-xl font-semibold text-gray-900">Morgan ERP</h1>
             </div>
