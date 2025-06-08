@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import EnhancedNotifications from "@/components/EnhancedNotifications";
 
 interface MainLayoutProps {
   children: React.ReactNode;
