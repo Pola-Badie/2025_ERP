@@ -77,9 +77,9 @@ export default function Procurement() {
       status: 'pending',
       totalAmount: 25420.00,
       items: [
-        { productId: 1, productName: "Acetaminophen API", quantity: 500, unitPrice: 42.50, total: 21250.00 },
-        { productId: 2, productName: "Microcrystalline Cellulose", quantity: 200, unitPrice: 18.50, total: 3700.00 },
-        { productId: 3, productName: "Magnesium Stearate", quantity: 25, unitPrice: 18.80, total: 470.00 }
+        { id: 1, productId: 1, productName: "Acetaminophen API", quantity: 500, unitPrice: 42.50, total: 21250.00 },
+        { id: 2, productId: 2, productName: "Microcrystalline Cellulose", quantity: 200, unitPrice: 18.50, total: 3700.00 },
+        { id: 3, productId: 3, productName: "Magnesium Stearate", quantity: 25, unitPrice: 18.80, total: 470.00 }
       ],
       materials: [
         { name: "Acetaminophen API", quantity: 500, unit: "kg" },
@@ -103,9 +103,9 @@ export default function Procurement() {
       status: 'received',
       totalAmount: 18950.00,
       items: [
-        { productId: 4, productName: "Ibuprofen API", quantity: 300, unitPrice: 55.00, total: 16500.00 },
-        { productId: 5, productName: "Lactose Monohydrate", quantity: 150, unitPrice: 12.50, total: 1875.00 },
-        { productId: 6, productName: "Croscarmellose Sodium", quantity: 10, unitPrice: 57.50, total: 575.00 }
+        { id: 4, productId: 4, productName: "Ibuprofen API", quantity: 300, unitPrice: 55.00, total: 16500.00 },
+        { id: 5, productId: 5, productName: "Lactose Monohydrate", quantity: 150, unitPrice: 12.50, total: 1875.00 },
+        { id: 6, productId: 6, productName: "Croscarmellose Sodium", quantity: 10, unitPrice: 57.50, total: 575.00 }
       ],
       materials: [
         { name: "Ibuprofen API", quantity: 300, unit: "kg" },
