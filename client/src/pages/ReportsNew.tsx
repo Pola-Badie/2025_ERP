@@ -1308,12 +1308,12 @@ const Reports = () => {
                       <Button
                         onClick={() => {
                           setPreviewOpen(false);
-                          exportToExcel(activeTab);
+                          exportToPDF(activeTab);
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-red-600 hover:bg-red-700 text-white"
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export as Excel
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export as PDF
                       </Button>
                     </div>
                   </div>
@@ -1322,12 +1322,12 @@ const Reports = () => {
             </Dialog>
             
             <Button
-              onClick={() => exportToExcel(activeTab)}
+              onClick={() => exportToPDF(activeTab)}
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-50"
+              className="border-red-600 text-red-600 hover:bg-red-50"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Export as Excel
+              <FileDown className="h-4 w-4 mr-2" />
+              Export as PDF
             </Button>
           </div>
         </div>
