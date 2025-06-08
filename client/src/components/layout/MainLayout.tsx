@@ -6,6 +6,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import EnhancedNotifications from "@/components/EnhancedNotifications";
+import { ProfileDialog } from "@/components/dialogs/ProfileDialog";
+import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
+import { LogoutDialog } from "@/components/dialogs/LogoutDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -27,6 +31,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [totalItems, setTotalItems] = useState(0); // Will be set by actual data
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   // Handle resize events
   useEffect(() => {
