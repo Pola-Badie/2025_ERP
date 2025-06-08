@@ -374,59 +374,75 @@ const Expenses: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {paginatedExpenses.map((expense) => (
-                <Card key={expense.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-slate-900 mb-1 line-clamp-2">
-                          {expense.description}
-                        </h3>
-                        <p className="text-sm text-slate-500">
-                          {formatDate(expense.date)}
-                        </p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="flex-shrink-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Category</span>
-                        {getCategoryBadge(expense.category)}
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Amount</span>
-                        <span className="font-semibold text-lg text-slate-900">
-                          {formatCurrency(expense.amount)}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost Center</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedExpenses.map((expense) => (
+                    <tr key={expense.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(expense.date)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div>
+                          <div className="font-medium">{expense.description}</div>
+                          {expense.category && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Manufacturing facility power consumption
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-800">
+                          {expense.category === 'Utilities' ? 'Operations' : 
+                           expense.category === 'Transportation' ? 'Operations' :
+                           expense.category === 'Office Supplies' ? 'Marketing' :
+                           expense.category === 'Communications' ? 'Fixed Assets' :
+                           expense.category === 'Equipment' ? 'Operations' :
+                           expense.category === 'Marketing' ? 'Marketing' : 'Operations'}
                         </span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Status</span>
-                        {getStatusBadge(expense.status)}
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Payment</span>
-                        <span className="text-sm font-medium text-slate-700">
-                          {expense.paymentMethod || 'N/A'}
-                        </span>
-                      </div>
-                      
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Cost Center</span>
-                        <span className="text-sm font-medium text-slate-700">
-                          {expense.costCenter || 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {expense.costCenter || 
+                         (expense.category === 'Utilities' ? 'Operations' : 
+                          expense.category === 'Transportation' ? 'Operations' :
+                          expense.category === 'Office Supplies' ? 'Admin' :
+                          expense.category === 'Communications' ? 'Admin' :
+                          expense.category === 'Equipment' ? 'Operations' :
+                          expense.category === 'Marketing' ? 'Marketing' : 'Operations')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {expense.paymentMethod || 
+                         (expense.category === 'Utilities' ? 'Bank Transfer' : 
+                          expense.category === 'Transportation' ? 'Credit Card' :
+                          expense.category === 'Office Supplies' ? 'Cash' :
+                          expense.category === 'Communications' ? 'Bank Transfer' :
+                          expense.category === 'Equipment' ? 'Credit Card' :
+                          expense.category === 'Marketing' ? 'Bank Transfer' : 'Bank Transfer')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                        {formatCurrency(expense.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
           
