@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
-import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSidebarContext } from '@/contexts/SidebarContext';
 
@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/suppliers', key: 'suppliers', icon: 'truck' },
     { path: '/customers-demo', key: 'customers', icon: 'user-plus' },
     { path: '/create-invoice', key: 'createInvoice', icon: 'file-plus' },
-    { path: '/create-quotation', key: 'createQuotation', icon: 'file-plus' },
+    { path: '/create-quotation', key: 'createQuotation', icon: 'quote' },
     { path: '/invoice-history', key: 'invoiceHistory', icon: 'receipt' },
     { path: '/quotation-history', key: 'quotationHistory', icon: 'clipboard-list' },
     { path: '/order-management', key: 'orderManagement', icon: 'factory' },
@@ -80,6 +80,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         return <Factory size={20} />;
       case 'history':
         return <History size={20} />;
+      case 'quote':
+        return <Quote size={20} />;
       default:
         return <Home size={20} />;
     }
