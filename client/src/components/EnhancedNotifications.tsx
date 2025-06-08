@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, AlertTriangle, Clock, CheckCircle, Shield, Activity, User } from "lucide-react";
+import { Bell, AlertTriangle, Clock, CheckCircle, Shield, Activity, User, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,16 +7,55 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { Link } from "wouter";
 
 const EnhancedNotifications: React.FC = () => {
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  
+  // Get recent unread notifications for preview
+  const recentNotifications = notifications
+    .filter(n => !n.isRead)
+    .slice(0, 6);
+
+  const getIcon = (type: string, category: string) => {
+    if (type === 'error' || category === 'inventory') return AlertTriangle;
+    if (type === 'warning') return Clock;
+    if (type === 'success') return CheckCircle;
+    if (category === 'user') return User;
+    if (category === 'financial') return ShoppingCart;
+    if (category === 'system') return Shield;
+    return Activity;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'border-red-500 bg-red-50';
+      case 'medium': return 'border-orange-500 bg-orange-50';
+      case 'low': return 'border-green-500 bg-green-50';
+      default: return 'border-gray-500 bg-gray-50';
+    }
+  };
+
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-700';
+      case 'medium': return 'bg-orange-100 text-orange-700';
+      case 'low': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="relative p-2">
           <Bell className="h-5 w-5" />
-          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
-            7
-          </Badge>
+          {unreadCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 text-white">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-96 max-h-96 overflow-y-auto">
@@ -24,11 +63,27 @@ const EnhancedNotifications: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Bell className="h-4 w-4" />
             <span className="font-semibold text-sm">Notifications</span>
-            <Badge variant="destructive" className="text-xs">7</Badge>
+            {unreadCount > 0 && (
+              <Badge variant="destructive" className="text-xs">{unreadCount}</Badge>
+            )}
           </div>
-          <Button variant="ghost" size="sm" className="text-xs text-blue-600 hover:text-blue-700">
-            View All
-          </Button>
+          <div className="flex items-center space-x-2">
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-blue-600 hover:text-blue-700"
+                onClick={markAllAsRead}
+              >
+                Mark All Read
+              </Button>
+            )}
+            <Link href="/notifications">
+              <Button variant="ghost" size="sm" className="text-xs text-blue-600 hover:text-blue-700">
+                View All
+              </Button>
+            </Link>
+          </div>
         </div>
         
         {/* High Priority Notifications */}
