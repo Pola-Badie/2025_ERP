@@ -336,8 +336,8 @@ const Reports = () => {
       
       // Executive Summary sheet
       const summaryData: any[] = [];
-      if (reportData && reportData.summary) {
-        Object.entries(reportData.summary).forEach(([key, value]) => {
+      if (reportData && (reportData as any).summary) {
+        Object.entries((reportData as any).summary).forEach(([key, value]) => {
           const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
           const formattedValue = typeof value === 'number' ? 
             (key.includes('Rate') || key.includes('Percentage') ? `${value}%` : value.toLocaleString()) : 
@@ -631,7 +631,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Assets</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${financialData?.balanceSheet?.assets?.toLocaleString() || '7,611'}</div>
+                <div className="text-2xl font-bold">${(financialData as any)?.balanceSheet?.assets?.toLocaleString() || '7,611'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 8% vs last month</p>
               </CardContent>
             </Card>
@@ -641,7 +641,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Liabilities</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${financialData?.balanceSheet?.liabilities?.toLocaleString() || '2,284'}</div>
+                <div className="text-2xl font-bold">${(financialData as any)?.balanceSheet?.liabilities?.toLocaleString() || '2,284'}</div>
                 <p className="text-xs text-red-600 mt-1">↘ 3% vs last month</p>
               </CardContent>
             </Card>
@@ -651,7 +651,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Equity</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${financialData?.balanceSheet?.equity?.toLocaleString() || '5,327'}</div>
+                <div className="text-2xl font-bold">${(financialData as any)?.balanceSheet?.equity?.toLocaleString() || '5,327'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 12% vs last month</p>
               </CardContent>
             </Card>
@@ -661,7 +661,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Net Income</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${financialData?.profitLoss?.netIncome?.toLocaleString() || '1,890'}</div>
+                <div className="text-2xl font-bold">${(financialData as any)?.profitLoss?.netIncome?.toLocaleString() || '1,890'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 18% vs last month</p>
               </CardContent>
             </Card>
@@ -676,7 +676,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Products</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{inventoryData?.summary?.totalProducts || '14'}</div>
+                <div className="text-2xl font-bold">{(inventoryData as any)?.summary?.totalProducts || '14'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 5% vs last month</p>
               </CardContent>
             </Card>
@@ -686,7 +686,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Low Stock Items</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{inventoryData?.summary?.lowStockItems || '3'}</div>
+                <div className="text-2xl font-bold">{(inventoryData as any)?.summary?.lowStockItems || '3'}</div>
                 <p className="text-xs text-red-600 mt-1">Requires attention</p>
               </CardContent>
             </Card>
@@ -696,7 +696,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${inventoryData?.summary?.totalValue?.toLocaleString() || '89,450'}</div>
+                <div className="text-2xl font-bold">${(inventoryData as any)?.summary?.totalValue?.toLocaleString() || '89,450'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 7% vs last month</p>
               </CardContent>
             </Card>
@@ -706,7 +706,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Categories</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{inventoryData?.summary?.categories || '6'}</div>
+                <div className="text-2xl font-bold">{(inventoryData as any)?.summary?.categories || '6'}</div>
                 <p className="text-xs text-gray-600 mt-1">Active categories</p>
               </CardContent>
             </Card>
