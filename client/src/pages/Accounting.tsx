@@ -168,6 +168,14 @@ const Accounting: React.FC = () => {
   const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
+  const [uploadedReceipts, setUploadedReceipts] = useState<Array<{
+    file: File;
+    name: string;
+    size: number;
+    type: string;
+    uploadDate: string;
+    preview: string | null;
+  }>>([]);
   const [invoiceItems, setInvoiceItems] = useState([
     { id: 1, name: 'Active Pharmaceutical Ingredients', description: 'Ibuprofen (500kg), Paracetamol (300kg)', quantity: 800, unit: 'kg', unitPrice: 18.75, total: 15000 },
     { id: 2, name: 'Packaging Materials', description: 'Glass Vials (10,000), Aluminum Caps (15,000)', quantity: 25000, unit: 'units', unitPrice: 0.14, total: 3500 }
@@ -5756,6 +5764,138 @@ const Accounting: React.FC = () => {
                     id="edit-expense-check-number"
                     placeholder="Check number or transaction ID"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Receipt Upload Section */}
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+              <h3 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+                <Upload className="h-5 w-5 mr-2" />
+                Receipt & Documentation
+              </h3>
+              
+              <div className="space-y-4">
+                {/* File Upload Area */}
+                <div className="border-2 border-dashed border-indigo-300 rounded-lg p-6 bg-white">
+                  <div className="text-center">
+                    <div className="mx-auto h-12 w-12 text-indigo-400 mb-4">
+                      <Receipt className="h-12 w-12" />
+                    </div>
+                    <p className="text-sm font-medium text-indigo-900 mb-2">Upload Receipt or Invoice</p>
+                    <p className="text-xs text-indigo-600 mb-4">
+                      Drag and drop files here, or click to select
+                    </p>
+                    <input
+                      type="file"
+                      id="receipt-upload"
+                      className="hidden"
+                      accept="image/*,.pdf,.doc,.docx"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setUploadedReceipts(prev => [...prev, ...files.map(file => ({
+                          file,
+                          name: file.name,
+                          size: file.size,
+                          type: file.type,
+                          uploadDate: new Date().toISOString(),
+                          preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+                        }))]);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                      onClick={() => document.getElementById('receipt-upload')?.click()}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Choose Files
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 text-xs text-indigo-600 text-center">
+                    Supported formats: JPG, PNG, PDF, DOC, DOCX (Max 10MB per file)
+                  </div>
+                </div>
+
+                {/* Uploaded Files Preview */}
+                {uploadedReceipts.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-indigo-900">Uploaded Documents</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {uploadedReceipts.map((receipt, index) => (
+                        <div key={index} className="bg-white p-3 rounded-lg border border-indigo-200 flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            {receipt.preview ? (
+                              <img 
+                                src={receipt.preview} 
+                                alt="Receipt preview" 
+                                className="h-12 w-12 object-cover rounded-md border"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-grow min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{receipt.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {(receipt.size / 1024).toFixed(1)} KB • {new Date(receipt.uploadDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="flex-shrink-0 h-8 w-8 p-0 text-red-500 hover:bg-red-50"
+                            onClick={() => {
+                              setUploadedReceipts(prev => prev.filter((_, i) => i !== index));
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Receipt Categories */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="receipt-category">Document Category</Label>
+                    <Select defaultValue="receipt">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="receipt">Receipt</SelectItem>
+                        <SelectItem value="invoice">Invoice</SelectItem>
+                        <SelectItem value="contract">Contract</SelectItem>
+                        <SelectItem value="purchase-order">Purchase Order</SelectItem>
+                        <SelectItem value="delivery-note">Delivery Note</SelectItem>
+                        <SelectItem value="other">Other Document</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="receipt-verification">Verification Status</Label>
+                    <Select defaultValue="pending">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending Verification</SelectItem>
+                        <SelectItem value="verified">Verified</SelectItem>
+                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="requires-review">Requires Review</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
