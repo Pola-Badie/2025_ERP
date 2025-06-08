@@ -2108,7 +2108,7 @@ const Accounting: React.FC = () => {
   };
 
   // Fetch accounting summary data
-  const { data: summaryData } = useQuery({
+  const { data: summaryData, refetch: refetchSummary } = useQuery({
     queryKey: ['/api/accounting/summary'],
     queryFn: async () => {
       try {
@@ -2161,6 +2161,38 @@ const Accounting: React.FC = () => {
       currency: 'USD',
       minimumFractionDigits: 2
     }).format(amount);
+  };
+
+  // Refresh all data function
+  const refreshAllData = async () => {
+    try {
+      // Show loading state by invalidating and refetching all queries
+      await queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/accounts'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/journal-entries'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/customer-payments'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/customer-invoices'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/expenses'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/accounting-periods'] });
+      
+      // Refetch summary data explicitly
+      await refetchSummary();
+      
+      toast({
+        title: "Data Refreshed",
+        description: "All accounting data has been refreshed from the database.",
+        variant: "default"
+      });
+      
+    } catch (error) {
+      console.error('Refresh Error:', error);
+      toast({
+        title: "Refresh Failed",
+        description: "There was an error refreshing the data. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -5299,7 +5331,7 @@ const Accounting: React.FC = () => {
                       <Download className="h-4 w-4 mr-2" />
                       Export All
                     </Button>
-                    <Button size="sm">
+                    <Button size="sm" onClick={refreshAllData}>
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Refresh Data
                     </Button>
