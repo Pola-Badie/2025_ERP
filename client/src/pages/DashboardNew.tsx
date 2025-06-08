@@ -36,13 +36,8 @@ interface DashboardSummary {
   newCustomers: number;
   todaySales: number;
   monthSales: number;
-  vatCollected: number;
-  monthExpenses: number;
-  salesGrowth: number;
   lowStockProducts: Product[];
   expiringProducts: Product[];
-  salesChartData: Array<{ name: string; sales: number }>;
-  categorySales: Array<{ name: string; value: number; color: string }>;
 }
 
 interface Product {
@@ -54,7 +49,21 @@ interface Product {
   status: string;
 }
 
-
+// Sample data for the sales overview chart
+const salesData = [
+  { name: 'Jan', sales: 65 },
+  { name: 'Feb', sales: 59 },
+  { name: 'Mar', sales: 80 },
+  { name: 'Apr', sales: 81 },
+  { name: 'May', sales: 56 },
+  { name: 'Jun', sales: 55 },
+  { name: 'Jul', sales: 40 },
+  { name: 'Aug', sales: 50 },
+  { name: 'Sep', sales: 65 },
+  { name: 'Oct', sales: 75 },
+  { name: 'Nov', sales: 96 },
+  { name: 'Dec', sales: 110 },
+];
 
 const DashboardNew = () => {
   // Fetch dashboard data
@@ -128,14 +137,14 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : `EGP ${dashboardData?.vatCollected?.toLocaleString() || "0"}`}
+              {isLoading ? "..." : `EGP ${((dashboardData?.monthSales || 0) * 0.14).toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">14% VAT collected from sales</p>
           </CardContent>
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              {(dashboardData?.salesGrowth || 0) >= 0 ? '+' : ''}{dashboardData?.salesGrowth || 0}% from last month
+              +8% from last month
             </div>
           </CardFooter>
         </Card>
@@ -151,7 +160,7 @@ const DashboardNew = () => {
           <CardContent className="p-0 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <RechartsLineChart
-                data={dashboardData?.salesChartData || []}
+                data={salesData}
                 margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
@@ -193,7 +202,12 @@ const DashboardNew = () => {
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
-                  data={dashboardData?.categorySales || []}
+                  data={[
+                    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
+                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+                    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
+                    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
+                  ]}
                   cx="50%"
                   cy="50%"
                   outerRadius={60}
@@ -203,7 +217,12 @@ const DashboardNew = () => {
                   labelLine={false}
                   fontSize={10}
                 >
-                  {(dashboardData?.categorySales || []).map((entry, index) => (
+                  {[
+                    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
+                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+                    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
+                    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -229,7 +248,13 @@ const DashboardNew = () => {
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Pie
-                  data={dashboardData?.categorySales || []}
+                  data={[
+                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+                    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
+                    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
+                    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
+                    { name: 'Other', value: 6.0, color: '#CAF0F8' },
+                  ]}
                   cx="50%"
                   cy="50%"
                   outerRadius={60}
@@ -239,7 +264,13 @@ const DashboardNew = () => {
                   labelLine={false}
                   fontSize={10}
                 >
-                  {(dashboardData?.categorySales || []).map((entry, index) => (
+                  {[
+                    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+                    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
+                    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
+                    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
+                    { name: 'Other', value: 6.0, color: '#CAF0F8' },
+                  ].map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>

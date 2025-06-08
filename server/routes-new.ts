@@ -7,7 +7,7 @@ import { registerETARoutes } from "./routes-eta";
 import { 
   users, products, productCategories, customers, suppliers, sales, 
   saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings,
-  systemPreferences, rolePermissions, loginLogs, userPermissions, expenses,
+  systemPreferences, rolePermissions, loginLogs, userPermissions,
   insertUserSchema, insertProductSchema, updateProductSchema, insertProductCategorySchema,
   insertCustomerSchema, insertSaleSchema, insertSaleItemSchema,
   insertPurchaseOrderSchema, insertSupplierSchema, updateBackupSettingsSchema,
@@ -18,7 +18,7 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import * as cron from "node-cron";
-import { eq, and, gte, lte, lt, desc, count, sum, sql } from "drizzle-orm";
+import { eq, and, gte, lte, desc, count, sum, sql } from "drizzle-orm";
 
 // Set up multer for file uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -501,87 +501,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         count: count() 
       }).from(customers);
       
-      // Get customers added this month
-      const firstDayOfMonth = new Date();
-      firstDayOfMonth.setDate(1);
-      firstDayOfMonth.setHours(0, 0, 0, 0);
+      // Get customers added in last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       
       const [newCustomersResult] = await db.select({ 
         count: count() 
-      }).from(customers).where(gte(customers.createdAt, firstDayOfMonth));
+      }).from(customers).where(gte(customers.createdAt, thirtyDaysAgo));
       
       // Get today's sales
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
       
       const [todaySalesResult] = await db.select({ 
-        total: sum(sales.grandTotal) 
-      }).from(sales).where(and(gte(sales.date, today), lt(sales.date, tomorrow)));
+        total: sum(sales.totalAmount) 
+      }).from(sales).where(gte(sales.date, today));
       
       // Get current month sales
+      const firstDayOfMonth = new Date();
+      firstDayOfMonth.setDate(1);
+      firstDayOfMonth.setHours(0, 0, 0, 0);
+      
       const [monthSalesResult] = await db.select({ 
-        total: sum(sales.grandTotal) 
+        total: sum(sales.totalAmount) 
       }).from(sales).where(gte(sales.date, firstDayOfMonth));
-      
-      // Get last month sales for growth calculation
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      lastMonth.setDate(1);
-      lastMonth.setHours(0, 0, 0, 0);
-      
-      const [lastMonthSalesResult] = await db.select({ 
-        total: sum(sales.grandTotal) 
-      }).from(sales).where(and(gte(sales.date, lastMonth), lt(sales.date, firstDayOfMonth)));
-      
-      // Calculate VAT collected (14% of sales)
-      const vatCollected = (Number(monthSalesResult.total) || 0) * 0.14;
-      
-      // Get monthly expenses from accounting
-      const [monthExpensesResult] = await db.select({
-        total: sum(expenses.amount)
-      }).from(expenses).where(sql`DATE_TRUNC('month', TO_DATE(${expenses.date}, 'YYYY-MM-DD')) = DATE_TRUNC('month', CURRENT_DATE)`);
-      
-      // Calculate growth percentages
-      const currentMonthSales = Number(monthSalesResult.total) || 0;
-      const previousMonthSales = Number(lastMonthSalesResult.total) || 0;
-      const salesGrowth = previousMonthSales > 0 
-        ? ((currentMonthSales - previousMonthSales) / previousMonthSales) * 100 
-        : 0;
-      
-      // Get sales chart data for the last 7 days
-      const salesChartData = [];
-      for (let i = 6; i >= 0; i--) {
-        const dayStart = new Date();
-        dayStart.setDate(dayStart.getDate() - i);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(dayStart);
-        dayEnd.setDate(dayEnd.getDate() + 1);
-        
-        const [daySales] = await db.select({ 
-          total: sum(sales.grandTotal) 
-        }).from(sales).where(and(gte(sales.date, dayStart), lt(sales.date, dayEnd)));
-        
-        salesChartData.push({
-          name: dayStart.toLocaleDateString('en-US', { weekday: 'short' }),
-          sales: Number(daySales.total) || 0
-        });
-      }
-      
-      // Get category sales distribution
-      const categorySales = await db.select({
-        categoryName: productCategories.name,
-        totalSales: sum(saleItems.total)
-      })
-      .from(saleItems)
-      .innerJoin(products, eq(saleItems.productId, products.id))
-      .innerJoin(productCategories, eq(products.categoryId, productCategories.id))
-      .innerJoin(sales, eq(saleItems.saleId, sales.id))
-      .where(gte(sales.date, firstDayOfMonth))
-      .groupBy(productCategories.name)
-      .orderBy(desc(sum(saleItems.total)))
-      .limit(5);
       
       // Get low stock products
       const lowStockProducts = await db.select({
@@ -589,23 +532,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: products.name,
         drugName: products.drugName,
         quantity: products.quantity,
-        lowStockThreshold: products.lowStockThreshold,
         status: products.status
       })
       .from(products)
-      .where(sql`${products.quantity} <= ${products.lowStockThreshold}`)
-      .orderBy(products.quantity)
+      .where(
+        sql`${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock'`
+      )
       .limit(5);
       
-      // Get expiring products (within 30 days)
+      // Get expiring products
       const expiryLimit = new Date();
-      expiryLimit.setDate(expiryLimit.getDate() + 30);
+      expiryLimit.setDate(expiryLimit.getDate() + 90); // next 90 days
       
       const expiringProducts = await db.select({
         id: products.id,
         name: products.name,
         drugName: products.drugName,
-        quantity: products.quantity,
         expiryDate: products.expiryDate,
         status: products.status
       })
@@ -616,23 +558,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .orderBy(products.expiryDate)
       .limit(5);
       
-      // Format the response with real financial data
+      // Format the response
+      const totalCustomers = Number(customersResult.count) || 0;
+      const newCustomers = Number(newCustomersResult.count) || 0;
+      const todaySales = Number(todaySalesResult.total) || 0;
+      const monthSales = Number(monthSalesResult.total) || 0;
+      
       res.json({
-        totalCustomers: Number(customersResult.count) || 0,
-        newCustomers: Number(newCustomersResult.count) || 0,
-        todaySales: Number(todaySalesResult.total) || 0,
-        monthSales: currentMonthSales,
-        vatCollected: Math.round(vatCollected * 100) / 100,
-        monthExpenses: Number(monthExpensesResult.total) || 0,
-        salesGrowth: Math.round(salesGrowth * 100) / 100,
+        totalCustomers,
+        newCustomers,
+        todaySales,
+        monthSales,
         lowStockProducts,
-        expiringProducts,
-        salesChartData,
-        categorySales: categorySales.map((cat, index) => ({
-          name: cat.categoryName,
-          value: Number(cat.totalSales),
-          color: ['#1D3E78', '#3BCEAC', '#0077B6', '#48CAE4', '#90E0EF'][index] || '#CAF0F8'
-        }))
+        expiringProducts
       });
     } catch (error) {
       console.error("Dashboard summary error:", error);
