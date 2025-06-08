@@ -786,11 +786,412 @@ const Expenses: React.FC = () => {
 
       {/* New Expense Dialog */}
       <Dialog open={isExpenseFormOpen} onOpenChange={setIsExpenseFormOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
           <DialogHeader>
-            <DialogTitle>New Expense Entry</DialogTitle>
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Plus className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-gray-900">Add New Expense Entry</DialogTitle>
+                <p className="text-sm text-gray-600 mt-1">Create comprehensive expense information and financial details</p>
+              </div>
+            </div>
           </DialogHeader>
-          <ExpenseForm onSuccess={() => setIsExpenseFormOpen(false)} />
+
+          <div className="space-y-6">
+            {/* Basic Information Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Basic Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-date">Transaction Date</Label>
+                  <Input
+                    id="expense-date"
+                    type="date"
+                    defaultValue={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-reference">Reference Number</Label>
+                  <Input
+                    id="expense-reference"
+                    placeholder="REF-2025-001"
+                    className="font-mono"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-priority">Priority Level</Label>
+                  <Select defaultValue="normal">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-description">Description</Label>
+                  <Input
+                    id="expense-description"
+                    placeholder="Brief description of the expense"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-vendor">Vendor/Supplier</Label>
+                  <Input
+                    id="expense-vendor"
+                    placeholder="Company or individual name"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Financial Details Section */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                <Download className="h-5 w-5 mr-2" />
+                Financial Details
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-amount">Amount ($)</Label>
+                  <Input
+                    id="expense-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-tax">Tax Rate (%)</Label>
+                  <Input
+                    id="expense-tax"
+                    type="number"
+                    step="0.1"
+                    placeholder="14.0"
+                    defaultValue="14"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-tax-amount">Tax Amount ($)</Label>
+                  <Input
+                    id="expense-tax-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="Calculated automatically"
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-total">Total Amount ($)</Label>
+                  <Input
+                    id="expense-total"
+                    type="number"
+                    step="0.01"
+                    placeholder="Including tax"
+                    readOnly
+                    className="bg-gray-50 font-bold"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-currency">Currency</Label>
+                  <Select defaultValue="usd">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="usd">USD - US Dollar</SelectItem>
+                      <SelectItem value="egp">EGP - Egyptian Pound</SelectItem>
+                      <SelectItem value="eur">EUR - Euro</SelectItem>
+                      <SelectItem value="gbp">GBP - British Pound</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-exchange-rate">Exchange Rate</Label>
+                  <Input
+                    id="expense-exchange-rate"
+                    type="number"
+                    step="0.0001"
+                    placeholder="1.0000"
+                    defaultValue="1.0000"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Classification Section */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+                <Filter className="h-5 w-5 mr-2" />
+                Classification & Allocation
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-account-type">Account Type</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
+                      <SelectItem value="fixed-assets">Fixed Assets</SelectItem>
+                      <SelectItem value="admin">Administration</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-cost-center">Cost Center</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cost center" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="projects">Projects</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-department">Department</Label>
+                  <Select defaultValue="admin">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                      <SelectItem value="quality-control">Quality Control</SelectItem>
+                      <SelectItem value="research-dev">Research & Development</SelectItem>
+                      <SelectItem value="admin">Administration</SelectItem>
+                      <SelectItem value="sales-marketing">Sales & Marketing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-project">Project Code</Label>
+                  <Input
+                    id="expense-project"
+                    placeholder="PROJ-2025-001 (optional)"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-gl-account">GL Account Code</Label>
+                  <Input
+                    id="expense-gl-account"
+                    placeholder="5000-001"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Information Section */}
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+                <Calendar className="h-5 w-5 mr-2" />
+                Payment Information
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-payment-method">Payment Method</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="credit-card">Credit Card</SelectItem>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="check">Check</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-payment-status">Payment Status</Label>
+                  <Select defaultValue="pending">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partially Paid</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-due-date">Due Date</Label>
+                  <Input
+                    id="expense-due-date"
+                    type="date"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-bank-account">Bank Account</Label>
+                  <Select defaultValue="main-account">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="main-account">Main Operating Account</SelectItem>
+                      <SelectItem value="petty-cash">Petty Cash</SelectItem>
+                      <SelectItem value="credit-card">Corporate Credit Card</SelectItem>
+                      <SelectItem value="paypal">PayPal Business</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expense-check-number">Check/Reference Number</Label>
+                  <Input
+                    id="expense-check-number"
+                    placeholder="Check number or transaction ID"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Details Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Additional Details
+              </h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expense-notes">Notes & Instructions</Label>
+                  <Textarea
+                    id="expense-notes"
+                    placeholder="Additional notes, special instructions, or approval requirements..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expense-approval">Requires Approval</Label>
+                    <Select defaultValue="no">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no">No Approval Required</SelectItem>
+                        <SelectItem value="manager">Manager Approval</SelectItem>
+                        <SelectItem value="finance">Finance Director</SelectItem>
+                        <SelectItem value="ceo">CEO Approval</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="expense-recurring">Recurring Expense</Label>
+                    <Select defaultValue="no">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="no">One-time</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="annually">Annually</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Document Upload Section */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Download className="h-5 w-5 text-gray-600" />
+                    <Label className="text-lg font-semibold text-gray-900">Supporting Documents</Label>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors">
+                    <div className="text-center">
+                      <Download className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <div className="text-lg font-medium text-gray-900 mb-2">Upload Receipt or Invoice</div>
+                      <div className="text-sm text-gray-600 mb-4">
+                        Drag and drop files here, or click to browse
+                      </div>
+                      <Button variant="outline" className="mb-3">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Choose Files
+                      </Button>
+                      <div className="text-xs text-gray-500">
+                        Supported formats: PDF, JPG, PNG, DOCX (Max 10MB each)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-3 pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsExpenseFormOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
+            <Button 
+              onClick={() => setIsExpenseFormOpen(false)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Create Expense
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
