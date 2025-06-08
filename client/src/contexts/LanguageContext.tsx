@@ -280,6 +280,12 @@ const translations = {
     status: 'الحالة',
     productType: 'نوع المنتج',
     
+    // Form buttons
+    cancel: 'إلغاء',
+    saving: 'جاري الحفظ...',
+    saveProduct: 'حفظ المنتج',
+    updateProduct: 'تحديث المنتج',
+    
     // Create Invoice
     createInvoice: 'إنشاء فاتورة',
     customerInfo: 'معلومات العميل',

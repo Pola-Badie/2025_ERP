@@ -232,7 +232,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="drugName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Drug Name</FormLabel>
+                <FormLabel>{t('drugName')}</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Enter pharmaceutical name" 
@@ -327,7 +327,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('description')}</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Product description..." 
@@ -368,7 +368,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="unitOfMeasure"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Unit of Measure</FormLabel>
+                <FormLabel>{t('unitOfMeasure')}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
@@ -397,8 +397,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="lowStockThreshold"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Low Stock Threshold</FormLabel>
-                <div className="flex space-x-2">
+                <FormLabel>{t('lowStockThreshold')}</FormLabel>
+                <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                   <Select 
                     onValueChange={(value) => {
                       if (value !== 'custom') {
@@ -408,7 +408,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     value={field.value ? field.value.toString() : ''}
                   >
                     <FormControl>
-                      <SelectTrigger className="flex-1">
+                      <SelectTrigger className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
                         <SelectValue placeholder="Select threshold" />
                       </SelectTrigger>
                     </FormControl>
@@ -426,7 +426,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     placeholder="Custom" 
                     min="0"
                     step="1"
-                    className="w-24"
+                    className={`w-24 ${isRTL ? 'text-right' : 'text-left'}`}
                     value={field.value || ''}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                   />
@@ -443,7 +443,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="costPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cost Price ($)</FormLabel>
+                <FormLabel>{t('costPrice')} ($)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -451,6 +451,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     step="0.01" 
                     min="0"
                     {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
                   />
                 </FormControl>
                 <FormMessage />
@@ -463,7 +464,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="sellingPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Selling Price ($)</FormLabel>
+                <FormLabel>{t('sellingPrice')} ($)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -471,6 +472,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     step="0.01" 
                     min="0"
                     {...field} 
+                    className={isRTL ? 'text-right' : 'text-left'}
                   />
                 </FormControl>
                 <FormMessage />
@@ -485,13 +487,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Warehouse</FormLabel>
+                <FormLabel>{t('warehouse')}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value || ''}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder="Select warehouse" />
                     </SelectTrigger>
                   </FormControl>
@@ -513,12 +515,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="shelf"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Shelf Number/ID</FormLabel>
+                <FormLabel>{t('shelfNumber')}</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="S-101, Rack-3, etc." 
                     {...field} 
                     value={field.value || ''}
+                    className={isRTL ? 'text-right' : 'text-left'}
                   />
                 </FormControl>
                 <FormMessage />
@@ -572,13 +575,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>{t('status')}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
@@ -598,13 +601,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             name="productType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Product Type</FormLabel>
+                <FormLabel>{t('productType')}</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className={isRTL ? 'text-right' : 'text-left'}>
                       <SelectValue placeholder="Select product type" />
                     </SelectTrigger>
                   </FormControl>
@@ -629,17 +632,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
               if (onSuccess) onSuccess();
             }}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button 
             type="submit" 
             disabled={createProduct.isPending || updateProduct.isPending}
           >
             {createProduct.isPending || updateProduct.isPending 
-              ? 'Saving...' 
+              ? t('saving') 
               : initialData?.id 
-                ? 'Update Product' 
-                : 'Save Product'
+                ? t('updateProduct') 
+                : t('saveProduct')
             }
           </Button>
         </div>
