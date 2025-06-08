@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Select, 
   SelectContent, 
@@ -148,48 +149,210 @@ export default function Reports() {
     enabled: true
   });
 
-  // Export handlers
-  const exportToPDF = async (title: string, data: any) => {
-    const pdf = new jsPDF();
-    pdf.text(title, 20, 20);
-    pdf.save(`${title.toLowerCase().replace(/\s+/g, '-')}.pdf`);
+  // Enhanced export handlers
+  const captureExpandedChart = async (chartElement: HTMLElement) => {
+    return html2canvas(chartElement, {
+      backgroundColor: '#ffffff',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      width: 1200,
+      height: 800
+    });
   };
 
-  const exportToCSV = (title: string, data: any) => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      Object.keys(data[0] || {}).join(",") + "\n" +
-      data.map((row: any) => Object.values(row).join(",")).join("\n");
+  const exportToPDF = async (reportType: string) => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     
-    const encodedUri = encodeURI(csvContent);
+    // Company header
+    pdf.setFontSize(20);
+    pdf.setTextColor(25, 118, 210);
+    pdf.text('Pharmaceutical ERP System', 20, 25);
+    
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(`${reportType} Report`, 20, 35);
+    
+    pdf.setFontSize(10);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
+    pdf.text(`Report Period: ${new Date(Date.now() - 30*24*60*60*1000).toLocaleDateString()} - ${new Date().toLocaleDateString()}`, 20, 50);
+    
+    let yPosition = 65;
+    
+    // Add summary data based on report type
+    const reportData = getReportData(reportType);
+    if (reportData?.summary) {
+      pdf.setFontSize(14);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Summary Metrics', 20, yPosition);
+      yPosition += 10;
+      
+      pdf.setFontSize(11);
+      Object.entries(reportData.summary).forEach(([key, value]) => {
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        pdf.text(`${label}: ${typeof value === 'number' ? value.toLocaleString() : value}`, 25, yPosition);
+        yPosition += 6;
+      });
+    }
+    
+    yPosition += 10;
+    
+    // Capture all charts in expanded view
+    const chartElements = document.querySelectorAll('[data-chart-expanded]');
+    for (let i = 0; i < chartElements.length; i++) {
+      const chartElement = chartElements[i] as HTMLElement;
+      if (chartElement) {
+        try {
+          const canvas = await captureExpandedChart(chartElement);
+          const imgData = canvas.toDataURL('image/png');
+          
+          if (yPosition > pageHeight - 100) {
+            pdf.addPage();
+            yPosition = 20;
+          }
+          
+          const imgWidth = pageWidth - 40;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          pdf.addImage(imgData, 'PNG', 20, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 15;
+        } catch (error) {
+          console.error('Error capturing chart:', error);
+        }
+      }
+    }
+    
+    // Footer
+    const totalPages = pdf.internal.pages.length - 1;
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Page ${i} of ${totalPages}`, pageWidth - 30, pageHeight - 10);
+      pdf.text('Confidential - Pharmaceutical ERP Report', 20, pageHeight - 10);
+    }
+    
+    pdf.save(`${reportType.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  const exportToExcel = async (reportType: string) => {
+    const reportData = getReportData(reportType);
+    if (!reportData) return;
+    
+    let csvContent = `${reportType} Report\n`;
+    csvContent += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+    
+    // Summary section
+    if (reportData.summary) {
+      csvContent += "Summary Metrics\n";
+      Object.entries(reportData.summary).forEach(([key, value]) => {
+        const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        csvContent += `${label},${value}\n`;
+      });
+      csvContent += "\n";
+    }
+    
+    // Detailed data
+    if (reportData.chartData && Array.isArray(reportData.chartData)) {
+      csvContent += "Chart Data\n";
+      const headers = Object.keys(reportData.chartData[0] || {});
+      csvContent += headers.join(",") + "\n";
+      reportData.chartData.forEach((row: any) => {
+        csvContent += headers.map(header => row[header] || '').join(",") + "\n";
+      });
+    }
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${title.toLowerCase().replace(/\s+/g, '-')}.csv`);
-    document.body.appendChild(link);
+    link.href = URL.createObjectURL(blob);
+    link.download = `${reportType.toLowerCase()}-report-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    document.body.removeChild(link);
+  };
+
+  const getReportData = (reportType: string) => {
+    switch (reportType.toLowerCase()) {
+      case 'sales': return salesReportData;
+      case 'financial': return financialReportData;
+      case 'inventory': return inventoryReportData;
+      case 'customers': return customerReportData;
+      case 'production': return productionReportData;
+      case 'refining': return refiningReportData;
+      default: return null;
+    }
   };
 
   const printReport = () => {
-    window.print();
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Pharmaceutical ERP Report</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; border-bottom: 2px solid #1976d2; padding-bottom: 10px; margin-bottom: 20px; }
+              .summary { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+              .metric { display: inline-block; margin: 10px 20px; }
+              .chart-placeholder { border: 1px dashed #ccc; padding: 50px; text-align: center; margin: 20px 0; }
+              @media print { body { margin: 0; } }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>Pharmaceutical ERP System</h1>
+              <h2>Analytics Report</h2>
+              <p>Generated: ${new Date().toLocaleDateString()}</p>
+            </div>
+            ${document.querySelector('.space-y-4')?.innerHTML || ''}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
+
+  const [activeTab, setActiveTab] = useState('sales');
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Reports & Analytics</h2>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={printReport}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-          <Button variant="outline" size="sm">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => exportToPDF(activeTab.charAt(0).toUpperCase() + activeTab.slice(1))}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportToExcel(activeTab.charAt(0).toUpperCase() + activeTab.slice(1))}>
+                <Download className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={printReport}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print Report
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="sales" className="space-y-4">
+      <Tabs defaultValue="sales" className="space-y-4" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="sales">Sales</TabsTrigger>
           <TabsTrigger value="financial">Financial</TabsTrigger>
@@ -279,37 +442,39 @@ export default function Reports() {
                       </Button>
                     }
                   >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={salesReportData?.chartData || salesData}
-                        margin={{
-                          top: 20,
-                          right: 30,
-                          left: 20,
-                          bottom: 20,
-                        }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="amount" 
-                          stroke="#8884d8"
-                          strokeWidth={3}
-                          name="Sales Amount"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="transactions" 
-                          stroke="#82ca9d"
-                          strokeWidth={3}
-                          name="Transactions"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <div data-chart-expanded="sales-trend">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={salesReportData?.chartData || salesData}
+                          margin={{
+                            top: 20,
+                            right: 30,
+                            left: 20,
+                            bottom: 20,
+                          }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="date" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="amount" 
+                            stroke="#8884d8"
+                            strokeWidth={3}
+                            name="Sales Amount"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="transactions" 
+                            stroke="#82ca9d"
+                            strokeWidth={3}
+                            name="Transactions"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </ChartModal>
                 </div>
               </CardHeader>
@@ -372,27 +537,29 @@ export default function Reports() {
                       </Button>
                     }
                   >
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={120}
-                          innerRadius={40}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {categoryData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <div data-chart-expanded="sales-category">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={categoryData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={120}
+                            innerRadius={40}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {categoryData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
                   </ChartModal>
                 </div>
               </CardHeader>
