@@ -841,6 +841,317 @@ const Reports = () => {
                     )}
                   </div>
                   
+                  {/* Detailed Data Tables Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-blue-600">Sample Data Preview</h3>
+                    
+                    {activeTab === 'sales' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Recent Sales Transactions</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Invoice #</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Customer</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Product</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Amount</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Date</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">INV-2024-001</td>
+                                <td className="px-4 py-2">Alexandria Medical Center</td>
+                                <td className="px-4 py-2">Panadol Advance 500mg</td>
+                                <td className="px-4 py-2 font-medium">$847.50</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-15</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">INV-2024-002</td>
+                                <td className="px-4 py-2">City General Hospital</td>
+                                <td className="px-4 py-2">Amoxicillin 250mg</td>
+                                <td className="px-4 py-2 font-medium">$1,245.00</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-14</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">INV-2024-003</td>
+                                <td className="px-4 py-2">MedCare Pharmacy</td>
+                                <td className="px-4 py-2">Ibuprofen 400mg</td>
+                                <td className="px-4 py-2 font-medium">$623.75</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-13</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">INV-2024-004</td>
+                                <td className="px-4 py-2">HealthPlus Clinic</td>
+                                <td className="px-4 py-2">Vitamin D3 1000IU</td>
+                                <td className="px-4 py-2 font-medium">$389.25</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-12</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'financial' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Financial Accounts Summary</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Account Code</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Account Name</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Type</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Balance</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">1001</td>
+                                <td className="px-4 py-2">Cash and Cash Equivalents</td>
+                                <td className="px-4 py-2 text-green-600">Asset</td>
+                                <td className="px-4 py-2 font-medium">$2,847,500</td>
+                                <td className="px-4 py-2 text-green-600">Active</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">1200</td>
+                                <td className="px-4 py-2">Accounts Receivable</td>
+                                <td className="px-4 py-2 text-green-600">Asset</td>
+                                <td className="px-4 py-2 font-medium">$1,245,800</td>
+                                <td className="px-4 py-2 text-green-600">Active</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">1300</td>
+                                <td className="px-4 py-2">Inventory Assets</td>
+                                <td className="px-4 py-2 text-green-600">Asset</td>
+                                <td className="px-4 py-2 font-medium">$3,518,200</td>
+                                <td className="px-4 py-2 text-green-600">Active</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">2001</td>
+                                <td className="px-4 py-2">Accounts Payable</td>
+                                <td className="px-4 py-2 text-red-600">Liability</td>
+                                <td className="px-4 py-2 font-medium">$845,650</td>
+                                <td className="px-4 py-2 text-green-600">Active</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'inventory' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Current Inventory Status</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Product Name</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">SKU</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Category</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Stock Level</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 font-medium">Panadol Advance 500mg</td>
+                                <td className="px-4 py-2 text-blue-600">SKU-001</td>
+                                <td className="px-4 py-2">Pain Relief</td>
+                                <td className="px-4 py-2 font-medium">2,847 units</td>
+                                <td className="px-4 py-2 text-green-600">In Stock</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">Amoxicillin 250mg</td>
+                                <td className="px-4 py-2 text-blue-600">SKU-002</td>
+                                <td className="px-4 py-2">Antibiotics</td>
+                                <td className="px-4 py-2 font-medium">1,245 units</td>
+                                <td className="px-4 py-2 text-green-600">In Stock</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">Aspirin 100mg</td>
+                                <td className="px-4 py-2 text-blue-600">SKU-003</td>
+                                <td className="px-4 py-2">Pain Relief</td>
+                                <td className="px-4 py-2 font-medium">89 units</td>
+                                <td className="px-4 py-2 text-orange-600">Low Stock</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">Cephalexin 500mg</td>
+                                <td className="px-4 py-2 text-blue-600">SKU-004</td>
+                                <td className="px-4 py-2">Antibiotics</td>
+                                <td className="px-4 py-2 font-medium">0 units</td>
+                                <td className="px-4 py-2 text-red-600">Out of Stock</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'customers' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Active Customer Accounts</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Customer Name</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Contact Person</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Last Order</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Total Purchases</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 font-medium">Alexandria Medical Center</td>
+                                <td className="px-4 py-2">Dr. Sarah Johnson</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-15</td>
+                                <td className="px-4 py-2 font-medium">$12,450.00</td>
+                                <td className="px-4 py-2 text-green-600">Premium</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">City General Hospital</td>
+                                <td className="px-4 py-2">Ms. Maria Garcia</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-14</td>
+                                <td className="px-4 py-2 font-medium">$8,975.50</td>
+                                <td className="px-4 py-2 text-blue-600">Regular</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">MedCare Pharmacy</td>
+                                <td className="px-4 py-2">Mr. Ahmed Hassan</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-13</td>
+                                <td className="px-4 py-2 font-medium">$6,230.75</td>
+                                <td className="px-4 py-2 text-blue-600">Regular</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 font-medium">HealthPlus Clinic</td>
+                                <td className="px-4 py-2">Dr. Michael Brown</td>
+                                <td className="px-4 py-2 text-gray-600">2024-06-12</td>
+                                <td className="px-4 py-2 font-medium">$3,890.25</td>
+                                <td className="px-4 py-2 text-purple-600">New</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'production' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Production Batch Records</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Batch ID</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Product</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Quantity</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Quality Score</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">BTH-2024-0815</td>
+                                <td className="px-4 py-2">Panadol Advance 500mg</td>
+                                <td className="px-4 py-2 font-medium">10,000 tablets</td>
+                                <td className="px-4 py-2 text-green-600 font-medium">98.5%</td>
+                                <td className="px-4 py-2 text-green-600">Completed</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">BTH-2024-0814</td>
+                                <td className="px-4 py-2">Amoxicillin 250mg</td>
+                                <td className="px-4 py-2 font-medium">5,000 capsules</td>
+                                <td className="px-4 py-2 text-green-600 font-medium">97.8%</td>
+                                <td className="px-4 py-2 text-green-600">Completed</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">BTH-2024-0813</td>
+                                <td className="px-4 py-2">Vitamin D3 1000IU</td>
+                                <td className="px-4 py-2 font-medium">8,000 tablets</td>
+                                <td className="px-4 py-2 text-orange-600 font-medium">94.2%</td>
+                                <td className="px-4 py-2 text-orange-600">In Progress</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">BTH-2024-0812</td>
+                                <td className="px-4 py-2">Ibuprofen 400mg</td>
+                                <td className="px-4 py-2 font-medium">12,000 tablets</td>
+                                <td className="px-4 py-2 text-gray-600 font-medium">-</td>
+                                <td className="px-4 py-2 text-blue-600">Scheduled</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'refining' && (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <div className="px-4 py-3 border-b bg-gray-50">
+                          <h4 className="font-medium text-gray-900">Raw Material Processing</h4>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Material ID</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Chemical Name</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Purity Level</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Yield Rate</th>
+                                <th className="px-4 py-2 text-left font-medium text-gray-600">Process Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">RM-001</td>
+                                <td className="px-4 py-2">Acetaminophen API</td>
+                                <td className="px-4 py-2 text-green-600 font-medium">99.8%</td>
+                                <td className="px-4 py-2 font-medium">87.5%</td>
+                                <td className="px-4 py-2 text-green-600">Refined</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">RM-002</td>
+                                <td className="px-4 py-2">Amoxicillin Trihydrate</td>
+                                <td className="px-4 py-2 text-green-600 font-medium">99.6%</td>
+                                <td className="px-4 py-2 font-medium">86.2%</td>
+                                <td className="px-4 py-2 text-green-600">Refined</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">RM-003</td>
+                                <td className="px-4 py-2">Ibuprofen API</td>
+                                <td className="px-4 py-2 text-orange-600 font-medium">98.9%</td>
+                                <td className="px-4 py-2 font-medium">84.1%</td>
+                                <td className="px-4 py-2 text-orange-600">Processing</td>
+                              </tr>
+                              <tr>
+                                <td className="px-4 py-2 text-blue-600 font-medium">RM-004</td>
+                                <td className="px-4 py-2">Vitamin D3 Cholecalciferol</td>
+                                <td className="px-4 py-2 text-gray-600 font-medium">-</td>
+                                <td className="px-4 py-2 font-medium">-</td>
+                                <td className="px-4 py-2 text-blue-600">Pending</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   {/* Preview Content Info */}
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-blue-600">Report Contents</h3>
