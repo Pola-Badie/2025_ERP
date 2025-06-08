@@ -85,7 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
 
   return (
     <div className={cn(
-      "flex flex-col h-screen bg-[#1a2332] text-white w-64",
+      "flex flex-col h-screen bg-[#1C3149] text-white w-64",
       className
     )}>
       {/* Header */}
