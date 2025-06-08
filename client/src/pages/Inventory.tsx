@@ -1805,18 +1805,18 @@ const Inventory: React.FC = () => {
 
       {/* Inventory Settings Dialog */}
       <Dialog open={isInventorySettingsOpen} onOpenChange={setIsInventorySettingsOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className={`sm:max-w-[600px] max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>Configure Inventory Dropdown Options</DialogTitle>
-            <DialogDescription>
-              Manage the options available in Units of Measure, Product Types, Status Options, and Location Types dropdowns.
+            <DialogTitle className={isRTL ? 'text-right' : 'text-left'}>{t('configureInventoryOptions')}</DialogTitle>
+            <DialogDescription className={isRTL ? 'text-right' : 'text-left'}>
+              {t('manageDropdownOptions')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             {/* Units of Measure */}
             <div>
-              <h4 className="font-medium mb-3">Units of Measure</h4>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <h4 className={`font-medium mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>{t('unitsOfMeasure')}</h4>
+              <div className={`flex flex-wrap gap-2 mb-3 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                 {inventorySettings.unitsOfMeasure.map((unit, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {unit}
@@ -1827,22 +1827,23 @@ const Inventory: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Input
-                  placeholder="New unit (e.g., mL, tablets)"
+                  placeholder={t('newUnitPlaceholder')}
                   value={newOption.type === 'unitOfMeasure' ? newOption.value : ''}
                   onChange={(e) => setNewOption({ type: 'unitOfMeasure', value: e.target.value })}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
                 <Button onClick={addNewOption} disabled={newOption.type !== 'unitOfMeasure' || !newOption.value.trim()}>
-                  Add
+                  {t('add')}
                 </Button>
               </div>
             </div>
 
             {/* Item Types */}
             <div>
-              <h4 className="font-medium mb-3">Item Types</h4>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <h4 className={`font-medium mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>{t('itemTypes')}</h4>
+              <div className={`flex flex-wrap gap-2 mb-3 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                 {inventorySettings.productTypes.map((type, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {type}
@@ -1853,22 +1854,23 @@ const Inventory: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Input
-                  placeholder="New item type"
+                  placeholder={t('newItemTypePlaceholder')}
                   value={newOption.type === 'productType' ? newOption.value : ''}
                   onChange={(e) => setNewOption({ type: 'productType', value: e.target.value })}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
                 <Button onClick={addNewOption} disabled={newOption.type !== 'productType' || !newOption.value.trim()}>
-                  Add
+                  {t('add')}
                 </Button>
               </div>
             </div>
 
             {/* Status Options */}
             <div>
-              <h4 className="font-medium mb-3">Status Options</h4>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <h4 className={`font-medium mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>{t('statusOptions')}</h4>
+              <div className={`flex flex-wrap gap-2 mb-3 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                 {inventorySettings.statusOptions.map((status, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {status}
@@ -1879,22 +1881,23 @@ const Inventory: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Input
-                  placeholder="New status option"
+                  placeholder={t('newStatusPlaceholder')}
                   value={newOption.type === 'statusOption' ? newOption.value : ''}
                   onChange={(e) => setNewOption({ type: 'statusOption', value: e.target.value })}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
                 <Button onClick={addNewOption} disabled={newOption.type !== 'statusOption' || !newOption.value.trim()}>
-                  Add
+                  {t('add')}
                 </Button>
               </div>
             </div>
 
             {/* Location Types */}
             <div>
-              <h4 className="font-medium mb-3">Location Types</h4>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <h4 className={`font-medium mb-3 ${isRTL ? 'text-right' : 'text-left'}`}>{t('locationTypes')}</h4>
+              <div className={`flex flex-wrap gap-2 mb-3 ${isRTL ? 'justify-end' : 'justify-start'}`}>
                 {inventorySettings.locationTypes.map((location, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {location}
@@ -1905,21 +1908,22 @@ const Inventory: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              <div className="flex gap-2">
+              <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 <Input
-                  placeholder="New location type"
+                  placeholder={t('newLocationPlaceholder')}
                   value={newOption.type === 'locationType' ? newOption.value : ''}
                   onChange={(e) => setNewOption({ type: 'locationType', value: e.target.value })}
+                  className={isRTL ? 'text-right' : 'text-left'}
                 />
                 <Button onClick={addNewOption} disabled={newOption.type !== 'locationType' || !newOption.value.trim()}>
-                  Add
+                  {t('add')}
                 </Button>
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
             <Button type="button" onClick={() => setIsInventorySettingsOpen(false)}>
-              Done
+              {t('done')}
             </Button>
           </DialogFooter>
         </DialogContent>

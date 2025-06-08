@@ -122,6 +122,19 @@ const translations = {
     comprehensiveHistory: 'Comprehensive history and performance analytics for',
     loadingProductDetails: 'Loading product details...',
     
+    // Inventory Settings Dialog
+    configureInventoryOptions: 'Configure Inventory Dropdown Options',
+    manageDropdownOptions: 'Manage the options available in Units of Measure, Product Types, Status Options, and Location Types dropdowns.',
+    unitsOfMeasure: 'Units of Measure',
+    itemTypes: 'Item Types',
+    statusOptions: 'Status Options',
+    locationTypes: 'Location Types',
+    newUnitPlaceholder: 'New unit (e.g., mL, tablets)',
+    newItemTypePlaceholder: 'New item type',
+    newStatusPlaceholder: 'New status option',
+    newLocationPlaceholder: 'New location type',
+    done: 'Done',
+    
     // Create Invoice
     createInvoiceModule: 'Create Invoice',
     customerInfo: 'Customer Information',
@@ -269,6 +282,19 @@ const translations = {
     productHistory: 'تاريخ المنتج والتحليلات',
     comprehensiveHistory: 'تاريخ شامل وتحليلات الأداء لـ',
     loadingProductDetails: 'جاري تحميل تفاصيل المنتج...',
+    
+    // Inventory Settings Dialog
+    configureInventoryOptions: 'تكوين خيارات القوائم المنسدلة للمخزون',
+    manageDropdownOptions: 'إدارة الخيارات المتاحة في وحدات القياس وأنواع المنتجات وخيارات الحالة وأنواع المواقع.',
+    unitsOfMeasure: 'وحدات القياس',
+    itemTypes: 'أنواع العناصر',
+    statusOptions: 'خيارات الحالة',
+    locationTypes: 'أنواع المواقع',
+    newUnitPlaceholder: 'وحدة جديدة (مثل: مل، أقراص)',
+    newItemTypePlaceholder: 'نوع عنصر جديد',
+    newStatusPlaceholder: 'خيار حالة جديد',
+    newLocationPlaceholder: 'نوع موقع جديد',
+    done: 'تم',
     
     // Additional ProductForm translations
     drugName: 'اسم الدواء',
