@@ -452,47 +452,105 @@ const DashboardNew = () => {
               </Button>
             </DialogTitle>
           </DialogHeader>
-          <div className="h-full">
-            <ResponsiveContainer width="100%" height="90%">
-              <RechartsLineChart
-                data={salesData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={true}
-                  tickLine={true}
-                  fontSize={12}
-                  tick={{ fill: '#6b7280' }}
-                />
-                <YAxis 
-                  axisLine={true}
-                  tickLine={true}
-                  fontSize={12}
-                  tick={{ fill: '#6b7280' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="#1D3E78" 
-                  strokeWidth={3}
-                  dot={{ fill: '#1D3E78', strokeWidth: 2, r: 5 }}
-                  activeDot={{ r: 7, fill: '#1D3E78' }}
-                  name="Sales (EGP)"
-                />
-              </RechartsLineChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+            <div className="lg:col-span-2 h-full">
+              <ResponsiveContainer width="100%" height="90%">
+                <RechartsLineChart
+                  data={salesData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={true}
+                    tickLine={true}
+                    fontSize={12}
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <YAxis 
+                    axisLine={true}
+                    tickLine={true}
+                    fontSize={12}
+                    tick={{ fill: '#6b7280' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="sales" 
+                    stroke="#1D3E78" 
+                    strokeWidth={3}
+                    dot={{ fill: '#1D3E78', strokeWidth: 2, r: 5 }}
+                    activeDot={{ r: 7, fill: '#1D3E78' }}
+                    name="Sales (EGP)"
+                  />
+                </RechartsLineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Sales Analytics</h3>
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Peak Month</p>
+                      <p className="text-xl font-bold text-blue-700">December</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Sales</p>
+                      <p className="text-lg font-semibold">EGP 110K</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Growth Rate</p>
+                      <p className="text-xl font-bold text-green-700">+18.5%</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">YoY</p>
+                      <p className="text-lg font-semibold">Trending Up</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Average</p>
+                      <p className="text-xl font-bold text-orange-700">EGP 85K</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Monthly</p>
+                      <p className="text-lg font-semibold">Target Met</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-gray-600">Total Revenue</p>
+                      <p className="text-xl font-bold text-purple-700">EGP 1.02M</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">This Year</p>
+                      <p className="text-lg font-semibold">120% Target</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
