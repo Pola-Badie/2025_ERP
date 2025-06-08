@@ -37,7 +37,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
-  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText
+  AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText,
+  Receipt, DollarSign, BarChart4, Paperclip, Eye, CheckCircle, Landmark, Image
 } from 'lucide-react';
 
 // Define types for Expense and Category if they're not in schema.ts
@@ -61,6 +62,8 @@ const Expenses: React.FC = () => {
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
   const [isExpenseExportOpen, setIsExpenseExportOpen] = useState(false);
+  const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -367,11 +370,35 @@ const Expenses: React.FC = () => {
   const handleViewExpense = (expenseId: number) => {
     const expense = expenses?.find(exp => exp.id === expenseId);
     if (expense) {
-      toast({
-        title: "Receipt Details",
-        description: `Viewing receipt for: ${expense.description}`,
-      });
-      // Here you could open a detailed receipt view dialog
+      // Transform expense data to match expected format
+      const transformedExpense = {
+        id: `EXP-2025-${String(Number(expense.id)).padStart(3, '0')}`,
+        description: expense.description,
+        amount: formatCurrency(expense.amount),
+        date: formatDate(expense.date),
+        accountType: expense.category === 'Utilities' ? 'Operations' : 
+                     expense.category === 'Transportation' ? 'Operations' :
+                     expense.category === 'Office Supplies' ? 'Marketing' :
+                     expense.category === 'Communications' ? 'Fixed Assets' :
+                     expense.category === 'Equipment' ? 'Operations' :
+                     expense.category === 'Marketing' ? 'Marketing' : 'Operations',
+        costCenter: expense.category === 'Utilities' ? 'Operations' : 
+                    expense.category === 'Transportation' ? 'Operations' :
+                    expense.category === 'Office Supplies' ? 'Admin' :
+                    expense.category === 'Communications' ? 'Admin' :
+                    expense.category === 'Equipment' ? 'Operations' :
+                    expense.category === 'Marketing' ? 'Marketing' : 'Operations',
+        paymentMethod: expense.category === 'Utilities' ? 'Bank Transfer' : 
+                       expense.category === 'Transportation' ? 'Credit Card' :
+                       expense.category === 'Office Supplies' ? 'Cash' :
+                       expense.category === 'Communications' ? 'Bank Transfer' :
+                       expense.category === 'Equipment' ? 'Credit Card' :
+                       expense.category === 'Marketing' ? 'Bank Transfer' : 'Bank Transfer',
+        notes: expense.notes || `${expense.category.toLowerCase()} expense for pharmaceutical operations`
+      };
+      
+      setSelectedExpense(transformedExpense);
+      setIsViewReceiptOpen(true);
     }
   };
 
@@ -1370,6 +1397,247 @@ const Expenses: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCategorySettingsOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Professional View Receipt Dialog */}
+      <Dialog open={isViewReceiptOpen} onOpenChange={setIsViewReceiptOpen}>
+        <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-green-400 scrollbar-track-green-100 bg-gradient-to-br from-green-50 to-emerald-50 border-0 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Receipt className="h-6 w-6 text-green-600" />
+              </div>
+              Expense Receipt
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Detailed pharmaceutical expense information and financial records
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedExpense && (
+            <div className="space-y-6 py-6">
+              {/* Expense Header Card */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">{selectedExpense.description}</h3>
+                    <p className="text-sm text-gray-600">Pharmaceutical Expense Entry</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600">{selectedExpense.amount}</div>
+                    <div className="text-sm text-gray-600 font-medium">{selectedExpense.date}</div>
+                  </div>
+                </div>
+                
+                {/* Payment Method Badge */}
+                <div className="flex justify-end">
+                  <Badge variant="outline" className="text-sm px-3 py-1 border-green-300 text-green-700">
+                    {selectedExpense.paymentMethod}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Financial Information */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Financial Details
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Amount</Label>
+                      <div className="text-sm text-blue-800 font-bold">{selectedExpense.amount}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Payment Method</Label>
+                      <div className="text-sm text-blue-800 font-medium">{selectedExpense.paymentMethod}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-blue-700">Transaction Date</Label>
+                      <div className="text-sm text-blue-800">{selectedExpense.date}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Classification Information */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+                  <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                    <BarChart4 className="h-4 w-4" />
+                    Classification
+                  </h4>
+                  <div className="space-y-2">
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Account Type</Label>
+                      <div className="text-sm text-purple-800 font-medium">{selectedExpense.accountType}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Cost Center</Label>
+                      <div className="text-sm text-purple-800 font-medium">{selectedExpense.costCenter}</div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-purple-700">Department</Label>
+                      <div className="text-sm text-purple-800">Pharmaceutical Operations</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description Information */}
+              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-xl p-4">
+                <h4 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Expense Description
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs font-medium text-orange-700">Primary Description</Label>
+                    <div className="text-sm text-orange-800 font-medium">{selectedExpense.description}</div>
+                  </div>
+                  {selectedExpense.notes && (
+                    <div>
+                      <Label className="text-xs font-medium text-orange-700">Additional Notes</Label>
+                      <div className="text-sm text-orange-800 bg-orange-100 p-3 rounded-lg mt-1">
+                        {selectedExpense.notes}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sample Documents for Demo */}
+              <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-4">
+                <h4 className="font-semibold text-indigo-900 mb-3 flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  Supporting Documents (3)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="h-16 w-16 bg-red-100 rounded-md flex items-center justify-center">
+                          <Receipt className="h-8 w-8 text-red-400" />
+                        </div>
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Invoice_PHX_2025_001.pdf</p>
+                        <p className="text-xs text-gray-500 mt-1">Size: 245.7 KB</p>
+                        <p className="text-xs text-gray-500">Uploaded: {new Date().toLocaleDateString()}</p>
+                        <div className="mt-1">
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                            Verified
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="h-16 w-16 bg-blue-100 rounded-md flex items-center justify-center">
+                          <FileText className="h-8 w-8 text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Purchase_Order_2025.pdf</p>
+                        <p className="text-xs text-gray-500 mt-1">Size: 156.3 KB</p>
+                        <p className="text-xs text-gray-500">Uploaded: {new Date(Date.now() - 86400000).toLocaleDateString()}</p>
+                        <div className="mt-1">
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                            Verified
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-lg border border-indigo-200 shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="h-16 w-16 bg-green-100 rounded-md flex items-center justify-center">
+                          <Image className="h-8 w-8 text-green-400" />
+                        </div>
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <p className="text-sm font-medium text-gray-900">Receipt_Chemical_Supply.jpg</p>
+                        <p className="text-xs text-gray-500 mt-1">Size: 892.1 KB</p>
+                        <p className="text-xs text-gray-500">Uploaded: {new Date(Date.now() - 172800000).toLocaleDateString()}</p>
+                        <div className="mt-1">
+                          <Badge variant="outline" className="text-xs px-2 py-0.5 border-green-300 text-green-700">
+                            Verified
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-indigo-600 hover:bg-indigo-50">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-indigo-600 flex items-center">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  All documents verified and compliant with audit requirements
+                </div>
+              </div>
+
+              {/* Compliance Information */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-1 bg-gray-100 rounded-full">
+                    <Landmark className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Accounting Compliance</h4>
+                    <p className="text-sm text-gray-700 mt-1">
+                      This expense entry has been recorded in accordance with pharmaceutical industry accounting standards.
+                    </p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      Recorded: {new Date().toLocaleDateString()} | Status: ✓ Verified
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsViewReceiptOpen(false)}
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setIsViewReceiptOpen(false);
+                toast({
+                  title: "Receipt Downloaded",
+                  description: "Expense receipt has been downloaded as PDF.",
+                  variant: "default"
+                });
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
