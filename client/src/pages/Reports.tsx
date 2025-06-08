@@ -142,6 +142,12 @@ export default function Reports() {
     enabled: true
   });
 
+  // Fetch refining report data  
+  const { data: refiningReportData, isLoading: refiningLoading } = useQuery({
+    queryKey: ['/api/reports/refining'],
+    enabled: true
+  });
+
   // Export handlers
   const exportToPDF = async (title: string, data: any) => {
     const pdf = new jsPDF();
