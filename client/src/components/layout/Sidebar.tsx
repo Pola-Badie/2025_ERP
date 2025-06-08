@@ -174,36 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         </div>
       </div>
       
-      {/* Enhanced External Collapse Button */}
-      {!isMobile && (
-        <div className={cn(
-          "absolute top-6 z-50 transition-all duration-300",
-          isCollapsed ? "-right-4" : "-right-4"
-        )}>
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className={cn(
-              "w-8 h-8 bg-gradient-to-r from-[#3BCEAC] to-[#2EAD8A] hover:from-[#2EAD8A] hover:to-[#27967D] rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-110 hover:rotate-180 border-2 border-white",
-              "relative group"
-            )}
-          >
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-full transition-opacity duration-200"></div>
-            {isCollapsed ? <ChevronRight size={16} className="relative z-10" /> : <ChevronLeft size={16} className="relative z-10" />}
-          </button>
-          
-          {/* Tooltip */}
-          <div className={cn(
-            "absolute top-1/2 -translate-y-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 transition-all duration-200 pointer-events-none z-20 whitespace-nowrap",
-            isCollapsed ? "left-10" : "right-10"
-          )}>
-            {isCollapsed ? "Expand" : "Collapse"}
-            <div className={cn(
-              "absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45",
-              isCollapsed ? "-left-1" : "-right-1"
-            )}></div>
-          </div>
-        </div>
-      )}
+
       {/* Navigation with proper scrolling */}
       <div className="flex-1 overflow-hidden">
         <nav 
