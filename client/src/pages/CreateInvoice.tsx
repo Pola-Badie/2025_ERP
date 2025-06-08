@@ -1344,8 +1344,8 @@ const CreateInvoice = () => {
                     
                     {/* Other customer details */}
                     <div className="space-y-1 pt-2 border-t">
-                      {form.watch('customer.position') && (
-                        <p className="text-sm text-muted-foreground">Position: {form.watch('customer.position')}</p>
+                      {form.watch('customer.taxNumber') && (
+                        <p className="text-sm text-muted-foreground">ETA Number: {form.watch('customer.taxNumber')}</p>
                       )}
                       {form.watch('customer.sector') && (
                         <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
