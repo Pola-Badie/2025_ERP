@@ -579,6 +579,268 @@ const Reports = () => {
                     </div>
                   </div>
                   
+                  {/* Preview Charts Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-blue-600">Visual Analytics Preview</h3>
+                    
+                    {activeTab === 'sales' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Sales Trend</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <AreaChart data={chartDataSales}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Area type="monotone" dataKey="revenue" stroke="#1976D2" fill="#1976D2" fillOpacity={0.1} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Transaction Volume</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={chartDataSales}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="transactions" fill="#42A5F5" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'financial' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Asset vs Liability Trend</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={[
+                              { month: 'Jan', assets: 6500, liabilities: 2100 },
+                              { month: 'Feb', assets: 6800, liabilities: 2200 },
+                              { month: 'Mar', assets: 7100, liabilities: 2150 },
+                              { month: 'Apr', assets: 7300, liabilities: 2300 },
+                              { month: 'May', assets: 7500, liabilities: 2250 },
+                              { month: 'Jun', assets: 7611, liabilities: 2284 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Line type="monotone" dataKey="assets" stroke="#1976D2" strokeWidth={2} />
+                              <Line type="monotone" dataKey="liabilities" stroke="#F44336" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Financial Health Distribution</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Assets', value: 7611, fill: '#1976D2' },
+                                  { name: 'Liabilities', value: 2284, fill: '#F44336' },
+                                  { name: 'Equity', value: 5327, fill: '#4CAF50' }
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={60}
+                                fill="#8884d8"
+                                dataKey="value"
+                              />
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'inventory' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Stock Level Trends</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <AreaChart data={[
+                              { month: 'Jan', inStock: 120, lowStock: 8, outOfStock: 2 },
+                              { month: 'Feb', inStock: 115, lowStock: 6, outOfStock: 1 },
+                              { month: 'Mar', inStock: 118, lowStock: 5, outOfStock: 3 },
+                              { month: 'Apr', inStock: 125, lowStock: 4, outOfStock: 1 },
+                              { month: 'May', inStock: 130, lowStock: 3, outOfStock: 2 },
+                              { month: 'Jun', inStock: 135, lowStock: 3, outOfStock: 1 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Area type="monotone" dataKey="inStock" stackId="1" stroke="#4CAF50" fill="#4CAF50" fillOpacity={0.8} />
+                              <Area type="monotone" dataKey="lowStock" stackId="1" stroke="#FF9800" fill="#FF9800" fillOpacity={0.8} />
+                              <Area type="monotone" dataKey="outOfStock" stackId="1" stroke="#F44336" fill="#F44336" fillOpacity={0.8} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Inventory by Category</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={[
+                              { category: 'Antibiotics', count: 25 },
+                              { category: 'Pain Relief', count: 30 },
+                              { category: 'Vitamins', count: 18 },
+                              { category: 'Supplements', count: 22 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="category" angle={-45} textAnchor="end" height={60} />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="count" fill="#1976D2" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'customers' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Customer Growth Trend</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={[
+                              { month: 'Jan', total: 45, active: 38 },
+                              { month: 'Feb', total: 52, active: 44 },
+                              { month: 'Mar', total: 58, active: 50 },
+                              { month: 'Apr', total: 65, active: 56 },
+                              { month: 'May', total: 72, active: 62 },
+                              { month: 'Jun', total: 80, active: 68 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Line type="monotone" dataKey="total" stroke="#1976D2" strokeWidth={2} />
+                              <Line type="monotone" dataKey="active" stroke="#4CAF50" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Customer Segmentation</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Premium', value: 25, fill: '#1976D2' },
+                                  { name: 'Regular', value: 45, fill: '#42A5F5' },
+                                  { name: 'New', value: 20, fill: '#90CAF9' },
+                                  { name: 'Inactive', value: 10, fill: '#E3F2FD' }
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={60}
+                                fill="#8884d8"
+                                dataKey="value"
+                              />
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'production' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Production Efficiency Trends</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <AreaChart data={[
+                              { month: 'Jan', efficiency: 89.2, quality: 96.8 },
+                              { month: 'Feb', efficiency: 91.5, quality: 97.2 },
+                              { month: 'Mar', efficiency: 92.8, quality: 97.8 },
+                              { month: 'Apr', efficiency: 93.2, quality: 98.1 },
+                              { month: 'May', efficiency: 93.8, quality: 98.3 },
+                              { month: 'Jun', efficiency: 94.2, quality: 98.5 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Area type="monotone" dataKey="efficiency" stroke="#1976D2" fill="#1976D2" fillOpacity={0.3} />
+                              <Area type="monotone" dataKey="quality" stroke="#4CAF50" fill="#4CAF50" fillOpacity={0.3} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Production by Category</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={[
+                              { category: 'Tablets', count: 85 },
+                              { category: 'Capsules', count: 75 },
+                              { category: 'Syrups', count: 45 },
+                              { category: 'Injections', count: 35 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="category" angle={-45} textAnchor="end" height={60} />
+                              <YAxis />
+                              <Tooltip />
+                              <Bar dataKey="count" fill="#1976D2" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'refining' && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Refining Process Efficiency</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={[
+                              { month: 'Jan', yield: 82.5, purity: 99.2 },
+                              { month: 'Feb', yield: 84.1, purity: 99.4 },
+                              { month: 'Mar', yield: 85.3, purity: 99.5 },
+                              { month: 'Apr', yield: 86.2, purity: 99.6 },
+                              { month: 'May', yield: 86.8, purity: 99.7 },
+                              { month: 'Jun', yield: 87.5, purity: 99.8 }
+                            ]}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="month" />
+                              <YAxis />
+                              <Tooltip />
+                              <Line type="monotone" dataKey="yield" stroke="#1976D2" strokeWidth={2} />
+                              <Line type="monotone" dataKey="purity" stroke="#4CAF50" strokeWidth={2} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="bg-white border rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-3">Chemical Composition Analysis</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'Active Compounds', value: 45, fill: '#1976D2' },
+                                  { name: 'Stabilizers', value: 25, fill: '#42A5F5' },
+                                  { name: 'Excipients', value: 20, fill: '#90CAF9' },
+                                  { name: 'Preservatives', value: 10, fill: '#E3F2FD' }
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={60}
+                                fill="#8884d8"
+                                dataKey="value"
+                              />
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   {/* Preview Content Info */}
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-blue-600">Report Contents</h3>
@@ -593,7 +855,7 @@ const Reports = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
-                        <span>Visual Analytics Charts and Graphs</span>
+                        <span>Visual Analytics Charts and Graphs (as shown above)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
