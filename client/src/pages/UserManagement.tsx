@@ -503,11 +503,13 @@ export default function UserManagement() {
   // Get password for user
   const getPasswordForUser = (username: string) => {
     const passwordMap: Record<string, string> = {
-      'admin': 'admin123',
       'maged.morgan': 'maged2024!',
-      'sarah.johnson': 'sarah789',
-      'mike.smith': 'mike456',
-      'lisa.brown': 'lisa321'
+      'michael.morgan': 'michael123',
+      'maged.youssef': 'maged456',
+      'youssef.abdelmaseeh': 'youssef789',
+      'hany.fakhry': 'hany321',
+      'mohamed.mahmoud': 'mohamed654',
+      'anna.simon': 'anna987'
     };
     return passwordMap[username] || 'password123';
   };
