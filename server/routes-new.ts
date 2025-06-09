@@ -650,7 +650,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate total sales and top buyers
       const salesStats = await db.select({
         totalQuantitySold: sum(saleItems.quantity),
-        totalRevenue: sum(saleItems.totalAmount),
+        totalRevenue: sum(saleItems.total),
         salesCount: count(saleItems.id)
       })
       .from(saleItems)
@@ -661,7 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerName: customers.name,
         customerCompany: customers.company,
         totalQuantity: sum(saleItems.quantity),
-        totalSpent: sum(saleItems.totalAmount),
+        totalSpent: sum(saleItems.total),
         lastPurchase: max(sales.date)
       })
       .from(saleItems)
@@ -669,7 +669,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .leftJoin(customers, eq(sales.customerId, customers.id))
       .where(eq(saleItems.productId, productId))
       .groupBy(customers.id, customers.name, customers.company)
-      .orderBy(desc(sum(saleItems.totalAmount)))
+      .orderBy(desc(sum(saleItems.total)))
       .limit(5);
 
       // Calculate days since/until expiry
@@ -706,19 +706,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all products
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
-      let productsQuery = db.select().from(products);
-      
       const { categoryId, status } = req.query;
       
+      let whereConditions = [];
       if (categoryId) {
-        productsQuery = productsQuery.where(eq(products.categoryId, Number(categoryId)));
-      } 
-      
-      if (status) {
-        productsQuery = productsQuery.where(eq(products.status, status as string));
+        whereConditions.push(eq(products.categoryId, Number(categoryId)));
       }
-      
-      const result = await productsQuery;
+      if (status) {
+        whereConditions.push(eq(products.status, status as string));
+      }
+
+      const result = await db
+        .select()
+        .from(products)
+        .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
       res.json(result);
     } catch (error) {
       console.error("Products error:", error);
@@ -762,7 +763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Insert into database
-      const [product] = await db.insert(products).values(validatedData).returning();
+      const [product] = await db.insert(products).values([validatedData]).returning();
       res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {

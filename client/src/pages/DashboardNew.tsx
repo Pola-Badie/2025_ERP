@@ -396,7 +396,11 @@ const DashboardNew = () => {
           <CardContent>
             <div className="space-y-3">
               {dashboardData?.expiringProducts?.map((product: Product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                <div 
+                  key={product.id} 
+                  className="flex items-center justify-between p-3 bg-orange-50 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                  onClick={() => setSelectedProductId(product.id)}
+                >
                   <div>
                     <p className="font-medium text-sm">{product.name}</p>
                     <p className="text-xs text-muted-foreground">{product.drugName}</p>
