@@ -862,7 +862,7 @@ export default function UserManagement() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="font-mono">
-                              {showPasswords[user.id] ? (user.password || "********") : "********"}
+                              {showPasswords[user.id] ? getPasswordForUser(user.username) : "••••••••"}
                             </span>
                             <Button
                               variant="ghost"
