@@ -432,7 +432,11 @@ const DashboardNew = () => {
           <CardContent>
             <div className="space-y-3">
               {dashboardData?.lowStockProducts?.map((product: Product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div 
+                  key={product.id} 
+                  className="flex items-center justify-between p-3 bg-red-50 rounded-lg cursor-pointer hover:bg-red-100 transition-colors"
+                  onClick={() => setSelectedProductId(product.id)}
+                >
                   <div>
                     <p className="font-medium text-sm">{product.name}</p>
                     <p className="text-xs text-muted-foreground">{product.drugName}</p>
@@ -452,6 +456,194 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Product Details Dialog */}
+      <Dialog open={!!selectedProductId} onOpenChange={() => setSelectedProductId(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-xl font-semibold">Product Details</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedProductId(null)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {isLoadingDetails ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Loading product details...</span>
+            </div>
+          ) : productDetails ? (
+            <div className="space-y-6">
+              {/* Basic Product Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{productDetails.name}</h3>
+                    <p className="text-gray-600">{productDetails.drugName}</p>
+                    <p className="text-sm text-gray-500">SKU: {productDetails.sku}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Cost Price</p>
+                      <p className="text-lg font-semibold">EGP {productDetails.costPrice}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Selling Price</p>
+                      <p className="text-lg font-semibold text-green-600">EGP {productDetails.sellingPrice}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Current Stock</p>
+                      <p className="text-lg font-semibold">{productDetails.quantity} {productDetails.unit}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Status</p>
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        productDetails.status === 'active' ? 'bg-green-100 text-green-800' :
+                        productDetails.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {productDetails.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Expiry Information</p>
+                    {productDetails.expiryInfo ? (
+                      <div className="mt-2">
+                        <p className="text-sm">Expires: {productDetails.expiryDate}</p>
+                        <p className={`text-sm ${
+                          productDetails.expiryInfo.daysUntilExpiry < 30 ? 'text-red-600' :
+                          productDetails.expiryInfo.daysUntilExpiry < 90 ? 'text-yellow-600' :
+                          'text-green-600'
+                        }`}>
+                          {productDetails.expiryInfo.daysUntilExpiry > 0 
+                            ? `${productDetails.expiryInfo.daysUntilExpiry} days until expiry`
+                            : `Expired ${Math.abs(productDetails.expiryInfo.daysUntilExpiry)} days ago`
+                          }
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No expiry date set</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Location Details</p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm">Warehouse: {productDetails.warehouse || 'Main Warehouse'}</p>
+                      <p className="text-sm">Shelf: {productDetails.shelfLocation || 'Not specified'}</p>
+                      <p className="text-sm">Batch Number: {productDetails.batchNumber || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Sales Statistics */}
+              {productDetails.salesStats && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Sales Performance</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-blue-600">Total Quantity Sold</p>
+                      <p className="text-2xl font-bold text-blue-900">{productDetails.salesStats.totalQuantitySold || 0}</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-green-600">Total Revenue</p>
+                      <p className="text-2xl font-bold text-green-900">EGP {productDetails.salesStats.totalRevenue || 0}</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <p className="text-sm font-medium text-purple-600">Number of Sales</p>
+                      <p className="text-2xl font-bold text-purple-900">{productDetails.salesStats.salesCount || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Top Buyers */}
+              {productDetails.topBuyers && productDetails.topBuyers.length > 0 && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Top Buyers</h4>
+                  <div className="space-y-3">
+                    {productDetails.topBuyers.map((buyer, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-sm">{buyer.customerName}</p>
+                          {buyer.customerCompany && (
+                            <p className="text-xs text-gray-500">{buyer.customerCompany}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">EGP {buyer.totalSpent}</p>
+                          <p className="text-xs text-gray-500">{buyer.totalQuantity} units</p>
+                          <p className="text-xs text-gray-500">Last: {buyer.lastPurchase}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Sales History */}
+              {productDetails.salesHistory && productDetails.salesHistory.length > 0 && (
+                <div className="border-t pt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Sales History</h4>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Invoice</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {productDetails.salesHistory.slice(0, 5).map((sale, index) => (
+                          <tr key={index}>
+                            <td className="px-4 py-2 text-sm">{sale.invoiceNumber}</td>
+                            <td className="px-4 py-2 text-sm">{sale.date}</td>
+                            <td className="px-4 py-2 text-sm">
+                              <div>
+                                <p>{sale.customerName}</p>
+                                {sale.customerCompany && (
+                                  <p className="text-xs text-gray-500">{sale.customerCompany}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-2 text-sm">{sale.quantity}</td>
+                            <td className="px-4 py-2 text-sm">EGP {sale.unitPrice}</td>
+                            <td className="px-4 py-2 text-sm font-medium">EGP {sale.totalAmount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Product details not available</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Enhanced Modal Dialogs for Expanded Charts */}
       <Dialog open={expandedChart === 'sales-overview'} onOpenChange={() => setExpandedChart(null)}>
