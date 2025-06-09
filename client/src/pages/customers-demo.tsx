@@ -7,12 +7,14 @@ import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Loader2, ChevronLeft, ChevronRight, Users, Building, DollarSign, TrendingUp, Target, MapPin, BarChart3, FileText, PieChart, Activity } from 'lucide-react';
+import { Search, Plus, Loader2, ChevronLeft, ChevronRight, Users, Building, DollarSign, TrendingUp, Target, MapPin, BarChart3, FileText, PieChart, Activity, Download } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { CSVExport } from '@/components/csv/CSVExport';
 import { CSVImport } from '@/components/csv/CSVImport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 // Define the API Customer type based on the response
 interface ApiCustomer {
@@ -229,6 +231,146 @@ const CustomersDemo: React.FC = () => {
   
   const mostCommonSector = Object.keys(topSector).length > 0 ? 
     Object.entries(topSector).sort(([,a], [,b]) => b - a)[0][0] : 'Healthcare';
+
+  // PDF Export Function
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(51, 65, 85); // slate-700
+    doc.text('Customer Reports & Analytics', margin, 30);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text(`Generated on ${new Date().toLocaleDateString()}`, margin, 40);
+    
+    let yPosition = 60;
+    
+    // Summary Statistics
+    doc.setFontSize(16);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Summary Statistics', margin, yPosition);
+    yPosition += 15;
+    
+    const summaryData = [
+      ['Total Customers', (customerReports?.summary?.totalCustomers || totalCustomers).toString()],
+      ['Total Revenue', customerReports?.summary?.totalRevenue || '$2.4M'],
+      ['Average Order Value', customerReports?.summary?.averageOrderValue || '$45K'],
+      ['Repeat Customers', customerReports?.summary?.repeatCustomers || '78%']
+    ];
+    
+    (doc as any).autoTable({
+      startY: yPosition,
+      head: [['Metric', 'Value']],
+      body: summaryData,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 }, // blue-500
+      margin: { left: margin, right: margin }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 20;
+    
+    // Customer Distribution by Sector
+    doc.setFontSize(16);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Customer Distribution by Sector', margin, yPosition);
+    yPosition += 15;
+    
+    const sectorData = customerReports?.sectorDistribution ? 
+      Object.entries(customerReports.sectorDistribution).map(([sector, count]) => [sector, count.toString()]) :
+      Object.entries(topSector).map(([sector, count]) => [sector, count.toString()]);
+    
+    (doc as any).autoTable({
+      startY: yPosition,
+      head: [['Sector', 'Customers']],
+      body: sectorData,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [34, 197, 94], textColor: 255 }, // green-500
+      margin: { left: margin, right: margin }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 20;
+    
+    // Top Customers by Revenue
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 30;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Top Customers by Revenue', margin, yPosition);
+    yPosition += 15;
+    
+    const topCustomersData = customerReports?.topCustomers ? 
+      customerReports.topCustomers.slice(0, 5).map((customer: any) => [customer.name, `$${customer.revenue}`]) :
+      customerData.slice(0, 5).map((customer) => [customer.name, `$${((15000 + customer.id * 3200) / 1000).toFixed(0)}K`]);
+    
+    (doc as any).autoTable({
+      startY: yPosition,
+      head: [['Customer Name', 'Revenue']],
+      body: topCustomersData,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [168, 85, 247], textColor: 255 }, // purple-500
+      margin: { left: margin, right: margin }
+    });
+    
+    yPosition = (doc as any).lastAutoTable.finalY + 20;
+    
+    // Geographic Distribution
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 30;
+    }
+    
+    doc.setFontSize(16);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Geographic Distribution', margin, yPosition);
+    yPosition += 15;
+    
+    const geoData = customerReports?.geographic ? 
+      Object.entries(customerReports.geographic).map(([region, count]) => [region, count.toString()]) :
+      [
+        ['Cairo Region', Math.floor(totalCustomers * 0.35).toString()],
+        ['Alexandria Region', Math.floor(totalCustomers * 0.25).toString()],
+        ['Giza Region', Math.floor(totalCustomers * 0.20).toString()],
+        ['Other Regions', Math.floor(totalCustomers * 0.20).toString()]
+      ];
+    
+    (doc as any).autoTable({
+      startY: yPosition,
+      head: [['Region', 'Customers']],
+      body: geoData,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [99, 102, 241], textColor: 255 }, // indigo-500
+      margin: { left: margin, right: margin }
+    });
+    
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(156, 163, 175); // gray-400
+      doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+      doc.text('Pharmaceutical ERP System', margin, doc.internal.pageSize.height - 10);
+    }
+    
+    // Save the PDF
+    doc.save('customer-reports-analytics.pdf');
+    
+    toast({
+      title: "PDF Exported",
+      description: "Customer reports have been exported to PDF successfully.",
+    });
+  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -513,9 +655,18 @@ const CustomersDemo: React.FC = () => {
           <TabsContent value="reports" className="flex-1 flex flex-col overflow-hidden mt-0">
             {/* Customer Reports Section */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Customer Reports & Analytics</h2>
-                <p className="text-slate-600">Comprehensive reports and insights about customer performance</p>
+              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">Customer Reports & Analytics</h2>
+                  <p className="text-slate-600">Comprehensive reports and insights about customer performance</p>
+                </div>
+                <Button 
+                  onClick={exportToPDF}
+                  className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 w-full sm:w-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  Export PDF
+                </Button>
               </div>
 
               {reportsLoading ? (
