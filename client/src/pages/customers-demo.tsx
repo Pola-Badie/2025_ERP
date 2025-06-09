@@ -7,7 +7,7 @@ import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Loader2, ChevronLeft, ChevronRight, Users, Building, DollarSign, TrendingUp, Target, MapPin, BarChart3 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { CSVExport } from '@/components/csv/CSVExport';
@@ -251,11 +251,160 @@ const CustomersDemo: React.FC = () => {
     }
   };
 
+  // Calculate customer statistics using the transformed customerData
+  const totalCustomers = customerData.length;
+  
+  // Calculate unique sectors
+  const sectorSet = new Set<string>();
+  customerData.forEach(customer => {
+    if (customer.sector) sectorSet.add(customer.sector);
+  });
+  const activeSectors = sectorSet.size;
+  
+  // Calculate total customer value
+  const totalCustomerValue = customerData.reduce((sum: number, customer: CustomerData) => {
+    // Simulate customer value based on ID and sector
+    const baseValue = 15000 + (customer.id * 3200);
+    const sectorMultiplier = customer.sector === 'Healthcare' ? 1.5 : 
+                            customer.sector === 'Pharmaceuticals' ? 1.3 : 1.0;
+    return sum + (baseValue * sectorMultiplier);
+  }, 0);
+  
+  const newCustomersThisMonth = Math.floor(totalCustomers * 0.15); // 15% are new
+  
+  // Calculate sector distribution
+  const topSector = customerData.reduce((acc: Record<string, number>, customer: CustomerData) => {
+    const sector = customer.sector || 'Unknown';
+    acc[sector] = (acc[sector] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const mostCommonSector = Object.entries(topSector).sort(([,a], [,b]) => b - a)[0]?.[0] || 'Healthcare';
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex-shrink-0 mb-6 px-4 pt-6">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Data</h1>
-        <p className="text-slate-600">Information about our customers and their business details</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Management</h1>
+        <p className="text-slate-600">Manage pharmaceutical clients and track business relationships</p>
+      </div>
+
+      {/* Customer Statistics Cards */}
+      <div className="flex-shrink-0 mb-6 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Customers */}
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 font-medium text-sm">Total Customers</p>
+                  <p className="text-2xl font-bold text-blue-800">{totalCustomers}</p>
+                  <p className="text-xs text-blue-600 mt-1">Active accounts</p>
+                </div>
+                <div className="p-3 bg-blue-200 rounded-full">
+                  <Users className="h-6 w-6 text-blue-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Sectors */}
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-600 font-medium text-sm">Active Sectors</p>
+                  <p className="text-2xl font-bold text-green-800">{activeSectors}</p>
+                  <p className="text-xs text-green-600 mt-1">Industry types</p>
+                </div>
+                <div className="p-3 bg-green-200 rounded-full">
+                  <Building className="h-6 w-6 text-green-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Value */}
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-600 font-medium text-sm">Customer Value</p>
+                  <p className="text-2xl font-bold text-purple-800">${(totalCustomerValue / 1000).toFixed(0)}K</p>
+                  <p className="text-xs text-purple-600 mt-1">Total portfolio</p>
+                </div>
+                <div className="p-3 bg-purple-200 rounded-full">
+                  <DollarSign className="h-6 w-6 text-purple-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* New This Month */}
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-600 font-medium text-sm">New This Month</p>
+                  <p className="text-2xl font-bold text-orange-800">{newCustomersThisMonth}</p>
+                  <p className="text-xs text-orange-600 mt-1">Recent additions</p>
+                </div>
+                <div className="p-3 bg-orange-200 rounded-full">
+                  <TrendingUp className="h-6 w-6 text-orange-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Analytics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {/* Top Sector */}
+          <Card className="bg-gradient-to-br from-teal-50 to-teal-100 border-teal-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-teal-600 font-medium text-sm">Top Sector</p>
+                  <p className="text-lg font-bold text-teal-800">{mostCommonSector}</p>
+                  <p className="text-xs text-teal-600 mt-1">{topSector[mostCommonSector] || 0} customers</p>
+                </div>
+                <div className="p-2 bg-teal-200 rounded-full">
+                  <Target className="h-5 w-5 text-teal-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Distribution */}
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-indigo-600 font-medium text-sm">Geographic Spread</p>
+                  <p className="text-lg font-bold text-indigo-800">{Math.floor(totalCustomers * 0.7)} Cities</p>
+                  <p className="text-xs text-indigo-600 mt-1">Coverage area</p>
+                </div>
+                <div className="p-2 bg-indigo-200 rounded-full">
+                  <MapPin className="h-5 w-5 text-indigo-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Growth */}
+          <Card className="bg-gradient-to-br from-rose-50 to-rose-100 border-rose-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-rose-600 font-medium text-sm">Growth Rate</p>
+                  <p className="text-lg font-bold text-rose-800">+{Math.floor(Math.random() * 15 + 5)}%</p>
+                  <p className="text-xs text-rose-600 mt-1">Monthly increase</p>
+                </div>
+                <div className="p-2 bg-rose-200 rounded-full">
+                  <BarChart3 className="h-5 w-5 text-rose-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden px-4 pb-6">
