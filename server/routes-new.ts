@@ -246,17 +246,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users
   app.get("/api/users", async (_req: Request, res: Response) => {
     try {
-      const allUsers = await db.select({
-        id: users.id,
-        username: users.username,
-        password: users.password,
-        name: users.name,
-        email: users.email,
-        role: users.role,
-        status: users.status,
-        avatar: users.avatar,
-        createdAt: users.createdAt
-      }).from(users);
+      const result = await db.execute(sql`SELECT id, username, password, name, email, role, status, avatar, created_at, updated_at FROM users ORDER BY id`);
+      const allUsers = result.rows.map(row => ({
+        id: row.id,
+        username: row.username,
+        password: row.password,
+        name: row.name,
+        email: row.email,
+        role: row.role,
+        status: row.status,
+        avatar: row.avatar,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
       
       res.json(allUsers);
     } catch (error) {
