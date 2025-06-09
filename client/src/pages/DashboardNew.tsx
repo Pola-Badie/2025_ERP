@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Users, 
@@ -73,22 +72,6 @@ const salesData = [
 
 const DashboardNew = () => {
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
-
-  // Function to determine expiry status
-  const getExpiryStatus = (expiryDate: string) => {
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    const timeDiff = expiry.getTime() - today.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-    if (daysDiff < 0) {
-      return { status: 'Expired', color: 'bg-red-500', textColor: 'text-red-700' };
-    } else if (daysDiff <= 30) {
-      return { status: 'Near Expiry', color: 'bg-orange-500', textColor: 'text-orange-700' };
-    } else {
-      return { status: 'Good', color: 'bg-green-500', textColor: 'text-green-700' };
-    }
-  };
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
@@ -405,25 +388,18 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {dashboardData?.expiringProducts?.map((product: Product) => {
-                const expiryStatus = getExpiryStatus(product.expiryDate);
-                const bgColorClass = expiryStatus.status === 'Expired' ? 'bg-red-50' : 'bg-orange-50';
-                
-                return (
-                  <div key={product.id} className={`flex items-center justify-between p-3 ${bgColorClass} rounded-lg`}>
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.drugName}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-xs ${expiryStatus.textColor} font-medium`}>
-                        {expiryStatus.status}: {product.expiryDate}
-                      </p>
-                      <p className="text-xs">Qty: {product.quantity}</p>
-                    </div>
+              {dashboardData?.expiringProducts?.map((product: Product) => (
+                <div key={product.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-sm">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">{product.drugName}</p>
                   </div>
-                );
-              }) || (
+                  <div className="text-right">
+                    <p className="text-xs text-orange-600">Expires: {product.expiryDate}</p>
+                    <p className="text-xs">Qty: {product.quantity}</p>
+                  </div>
+                </div>
+              )) || (
                 <div className="text-center text-gray-500 py-4">
                   <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                   <p>No products expiring soon</p>
