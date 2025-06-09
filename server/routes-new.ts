@@ -18,7 +18,7 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import * as cron from "node-cron";
-import { eq, and, gte, lte, desc, count, sum, sql } from "drizzle-orm";
+import { eq, and, gte, lte, desc, count, sum, sql, max } from "drizzle-orm";
 
 // Set up multer for file uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -617,6 +617,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Product Endpoints =============
+  
+  // Get detailed product information including sales and customer data
+  app.get("/api/products/:id/details", async (req: Request, res: Response) => {
+    try {
+      const productId = parseInt(req.params.id);
+      
+      // Get product details
+      const [product] = await db.select().from(products).where(eq(products.id, productId));
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Get sales data for this product
+      const salesHistory = await db.select({
+        saleId: sales.id,
+        invoiceNumber: sales.invoiceNumber,
+        date: sales.date,
+        quantity: saleItems.quantity,
+        unitPrice: saleItems.unitPrice,
+        totalAmount: saleItems.total,
+        customerName: customers.name,
+        customerCompany: customers.company
+      })
+      .from(saleItems)
+      .innerJoin(sales, eq(saleItems.saleId, sales.id))
+      .leftJoin(customers, eq(sales.customerId, customers.id))
+      .where(eq(saleItems.productId, productId))
+      .orderBy(desc(sales.date))
+      .limit(10);
+
+      // Calculate total sales and top buyers
+      const salesStats = await db.select({
+        totalQuantitySold: sum(saleItems.quantity),
+        totalRevenue: sum(saleItems.totalAmount),
+        salesCount: count(saleItems.id)
+      })
+      .from(saleItems)
+      .where(eq(saleItems.productId, productId));
+
+      // Get top buyers
+      const topBuyers = await db.select({
+        customerName: customers.name,
+        customerCompany: customers.company,
+        totalQuantity: sum(saleItems.quantity),
+        totalSpent: sum(saleItems.totalAmount),
+        lastPurchase: max(sales.date)
+      })
+      .from(saleItems)
+      .innerJoin(sales, eq(saleItems.saleId, sales.id))
+      .leftJoin(customers, eq(sales.customerId, customers.id))
+      .where(eq(saleItems.productId, productId))
+      .groupBy(customers.id, customers.name, customers.company)
+      .orderBy(desc(sum(saleItems.totalAmount)))
+      .limit(5);
+
+      // Calculate days since/until expiry
+      let expiryInfo = null;
+      if (product.expiryDate) {
+        const today = new Date();
+        const expiry = new Date(product.expiryDate);
+        const diffTime = expiry.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        expiryInfo = {
+          expiryDate: product.expiryDate,
+          daysUntilExpiry: diffDays,
+          isExpired: diffDays < 0,
+          isNearExpiry: diffDays > 0 && diffDays <= 30
+        };
+      }
+
+      res.json({
+        product: {
+          ...product,
+          expiryInfo
+        },
+        salesHistory,
+        salesStats: salesStats[0] || { totalQuantitySold: 0, totalRevenue: 0, salesCount: 0 },
+        topBuyers
+      });
+    } catch (error) {
+      console.error("Product details error:", error);
+      res.status(500).json({ message: "Failed to fetch product details" });
+    }
+  });
   
   // Get all products
   app.get("/api/products", async (req: Request, res: Response) => {

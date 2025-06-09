@@ -72,10 +72,17 @@ const salesData = [
 
 const DashboardNew = () => {
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
     queryKey: ['/api/dashboard/summary'],
+  });
+
+  // Fetch detailed product information when a product is selected
+  const { data: productDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ['/api/products', selectedProductId, 'details'],
+    enabled: !!selectedProductId,
   });
 
   const salesDistributionData = [
