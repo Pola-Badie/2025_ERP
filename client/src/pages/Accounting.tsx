@@ -173,6 +173,7 @@ const Accounting: React.FC = () => {
   const [isInvoiceViewOpen, setIsInvoiceViewOpen] = useState(false);
   const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isPendingPurchasesOpen, setIsPendingPurchasesOpen] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
   const [uploadedReceipts, setUploadedReceipts] = useState<Array<{
     file: File;
@@ -4741,51 +4742,62 @@ const Accounting: React.FC = () => {
               <CardDescription>Manage purchase records, suppliers, and inventory-related accounting</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 flex flex-wrap gap-2">
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="supplier" className="whitespace-nowrap">Supplier:</Label>
-                  <Select>
-                    <SelectTrigger id="supplier" className="w-[180px]">
-                      <SelectValue placeholder="All suppliers" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Suppliers</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="mb-4 flex flex-wrap gap-2 items-center justify-between">
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="supplier" className="whitespace-nowrap">Supplier:</Label>
+                    <Select>
+                      <SelectTrigger id="supplier" className="w-[180px]">
+                        <SelectValue placeholder="All suppliers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Suppliers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="payment-method" className="whitespace-nowrap">Payment Method:</Label>
+                    <Select>
+                      <SelectTrigger id="payment-method" className="w-[180px]">
+                        <SelectValue placeholder="All methods" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Methods</SelectItem>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="credit">Credit</SelectItem>
+                        <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="purchase-date-range" className="whitespace-nowrap">Date Range:</Label>
+                    <Select defaultValue="this-month">
+                      <SelectTrigger id="purchase-date-range" className="w-[180px]">
+                        <SelectValue placeholder="Select period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="this-week">This Week</SelectItem>
+                        <SelectItem value="this-month">This Month</SelectItem>
+                        <SelectItem value="last-month">Last Month</SelectItem>
+                        <SelectItem value="this-quarter">This Quarter</SelectItem>
+                        <SelectItem value="this-year">This Year</SelectItem>
+                        <SelectItem value="custom">Custom Range</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="payment-method" className="whitespace-nowrap">Payment Method:</Label>
-                  <Select>
-                    <SelectTrigger id="payment-method" className="w-[180px]">
-                      <SelectValue placeholder="All methods" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Methods</SelectItem>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="credit">Credit</SelectItem>
-                      <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Label htmlFor="purchase-date-range" className="whitespace-nowrap">Date Range:</Label>
-                  <Select defaultValue="this-month">
-                    <SelectTrigger id="purchase-date-range" className="w-[180px]">
-                      <SelectValue placeholder="Select period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="this-week">This Week</SelectItem>
-                      <SelectItem value="this-month">This Month</SelectItem>
-                      <SelectItem value="last-month">Last Month</SelectItem>
-                      <SelectItem value="this-quarter">This Quarter</SelectItem>
-                      <SelectItem value="this-year">This Year</SelectItem>
-                      <SelectItem value="custom">Custom Range</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Button 
+                  onClick={() => setIsPendingPurchasesOpen(true)}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  size="sm"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Pending Purchases
+                </Button>
               </div>
               
               <Table>
@@ -9859,6 +9871,359 @@ const Accounting: React.FC = () => {
             </Button>
             <Button onClick={processRefund} className="bg-red-600 hover:bg-red-700">
               Process Refund
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pending Purchases Dialog */}
+      <Dialog open={isPendingPurchasesOpen} onOpenChange={setIsPendingPurchasesOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-gray-800">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Clock className="h-6 w-6 text-orange-600" />
+              </div>
+              Pending Purchases from Procurement
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 mt-2">
+              Purchase orders forwarded from procurement department awaiting financial processing and approval
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-6">
+            {/* Pending Purchase Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-600 font-medium">Pending Orders</p>
+                    <p className="text-2xl font-bold text-orange-800">12</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-orange-500" />
+                </div>
+                <p className="text-xs text-orange-600 mt-1">Awaiting approval</p>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-600 font-medium">Total Value</p>
+                    <p className="text-2xl font-bold text-blue-800">$485,200</p>
+                  </div>
+                  <DollarSign className="w-8 h-8 text-blue-500" />
+                </div>
+                <p className="text-xs text-blue-600 mt-1">Pending approval</p>
+              </div>
+              
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-red-600 font-medium">Urgent Orders</p>
+                    <p className="text-2xl font-bold text-red-800">3</p>
+                  </div>
+                  <AlertCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <p className="text-xs text-red-600 mt-1">Due within 48hrs</p>
+              </div>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-600 font-medium">Avg Processing</p>
+                    <p className="text-2xl font-bold text-green-800">2.3</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-green-500" />
+                </div>
+                <p className="text-xs text-green-600 mt-1">Days to approve</p>
+              </div>
+            </div>
+
+            {/* Pending Purchases Table */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Purchase Orders Awaiting Approval</h3>
+                <div className="flex items-center space-x-2">
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="Filter by priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Orders</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="low">Low Priority</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox 
+                        id="select-all-pending"
+                        aria-label="Select all pending purchases"
+                      />
+                    </TableHead>
+                    <TableHead>PO Number</TableHead>
+                    <TableHead>Supplier</TableHead>
+                    <TableHead>Date Submitted</TableHead>
+                    <TableHead>ETA Number</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Payment Terms</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox 
+                        id="select-po-001"
+                        aria-label="Select PO-2025-001"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">PO-2025-001</div>
+                      <div className="text-xs text-gray-500">From Procurement</div>
+                    </TableCell>
+                    <TableCell>Global Pharma Solutions</TableCell>
+                    <TableCell>Jan 15, 2025</TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011501</code>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">$125,400.00</TableCell>
+                    <TableCell>
+                      <Badge className="bg-red-100 text-red-800">Urgent</Badge>
+                    </TableCell>
+                    <TableCell>Net 30</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-green-600"
+                          title="Approve Purchase"
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-red-600"
+                          title="Reject Purchase"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox 
+                        id="select-po-002"
+                        aria-label="Select PO-2025-002"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">PO-2025-002</div>
+                      <div className="text-xs text-gray-500">From Procurement</div>
+                    </TableCell>
+                    <TableCell>Medical Supplies Co.</TableCell>
+                    <TableCell>Jan 14, 2025</TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011402</code>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">$78,900.00</TableCell>
+                    <TableCell>
+                      <Badge className="bg-orange-100 text-orange-800">Normal</Badge>
+                    </TableCell>
+                    <TableCell>Net 45</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-green-600"
+                          title="Approve Purchase"
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-red-600"
+                          title="Reject Purchase"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox 
+                        id="select-po-003"
+                        aria-label="Select PO-2025-003"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">PO-2025-003</div>
+                      <div className="text-xs text-gray-500">From Procurement</div>
+                    </TableCell>
+                    <TableCell>ChemTech Industries</TableCell>
+                    <TableCell>Jan 13, 2025</TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011303</code>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">$234,680.00</TableCell>
+                    <TableCell>
+                      <Badge className="bg-red-100 text-red-800">Urgent</Badge>
+                    </TableCell>
+                    <TableCell>Cash on Delivery</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-green-600"
+                          title="Approve Purchase"
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-red-600"
+                          title="Reject Purchase"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox 
+                        id="select-po-004"
+                        aria-label="Select PO-2025-004"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">PO-2025-004</div>
+                      <div className="text-xs text-gray-500">From Procurement</div>
+                    </TableCell>
+                    <TableCell>Lab Equipment Ltd.</TableCell>
+                    <TableCell>Jan 12, 2025</TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011204</code>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">$46,220.00</TableCell>
+                    <TableCell>
+                      <Badge className="bg-blue-100 text-blue-800">Low</Badge>
+                    </TableCell>
+                    <TableCell>Net 15</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-green-600"
+                          title="Approve Purchase"
+                        >
+                          <CheckCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          title="View Details"
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 text-red-600"
+                          title="Reject Purchase"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Bulk Actions */}
+            <div className="mt-6 flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="text-sm text-gray-600">
+                Select purchases to perform bulk actions
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-green-600 border-green-300 hover:bg-green-50"
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve Selected
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-red-600 border-red-300 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Reject Selected
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Selected
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPendingPurchasesOpen(false)}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
