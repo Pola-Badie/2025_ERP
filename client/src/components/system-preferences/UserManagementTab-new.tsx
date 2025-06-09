@@ -146,16 +146,16 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
 
   // Get password for user (mock function - in real app would fetch from secure endpoint)
   const getPasswordForUser = (username: string) => {
-    const passwords: Record<string, string> = {
-      'maged.morgan': 'Admin123!',
-      'michael.morgan': 'Manager456@',
-      'maged.youssef': 'Staff789#',
-      'youssef.abdelmaseeh': 'Staff321$',
-      'hany.fakhry': 'Staff654%',
-      'mohamed.mahmoud': 'Staff987^',
-      'anna.simon': 'Staff147&'
+    const passwordMap: Record<string, string> = {
+      'maged.morgan': 'maged2024!',
+      'michael.morgan': 'michael123',
+      'maged.youssef': 'maged456',
+      'youssef.abdelmaseeh': 'youssef789',
+      'hany.fakhry': 'hany321',
+      'mohamed.mahmoud': 'mohamed654',
+      'anna.simon': 'anna987'
     };
-    return passwords[username] || '••••••••';
+    return passwordMap[username] || 'password123';
   };
 
   // Fetch users
