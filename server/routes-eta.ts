@@ -154,7 +154,7 @@ export function registerETARoutes(app: Express) {
       // Format invoice data for ETA submission
       const etaInvoicePayload = {
         issuer: {
-          name: "PharmaOverseas Ltd",
+          name: "Premier Ltd",
           id: "123456789", // Tax registration number
           type: "B" // Business type
         },
@@ -165,7 +165,7 @@ export function registerETARoutes(app: Express) {
         documentType: "I", // Invoice
         documentTypeVersion: "1.0",
         dateTimeIssued: new Date(invoiceData.date).toISOString(),
-        taxpayerActivityCode: "4646", // Pharmaceutical wholesale
+        taxpayerActivityCode: "4646", // Chemical wholesale
         internalID: invoiceData.invoiceNumber,
         purchaseOrderReference: invoiceData.poReference || "",
         salesOrderReference: invoiceData.soReference || "",
