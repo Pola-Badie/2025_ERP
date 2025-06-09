@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2, ShieldCheck } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil, UserX, Check, X, Download, Settings, Trash2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
@@ -134,6 +134,29 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const [selectedUserForPermissions, setSelectedUserForPermissions] = useState<any>(null);
   const [selectedPermission, setSelectedPermission] = useState<any>(null);
   const [modulePermissionFeatures, setModulePermissionFeatures] = useState<Record<string, boolean>>({});
+  const [passwordVisibility, setPasswordVisibility] = useState<Record<number, boolean>>({});
+
+  // Toggle password visibility for a specific user
+  const togglePasswordVisibility = (userId: number) => {
+    setPasswordVisibility(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  // Get password for user (mock function - in real app would fetch from secure endpoint)
+  const getPasswordForUser = (username: string) => {
+    const passwords: Record<string, string> = {
+      'maged.morgan': 'Admin123!',
+      'michael.morgan': 'Manager456@',
+      'maged.youssef': 'Staff789#',
+      'youssef.abdelmaseeh': 'Staff321$',
+      'hany.fakhry': 'Staff654%',
+      'mohamed.mahmoud': 'Staff987^',
+      'anna.simon': 'Staff147&'
+    };
+    return passwords[username] || '••••••••';
+  };
 
   // Fetch users
   const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery({
@@ -426,6 +449,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               <TableHead>Username</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Password</TableHead>
               <TableHead>Role</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -433,7 +457,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
                   No users found. Add your first user to get started.
                 </TableCell>
               </TableRow>
