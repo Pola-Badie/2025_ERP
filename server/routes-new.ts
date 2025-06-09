@@ -689,10 +689,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.json({
-        product: {
-          ...product,
-          expiryInfo
-        },
+        ...product,
+        drugName: product.drugName,
+        unit: product.unitOfMeasure,
+        productType: product.productType,
+        expiryInfo,
+        expiryDate: product.expiryDate,
         salesHistory,
         salesStats: salesStats[0] || { totalQuantitySold: 0, totalRevenue: 0, salesCount: 0 },
         topBuyers

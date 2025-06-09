@@ -80,7 +80,7 @@ const DashboardNew = () => {
   });
 
   // Fetch detailed product information when a product is selected
-  const { data: productDetails, isLoading: isLoadingDetails } = useQuery({
+  const { data: productDetails, isLoading: isLoadingDetails } = useQuery<any>({
     queryKey: ['/api/products', selectedProductId, 'details'],
     enabled: !!selectedProductId,
   });
@@ -545,11 +545,11 @@ const DashboardNew = () => {
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Location Details</p>
+                    <p className="text-sm font-medium text-gray-500">Product Information</p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm">Warehouse: {productDetails.warehouse || 'Main Warehouse'}</p>
-                      <p className="text-sm">Shelf: {productDetails.shelfLocation || 'Not specified'}</p>
-                      <p className="text-sm">Batch Number: {productDetails.batchNumber || 'N/A'}</p>
+                      <p className="text-sm">Product Type: {productDetails.productType || 'Finished Product'}</p>
+                      <p className="text-sm">Manufacturer: {productDetails.manufacturer || 'Not specified'}</p>
+                      <p className="text-sm">Barcode: {productDetails.barcode || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
