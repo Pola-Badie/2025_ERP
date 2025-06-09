@@ -198,7 +198,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
                 <div
                   className={cn(
                     "flex items-center border-l-4 border-transparent hover:bg-[#26405A] cursor-pointer",
-                    isCollapsed ? "justify-center px-2 py-4" : "space-x-3 px-4 py-3",
+                    isCollapsed ? "justify-center px-2 py-4" : 
+                    language === 'ar' ? "space-x-reverse space-x-4 px-4 py-3" : "space-x-4 px-4 py-3",
                     location === item.path && "bg-[#26405A] border-l-4 border-[#3BCEAC]"
                   )}
                   onClick={() => {

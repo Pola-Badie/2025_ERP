@@ -252,33 +252,34 @@ const CustomersDemo: React.FC = () => {
   };
 
   // Calculate customer statistics using the transformed customerData
-  const totalCustomers = customerData.length;
+  const totalCustomers = customerData?.length || 0;
   
-  // Calculate unique sectors
-  const sectorSet = new Set<string>();
-  customerData.forEach(customer => {
-    if (customer.sector) sectorSet.add(customer.sector);
-  });
-  const activeSectors = sectorSet.size;
+  // Calculate unique sectors safely
+  const activeSectors = customerData ? customerData.filter(c => c.sector).reduce((acc: string[], customer) => {
+    if (!acc.includes(customer.sector)) acc.push(customer.sector);
+    return acc;
+  }, []).length : 0;
   
   // Calculate total customer value
-  const totalCustomerValue = customerData.reduce((sum: number, customer: CustomerData) => {
+  const totalCustomerValue = customerData ? customerData.reduce((sum: number, customer: CustomerData) => {
     // Simulate customer value based on ID and sector
     const baseValue = 15000 + (customer.id * 3200);
     const sectorMultiplier = customer.sector === 'Healthcare' ? 1.5 : 
                             customer.sector === 'Pharmaceuticals' ? 1.3 : 1.0;
     return sum + (baseValue * sectorMultiplier);
-  }, 0);
+  }, 0) : 0;
   
   const newCustomersThisMonth = Math.floor(totalCustomers * 0.15); // 15% are new
   
-  // Calculate sector distribution
-  const topSector = customerData.reduce((acc: Record<string, number>, customer: CustomerData) => {
+  // Calculate sector distribution safely
+  const topSector = customerData ? customerData.reduce((acc: Record<string, number>, customer: CustomerData) => {
     const sector = customer.sector || 'Unknown';
     acc[sector] = (acc[sector] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
-  const mostCommonSector = Object.entries(topSector).sort(([,a], [,b]) => b - a)[0]?.[0] || 'Healthcare';
+  }, {} as Record<string, number>) : {};
+  
+  const mostCommonSector = Object.keys(topSector).length > 0 ? 
+    Object.entries(topSector).sort(([,a], [,b]) => b - a)[0][0] : 'Healthcare';
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
