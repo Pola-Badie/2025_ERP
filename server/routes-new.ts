@@ -564,7 +564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: sum(sales.totalAmount) 
       }).from(sales).where(gte(sales.date, firstDayOfMonth));
       
-      // Get low stock products
+      // Get low stock products (exclude expired products from low stock alerts)
       const lowStockProducts = await db.select({
         id: products.id,
         name: products.name,
@@ -574,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })
       .from(products)
       .where(
-        sql`${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock'`
+        sql`(${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock') AND ${products.status} != 'expired'`
       )
       .limit(5);
       
