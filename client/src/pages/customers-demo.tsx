@@ -308,7 +308,10 @@ const CustomersDemo: React.FC = () => {
     yPosition += 15;
     
     const topCustomersData = customerReports?.topCustomers ? 
-      customerReports.topCustomers.slice(0, 5).map((customer: any) => [customer.name, `$${customer.revenue}`]) :
+      customerReports.topCustomers.slice(0, 5).map((customer: any, index: number) => [
+        customer.name, 
+        customer.revenue ? `$${customer.revenue}` : `$${((15000 + (index + 1) * 3200) / 1000).toFixed(0)}K`
+      ]) :
       customerData.slice(0, 5).map((customer) => [customer.name, `$${((15000 + customer.id * 3200) / 1000).toFixed(0)}K`]);
     
     autoTable(doc, {
@@ -783,7 +786,9 @@ const CustomersDemo: React.FC = () => {
                             customerReports.topCustomers.slice(0, 5).map((customer: any, index: number) => (
                               <div key={index} className="flex justify-between items-center">
                                 <span className="text-sm font-medium">{customer.name}</span>
-                                <span className="text-sm text-slate-600">${customer.revenue}</span>
+                                <span className="text-sm text-slate-600">
+                                  ${customer.revenue || `${((15000 + (index + 1) * 3200) / 1000).toFixed(0)}K`}
+                                </span>
                               </div>
                             )) :
                             customerData.slice(0, 5).map((customer, index) => (
