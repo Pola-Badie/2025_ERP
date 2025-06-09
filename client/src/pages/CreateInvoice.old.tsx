@@ -1183,7 +1183,7 @@ const CreateInvoice = () => {
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h2 className="text-2xl font-bold text-blue-600">INVOICE</h2>
-                <p className="text-muted-foreground">PharmaOverseas Ltd.</p>
+                <p className="text-muted-foreground">Premier Ltd.</p>
                 <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
               </div>
               <div className="text-right">

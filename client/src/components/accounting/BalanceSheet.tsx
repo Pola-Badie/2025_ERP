@@ -460,7 +460,7 @@ const BalanceSheet: React.FC = () => {
       ) : (
         <Card className="w-full" id="balance-sheet-report">
           <CardHeader className="bg-navy-700 text-white text-center py-3">
-            <CardTitle className="text-lg mb-1">PharmaOverseas</CardTitle>
+            <CardTitle className="text-lg mb-1">Premier</CardTitle>
             <CardDescription className="text-white text-sm font-medium mb-1">
               Balance Sheet
             </CardDescription>

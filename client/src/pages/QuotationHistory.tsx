@@ -687,7 +687,7 @@ const QuotationHistory = () => {
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h2 className="text-2xl font-bold text-blue-600">PHARMACEUTICAL QUOTATION</h2>
-                    <p className="text-gray-600 mt-1">PharmaOverseas Ltd.</p>
+                    <p className="text-gray-600 mt-1">Premier Ltd.</p>
                     <p className="text-gray-600">123 Pharma Street, Lagos, Nigeria</p>
                   </div>
                   <div className="text-right">

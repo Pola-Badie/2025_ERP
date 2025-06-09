@@ -94,7 +94,7 @@ const SystemPreferences: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold">System Preferences</h1>
         <p className="text-muted-foreground">
-          Configure system-wide settings and preferences for your PharmaOverseas ERP
+          Configure system-wide settings and preferences for your Premier ERP
         </p>
       </div>
 

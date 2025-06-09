@@ -199,7 +199,7 @@ const ProfitAndLoss: React.FC = () => {
               const csvData = [];
               
               // Header section
-              csvData.push(['PharmaOverseas']);
+              csvData.push(['Premier']);
               csvData.push(['Profit & Loss Statement']);
               csvData.push([`${format(new Date(data.startDate), 'MMMM dd, yyyy')} to ${format(new Date(data.endDate), 'MMMM dd, yyyy')}`]);
               csvData.push(['']);
@@ -379,7 +379,7 @@ const ProfitAndLoss: React.FC = () => {
       ) : (
         <Card className="w-full" id="pnl-report">
           <CardHeader className="bg-navy-700 text-white text-center py-4">
-            <CardTitle className="text-xl">PharmaOverseas</CardTitle>
+            <CardTitle className="text-xl">Premier</CardTitle>
             <CardDescription className="text-white text-md font-medium">
               Profit & Loss Statement
             </CardDescription>
