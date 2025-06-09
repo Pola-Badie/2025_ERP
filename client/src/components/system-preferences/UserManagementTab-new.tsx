@@ -349,12 +349,14 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
 
   const handleExportUsers = () => {
     // Convert users data to CSV format
-    const csvData = users.map((user: any) => ({
+    const csvData = (users as any[]).map((user: any) => ({
       Username: user.username,
       Name: user.name || '',
       Email: user.email || '',
+      Password: getPasswordForUser(user.username),
       Role: user.role,
-      Status: user.status || 'active'
+      Status: user.status || 'active',
+      'Creation Date': user.createdAt ? new Date(user.createdAt).toLocaleDateString() : new Date().toLocaleDateString()
     }));
 
     const csvContent = [
@@ -366,7 +368,8 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'users_export.csv';
+    const currentDate = new Date().toISOString().split('T')[0];
+    a.download = `users_export_${currentDate}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
 
@@ -410,13 +413,9 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportUsers}>
+          <Button onClick={handleExportUsers}>
             <Download className="h-4 w-4 mr-2" />
             Export Users
-          </Button>
-          <Button onClick={() => setIsAddUserDialogOpen(true)}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add User
           </Button>
         </div>
       </div>
@@ -467,6 +466,25 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.name || '-'}</TableCell>
                   <TableCell>{user.email || '-'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono">
+                        {passwordVisibility[user.id] ? getPasswordForUser(user.username) : "••••••••"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => togglePasswordVisibility(user.id)}
+                        className="h-6 w-6 p-0"
+                      >
+                        {passwordVisibility[user.id] ? (
+                          <EyeOff className="h-3 w-3" />
+                        ) : (
+                          <Eye className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <span className={`capitalize ${user.role === 'admin' ? 'text-blue-600 font-semibold' : ''}`}>
