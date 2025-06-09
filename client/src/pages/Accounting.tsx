@@ -192,12 +192,93 @@ const Accounting: React.FC = () => {
     { id: 2, name: 'Laboratory Equipment', description: 'Precision Scale, pH Meter', quantity: 2, unit: 'units', unitPrice: 850.00, total: 1700 }
   ]);
 
+  // Pending purchases state
+  const [pendingPurchases, setPendingPurchases] = useState([
+    {
+      id: 'PO-2025-001',
+      supplier: 'Global Pharma Solutions',
+      dateSubmitted: 'Jan 15, 2025',
+      etaNumber: 'ETA25011501',
+      amount: 125400.00,
+      priority: 'urgent',
+      paymentTerms: 'Net 30',
+      items: 'Active Pharmaceutical Ingredients - Ibuprofen (500kg), Paracetamol (300kg)'
+    },
+    {
+      id: 'PO-2025-002',
+      supplier: 'Medical Supplies Co.',
+      dateSubmitted: 'Jan 14, 2025',
+      etaNumber: 'ETA25011402',
+      amount: 78900.00,
+      priority: 'normal',
+      paymentTerms: 'Net 45',
+      items: 'Packaging Materials - Glass Vials (10,000), Aluminum Caps (15,000)'
+    },
+    {
+      id: 'PO-2025-003',
+      supplier: 'ChemTech Industries',
+      dateSubmitted: 'Jan 13, 2025',
+      etaNumber: 'ETA25011303',
+      amount: 234680.00,
+      priority: 'urgent',
+      paymentTerms: 'Cash on Delivery',
+      items: 'Raw Materials - Microcrystalline Cellulose (200kg), Magnesium Stearate (50kg)'
+    },
+    {
+      id: 'PO-2025-004',
+      supplier: 'Lab Equipment Ltd.',
+      dateSubmitted: 'Jan 12, 2025',
+      etaNumber: 'ETA25011204',
+      amount: 46220.00,
+      priority: 'low',
+      paymentTerms: 'Net 15',
+      items: 'Packaging & Equipment - Blister Packs (50,000), Labeling Machines (2 units)'
+    }
+  ]);
+
+  // Approved purchases state (will appear in main purchases table)
+  const [approvedPurchases, setApprovedPurchases] = useState<any[]>([]);
+
   // Payroll selection state
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [selectAllPayroll, setSelectAllPayroll] = useState(false);
 
   // Employee list for payroll
   const employees = ['select-emp-001', 'select-emp-002', 'select-emp-003', 'select-emp-004'];
+
+  // Handle purchase approval
+  const handleApprovePurchase = (purchaseId: string) => {
+    const purchaseToApprove = pendingPurchases.find(p => p.id === purchaseId);
+    if (purchaseToApprove) {
+      // Add to approved purchases list (will appear in main purchases table)
+      const approvedPurchase = {
+        ...purchaseToApprove,
+        status: 'approved',
+        approvalDate: new Date().toISOString().split('T')[0],
+        paymentMethod: purchaseToApprove.paymentTerms.includes('Cash') ? 'Cash' : 'Bank Transfer'
+      };
+      setApprovedPurchases(prev => [...prev, approvedPurchase]);
+      
+      // Remove from pending purchases
+      setPendingPurchases(prev => prev.filter(p => p.id !== purchaseId));
+      
+      toast({
+        title: "Purchase Approved",
+        description: `Purchase order ${purchaseId} has been approved and added to the purchases table.`,
+        variant: "default"
+      });
+    }
+  };
+
+  // Handle purchase rejection
+  const handleRejectPurchase = (purchaseId: string) => {
+    setPendingPurchases(prev => prev.filter(p => p.id !== purchaseId));
+    toast({
+      title: "Purchase Rejected",
+      description: `Purchase order ${purchaseId} has been rejected and removed from pending list.`,
+      variant: "destructive"
+    });
+  };
 
   // Handle select all checkbox
   const handleSelectAllPayroll = (checked: boolean) => {
@@ -5103,6 +5184,57 @@ const Accounting: React.FC = () => {
                       </div>
                     </TableCell>
                   </TableRow>
+                  {/* Display approved purchases from procurement */}
+                  {approvedPurchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                      <TableCell className="font-medium">{purchase.id}</TableCell>
+                      <TableCell className="text-blue-600 font-medium">{purchase.etaNumber}</TableCell>
+                      <TableCell>{purchase.approvalDate}</TableCell>
+                      <TableCell>{purchase.supplier}</TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm">{purchase.items.split(' - ')[0]}</div>
+                          <div className="text-xs text-muted-foreground">{purchase.items.split(' - ')[1]}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{purchase.paymentMethod}</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Approved</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">${purchase.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleEditInvoice({id: purchase.id, supplier: purchase.supplier, total: `$${purchase.amount.toLocaleString()}`, status: 'Approved', eta: purchase.etaNumber})}
+                            className="h-8 px-2 text-xs"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleViewInvoice({id: purchase.id, supplier: purchase.supplier, total: `$${purchase.amount.toLocaleString()}`, status: 'Approved', eta: purchase.etaNumber})}
+                            className="h-8 px-2 text-xs"
+                          >
+                            <FileText className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleMakePayment({id: purchase.id, supplier: purchase.supplier, total: `$${purchase.amount.toLocaleString()}`, due: `$${purchase.amount.toLocaleString()}`, eta: purchase.etaNumber})}
+                            className="h-8 px-2 text-xs"
+                          >
+                            <DollarSign className="h-3 w-3 mr-1" />
+                            Pay
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -9978,209 +10110,67 @@ const Accounting: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox 
-                        id="select-po-001"
-                        aria-label="Select PO-2025-001"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">PO-2025-001</div>
-                      <div className="text-xs text-gray-500">From Procurement</div>
-                    </TableCell>
-                    <TableCell>Global Pharma Solutions</TableCell>
-                    <TableCell>Jan 15, 2025</TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011501</code>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">$125,400.00</TableCell>
-                    <TableCell>
-                      <Badge className="bg-red-100 text-red-800">Urgent</Badge>
-                    </TableCell>
-                    <TableCell>Net 30</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-green-600"
-                          title="Approve Purchase"
-                        >
-                          <CheckCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0"
-                          title="View Details"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-red-600"
-                          title="Reject Purchase"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox 
-                        id="select-po-002"
-                        aria-label="Select PO-2025-002"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">PO-2025-002</div>
-                      <div className="text-xs text-gray-500">From Procurement</div>
-                    </TableCell>
-                    <TableCell>Medical Supplies Co.</TableCell>
-                    <TableCell>Jan 14, 2025</TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011402</code>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">$78,900.00</TableCell>
-                    <TableCell>
-                      <Badge className="bg-orange-100 text-orange-800">Normal</Badge>
-                    </TableCell>
-                    <TableCell>Net 45</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-green-600"
-                          title="Approve Purchase"
-                        >
-                          <CheckCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0"
-                          title="View Details"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-red-600"
-                          title="Reject Purchase"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox 
-                        id="select-po-003"
-                        aria-label="Select PO-2025-003"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">PO-2025-003</div>
-                      <div className="text-xs text-gray-500">From Procurement</div>
-                    </TableCell>
-                    <TableCell>ChemTech Industries</TableCell>
-                    <TableCell>Jan 13, 2025</TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011303</code>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">$234,680.00</TableCell>
-                    <TableCell>
-                      <Badge className="bg-red-100 text-red-800">Urgent</Badge>
-                    </TableCell>
-                    <TableCell>Cash on Delivery</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-green-600"
-                          title="Approve Purchase"
-                        >
-                          <CheckCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0"
-                          title="View Details"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-red-600"
-                          title="Reject Purchase"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox 
-                        id="select-po-004"
-                        aria-label="Select PO-2025-004"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">PO-2025-004</div>
-                      <div className="text-xs text-gray-500">From Procurement</div>
-                    </TableCell>
-                    <TableCell>Lab Equipment Ltd.</TableCell>
-                    <TableCell>Jan 12, 2025</TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">ETA25011204</code>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">$46,220.00</TableCell>
-                    <TableCell>
-                      <Badge className="bg-blue-100 text-blue-800">Low</Badge>
-                    </TableCell>
-                    <TableCell>Net 15</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-green-600"
-                          title="Approve Purchase"
-                        >
-                          <CheckCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0"
-                          title="View Details"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 text-red-600"
-                          title="Reject Purchase"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  {pendingPurchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                      <TableCell>
+                        <Checkbox 
+                          id={`select-${purchase.id}`}
+                          aria-label={`Select ${purchase.id}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{purchase.id}</div>
+                        <div className="text-xs text-gray-500">From Procurement</div>
+                      </TableCell>
+                      <TableCell>{purchase.supplier}</TableCell>
+                      <TableCell>{purchase.dateSubmitted}</TableCell>
+                      <TableCell>
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{purchase.etaNumber}</code>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">${purchase.amount.toLocaleString()}</TableCell>
+                      <TableCell>
+                        <Badge className={
+                          purchase.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                          purchase.priority === 'normal' ? 'bg-orange-100 text-orange-800' :
+                          'bg-blue-100 text-blue-800'
+                        }>
+                          {purchase.priority === 'urgent' ? 'Urgent' : 
+                           purchase.priority === 'normal' ? 'Normal' : 'Low'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{purchase.paymentTerms}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            title="Approve Purchase"
+                            onClick={() => handleApprovePurchase(purchase.id)}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-red-600"
+                            title="Reject Purchase"
+                            onClick={() => handleRejectPurchase(purchase.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>
