@@ -89,6 +89,20 @@ const DashboardNew = () => {
       return { status: 'Good', color: 'bg-green-500', textColor: 'text-green-700' };
     }
   };
+
+  // Function to determine stock status based on quantity
+  const getStockStatus = (quantity: number) => {
+    const lowStockThreshold = 10; // This could be configurable
+    const outOfStockThreshold = 0;
+
+    if (quantity <= outOfStockThreshold) {
+      return { status: 'Out of Stock', textColor: 'text-red-700', bgColor: 'bg-red-50' };
+    } else if (quantity <= lowStockThreshold) {
+      return { status: 'Near Out of Stock', textColor: 'text-orange-700', bgColor: 'bg-orange-50' };
+    } else {
+      return { status: 'In Stock', textColor: 'text-green-700', bgColor: 'bg-green-50' };
+    }
+  };
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
@@ -444,18 +458,24 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {dashboardData?.lowStockProducts?.map((product: Product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-sm">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.drugName}</p>
+              {dashboardData?.lowStockProducts?.map((product: Product) => {
+                const stockStatus = getStockStatus(product.quantity);
+                
+                return (
+                  <div key={product.id} className={`flex items-center justify-between p-3 ${stockStatus.bgColor} rounded-lg`}>
+                    <div>
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">{product.drugName}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-xs ${stockStatus.textColor} font-medium`}>
+                        {stockStatus.status}: {product.quantity}
+                      </p>
+                      <p className="text-xs">{product.status}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-red-600">Stock: {product.quantity}</p>
-                    <p className="text-xs">{product.status}</p>
-                  </div>
-                </div>
-              )) || (
+                );
+              }) || (
                 <div className="text-center text-gray-500 py-4">
                   <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
                   <p>All products well stocked</p>
