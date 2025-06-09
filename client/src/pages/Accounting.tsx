@@ -10238,6 +10238,9 @@ const Accounting: React.FC = () => {
             <DialogTitle className="text-xl font-bold text-blue-800">
               Purchase Order Details - {selectedPurchaseDetails?.id}
             </DialogTitle>
+            <DialogDescription>
+              Review complete purchase order information, uploaded documents, and approve or reject the submission.
+            </DialogDescription>
           </DialogHeader>
           
           {selectedPurchaseDetails && (
@@ -10303,6 +10306,111 @@ const Accounting: React.FC = () => {
                       <label className="text-sm font-semibold text-gray-600">Items Description</label>
                       <div className="p-3 bg-gray-50 rounded border">
                         <p className="text-base leading-relaxed">{selectedPurchaseDetails.items}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Uploaded Submissions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-800">Uploaded Submissions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {/* Procurement Documents */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 mb-2 block">Purchase Order Documents</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded border">
+                          <FileText className="h-8 w-8 text-blue-600" />
+                          <div className="flex-1">
+                            <p className="font-medium">Purchase Order Request</p>
+                            <p className="text-sm text-gray-600">PDF • 245 KB • {selectedPurchaseDetails.dateSubmitted}</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 p-3 bg-green-50 rounded border">
+                          <FileText className="h-8 w-8 text-green-600" />
+                          <div className="flex-1">
+                            <p className="font-medium">Supplier Quotation</p>
+                            <p className="text-sm text-gray-600">PDF • 189 KB • {selectedPurchaseDetails.dateSubmitted}</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Compliance Documents */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 mb-2 block">Compliance & Quality Documents</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded border">
+                          <FileText className="h-8 w-8 text-yellow-600" />
+                          <div className="flex-1">
+                            <p className="font-medium">Product Certificates</p>
+                            <p className="text-sm text-gray-600">PDF • 512 KB • {selectedPurchaseDetails.dateSubmitted}</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded border">
+                          <FileText className="h-8 w-8 text-purple-600" />
+                          <div className="flex-1">
+                            <p className="font-medium">ETA Compliance Form</p>
+                            <p className="text-sm text-gray-600">PDF • 78 KB • {selectedPurchaseDetails.dateSubmitted}</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Additional Attachments */}
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600 mb-2 block">Additional Attachments</label>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded border">
+                          <FileText className="h-6 w-6 text-gray-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Technical Specifications</p>
+                            <p className="text-xs text-gray-600">DOCX • 156 KB</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        
+                        <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded border">
+                          <FileText className="h-6 w-6 text-gray-600" />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">Delivery Schedule</p>
+                            <p className="text-xs text-gray-600">XLSX • 89 KB</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Upload New Document */}
+                    <div className="pt-4 border-t">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-semibold text-gray-600">Add Additional Documents</label>
+                        <Button variant="outline" size="sm" className="text-blue-600 border-blue-300">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload File
+                        </Button>
                       </div>
                     </div>
                   </div>
