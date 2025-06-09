@@ -411,21 +411,13 @@ const DashboardNew = () => {
                 
                 return (
                   <div key={product.id} className={`flex items-center justify-between p-3 ${bgColorClass} rounded-lg`}>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-sm">{product.name}</p>
-                        <Badge 
-                          variant="secondary" 
-                          className={`${expiryStatus.color} text-white text-xs px-2 py-1`}
-                        >
-                          {expiryStatus.status}
-                        </Badge>
-                      </div>
+                    <div>
+                      <p className="font-medium text-sm">{product.name}</p>
                       <p className="text-xs text-muted-foreground">{product.drugName}</p>
                     </div>
                     <div className="text-right">
                       <p className={`text-xs ${expiryStatus.textColor} font-medium`}>
-                        Expires: {product.expiryDate}
+                        {expiryStatus.status}: {product.expiryDate}
                       </p>
                       <p className="text-xs">Qty: {product.quantity}</p>
                     </div>
