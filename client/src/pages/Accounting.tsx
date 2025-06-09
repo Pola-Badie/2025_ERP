@@ -174,6 +174,8 @@ const Accounting: React.FC = () => {
   const [isEditInvoiceOpen, setIsEditInvoiceOpen] = useState(false);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [isPendingPurchasesOpen, setIsPendingPurchasesOpen] = useState(false);
+  const [isPurchaseDetailsOpen, setIsPurchaseDetailsOpen] = useState(false);
+  const [selectedPurchaseDetails, setSelectedPurchaseDetails] = useState<any>(null);
   const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
   const [uploadedReceipts, setUploadedReceipts] = useState<Array<{
     file: File;
@@ -278,6 +280,15 @@ const Accounting: React.FC = () => {
       description: `Purchase order ${purchaseId} has been rejected and removed from pending list.`,
       variant: "destructive"
     });
+  };
+
+  // Handle view purchase details
+  const handleViewPurchaseDetails = (purchaseId: string) => {
+    const purchase = pendingPurchases.find(p => p.id === purchaseId);
+    if (purchase) {
+      setSelectedPurchaseDetails(purchase);
+      setIsPurchaseDetailsOpen(true);
+    }
   };
 
   // Handle select all checkbox
@@ -10155,6 +10166,7 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Details"
+                            onClick={() => handleViewPurchaseDetails(purchase.id)}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -10212,6 +10224,161 @@ const Accounting: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={() => setIsPendingPurchasesOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Details Dialog */}
+      <Dialog open={isPurchaseDetailsOpen} onOpenChange={setIsPurchaseDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-blue-800">
+              Purchase Order Details - {selectedPurchaseDetails?.id}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPurchaseDetails && (
+            <div className="space-y-6">
+              {/* Header Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Purchase Order ID</label>
+                  <p className="text-lg font-bold text-blue-800">{selectedPurchaseDetails.id}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">ETA Number</label>
+                  <p className="text-lg font-mono bg-white px-2 py-1 rounded border">{selectedPurchaseDetails.etaNumber}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600">Priority</label>
+                  <Badge className={
+                    selectedPurchaseDetails.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                    selectedPurchaseDetails.priority === 'normal' ? 'bg-orange-100 text-orange-800' :
+                    'bg-blue-100 text-blue-800'
+                  }>
+                    {selectedPurchaseDetails.priority === 'urgent' ? 'Urgent' : 
+                     selectedPurchaseDetails.priority === 'normal' ? 'Normal' : 'Low'}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Supplier Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-800">Supplier Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Supplier Name</label>
+                      <p className="text-base">{selectedPurchaseDetails.supplier}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Payment Terms</label>
+                      <p className="text-base">{selectedPurchaseDetails.paymentTerms}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Date Submitted</label>
+                      <p className="text-base">{selectedPurchaseDetails.dateSubmitted}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Total Amount</label>
+                      <p className="text-lg font-bold text-green-600">${selectedPurchaseDetails.amount.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Items Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-800">Purchase Items</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-semibold text-gray-600">Items Description</label>
+                      <div className="p-3 bg-gray-50 rounded border">
+                        <p className="text-base leading-relaxed">{selectedPurchaseDetails.items}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Actions Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-800">Available Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => {
+                        handleApprovePurchase(selectedPurchaseDetails.id);
+                        setIsPurchaseDetailsOpen(false);
+                      }}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve Purchase Order
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      onClick={() => {
+                        handleRejectPurchase(selectedPurchaseDetails.id);
+                        setIsPurchaseDetailsOpen(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Reject Purchase Order
+                    </Button>
+                    <Button variant="outline">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Approval History */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-800">Approval Workflow</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <div>
+                        <p className="font-semibold">Submitted by Procurement</p>
+                        <p className="text-sm text-gray-600">{selectedPurchaseDetails.dateSubmitted} - Awaiting financial approval</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div>
+                        <p className="font-semibold">Pending Financial Review</p>
+                        <p className="text-sm text-gray-600">Waiting for accounting department approval</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsPurchaseDetailsOpen(false)}
             >
               Close
             </Button>
