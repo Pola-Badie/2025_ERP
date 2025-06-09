@@ -1927,6 +1927,37 @@ const Inventory: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Categories Management */}
+            <div>
+              <div className={`flex items-center justify-between mb-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <h4 className={`font-medium ${isRTL ? 'text-right' : 'text-left'}`}>{t('categories')}</h4>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsCategoriesDialogOpen(true)}
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  <FolderOpen className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                  {t('manageCategories')}
+                </Button>
+              </div>
+              <div className={`flex flex-wrap gap-2 mb-3 ${isRTL ? 'justify-end' : 'justify-start'}`}>
+                {categories?.slice(0, 5).map((category) => (
+                  <Badge key={category.id} variant="secondary" className="flex items-center gap-1">
+                    {category.name}
+                  </Badge>
+                ))}
+                {categories && categories.length > 5 && (
+                  <Badge variant="outline" className="text-gray-500">
+                    +{categories.length - 5} {t('more')}
+                  </Badge>
+                )}
+              </div>
+              <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>
+                {t('categoriesDescription')}
+              </p>
+            </div>
           </div>
           <DialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
             <Button type="button" onClick={() => setIsInventorySettingsOpen(false)}>

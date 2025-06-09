@@ -220,6 +220,26 @@ const translations = {
     transferToWarehouse: 'Transfer to Warehouse',
     editProduct: 'Edit Product',
     
+    // Categories Management
+    'Manage product categories used in inventory and sales': 'Manage product categories used in inventory and sales',
+    'No categories found': 'No categories found',
+    'Add your first category below': 'Add your first category below',
+    'Name': 'Name',
+    'Description': 'Description',
+    'Category Name': 'Category Name',
+    'Description (optional)': 'Description (optional)',
+    'Adding...': 'Adding...',
+    'Add Category': 'Add Category',
+    'Confirm Deletion': 'Confirm Deletion',
+    'Are you sure you want to delete the category': 'Are you sure you want to delete the category',
+    'This action cannot be undone': 'This action cannot be undone',
+    'Cancel': 'Cancel',
+    'Deleting...': 'Deleting...',
+    'Delete': 'Delete',
+    'manageCategories': 'Manage Categories',
+    'more': 'more',
+    'categoriesDescription': 'Click "Manage Categories" to add, edit, or delete product categories',
+    
     // Create Invoice
     createInvoiceModule: 'Create Invoice',
     customerInfo: 'Customer Information',
@@ -497,6 +517,9 @@ const translations = {
     'Cancel': 'إلغاء',
     'Deleting...': 'جاري الحذف...',
     'Delete': 'حذف',
+    'manageCategories': 'إدارة الفئات',
+    'more': 'المزيد',
+    'categoriesDescription': 'انقر على "إدارة الفئات" لإضافة أو تعديل أو حذف فئات المنتجات',
 
     // Create Invoice
     createInvoiceArabic: 'إنشاء فاتورة',
