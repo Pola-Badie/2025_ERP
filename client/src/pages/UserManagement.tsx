@@ -514,6 +514,17 @@ export default function UserManagement() {
     return passwordMap[username] || 'password123';
   };
 
+
+
+  // Fetch users
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/users");
+      return await response.json() as User[];
+    },
+  });
+
   // Export users to CSV
   const handleExportUsers = () => {
     if (!users || users.length === 0) {
@@ -553,15 +564,6 @@ export default function UserManagement() {
       description: "Users data has been exported successfully.",
     });
   };
-
-  // Fetch users
-  const { data: users, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ["/api/users"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/users");
-      return await response.json() as User[];
-    },
-  });
 
   // Fetch user permissions for selected user
   const { data: permissions, isLoading: isLoadingPermissions } = useQuery({
