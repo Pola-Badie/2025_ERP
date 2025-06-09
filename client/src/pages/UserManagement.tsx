@@ -500,6 +500,18 @@ export default function UserManagement() {
     }));
   };
 
+  // Get password for user
+  const getPasswordForUser = (username: string) => {
+    const passwordMap: Record<string, string> = {
+      'admin': 'admin123',
+      'maged.morgan': 'maged2024!',
+      'sarah.johnson': 'sarah789',
+      'mike.smith': 'mike456',
+      'lisa.brown': 'lisa321'
+    };
+    return passwordMap[username] || 'password123';
+  };
+
   // Fetch users
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["/api/users"],
