@@ -127,7 +127,7 @@ export const CSVExport = <T extends Record<string, any>>({
         <DropdownMenuItem onClick={() => handleExport()}>
           <Database className="w-4 h-4 mr-2 text-blue-600" />
           <div className="flex flex-col">
-            <span className="font-medium">All Warehouses</span>
+            <span className="font-medium">All Stock</span>
             <span className="text-xs text-muted-foreground">Complete inventory export</span>
           </div>
         </DropdownMenuItem>

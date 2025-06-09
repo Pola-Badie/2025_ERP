@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download, ShoppingBag, Paperclip, Landmark } from "lucide-react";
+import { Search, Plus, Edit, MoreHorizontal, Trash2, X, Eye, Upload, FileText, Download, ShoppingBag, Paperclip, Landmark, DollarSign } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -482,7 +482,21 @@ export default function Procurement() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: "Sent to Financial Accounting",
+                                description: `Purchase order ${order.poNumber} has been forwarded to the financial accounting department for processing and payment authorization.`,
+                                variant: "default"
+                              });
+                            }}
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            title="Send to Financial Accounting"
+                          >
+                            <DollarSign className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
