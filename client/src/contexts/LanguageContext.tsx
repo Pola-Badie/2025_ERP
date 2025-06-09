@@ -481,6 +481,23 @@ const translations = {
     transferToWarehouse: 'نقل إلى المستودع',
     editProduct: 'تعديل المنتج',
     
+    // Categories Management
+    'Manage product categories used in inventory and sales': 'إدارة فئات المنتجات المستخدمة في المخزون والمبيعات',
+    'No categories found': 'لم يتم العثور على فئات',
+    'Add your first category below': 'أضف فئتك الأولى أدناه',
+    'Name': 'الاسم',
+    'Description': 'الوصف',
+    'Category Name': 'اسم الفئة',
+    'Description (optional)': 'الوصف (اختياري)',
+    'Adding...': 'جاري الإضافة...',
+    'Add Category': 'إضافة فئة',
+    'Confirm Deletion': 'تأكيد الحذف',
+    'Are you sure you want to delete the category': 'هل أنت متأكد من أنك تريد حذف الفئة',
+    'This action cannot be undone': 'لا يمكن التراجع عن هذا الإجراء',
+    'Cancel': 'إلغاء',
+    'Deleting...': 'جاري الحذف...',
+    'Delete': 'حذف',
+
     // Create Invoice
     createInvoiceArabic: 'إنشاء فاتورة',
     customerInfo: 'معلومات العميل',

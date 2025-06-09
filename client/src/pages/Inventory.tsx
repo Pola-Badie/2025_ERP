@@ -65,7 +65,8 @@ import {
   FileText,
   ArrowRightLeft,
   Settings,
-  X
+  X,
+  FolderOpen
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductForm from '@/components/inventory/ProductForm';
@@ -618,7 +619,7 @@ const Inventory: React.FC = () => {
               onClick={() => setIsCategoriesDialogOpen(true)}
               className="border-purple-300 text-purple-600 hover:bg-purple-50"
             >
-              <Package className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              <FolderOpen className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               {t('categories')}
             </Button>
             <Button 
