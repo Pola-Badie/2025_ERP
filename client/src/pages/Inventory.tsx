@@ -121,6 +121,11 @@ const Inventory: React.FC = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState(1);
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
   const [warehouseToEdit, setWarehouseToEdit] = useState<any>(null);
+  
+  // Categories dialog state
+  const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   // State for product management
   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
@@ -607,7 +612,16 @@ const Inventory: React.FC = () => {
               </div>
             </>
           )}
-          <div className="flex items-center space-x-2">
+          <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsCategoriesDialogOpen(true)}
+              className="border-purple-300 text-purple-600 hover:bg-purple-50"
+            >
+              <Package className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              {t('categories')}
+            </Button>
             <Button 
               variant="outline" 
               size="icon" 
@@ -620,7 +634,7 @@ const Inventory: React.FC = () => {
               setProductToEdit(null);
               setIsProductFormOpen(true);
             }}>
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
               {t('addItem')}
             </Button>
           </div>
@@ -703,26 +717,8 @@ const Inventory: React.FC = () => {
           </CardContent>
         </Card>
       )}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="border-b mb-4">
-          <TabsList className="flex border-0 p-0 h-auto bg-transparent gap-0">
-            <TabsTrigger 
-              value="inventory" 
-              className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
-            >
-              {t('inventory')}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="categories" 
-              className="flex-1 border-0 rounded-none py-3 px-6 font-normal text-gray-600 data-[state=active]:text-blue-500 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 transition-none"
-            >
-              {t('categories')}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        {/* Inventory Tab */}
-        <TabsContent value="inventory">
+      {/* Inventory Content */}
+      <div className="w-full">
           {/* Filters */}
           <Card className="mb-6">
             <CardContent className="p-4">
