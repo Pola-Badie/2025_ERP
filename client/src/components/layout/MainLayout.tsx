@@ -75,7 +75,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             className="fixed inset-0 bg-slate-600 bg-opacity-75"
             onClick={closeMobileMenu}
           />
-          <div className={`relative flex flex-col w-72 max-w-xs bg-white h-full ${isRTL ? 'mr-auto' : 'ml-auto'}`}>
+          <div className={`relative flex flex-col w-80 max-w-[85vw] bg-white h-full shadow-2xl ${isRTL ? 'mr-auto rounded-l-xl' : 'ml-auto rounded-r-xl'}`}>
             <Sidebar isMobile onClose={closeMobileMenu} />
           </div>
         </div>
@@ -203,18 +203,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
 
         {/* Top Nav (Mobile) */}
-        <div className="md:hidden border-b border-slate-200 bg-white p-4 sticky top-0 z-30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+        <div className={`md:hidden border-b border-slate-200 bg-white px-3 py-3 sticky top-0 z-30 ${isRTL ? 'direction-rtl' : ''}`}>
+          <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex items-center min-w-0 flex-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <button
                 type="button"
-                className="text-slate-600 hover:text-slate-900"
+                className="text-slate-600 hover:text-slate-900 p-2 rounded-md hover:bg-slate-100 transition-colors"
                 onClick={toggleMobileMenu}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -228,76 +228,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <line x1="4" x2="20" y1="18" y2="18"></line>
                 </svg>
               </button>
-              <div className="ml-3 flex items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-primary"
-                >
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M21.1667 8H16"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M8 8H2.83337"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M19.07 19.0697L15.18 15.1797"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M8.82 8.82L4.93 4.93"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M19.07 4.93L15.18 8.82"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M8.82 15.1797L4.93 19.0697"
-                    stroke="#3BCEAC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span className="font-bold text-lg ml-1">Morgan ERP</span>
+              <div className={`flex items-center min-w-0 ${isRTL ? 'mr-2' : 'ml-2'}`}>
+                <img 
+                  src="/attached_assets/Untitled design-7_1749347391766.png" 
+                  alt="Morgan ERP Logo" 
+                  className="w-8 h-8 object-contain flex-shrink-0"
+                />
+                <span className={`font-bold text-base truncate ${isRTL ? 'mr-2' : 'ml-2'}`}>{t('companyName')}</span>
               </div>
             </div>
-            <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+            <div className={`flex items-center space-x-1 flex-shrink-0 ${isRTL ? 'space-x-reverse' : ''}`}>
               {/* Mobile Language Selector */}
               <LanguageSelector />
               
@@ -307,41 +247,50 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               {/* Mobile Profile Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
                     <img
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm"
                       src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
                       alt="Profile"
                     />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">Ahmed Hassan</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        ahmed.hassan@morgan-erp.com
-                      </p>
+                <DropdownMenuContent className="w-64 mr-2" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal p-4">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          className="w-10 h-10 rounded-full object-cover"
+                          src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
+                          alt="Profile"
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <p className="text-sm font-medium leading-none truncate">Ahmed Hassan</p>
+                          <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
+                            ahmed.hassan@morgan-erp.com
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setProfileDialogOpen(true)}>
-                    <User className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={() => setProfileDialogOpen(true)} className="py-3">
+                    <User className="mr-3 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)}>
-                    <Settings className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={() => setSettingsDialogOpen(true)} className="py-3">
+                    <Settings className="mr-3 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/notifications" className="flex items-center">
-                      <Bell className="mr-2 h-4 w-4" />
+                    <Link href="/notifications" className="flex items-center py-3">
+                      <Bell className="mr-3 h-4 w-4" />
                       <span>Notifications</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)}>
-                    <LogOut className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={() => setLogoutDialogOpen(true)} className="py-3 text-red-600">
+                    <LogOut className="mr-3 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -352,9 +301,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
-          <div className="p-4 md:p-6 lg:p-8">
-            <PageNavigation />
-            {children}
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
+            <div className="mb-4 sm:mb-6">
+              <PageNavigation />
+            </div>
+            <div className="w-full overflow-x-auto">
+              {children}
+            </div>
           </div>
         </main>
 

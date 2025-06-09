@@ -22,8 +22,8 @@ const MobileNav: React.FC = () => {
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30">
-        <div className="grid grid-cols-5 h-16">
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 shadow-lg">
+        <div className="grid grid-cols-5 h-16 safe-area-inset-bottom">
           <Link href="/">
             <div className={cn(
               "flex flex-col items-center justify-center cursor-pointer",
