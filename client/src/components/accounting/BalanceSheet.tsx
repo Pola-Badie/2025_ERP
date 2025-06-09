@@ -248,7 +248,7 @@ const BalanceSheet: React.FC = () => {
     const csvData = [];
     
     // Header section with company information
-    csvData.push(['PharmaOverseas']);
+    csvData.push(['Premier']);
     csvData.push(['Balance Sheet']);
     csvData.push([`As of ${format(new Date(data.date), 'MMMM dd, yyyy')}`]);
     csvData.push(['']);

@@ -363,7 +363,7 @@ const CustomersDemo: React.FC = () => {
       doc.setFontSize(10);
       doc.setTextColor(156, 163, 175); // gray-400
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
-      doc.text('Pharmaceutical ERP System', margin, doc.internal.pageSize.height - 10);
+      doc.text('Premier ERP System', margin, doc.internal.pageSize.height - 10);
     }
     
     // Save the PDF

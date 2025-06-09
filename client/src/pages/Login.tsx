@@ -247,7 +247,7 @@ const Login: React.FC = () => {
 
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground">
-              <p>Secure pharmaceutical ERP system</p>
+              <p>Secure Premier ERP system</p>
               <Badge variant="outline" className="mt-2">
                 <ShieldIcon className="w-3 h-3 mr-1" />
                 Enterprise Security
