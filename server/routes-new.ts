@@ -249,14 +249,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allUsers = await db.select({
         id: users.id,
         username: users.username,
+        password: users.password,
         name: users.name,
         email: users.email,
         role: users.role,
+        status: users.status,
         avatar: users.avatar,
         createdAt: users.createdAt
       }).from(users);
       
-      // Don't return passwords
       res.json(allUsers);
     } catch (error) {
       console.error("Users error:", error);
@@ -271,9 +272,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [user] = await db.select({
         id: users.id,
         username: users.username,
+        password: users.password,
         name: users.name,
         email: users.email,
         role: users.role,
+        status: users.status,
         avatar: users.avatar,
         createdAt: users.createdAt
       }).from(users).where(eq(users.id, id));

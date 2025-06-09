@@ -412,21 +412,6 @@ export const accountsPayable = pgTable("accounts_payable", {
 // We don't need to explicitly define the foreign key with Drizzle this way
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  name: true,
-  email: true,
-  role: true,
-  status: true,
-  avatar: true,
-});
-
-export const insertUserPermissionSchema = createInsertSchema(userPermissions).pick({
-  userId: true,
-  moduleName: true,
-  accessGranted: true,
-});
 
 export const insertProductCategorySchema = createInsertSchema(productCategories).pick({
   name: true,
@@ -595,10 +580,23 @@ export const insertLoginLogSchema = createInsertSchema(loginLogs).pick({
   success: true,
 });
 
-// Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  name: true,
+  email: true,
+  role: true,
+  status: true,
+  avatar: true,
+});
 
+export const insertUserPermissionSchema = createInsertSchema(userPermissions).pick({
+  userId: true,
+  moduleName: true,
+  accessGranted: true,
+});
+
+// Types
 export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
 export type ProductCategory = typeof productCategories.$inferSelect;
 
@@ -795,6 +793,9 @@ export type CustomerPayment = typeof customerPayments.$inferSelect;
 
 export type InsertPaymentAllocation = z.infer<typeof insertPaymentAllocationSchema>;
 export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 export type InsertUserPermission = z.infer<typeof insertUserPermissionSchema>;
 export type UserPermission = typeof userPermissions.$inferSelect;
