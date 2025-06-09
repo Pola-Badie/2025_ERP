@@ -89,20 +89,6 @@ const DashboardNew = () => {
       return { status: 'Good', color: 'bg-green-500', textColor: 'text-green-700' };
     }
   };
-
-  // Function to determine stock status based on quantity
-  const getStockStatus = (quantity: number) => {
-    const lowStockThreshold = 10; // This could be configurable
-    const outOfStockThreshold = 0;
-
-    if (quantity <= outOfStockThreshold) {
-      return { status: 'Out of Stock', textColor: 'text-red-700', bgColor: 'bg-red-50' };
-    } else if (quantity <= lowStockThreshold) {
-      return { status: 'Near Out of Stock', textColor: 'text-orange-700', bgColor: 'bg-orange-50' };
-    } else {
-      return { status: 'In Stock', textColor: 'text-green-700', bgColor: 'bg-green-50' };
-    }
-  };
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
