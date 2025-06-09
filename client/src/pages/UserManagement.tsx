@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings } from "lucide-react";
+import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings, Eye, EyeOff } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -489,7 +489,16 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedPermission, setSelectedPermission] = useState<UserPermission | null>(null);
   const [modulePermissionFeatures, setModulePermissionFeatures] = useState<Record<string, boolean>>({});
+  const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
+
+  // Toggle password visibility for a specific user
+  const togglePasswordVisibility = (userId: number) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
 
   // Fetch users
   const { data: users, isLoading: isLoadingUsers } = useQuery({
@@ -838,6 +847,7 @@ export default function UserManagement() {
                       <TableHead>Username</TableHead>
                       <TableHead>Name</TableHead>
                       <TableHead>Email</TableHead>
+                      <TableHead>Password</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
@@ -849,6 +859,25 @@ export default function UserManagement() {
                         <TableCell>{user.username}</TableCell>
                         <TableCell>{user.name}</TableCell>
                         <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono">
+                              {showPasswords[user.id] ? (user.password || "********") : "********"}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => togglePasswordVisibility(user.id)}
+                              className="h-6 w-6 p-0"
+                            >
+                              {showPasswords[user.id] ? (
+                                <EyeOff className="h-3 w-3" />
+                              ) : (
+                                <Eye className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge className={getRoleColor(user.role)}>{user.role}</Badge>
                         </TableCell>
