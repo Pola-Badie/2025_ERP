@@ -14,7 +14,7 @@ import { CSVExport } from '@/components/csv/CSVExport';
 import { CSVImport } from '@/components/csv/CSVImport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 // Define the API Customer type based on the response
 interface ApiCustomer {
@@ -262,7 +262,7 @@ const CustomersDemo: React.FC = () => {
       ['Repeat Customers', customerReports?.summary?.repeatCustomers || '78%']
     ];
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPosition,
       head: [['Metric', 'Value']],
       body: summaryData,
@@ -284,7 +284,7 @@ const CustomersDemo: React.FC = () => {
       Object.entries(customerReports.sectorDistribution).map(([sector, count]) => [sector, count.toString()]) :
       Object.entries(topSector).map(([sector, count]) => [sector, count.toString()]);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPosition,
       head: [['Sector', 'Customers']],
       body: sectorData,
@@ -311,7 +311,7 @@ const CustomersDemo: React.FC = () => {
       customerReports.topCustomers.slice(0, 5).map((customer: any) => [customer.name, `$${customer.revenue}`]) :
       customerData.slice(0, 5).map((customer) => [customer.name, `$${((15000 + customer.id * 3200) / 1000).toFixed(0)}K`]);
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPosition,
       head: [['Customer Name', 'Revenue']],
       body: topCustomersData,
@@ -343,7 +343,7 @@ const CustomersDemo: React.FC = () => {
         ['Other Regions', Math.floor(totalCustomers * 0.20).toString()]
       ];
     
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPosition,
       head: [['Region', 'Customers']],
       body: geoData,
