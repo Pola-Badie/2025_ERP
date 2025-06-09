@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings, Eye, EyeOff } from "lucide-react";
+import { Loader2, Plus, Trash2, UserCog2, ShieldCheck, UserX, PencilLine, MoreHorizontal, Settings, Eye, EyeOff, Download } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -514,6 +514,46 @@ export default function UserManagement() {
     return passwordMap[username] || 'password123';
   };
 
+  // Export users to CSV
+  const handleExportUsers = () => {
+    if (!users || users.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No users available to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const headers = ['Username', 'Name', 'Email', 'Role', 'Status', 'Created At'];
+    const csvContent = [
+      headers.join(','),
+      ...users.map(user => [
+        user.username,
+        user.name,
+        user.email,
+        user.role,
+        user.status || 'active',
+        new Date(user.createdAt).toLocaleDateString()
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Export Complete",
+      description: "Users data has been exported successfully.",
+    });
+  };
+
   // Fetch users
   const { data: users, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["/api/users"],
@@ -836,9 +876,9 @@ export default function UserManagement() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-        <Button onClick={() => setIsAddUserOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add User
+        <Button onClick={handleExportUsers}>
+          <Download className="mr-2 h-4 w-4" />
+          Export Users
         </Button>
       </div>
 
