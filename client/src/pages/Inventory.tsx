@@ -124,7 +124,6 @@ const Inventory: React.FC = () => {
   
   // Categories dialog state
   const [isCategoriesDialogOpen, setIsCategoriesDialogOpen] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
 
   // State for product management
@@ -1032,24 +1031,21 @@ const Inventory: React.FC = () => {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        {/* Categories Tab */}
-        <TabsContent value="categories" className={isRTL ? 'rtl' : 'ltr'} dir={isRTL ? 'rtl' : 'ltr'}>
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className={`flex flex-row ${isRTL ? 'justify-start' : 'justify-between'} items-center`}>
-                <div>
-                  <h3 className="text-lg font-medium">{t('categories')}</h3>
-                  <p className="text-sm text-slate-500">Manage product categories used in inventory and sales</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        </div>
 
-          {/* Categories Table */}
-          <Card className={isRTL ? 'rtl' : 'ltr'}>
-            <CardContent className="p-0">
+      {/* Categories Management Dialog */}
+      <Dialog open={isCategoriesDialogOpen} onOpenChange={setIsCategoriesDialogOpen}>
+        <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle className={isRTL ? 'text-right' : 'text-left'}>{t('categories')}</DialogTitle>
+            <DialogDescription className={isRTL ? 'text-right' : 'text-left'}>
+              {t('Manage product categories used in inventory and sales')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Categories Table */}
+            <div className="border rounded-lg">
               {isLoadingCategories ? (
                 <div className="p-8 flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -1057,16 +1053,16 @@ const Inventory: React.FC = () => {
               ) : categories?.length === 0 ? (
                 <div className="p-8 text-center">
                   <AlertCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-                  <h3 className="text-lg font-medium text-slate-700 mb-1">No categories found</h3>
-                  <p className="text-slate-500 mb-4">Add your first category below</p>
+                  <h3 className="text-lg font-medium text-slate-700 mb-1">{t('No categories found')}</h3>
+                  <p className="text-slate-500 mb-4">{t('Add your first category below')}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className={`w-full text-sm ${isRTL ? 'text-right' : 'text-left'}`} dir={isRTL ? 'rtl' : 'ltr'}>
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50">
-                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>Name</th>
-                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>Description</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('Name')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('Description')}</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-left' : 'text-right'} font-medium text-slate-500`}>{t('actions')}</th>
                       </tr>
                     </thead>
@@ -1101,53 +1097,55 @@ const Inventory: React.FC = () => {
                   </table>
                 </div>
               )}
-              
-              <div className="p-4 border-t border-slate-200">
-                <form onSubmit={handleAddCategory}>
-                  <div className="grid gap-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="md:col-span-1">
-                        <Input
-                          placeholder="Category Name"
-                          value={categoryName}
-                          onChange={(e) => setCategoryName(e.target.value)}
-                          required
-                          className={isRTL ? 'text-right' : 'text-left'}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Textarea
-                          placeholder="Description (optional)"
-                          value={categoryDescription}
-                          onChange={(e) => setCategoryDescription(e.target.value)}
-                          className={`h-10 py-2 ${isRTL ? 'text-right' : 'text-left'}`}
-                        />
-                      </div>
+            </div>
+
+            {/* Add New Category Form */}
+            <div className="border-t pt-4">
+              <form onSubmit={handleAddCategory}>
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-1">
+                      <Input
+                        placeholder={t('Category Name')}
+                        value={categoryName}
+                        onChange={(e) => setCategoryName(e.target.value)}
+                        required
+                        className={isRTL ? 'text-right' : 'text-left'}
+                      />
                     </div>
-                    <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
-                      <Button 
-                        type="submit" 
-                        disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
-                      >
-                        <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                        {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
-                      </Button>
+                    <div className="md:col-span-2">
+                      <Textarea
+                        placeholder={t('Description (optional)')}
+                        value={categoryDescription}
+                        onChange={(e) => setCategoryDescription(e.target.value)}
+                        className={`h-10 py-2 ${isRTL ? 'text-right' : 'text-left'}`}
+                      />
                     </div>
                   </div>
-                </form>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
+                    <Button 
+                      type="submit" 
+                      disabled={addCategoryMutation.isPending || categoryName.trim() === ''}
+                    >
+                      <Plus className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                      {addCategoryMutation.isPending ? t('Adding...') : t('Add Category')}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Category Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className={`max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete the category "{categoryToDelete?.name}"? 
-              This action cannot be undone.
+            <DialogTitle className={isRTL ? 'text-right' : 'text-left'}>{t('Confirm Deletion')}</DialogTitle>
+            <DialogDescription className={isRTL ? 'text-right' : 'text-left'}>
+              {t('Are you sure you want to delete the category')} "{categoryToDelete?.name}"? 
+              {t('This action cannot be undone')}.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className={`${isRTL ? 'space-x-reverse' : ''}`}>
@@ -1156,14 +1154,14 @@ const Inventory: React.FC = () => {
               onClick={() => setDeleteDialogOpen(false)}
               disabled={deleteCategoryMutation.isPending}
             >
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteCategory}
               disabled={deleteCategoryMutation.isPending}
             >
-              {deleteCategoryMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteCategoryMutation.isPending ? t('Deleting...') : t('Delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
