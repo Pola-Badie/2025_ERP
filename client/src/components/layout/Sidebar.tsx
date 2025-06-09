@@ -90,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   return (
     <div className={cn(
       "flex flex-col h-screen bg-[#1C3149] text-white transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64",
+      isMobile ? "w-full" : (isCollapsed ? "w-16" : "w-64"),
       className
     )}>
       {/* Header */}
@@ -170,9 +170,10 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           {isMobile && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-300 hover:text-white"
+              className="absolute top-2 right-2 p-2 text-gray-300 hover:text-white hover:bg-[#26405A] rounded-md transition-colors z-10"
+              aria-label="Close menu"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m18 6-12 12"></path>
                 <path d="m6 6 12 12"></path>
               </svg>

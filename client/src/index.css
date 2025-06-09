@@ -75,6 +75,34 @@
     padding-bottom: 5rem; /* Space for mobile navigation */
   }
   
+  /* Mobile sidebar animations */
+  .mobile-sidebar-enter {
+    transform: translateX(-100%);
+  }
+  
+  .mobile-sidebar-enter-active {
+    transform: translateX(0);
+    transition: transform 300ms ease-in-out;
+  }
+  
+  .mobile-sidebar-exit {
+    transform: translateX(0);
+  }
+  
+  .mobile-sidebar-exit-active {
+    transform: translateX(-100%);
+    transition: transform 300ms ease-in-out;
+  }
+  
+  /* RTL mobile sidebar animations */
+  [dir="rtl"] .mobile-sidebar-enter {
+    transform: translateX(100%);
+  }
+  
+  [dir="rtl"] .mobile-sidebar-exit-active {
+    transform: translateX(100%);
+  }
+  
   /* Mobile table improvements */
   .mobile-table {
     font-size: 0.875rem;

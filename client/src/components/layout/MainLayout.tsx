@@ -70,12 +70,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </div>
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="fixed inset-0 bg-slate-600 bg-opacity-75"
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={closeMobileMenu}
           />
-          <div className={`relative flex flex-col w-80 max-w-[85vw] bg-white h-full shadow-2xl ${isRTL ? 'mr-auto rounded-l-xl' : 'ml-auto rounded-r-xl'}`}>
+          <div className={`fixed top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+            isRTL 
+              ? 'right-0 rounded-l-xl' 
+              : 'left-0 rounded-r-xl'
+          }`}>
             <Sidebar isMobile onClose={closeMobileMenu} />
           </div>
         </div>
