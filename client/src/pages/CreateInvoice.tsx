@@ -581,6 +581,8 @@ const CreateInvoice = () => {
     const activeDraft = getCurrentDraft();
     if (activeDraft) {
       form.reset(activeDraft.data);
+      // Sync selectedCustomerId with form data
+      setSelectedCustomerId(activeDraft.data.customer.id);
     }
   }, [activeInvoiceId, form]);
 
