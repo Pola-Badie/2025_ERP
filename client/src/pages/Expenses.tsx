@@ -737,10 +737,10 @@ const Expenses: React.FC = () => {
                       <SelectValue placeholder="Select account type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="operations">Operations</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="fixed-assets">Fixed Assets</SelectItem>
-                      <SelectItem value="admin">Administration</SelectItem>
+                      <SelectItem value="Operations">Operations</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Fixed Assets">Fixed Assets</SelectItem>
+                      <SelectItem value="Administration">Administration</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -752,10 +752,10 @@ const Expenses: React.FC = () => {
                       <SelectValue placeholder="Select cost center" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="operations">Operations</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="projects">Projects</SelectItem>
+                      <SelectItem value="Operations">Operations</SelectItem>
+                      <SelectItem value="Marketing">Marketing</SelectItem>
+                      <SelectItem value="Admin">Admin</SelectItem>
+                      <SelectItem value="Projects">Projects</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
