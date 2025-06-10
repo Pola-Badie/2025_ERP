@@ -166,6 +166,7 @@ const CreateInvoice = () => {
   const [openProductPopovers, setOpenProductPopovers] = useState<{[key: number]: boolean}>({});
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -719,6 +720,9 @@ const CreateInvoice = () => {
 
   // Handle customer selection
   const handleCustomerSelection = (customer: any) => {
+    // Update local state first to avoid re-renders
+    setSelectedCustomerId(customer.id);
+    
     form.setValue('customer', {
       id: customer.id,
       name: customer.name,
@@ -1227,7 +1231,7 @@ const CreateInvoice = () => {
                                       <Check
                                         className={cn(
                                           "mr-2 h-4 w-4",
-                                          form.watch('customer.id') === customer.id
+                                          selectedCustomerId === customer.id
                                             ? "opacity-100"
                                             : "opacity-0"
                                         )}
