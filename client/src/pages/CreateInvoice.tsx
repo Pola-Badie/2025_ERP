@@ -167,6 +167,7 @@ const CreateInvoice = () => {
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -736,6 +737,10 @@ const CreateInvoice = () => {
       address: customer.address || '',
       taxNumber: customer.taxNumber || '',
     });
+    
+    // Close the dropdown
+    setCustomerDropdownOpen(false);
+    setCustomerSearchTerm('');
   };
 
   // Handle customer creation
@@ -1185,7 +1190,7 @@ const CreateInvoice = () => {
                   </div>
                   <div className="flex items-end gap-2">
                     <div className="flex-1">
-                      <Popover>
+                      <Popover open={customerDropdownOpen} onOpenChange={setCustomerDropdownOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -1211,7 +1216,10 @@ const CreateInvoice = () => {
                                     <Button 
                                       variant="outline" 
                                       className="mt-2"
-                                      onClick={() => setIsCreatingCustomer(true)}
+                                      onClick={() => {
+                                        setIsCreatingCustomer(true);
+                                        setCustomerDropdownOpen(false);
+                                      }}
                                     >
                                       <Plus className="mr-2 h-4 w-4" />
                                       Create New Customer
@@ -1262,7 +1270,10 @@ const CreateInvoice = () => {
                               </CommandGroup>
                               <CommandGroup>
                                 <CommandItem
-                                  onSelect={() => setIsCreatingCustomer(true)}
+                                  onSelect={() => {
+                                    setIsCreatingCustomer(true);
+                                    setCustomerDropdownOpen(false);
+                                  }}
                                   className="text-blue-600"
                                 >
                                   <Plus className="mr-2 h-4 w-4" />
@@ -1335,17 +1346,20 @@ const CreateInvoice = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => form.setValue('customer', {
-                          id: undefined,
-                          name: '',
-                          company: '',
-                          position: '',
-                          email: '',
-                          phone: '',
-                          sector: '',
-                          address: '',
-                          taxNumber: '',
-                        })}
+                        onClick={() => {
+                          setSelectedCustomerId(undefined);
+                          form.setValue('customer', {
+                            id: undefined,
+                            name: '',
+                            company: '',
+                            position: '',
+                            email: '',
+                            phone: '',
+                            sector: '',
+                            address: '',
+                            taxNumber: '',
+                          });
+                        }}
                       >
                         <X className="h-4 w-4" />
                       </Button>
