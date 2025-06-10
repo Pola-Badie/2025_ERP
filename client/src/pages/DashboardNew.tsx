@@ -18,7 +18,8 @@ import {
   LineChart,
   Maximize2,
   Expand,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -457,103 +458,198 @@ const DashboardNew = () => {
         </Card>
       </div>
 
-      {/* Product Details Dialog */}
+      {/* Enhanced Product Details Dialog */}
       <Dialog open={!!selectedProductId} onOpenChange={() => setSelectedProductId(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span className="text-xl font-semibold">Product Details</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedProductId(null)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
-            <DialogDescription>
-              Comprehensive product information including sales history and inventory details
-            </DialogDescription>
-          </DialogHeader>
-          
-          {isLoadingDetails ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2">Loading product details...</span>
-            </div>
-          ) : productDetails ? (
-            <div className="space-y-6">
-              {/* Basic Product Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Package className="h-6 w-6" />
+                  </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{productDetails.name}</h3>
-                    <p className="text-gray-600">{productDetails.drugName}</p>
-                    <p className="text-sm text-gray-500">SKU: {productDetails.sku}</p>
+                    <span className="text-2xl font-bold">Product Overview</span>
+                    <p className="text-blue-100 text-sm font-normal">Comprehensive pharmaceutical analysis</p>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Cost Price</p>
-                      <p className="text-lg font-semibold">EGP {productDetails.costPrice}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedProductId(null)}
+                  className="h-10 w-10 p-0 text-white hover:bg-white/20"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogTitle>
+              <DialogDescription className="text-blue-100 mt-2">
+                Detailed product information, sales analytics, and customer insights for informed decision making
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="overflow-y-auto max-h-[calc(95vh-140px)] p-6">
+            {isLoadingDetails ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <span className="text-lg text-gray-600">Loading product details...</span>
+                <p className="text-sm text-gray-500 mt-2">Analyzing pharmaceutical data</p>
+              </div>
+            ) : productDetails ? (
+              <div className="space-y-8">
+                {/* Product Header Card */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                      <div className="flex items-start space-x-4">
+                        <div className="bg-blue-600 p-3 rounded-lg">
+                          <Package className="h-8 w-8 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-1">{productDetails.name}</h3>
+                          <p className="text-lg text-blue-700 font-medium mb-2">{productDetails.drugName}</p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span className="bg-white px-3 py-1 rounded-full">SKU: {productDetails.sku}</span>
+                            <span className="bg-white px-3 py-1 rounded-full">Type: {productDetails.productType || 'Finished Product'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Selling Price</p>
-                      <p className="text-lg font-semibold text-green-600">EGP {productDetails.sellingPrice}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Current Stock</p>
-                      <p className="text-lg font-semibold">{productDetails.quantity} {productDetails.unit}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Status</p>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        productDetails.status === 'active' ? 'bg-green-100 text-green-800' :
-                        productDetails.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {productDetails.status}
-                      </span>
+                    <div className="lg:text-right">
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-sm text-gray-600">Current Stock</p>
+                          <p className="text-3xl font-bold text-blue-900">{productDetails.quantity} {productDetails.unit}</p>
+                        </div>
+                        <span className={`inline-flex px-4 py-2 text-sm font-semibold rounded-full ${
+                          productDetails.status === 'active' ? 'bg-green-100 text-green-800 border border-green-200' :
+                          productDetails.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                          productDetails.status === 'near' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                          'bg-red-100 text-red-800 border border-red-200'
+                        }`}>
+                          {productDetails.status === 'near' ? 'Near Expiry' : 
+                           productDetails.status === 'low_stock' ? 'Low Stock' :
+                           productDetails.status === 'out_of_stock' ? 'Out of Stock' : 'Active'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Expiry Information</p>
+
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl border border-emerald-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <DollarSign className="h-8 w-8 text-emerald-600" />
+                      <span className="text-emerald-600 text-sm font-medium">Cost</span>
+                    </div>
+                    <p className="text-2xl font-bold text-emerald-900">EGP {productDetails.costPrice}</p>
+                    <p className="text-sm text-emerald-700">Purchase Price</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <TrendingUp className="h-8 w-8 text-blue-600" />
+                      <span className="text-blue-600 text-sm font-medium">Selling</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900">EGP {productDetails.sellingPrice}</p>
+                    <p className="text-sm text-blue-700">Retail Price</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <BarChart3 className="h-8 w-8 text-purple-600" />
+                      <span className="text-purple-600 text-sm font-medium">Profit</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900">
+                      EGP {(parseFloat(productDetails.sellingPrice) - parseFloat(productDetails.costPrice)).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-purple-700">Per Unit</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <Calendar className="h-8 w-8 text-amber-600" />
+                      <span className="text-amber-600 text-sm font-medium">Expiry</span>
+                    </div>
                     {productDetails.expiryInfo ? (
-                      <div className="mt-2">
-                        <p className="text-sm">Expires: {productDetails.expiryDate}</p>
-                        <p className={`text-sm ${
-                          productDetails.expiryInfo.daysUntilExpiry < 30 ? 'text-red-600' :
-                          productDetails.expiryInfo.daysUntilExpiry < 90 ? 'text-yellow-600' :
-                          'text-green-600'
+                      <>
+                        <p className={`text-2xl font-bold ${
+                          productDetails.expiryInfo.daysUntilExpiry < 30 ? 'text-red-900' :
+                          productDetails.expiryInfo.daysUntilExpiry < 90 ? 'text-amber-900' :
+                          'text-green-900'
                         }`}>
                           {productDetails.expiryInfo.daysUntilExpiry > 0 
-                            ? `${productDetails.expiryInfo.daysUntilExpiry} days until expiry`
-                            : `Expired ${Math.abs(productDetails.expiryInfo.daysUntilExpiry)} days ago`
+                            ? `${productDetails.expiryInfo.daysUntilExpiry}d`
+                            : 'Expired'
                           }
                         </p>
+                        <p className="text-sm text-amber-700">
+                          {productDetails.expiryInfo.daysUntilExpiry > 0 ? 'Until Expiry' : 'Past Due'}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-bold text-gray-600">N/A</p>
+                        <p className="text-sm text-gray-500">No Date Set</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Product Information Cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                      Expiry Information
+                    </h4>
+                    {productDetails.expiryInfo ? (
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Expiry Date:</span>
+                          <span className="font-medium">{productDetails.expiryDate}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Status:</span>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            productDetails.expiryInfo.daysUntilExpiry < 30 ? 'bg-red-100 text-red-800' :
+                            productDetails.expiryInfo.daysUntilExpiry < 90 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {productDetails.expiryInfo.daysUntilExpiry > 0 
+                              ? `${productDetails.expiryInfo.daysUntilExpiry} days remaining`
+                              : `Expired ${Math.abs(productDetails.expiryInfo.daysUntilExpiry)} days ago`
+                            }
+                          </span>
+                        </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">No expiry date set</p>
+                      <p className="text-gray-500">No expiry date configured</p>
                     )}
                   </div>
                   
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Product Information</p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm">Product Type: {productDetails.productType || 'Finished Product'}</p>
-                      <p className="text-sm">Manufacturer: {productDetails.manufacturer || 'Not specified'}</p>
-                      <p className="text-sm">Barcode: {productDetails.barcode || 'N/A'}</p>
+                  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Package className="h-5 w-5 text-blue-600 mr-2" />
+                      Product Details
+                    </h4>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Type:</span>
+                        <span className="font-medium">{productDetails.productType || 'Finished Product'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Manufacturer:</span>
+                        <span className="font-medium">{productDetails.manufacturer || 'Not specified'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Barcode:</span>
+                        <span className="font-medium font-mono text-sm">{productDetails.barcode || 'N/A'}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               
               {/* Sales Statistics */}
               {productDetails.salesStats && (
@@ -639,12 +735,13 @@ const DashboardNew = () => {
                   </div>
                 </div>
               )}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Product details not available</p>
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Product details not available</p>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
