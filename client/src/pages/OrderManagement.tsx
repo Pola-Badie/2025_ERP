@@ -207,23 +207,13 @@ const OrderManagement = () => {
     }
   });
 
-  // Filter orders based on active tab and sort by most recent first
+  // Filter orders based on active tab
   const productionOrders = React.useMemo(() => {
-    const filtered = allOrders?.filter((order: any) => order.orderType === 'production') || [];
-    return filtered.sort((a: any, b: any) => {
-      const dateA = new Date(a.createdAt || a.created_at || 0);
-      const dateB = new Date(b.createdAt || b.created_at || 0);
-      return dateB.getTime() - dateA.getTime(); // Most recent first
-    });
+    return allOrders?.filter((order: any) => order.orderType === 'production') || [];
   }, [allOrders]);
 
   const refiningOrders = React.useMemo(() => {
-    const filtered = allOrders?.filter((order: any) => order.orderType === 'refining') || [];
-    return filtered.sort((a: any, b: any) => {
-      const dateA = new Date(a.createdAt || a.created_at || 0);
-      const dateB = new Date(b.createdAt || b.created_at || 0);
-      return dateB.getTime() - dateA.getTime(); // Most recent first
-    });
+    return allOrders?.filter((order: any) => order.orderType === 'refining') || [];
   }, [allOrders]);
 
   // Fetch customers
@@ -1202,7 +1192,7 @@ const OrderManagement = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Production Orders History (Most Recent First)</h3>
+                <h3 className="text-lg font-semibold">Production Orders History</h3>
                 <div className="flex gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -1741,7 +1731,7 @@ const OrderManagement = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Refining Orders History (Most Recent First)</h3>
+                <h3 className="text-lg font-semibold">Refining Orders History</h3>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
