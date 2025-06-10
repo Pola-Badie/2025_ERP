@@ -105,6 +105,9 @@ const Login: React.FC = () => {
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl text-center">Welcome Back</CardTitle>
+            <p className="text-sm text-muted-foreground text-center">
+              Sign in to your Premier ERP account
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Login Form */}
