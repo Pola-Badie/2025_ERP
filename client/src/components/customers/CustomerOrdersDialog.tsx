@@ -123,95 +123,121 @@ const CustomerOrdersDialog: React.FC<CustomerOrdersDialogProps> = ({
       doc.setTextColor(41, 128, 185);
       doc.text('Customer Orders Report', 20, 20);
       
-      // Company logo placeholder
+      // Company info
       doc.setFontSize(12);
       doc.setTextColor(100, 100, 100);
       doc.text('Premier ERP System', 150, 20);
+      doc.text(new Date().toLocaleDateString(), 150, 30);
       
-      // Customer info
+      // Customer info section
       doc.setFontSize(14);
       doc.setTextColor(0, 0, 0);
-      doc.text('Customer Information', 20, 40);
+      doc.text('Customer Information', 20, 45);
       
+      // Line separator
+      doc.setLineWidth(0.5);
       doc.setDrawColor(200, 200, 200);
-      doc.line(20, 43, 190, 43);
+      doc.line(20, 48, 190, 48);
       
-      doc.setFontSize(10);
-      let yPos = 50;
+      // Customer details
+      doc.setFontSize(11);
+      let yPos = 55;
       
-      const customerInfo = [
-        `Customer: ${customer.name}`,
-        `Company: ${customer.company || 'N/A'}`,
-        `Email: ${customer.email}`,
-        `Phone: ${customer.phone || 'N/A'}`
+      const customerDetails = [
+        ['Customer:', customer.name],
+        ['Company:', customer.company || 'N/A'],
+        ['Email:', customer.email],
+        ['Phone:', customer.phone || 'N/A'],
+        ['Address:', customer.address || 'N/A']
       ];
       
-      customerInfo.forEach(info => {
-        doc.text(info, 20, yPos);
-        yPos += 6;
+      customerDetails.forEach(([label, value]) => {
+        doc.setTextColor(80, 80, 80);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(String(value), 60, yPos);
+        yPos += 7;
       });
       
-      yPos += 10;
+      yPos += 8;
       
-      // Orders summary
+      // Orders summary section
       doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
       doc.text('Orders Summary', 20, yPos);
       doc.line(20, yPos + 3, 190, yPos + 3);
-      yPos += 10;
+      yPos += 12;
       
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       const totalOrders = orders.length;
       const totalAmount = orders.reduce((sum, order) => sum + order.total, 0);
       const paidOrders = orders.filter(order => order.status === 'paid').length;
-      const pendingOrders = orders.filter(order => order.status === 'pending').length;
+      const pendingOrders = orders.filter(order => order.status !== 'paid').length;
       
-      const summaryInfo = [
-        `Total Orders: ${totalOrders}`,
-        `Total Value: EGP ${totalAmount.toLocaleString()}`,
-        `Paid Orders: ${paidOrders}`,
-        `Pending Orders: ${pendingOrders}`,
-        `Report Generated: ${new Date().toLocaleString()}`
+      const summaryStats = [
+        ['Total Orders:', totalOrders.toString()],
+        ['Total Value:', `EGP ${totalAmount.toLocaleString()}`],
+        ['Paid Orders:', paidOrders.toString()],
+        ['Pending Orders:', pendingOrders.toString()]
       ];
       
-      summaryInfo.forEach(info => {
-        doc.text(info, 20, yPos);
-        yPos += 6;
+      summaryStats.forEach(([label, value]) => {
+        doc.setTextColor(80, 80, 80);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(value, 80, yPos);
+        yPos += 7;
       });
       
       yPos += 10;
       
-      // Orders table
-      const tableData = orders.map(order => [
-        order.invoiceNumber,
-        formatDate(order.date),
-        formatDate(order.dueDate),
-        `EGP ${order.total.toLocaleString()}`,
-        order.status.toUpperCase(),
-        order.paymentMethod
-      ]);
+      // Orders table using manual table creation
+      doc.setFontSize(14);
+      doc.text('Order Details', 20, yPos);
+      doc.line(20, yPos + 3, 190, yPos + 3);
+      yPos += 15;
       
-      (doc as any).autoTable({
-        startY: yPos,
-        head: [['Invoice #', 'Date', 'Due Date', 'Amount', 'Status', 'Payment Method']],
-        body: tableData,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [41, 128, 185] },
-        columnStyles: {
-          0: { cellWidth: 25 },
-          1: { cellWidth: 22 },
-          2: { cellWidth: 22 },
-          3: { cellWidth: 25 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: 30 }
+      // Table headers
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(41, 128, 185);
+      doc.rect(20, yPos, 170, 7, 'F');
+      
+      doc.text('Invoice #', 22, yPos + 5);
+      doc.text('Date', 50, yPos + 5);
+      doc.text('Due Date', 75, yPos + 5);
+      doc.text('Amount', 105, yPos + 5);
+      doc.text('Status', 135, yPos + 5);
+      doc.text('Payment', 160, yPos + 5);
+      
+      yPos += 7;
+      
+      // Table rows
+      doc.setTextColor(0, 0, 0);
+      orders.forEach((order, index) => {
+        // Alternate row colors
+        if (index % 2 === 0) {
+          doc.setFillColor(248, 249, 250);
+          doc.rect(20, yPos, 170, 7, 'F');
         }
+        
+        doc.text(order.invoiceNumber, 22, yPos + 5);
+        doc.text(formatDate(order.date), 50, yPos + 5);
+        doc.text(formatDate(order.dueDate), 75, yPos + 5);
+        doc.text(`EGP ${order.total.toLocaleString()}`, 105, yPos + 5);
+        doc.text(order.status.toUpperCase(), 135, yPos + 5);
+        doc.text(order.paymentMethod.substring(0, 8), 160, yPos + 5);
+        
+        yPos += 7;
       });
       
       // Footer
       const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Generated by Premier ERP System', 20, pageHeight - 10);
-      doc.text(`Page 1 of 1`, 170, pageHeight - 10);
+      doc.setTextColor(120, 120, 120);
+      doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
+      doc.text(`Report Date: ${new Date().toLocaleString()}`, 20, pageHeight - 10);
+      doc.text('Page 1 of 1', 170, pageHeight - 10);
       
       // Save the PDF
       const fileName = `customer-orders-${customer.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
@@ -219,7 +245,7 @@ const CustomerOrdersDialog: React.FC<CustomerOrdersDialogProps> = ({
       
     } catch (error) {
       console.error('PDF export error:', error);
-      alert('Failed to generate PDF. Please try again.');
+      alert('Failed to generate PDF report. Please try again.');
     } finally {
       setIsExporting(false);
     }
