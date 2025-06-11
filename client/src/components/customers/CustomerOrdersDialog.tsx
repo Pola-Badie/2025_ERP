@@ -379,7 +379,7 @@ const CustomerOrdersDialog: React.FC<CustomerOrdersDialogProps> = ({
         {/* Order Details Modal */}
         {selectedOrder && (
           <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Order Details - {selectedOrder.invoiceNumber}</DialogTitle>
               </DialogHeader>
