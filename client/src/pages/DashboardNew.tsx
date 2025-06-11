@@ -747,7 +747,7 @@ const DashboardNew = () => {
 
       {/* Enhanced Modal Dialogs for Expanded Charts */}
       <Dialog open={expandedChart === 'sales-overview'} onOpenChange={() => setExpandedChart(null)}>
-        <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span className="text-xl font-semibold">Sales Overview - Enhanced View</span>
@@ -865,7 +865,7 @@ const DashboardNew = () => {
       </Dialog>
 
       <Dialog open={expandedChart === 'sales-distribution'} onOpenChange={() => setExpandedChart(null)}>
-        <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span className="text-xl font-semibold">Sales Distribution - Enhanced View</span>
@@ -938,7 +938,7 @@ const DashboardNew = () => {
       </Dialog>
 
       <Dialog open={expandedChart === 'category-performance'} onOpenChange={() => setExpandedChart(null)}>
-        <DialogContent className="max-w-4xl h-[80vh]">
+        <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span className="text-xl font-semibold">Category Performance - Enhanced View</span>
