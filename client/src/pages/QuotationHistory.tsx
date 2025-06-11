@@ -34,6 +34,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { apiRequest } from '@/lib/queryClient';
+import jsPDF from 'jspdf';
 
 // Enhanced Quotation interface
 interface Quotation {
@@ -168,6 +169,194 @@ const QuotationHistory = () => {
   const handlePreview = (quotation: Quotation) => {
     setSelectedQuotation(quotation);
     setShowPreview(true);
+  };
+
+  // Generate PDF for quotation
+  const generateQuotationPDF = (quotation: Quotation) => {
+    try {
+      const doc = new jsPDF();
+      
+      // Company Header
+      doc.setFontSize(24);
+      doc.setTextColor(41, 128, 185);
+      doc.text('Premier ERP System', 20, 30);
+      
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text('QUOTATION', 20, 45);
+      
+      // Quotation details
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 30);
+      
+      // Quotation info section
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      
+      let yPos = 65;
+      
+      // Left column - Quotation details
+      doc.text('Quotation Details:', 20, yPos);
+      yPos += 8;
+      
+      const quotationDetails = [
+        ['Quotation No:', quotation.quotationNumber],
+        ['Type:', quotation.type.charAt(0).toUpperCase() + quotation.type.slice(1)],
+        ['Date:', new Date(quotation.date).toLocaleDateString()],
+        ['Valid Until:', new Date(quotation.validUntil).toLocaleDateString()],
+        ['Status:', quotation.status.toUpperCase()]
+      ];
+      
+      doc.setFontSize(10);
+      quotationDetails.forEach(([label, value]) => {
+        doc.setTextColor(80, 80, 80);
+        doc.text(label, 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(String(value), 70, yPos);
+        yPos += 6;
+      });
+      
+      // Right column - Customer details
+      yPos = 73;
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Customer Information:', 120, yPos);
+      yPos += 8;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Customer:', 120, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(quotation.customerName, 150, yPos);
+      yPos += 6;
+      
+      doc.setTextColor(80, 80, 80);
+      doc.text('Customer ID:', 120, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(quotation.customerId), 150, yPos);
+      
+      yPos += 20;
+      
+      // Items section
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Quotation Items', 20, yPos);
+      
+      // Line separator
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos + 3, 190, yPos + 3);
+      
+      yPos += 15;
+      
+      // Table headers
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.setFillColor(41, 128, 185);
+      doc.rect(20, yPos, 170, 8, 'F');
+      
+      doc.text('Product', 22, yPos + 6);
+      doc.text('Type', 70, yPos + 6);
+      doc.text('Qty', 90, yPos + 6);
+      doc.text('UoM', 105, yPos + 6);
+      doc.text('Unit Price', 125, yPos + 6);
+      doc.text('Total', 160, yPos + 6);
+      
+      yPos += 8;
+      
+      // Table rows
+      doc.setTextColor(0, 0, 0);
+      quotation.items.forEach((item, index) => {
+        // Alternate row colors
+        if (index % 2 === 0) {
+          doc.setFillColor(248, 249, 250);
+          doc.rect(20, yPos, 170, 8, 'F');
+        }
+        
+        doc.text(item.productName.substring(0, 20), 22, yPos + 6);
+        doc.text(item.type.substring(0, 8), 70, yPos + 6);
+        doc.text(String(item.quantity), 90, yPos + 6);
+        doc.text(item.uom, 105, yPos + 6);
+        doc.text(`EGP ${item.unitPrice.toLocaleString()}`, 125, yPos + 6);
+        doc.text(`EGP ${item.total.toLocaleString()}`, 160, yPos + 6);
+        
+        yPos += 8;
+        
+        // Add description if available
+        if (item.description && item.description.length > 0) {
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text(item.description.substring(0, 60), 22, yPos + 3);
+          doc.setFontSize(9);
+          doc.setTextColor(0, 0, 0);
+          yPos += 6;
+        }
+      });
+      
+      yPos += 10;
+      
+      // Totals section
+      doc.setFontSize(10);
+      const totalsY = yPos;
+      
+      // Subtotal
+      doc.setTextColor(80, 80, 80);
+      doc.text('Subtotal:', 140, totalsY);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`EGP ${quotation.subtotal.toLocaleString()}`, 170, totalsY);
+      
+      // Transportation fees
+      if (quotation.transportationFees > 0) {
+        doc.setTextColor(80, 80, 80);
+        doc.text('Transportation:', 140, totalsY + 8);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`EGP ${quotation.transportationFees.toLocaleString()}`, 170, totalsY + 8);
+      }
+      
+      // Tax
+      doc.setTextColor(80, 80, 80);
+      doc.text('Tax (14%):', 140, totalsY + 16);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`EGP ${quotation.tax.toLocaleString()}`, 170, totalsY + 16);
+      
+      // Total
+      doc.setLineWidth(0.5);
+      doc.line(140, totalsY + 20, 190, totalsY + 20);
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Total:', 140, totalsY + 28);
+      doc.text(`EGP ${quotation.total.toLocaleString()}`, 170, totalsY + 28);
+      
+      // Notes section
+      if (quotation.notes && quotation.notes.length > 0) {
+        yPos = totalsY + 40;
+        doc.setFontSize(12);
+        doc.text('Notes:', 20, yPos);
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        
+        // Split notes into lines
+        const noteLines = doc.splitTextToSize(quotation.notes, 170);
+        doc.text(noteLines, 20, yPos + 8);
+      }
+      
+      // Footer
+      const pageHeight = doc.internal.pageSize.height;
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text('This quotation is valid until the specified date above.', 20, pageHeight - 20);
+      doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
+      doc.text(`Page 1 of 1`, 170, pageHeight - 10);
+      
+      // Save the PDF
+      const fileName = `quotation-${quotation.quotationNumber.replace(/\//g, '-')}.pdf`;
+      doc.save(fileName);
+      
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
   // Handle convert quotation to invoice
@@ -824,7 +1013,7 @@ const QuotationHistory = () => {
                 <Button variant="outline" onClick={() => setShowPreview(false)}>
                   Close
                 </Button>
-                <Button>
+                <Button onClick={() => selectedQuotation && generateQuotationPDF(selectedQuotation)}>
                   <Download className="mr-2 h-4 w-4" />
                   Download PDF
                 </Button>
