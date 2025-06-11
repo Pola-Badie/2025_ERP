@@ -174,6 +174,13 @@ const QuotationHistory = () => {
   // Generate PDF for quotation
   const generateQuotationPDF = (quotation: Quotation) => {
     try {
+      // Validate quotation data
+      if (!quotation) {
+        throw new Error('No quotation data provided');
+      }
+
+      console.log('Generating PDF for quotation:', quotation);
+      
       const doc = new jsPDF();
       
       // Company Header
@@ -198,43 +205,51 @@ const QuotationHistory = () => {
       
       // Left column - Quotation details
       doc.text('Quotation Details:', 20, yPos);
-      yPos += 8;
-      
-      const quotationDetails = [
-        ['Quotation No:', quotation.quotationNumber],
-        ['Type:', quotation.type.charAt(0).toUpperCase() + quotation.type.slice(1)],
-        ['Date:', new Date(quotation.date).toLocaleDateString()],
-        ['Valid Until:', new Date(quotation.validUntil).toLocaleDateString()],
-        ['Status:', quotation.status.toUpperCase()]
-      ];
+      yPos += 10;
       
       doc.setFontSize(10);
+      
+      // Safely access quotation properties
+      const quotationNo = quotation.quotationNumber || 'N/A';
+      const quotationType = quotation.type ? quotation.type.charAt(0).toUpperCase() + quotation.type.slice(1) : 'N/A';
+      const quotationDate = quotation.date ? new Date(quotation.date).toLocaleDateString() : 'N/A';
+      const validUntil = quotation.validUntil ? new Date(quotation.validUntil).toLocaleDateString() : 'N/A';
+      const quotationStatus = quotation.status ? quotation.status.toUpperCase() : 'N/A';
+      
+      const quotationDetails = [
+        ['Quotation No:', quotationNo],
+        ['Type:', quotationType],
+        ['Date:', quotationDate],
+        ['Valid Until:', validUntil],
+        ['Status:', quotationStatus]
+      ];
+      
       quotationDetails.forEach(([label, value]) => {
         doc.setTextColor(80, 80, 80);
-        doc.text(label, 20, yPos);
+        doc.text(String(label), 20, yPos);
         doc.setTextColor(0, 0, 0);
         doc.text(String(value), 70, yPos);
-        yPos += 6;
+        yPos += 7;
       });
       
       // Right column - Customer details
-      yPos = 73;
+      yPos = 75;
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text('Customer Information:', 120, yPos);
-      yPos += 8;
+      yPos += 10;
       
       doc.setFontSize(10);
       doc.setTextColor(80, 80, 80);
       doc.text('Customer:', 120, yPos);
       doc.setTextColor(0, 0, 0);
-      doc.text(quotation.customerName, 150, yPos);
-      yPos += 6;
+      doc.text(String(quotation.customerName || 'N/A'), 150, yPos);
+      yPos += 7;
       
       doc.setTextColor(80, 80, 80);
       doc.text('Customer ID:', 120, yPos);
       doc.setTextColor(0, 0, 0);
-      doc.text(String(quotation.customerId), 150, yPos);
+      doc.text(String(quotation.customerId || 'N/A'), 150, yPos);
       
       yPos += 20;
       
@@ -250,49 +265,66 @@ const QuotationHistory = () => {
       
       yPos += 15;
       
-      // Table headers
-      doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      doc.setFillColor(41, 128, 185);
-      doc.rect(20, yPos, 170, 8, 'F');
+      // Check if items exist
+      const items = quotation.items || [];
       
-      doc.text('Product', 22, yPos + 6);
-      doc.text('Type', 70, yPos + 6);
-      doc.text('Qty', 90, yPos + 6);
-      doc.text('UoM', 105, yPos + 6);
-      doc.text('Unit Price', 125, yPos + 6);
-      doc.text('Total', 160, yPos + 6);
-      
-      yPos += 8;
-      
-      // Table rows
-      doc.setTextColor(0, 0, 0);
-      quotation.items.forEach((item, index) => {
-        // Alternate row colors
-        if (index % 2 === 0) {
-          doc.setFillColor(248, 249, 250);
-          doc.rect(20, yPos, 170, 8, 'F');
-        }
+      if (items.length > 0) {
+        // Table headers
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.setFillColor(41, 128, 185);
+        doc.rect(20, yPos, 170, 8, 'F');
         
-        doc.text(item.productName.substring(0, 20), 22, yPos + 6);
-        doc.text(item.type.substring(0, 8), 70, yPos + 6);
-        doc.text(String(item.quantity), 90, yPos + 6);
-        doc.text(item.uom, 105, yPos + 6);
-        doc.text(`EGP ${item.unitPrice.toLocaleString()}`, 125, yPos + 6);
-        doc.text(`EGP ${item.total.toLocaleString()}`, 160, yPos + 6);
+        doc.text('Product', 22, yPos + 6);
+        doc.text('Type', 70, yPos + 6);
+        doc.text('Qty', 90, yPos + 6);
+        doc.text('UoM', 105, yPos + 6);
+        doc.text('Unit Price', 125, yPos + 6);
+        doc.text('Total', 160, yPos + 6);
         
         yPos += 8;
         
-        // Add description if available
-        if (item.description && item.description.length > 0) {
-          doc.setFontSize(8);
-          doc.setTextColor(100, 100, 100);
-          doc.text(item.description.substring(0, 60), 22, yPos + 3);
-          doc.setFontSize(9);
-          doc.setTextColor(0, 0, 0);
-          yPos += 6;
-        }
-      });
+        // Table rows
+        doc.setTextColor(0, 0, 0);
+        items.forEach((item, index) => {
+          // Alternate row colors
+          if (index % 2 === 0) {
+            doc.setFillColor(248, 249, 250);
+            doc.rect(20, yPos, 170, 8, 'F');
+          }
+          
+          const productName = (item.productName || 'Unknown Product').substring(0, 20);
+          const itemType = (item.type || 'N/A').substring(0, 8);
+          const quantity = String(item.quantity || 0);
+          const uom = item.uom || 'pcs';
+          const unitPrice = `EGP ${(item.unitPrice || 0).toLocaleString()}`;
+          const total = `EGP ${(item.total || 0).toLocaleString()}`;
+          
+          doc.text(productName, 22, yPos + 6);
+          doc.text(itemType, 70, yPos + 6);
+          doc.text(quantity, 90, yPos + 6);
+          doc.text(uom, 105, yPos + 6);
+          doc.text(unitPrice, 125, yPos + 6);
+          doc.text(total, 160, yPos + 6);
+          
+          yPos += 8;
+          
+          // Add description if available
+          if (item.description && item.description.length > 0) {
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            doc.text(item.description.substring(0, 60), 22, yPos + 3);
+            doc.setFontSize(9);
+            doc.setTextColor(0, 0, 0);
+            yPos += 6;
+          }
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text('No items in this quotation', 22, yPos + 6);
+        yPos += 15;
+      }
       
       yPos += 10;
       
@@ -300,25 +332,31 @@ const QuotationHistory = () => {
       doc.setFontSize(10);
       const totalsY = yPos;
       
+      // Safely access totals
+      const subtotal = quotation.subtotal || 0;
+      const transportationFees = quotation.transportationFees || 0;
+      const tax = quotation.tax || 0;
+      const total = quotation.total || quotation.amount || 0;
+      
       // Subtotal
       doc.setTextColor(80, 80, 80);
       doc.text('Subtotal:', 140, totalsY);
       doc.setTextColor(0, 0, 0);
-      doc.text(`EGP ${quotation.subtotal.toLocaleString()}`, 170, totalsY);
+      doc.text(`EGP ${subtotal.toLocaleString()}`, 170, totalsY);
       
       // Transportation fees
-      if (quotation.transportationFees > 0) {
+      if (transportationFees > 0) {
         doc.setTextColor(80, 80, 80);
         doc.text('Transportation:', 140, totalsY + 8);
         doc.setTextColor(0, 0, 0);
-        doc.text(`EGP ${quotation.transportationFees.toLocaleString()}`, 170, totalsY + 8);
+        doc.text(`EGP ${transportationFees.toLocaleString()}`, 170, totalsY + 8);
       }
       
       // Tax
       doc.setTextColor(80, 80, 80);
       doc.text('Tax (14%):', 140, totalsY + 16);
       doc.setTextColor(0, 0, 0);
-      doc.text(`EGP ${quotation.tax.toLocaleString()}`, 170, totalsY + 16);
+      doc.text(`EGP ${tax.toLocaleString()}`, 170, totalsY + 16);
       
       // Total
       doc.setLineWidth(0.5);
@@ -326,7 +364,7 @@ const QuotationHistory = () => {
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
       doc.text('Total:', 140, totalsY + 28);
-      doc.text(`EGP ${quotation.total.toLocaleString()}`, 170, totalsY + 28);
+      doc.text(`EGP ${total.toLocaleString()}`, 170, totalsY + 28);
       
       // Notes section
       if (quotation.notes && quotation.notes.length > 0) {
@@ -336,7 +374,7 @@ const QuotationHistory = () => {
         doc.setFontSize(10);
         doc.setTextColor(80, 80, 80);
         
-        // Split notes into lines
+        // Split notes into lines safely
         const noteLines = doc.splitTextToSize(quotation.notes, 170);
         doc.text(noteLines, 20, yPos + 8);
       }
@@ -347,15 +385,22 @@ const QuotationHistory = () => {
       doc.setTextColor(120, 120, 120);
       doc.text('This quotation is valid until the specified date above.', 20, pageHeight - 20);
       doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
-      doc.text(`Page 1 of 1`, 170, pageHeight - 10);
+      doc.text('Page 1 of 1', 170, pageHeight - 10);
       
       // Save the PDF
-      const fileName = `quotation-${quotation.quotationNumber.replace(/\//g, '-')}.pdf`;
+      const fileName = `quotation-${(quotationNo || 'unknown').replace(/[\/\\]/g, '-')}.pdf`;
       doc.save(fileName);
+      
+      console.log('PDF generated successfully:', fileName);
       
     } catch (error) {
       console.error('PDF generation error:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        quotation: quotation
+      });
+      alert(`Failed to generate PDF: ${error.message || 'Unknown error'}. Please try again.`);
     }
   };
 
