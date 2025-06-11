@@ -83,9 +83,9 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
       
       let yPos = 50;
       customerInfo.forEach(([label, value]) => {
-        doc.setFont('helvetica', 'bold');
+        (doc as any).setFont('helvetica', 'bold');
         doc.text(String(label), 20, yPos);
-        doc.setFont('helvetica', 'normal');
+        (doc as any).setFont('helvetica', 'normal');
         doc.text(String(value || 'N/A'), 80, yPos);
         yPos += 8;
       });
@@ -94,7 +94,7 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
       if (mockInvoices.length > 0) {
         yPos += 10;
         doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
+        (doc as any).setFont('helvetica', 'bold');
         doc.text('Invoice History', 20, yPos);
         
         const tableData = mockInvoices.map(invoice => [
