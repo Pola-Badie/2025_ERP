@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { CustomerData } from './CustomerCard';
@@ -6,7 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CalendarIcon, Mail, MapPin, Phone, Building, FileText } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { CalendarIcon, Mail, MapPin, Phone, Building, FileText, Download, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface CustomerProfileDialogProps {
   open: boolean;
@@ -35,6 +39,8 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
   onOpenChange,
   customer
 }) => {
+  const [isExporting, setIsExporting] = useState(false);
+
   if (!customer) return null;
 
   // Format date for display
@@ -45,6 +51,124 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
       month: 'short',
       year: 'numeric'
     }).format(date);
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    setIsExporting(true);
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(29, 62, 120); // Blue color
+      doc.text('Customer Profile Report', 20, 20);
+      
+      // Customer basic info
+      doc.setFontSize(16);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Customer Information', 20, 40);
+      
+      doc.setFontSize(12);
+      const customerInfo = [
+        ['Name:', customer.name],
+        ['Company:', customer.company || 'N/A'],
+        ['Email:', customer.email],
+        ['Phone:', customer.phone || 'N/A'],
+        ['Address:', customer.address || 'N/A'],
+        ['Sector:', customer.sector || 'N/A'],
+        ['Position:', customer.position || 'N/A'],
+        ['Tax Number:', customer.taxNumber || 'N/A']
+      ];
+      
+      let yPos = 50;
+      customerInfo.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(label), 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(String(value || 'N/A'), 80, yPos);
+        yPos += 8;
+      });
+      
+      // Invoice history table
+      if (mockInvoices.length > 0) {
+        yPos += 10;
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Invoice History', 20, yPos);
+        
+        const tableData = mockInvoices.map(invoice => [
+          `INV-${invoice.id}`,
+          formatDate(invoice.date),
+          `EGP ${invoice.amount.toLocaleString()}`,
+          invoice.status.toUpperCase(),
+          invoice.items.toString()
+        ]);
+        
+        (doc as any).autoTable({
+          startY: yPos + 10,
+          head: [['Invoice #', 'Date', 'Amount', 'Status', 'Items']],
+          body: tableData,
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [29, 62, 120] }
+        });
+      }
+      
+      // Save the PDF
+      doc.save(`customer-profile-${customer.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    } catch (error) {
+      console.error('PDF export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    setIsExporting(true);
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      // Customer info sheet
+      const customerData = [
+        ['Field', 'Value'],
+        ['Name', customer.name],
+        ['Company', customer.company || 'N/A'],
+        ['Email', customer.email],
+        ['Phone', customer.phone || 'N/A'],
+        ['Address', customer.address || 'N/A'],
+        ['Sector', customer.sector || 'N/A'],
+        ['Position', customer.position || 'N/A'],
+        ['Tax Number', customer.taxNumber || 'N/A']
+      ];
+      
+      const customerSheet = XLSX.utils.aoa_to_sheet(customerData);
+      XLSX.utils.book_append_sheet(workbook, customerSheet, 'Customer Info');
+      
+      // Invoice history sheet
+      if (mockInvoices.length > 0) {
+        const invoiceData = [
+          ['Invoice #', 'Date', 'Amount (EGP)', 'Status', 'Items Count'],
+          ...mockInvoices.map(invoice => [
+            `INV-${invoice.id}`,
+            formatDate(invoice.date),
+            invoice.amount,
+            invoice.status.toUpperCase(),
+            invoice.items
+          ])
+        ];
+        
+        const invoiceSheet = XLSX.utils.aoa_to_sheet(invoiceData);
+        XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'Invoice History');
+      }
+      
+      // Save the Excel file
+      XLSX.writeFile(workbook, `customer-profile-${customer.name.replace(/\s+/g, '-').toLowerCase()}.xlsx`);
+    } catch (error) {
+      console.error('Excel export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -443,13 +567,29 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
           >
             Close
           </Button>
-          <Button 
-            variant="outline"
-            className="border-blue-300 text-blue-600 hover:bg-blue-50"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Export Profile
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline"
+                className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                disabled={isExporting}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'Export Profile'}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={exportToPDF} className="cursor-pointer">
+                <FileText className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToExcel} className="cursor-pointer">
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
