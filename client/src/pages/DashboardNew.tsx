@@ -135,7 +135,7 @@ const DashboardNew = () => {
         <Card className="bg-[#1D3E78] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
-            <CardTitle className="text-sm font-medium">TODAY SALES</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">TODAY SALES</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
@@ -148,7 +148,7 @@ const DashboardNew = () => {
         <Card className="bg-[#3BCEAC] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
-            <CardTitle className="text-sm font-medium">MONTH SALES</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">MONTH SALES</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
