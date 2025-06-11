@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerCard, { CustomerData } from '@/components/customers/CustomerCard';
 import AddCustomerDialog from '@/components/customers/AddCustomerDialog';
 import CustomerProfileDialog from '@/components/customers/CustomerProfileDialog';
+import CustomerOrdersDialog from '@/components/customers/CustomerOrdersDialog';
 import EditCustomerDialog from '@/components/customers/EditCustomerDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const CustomersDemo: React.FC = () => {
   // Dialog states
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
   const [showProfileDialog, setShowProfileDialog] = useState<boolean>(false);
+  const [showOrdersDialog, setShowOrdersDialog] = useState<boolean>(false);
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null);
   const [customerData, setCustomerData] = useState<CustomerData[]>([]);
@@ -135,7 +137,8 @@ const CustomersDemo: React.FC = () => {
 
   const handleViewOrders = (customer: CustomerData) => {
     console.log('View orders for:', customer.name);
-    // Navigate to orders or show orders dialog
+    setSelectedCustomer(customer);
+    setShowOrdersDialog(true);
   };
 
   const handleEdit = (customer: CustomerData) => {
@@ -888,6 +891,13 @@ const CustomersDemo: React.FC = () => {
       <CustomerProfileDialog
         open={showProfileDialog}
         onOpenChange={setShowProfileDialog}
+        customer={selectedCustomer}
+      />
+      
+      {/* Customer Orders Dialog */}
+      <CustomerOrdersDialog
+        open={showOrdersDialog}
+        onOpenChange={setShowOrdersDialog}
         customer={selectedCustomer}
       />
       
