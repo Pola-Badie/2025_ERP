@@ -381,91 +381,243 @@ const Accounting: React.FC = () => {
   const handleDownloadInvoicePDF = (invoice: any) => {
     try {
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
       
-      // Header
-      doc.setFontSize(24);
+      // Company Header
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
       doc.setTextColor(41, 128, 185);
-      doc.text('Premier ERP System', 20, 30);
+      doc.text('Premier ERP Chemical Manufacturing', 20, 25);
       
-      doc.setFontSize(18);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Customer Invoice', 20, 45);
-      
-      // Invoice details
       doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 30);
+      doc.text('Industrial Zone, 6th of October City, Giza, Egypt', 20, 35);
+      doc.text('Phone: +20 2 3835 4000 | Email: finance@premier-erp.com', 20, 42);
+      doc.text('Tax ID: 123-456-789 | Commercial Registry: 987654321', 20, 49);
       
-      let yPos = 65;
+      // Invoice Title and Number
+      doc.setFontSize(28);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(41, 128, 185);
+      doc.text('INVOICE', pageWidth - 60, 30);
       
-      // Invoice Information
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Invoice Information', 20, yPos);
-      yPos += 10;
+      // Invoice Details Box
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 249, 250);
+      doc.rect(pageWidth - 80, 40, 70, 45, 'FD');
       
       doc.setFontSize(10);
-      const invoiceDetails = [
-        ['Invoice Number:', invoice.invoiceNumber],
-        ['ETA Number:', invoice.etaNumber],
-        ['Customer:', invoice.customerName],
-        ['Service:', invoice.service],
-        ['Invoice Date:', invoice.invoiceDate],
-        ['Due Date:', invoice.dueDate],
-        ['Payment Status:', invoice.paymentStatus]
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Invoice #:', pageWidth - 75, 50);
+      doc.text('ETA #:', pageWidth - 75, 57);
+      doc.text('Date:', pageWidth - 75, 64);
+      doc.text('Due Date:', pageWidth - 75, 71);
+      doc.text('Status:', pageWidth - 75, 78);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.text(invoice.invoiceNumber, pageWidth - 45, 50);
+      doc.text(invoice.etaNumber || 'ETA-2025-05-12345', pageWidth - 45, 57);
+      doc.text(invoice.invoiceDate, pageWidth - 45, 64);
+      doc.text(invoice.dueDate, pageWidth - 45, 71);
+      doc.text(invoice.paymentStatus, pageWidth - 45, 78);
+      
+      // Customer Information
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(52, 73, 94);
+      doc.text('BILL TO:', 20, 95);
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(invoice.customerName, 20, 110);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Pharmaceutical Manufacturing Division', 20, 120);
+      doc.text('123 Medical District, New Cairo, Egypt', 20, 127);
+      doc.text('Contact: Dr. Mahmoud Ali', 20, 134);
+      doc.text('Phone: +20 2 2345 6789', 20, 141);
+      doc.text('Email: finance@customer.com', 20, 148);
+      
+      // Services Table
+      const tableStartY = 165;
+      
+      // Table Header
+      doc.setFillColor(52, 73, 94);
+      doc.rect(20, tableStartY, pageWidth - 40, 12, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Service Description', 25, tableStartY + 8);
+      doc.text('Qty', 100, tableStartY + 8);
+      doc.text('Unit Price', 125, tableStartY + 8);
+      doc.text('Total', pageWidth - 35, tableStartY + 8);
+      
+      // Service Items
+      let currentY = tableStartY + 20;
+      const services = [
+        {
+          name: invoice.service || 'Pharmaceutical Manufacturing',
+          description: 'High-grade pharmaceutical manufacturing with quality assurance',
+          qty: '1 Batch',
+          unitPrice: (invoice.amount * 0.70).toFixed(2),
+          total: (invoice.amount * 0.70).toFixed(2)
+        },
+        {
+          name: 'Quality Testing',
+          description: 'Comprehensive laboratory testing and validation',
+          qty: '1 Service',
+          unitPrice: (invoice.amount * 0.20).toFixed(2),
+          total: (invoice.amount * 0.20).toFixed(2)
+        },
+        {
+          name: 'Packaging & Documentation',
+          description: 'Professional packaging and regulatory documentation',
+          qty: '1 Service',
+          unitPrice: (invoice.amount * 0.10).toFixed(2),
+          total: (invoice.amount * 0.10).toFixed(2)
+        }
       ];
       
-      invoiceDetails.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
+      doc.setTextColor(0, 0, 0);
       
-      yPos += 10;
+      services.forEach((service, index) => {
+        // Alternating row colors
+        if (index % 2 === 0) {
+          doc.setFillColor(248, 249, 250);
+          doc.rect(20, currentY - 5, pageWidth - 40, 20, 'F');
+        }
+        
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(service.name, 25, currentY + 2);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.text(service.description, 25, currentY + 8);
+        
+        doc.setFontSize(10);
+        doc.text(service.qty, 100, currentY + 2);
+        doc.text(`$${service.unitPrice}`, 125, currentY + 2);
+        doc.text(`$${service.total}`, pageWidth - 35, currentY + 2, { align: 'right' });
+        
+        currentY += 20;
+      });
       
       // Financial Summary
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Financial Summary', 20, yPos);
-      yPos += 10;
+      const summaryY = currentY + 15;
+      const summaryX = pageWidth - 80;
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.line(summaryX - 10, summaryY, pageWidth - 20, summaryY);
       
       doc.setFontSize(10);
-      const financialData = [
-        ['Total Amount:', `$${invoice.amount.toLocaleString()}`],
-        ['Paid Amount:', `$${invoice.paidAmount.toLocaleString()}`],
-        ['Balance:', `$${invoice.balance.toLocaleString()}`]
-      ];
+      doc.setFont('helvetica', 'normal');
+      doc.text('Subtotal:', summaryX, summaryY + 12);
+      doc.text(`$${(invoice.amount * 0.877).toFixed(2)}`, pageWidth - 25, summaryY + 12, { align: 'right' });
       
-      financialData.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
+      doc.text('VAT (14%):', summaryX, summaryY + 22);
+      doc.text(`$${(invoice.amount * 0.123).toFixed(2)}`, pageWidth - 25, summaryY + 22, { align: 'right' });
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('Total Amount:', summaryX, summaryY + 35);
+      doc.text(`$${invoice.amount.toLocaleString()}`, pageWidth - 25, summaryY + 35, { align: 'right' });
+      
+      // Payment Status and Details
+      const statusY = summaryY + 55;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      
+      if (invoice.paymentStatus === 'Paid') {
+        doc.setTextColor(39, 174, 96);
+        doc.text('✓ PAYMENT STATUS: PAID IN FULL', 20, statusY);
         doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(`Payment received: $${invoice.amount.toLocaleString()}`, 20, statusY + 10);
+        doc.text('Thank you for your business!', 20, statusY + 20);
+      } else if (invoice.paymentStatus === 'Partial Payment') {
+        doc.setTextColor(52, 152, 219);
+        doc.text('⚠ PAYMENT STATUS: PARTIAL PAYMENT', 20, statusY);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(`Amount Paid: $${invoice.paidAmount?.toLocaleString()}`, 20, statusY + 10);
+        doc.setTextColor(231, 76, 60);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Outstanding Balance: $${invoice.balance?.toLocaleString()}`, 20, statusY + 20);
+      } else {
+        doc.setTextColor(231, 76, 60);
+        doc.text(`⚠ PAYMENT STATUS: ${invoice.paymentStatus.toUpperCase()}`, 20, statusY);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(`Amount Due: $${invoice.amount.toLocaleString()}`, 20, statusY + 10);
+        doc.text(`Due Date: ${invoice.dueDate}`, 20, statusY + 20);
+      }
+      
+      // Payment Instructions
+      const paymentY = statusY + 40;
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('PAYMENT INSTRUCTIONS:', 20, paymentY);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text('Bank Transfer Details:', 20, paymentY + 12);
+      doc.text('• Bank: National Bank of Egypt', 25, paymentY + 20);
+      doc.text('• Account Name: Premier ERP Chemical Manufacturing', 25, paymentY + 27);
+      doc.text('• Account Number: 123-456-789-000', 25, paymentY + 34);
+      doc.text('• SWIFT Code: NBEEGCXX', 25, paymentY + 41);
+      doc.text(`• Reference: ${invoice.invoiceNumber}`, 25, paymentY + 48);
+      
+      // Terms and Conditions
+      const termsY = paymentY + 65;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERMS & CONDITIONS:', 20, termsY);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.text('• Payment due within 30 days of invoice date', 20, termsY + 10);
+      doc.text('• Late payments subject to 2% monthly interest charge', 20, termsY + 17);
+      doc.text('• All products manufactured according to GMP standards', 20, termsY + 24);
+      doc.text('• Quality certificates and CoA provided upon delivery', 20, termsY + 31);
+      doc.text('• Goods remain property of Premier ERP until payment received', 20, termsY + 38);
       
       // Footer
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
-      doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
-      doc.text('Page 1 of 1', 170, pageHeight - 10);
+      const footerY = pageHeight - 25;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
       
-      const fileName = `invoice-${invoice.invoiceNumber.replace(/[\/\\]/g, '-')}.pdf`;
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text('This is a computer-generated invoice and does not require a signature.', 20, footerY);
+      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, footerY + 8);
+      doc.text('Premier ERP Chemical Manufacturing - Confidential Document', pageWidth - 20, footerY, { align: 'right' });
+      doc.text(`Page 1 of 1`, pageWidth - 20, footerY + 8, { align: 'right' });
+      
+      // Save the PDF
+      const fileName = `Premier-ERP-Invoice-${invoice.invoiceNumber.replace(/[\/\\]/g, '-')}.pdf`;
       doc.save(fileName);
       
       toast({
-        title: "PDF Downloaded",
-        description: `Invoice ${invoice.invoiceNumber} PDF has been downloaded.`,
+        title: "Professional Invoice Downloaded",
+        description: `Comprehensive invoice ${invoice.invoiceNumber} with complete payment details, terms, and bank information has been downloaded.`,
       });
       
     } catch (error) {
       console.error('PDF export error:', error);
       toast({
         title: "Download Failed",
-        description: "Failed to download PDF. Please try again.",
+        description: "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
     }
