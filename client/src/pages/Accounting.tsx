@@ -158,6 +158,13 @@ const Accounting: React.FC = () => {
   const [refundReason, setRefundReason] = useState('');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isAddPayDialogOpen, setIsAddPayDialogOpen] = useState(false);
+  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
+  
+  // Payment form state
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('bank-transfer');
+  const [paymentReference, setPaymentReference] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
   
   // Add Pay form state
   const [addPayForm, setAddPayForm] = useState({
@@ -451,6 +458,11 @@ const Accounting: React.FC = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleViewInvoiceDetails = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setIsInvoiceDetailsOpen(true);
   };
 
   const handleViewPaymentHistory = (invoice: any) => {
