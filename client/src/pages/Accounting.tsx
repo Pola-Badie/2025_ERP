@@ -471,13 +471,7 @@ const Accounting: React.FC = () => {
     }
   };
 
-  const handleViewPaymentHistory = (invoice: any) => {
-    toast({
-      title: "Payment History",
-      description: `Viewing payment history for invoice ${invoice.invoiceNumber}`,
-    });
-    // This would typically open a payment history dialog
-  };
+
 
   const handleRecordPayment = (invoice: any) => {
     setSelectedInvoice(invoice);
@@ -8262,7 +8256,7 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleSendReminder({id: 'INV-2025-001', customer: 'Cairo Medical Center', total: '$15,450.00', remaining: '$5,450.00', eta: 'ETA240530101'})}>
+                              <DropdownMenuItem onClick={() => handleSendReminderNotification({invoiceNumber: 'INV-2025-001', customerName: 'Cairo Medical Center'})}>
                                 Send Reminder
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleViewInvoice({id: 'INV-2025-001', customer: 'Cairo Medical Center', total: '$15,450.00', remaining: '$5,450.00', eta: 'ETA240530101'})}>
