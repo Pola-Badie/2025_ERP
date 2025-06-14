@@ -159,6 +159,8 @@ const Accounting: React.FC = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isAddPayDialogOpen, setIsAddPayDialogOpen] = useState(false);
   const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
+  const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false);
+  const [selectedServiceDetails, setSelectedServiceDetails] = useState<any>(null);
   
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -360,6 +362,11 @@ const Accounting: React.FC = () => {
   const handleViewInvoiceDetails = (invoice: any) => {
     setSelectedInvoice(invoice);
     setIsInvoiceDetailsOpen(true);
+  };
+
+  const handleViewServiceDetails = (serviceDetails: any) => {
+    setSelectedServiceDetails(serviceDetails);
+    setIsServiceDetailsOpen(true);
   };
 
   const handleDownloadInvoicePDF = (invoice: any) => {
@@ -4406,6 +4413,7 @@ const Accounting: React.FC = () => {
                           <TableHead>Quantity</TableHead>
                           <TableHead>Unit Price</TableHead>
                           <TableHead>Total</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -4415,6 +4423,27 @@ const Accounting: React.FC = () => {
                           <TableCell>1 Batch</TableCell>
                           <TableCell>${(selectedInvoice.amount * 0.877).toFixed(2)}</TableCell>
                           <TableCell className="font-semibold">${(selectedInvoice.amount * 0.877).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewServiceDetails({
+                                serviceName: selectedInvoice.service,
+                                description: "High-grade pharmaceutical manufacturing service with quality assurance",
+                                quantity: "1 Batch",
+                                unitPrice: (selectedInvoice.amount * 0.877).toFixed(2),
+                                total: (selectedInvoice.amount * 0.877).toFixed(2),
+                                specifications: "Active Ingredient: 99.5% purity, Batch Size: 5000 units, Production Time: 14 days",
+                                qualityStandards: "ISO 9001:2015, GMP Certified, FDA Approved",
+                                deliveryDate: "March 15, 2025",
+                                responsible: "Dr. Ahmed Mansour - Production Manager"
+                              })}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                          </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">Quality Testing</TableCell>
@@ -4422,6 +4451,27 @@ const Accounting: React.FC = () => {
                           <TableCell>1 Service</TableCell>
                           <TableCell>$850.00</TableCell>
                           <TableCell className="font-semibold">$850.00</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewServiceDetails({
+                                serviceName: "Quality Testing",
+                                description: "Comprehensive quality control and laboratory testing",
+                                quantity: "1 Service",
+                                unitPrice: "850.00",
+                                total: "850.00",
+                                specifications: "Complete analytical testing including HPLC, GC-MS, Dissolution testing, Microbial analysis",
+                                qualityStandards: "USP Standards, EP Compliance, ICH Guidelines",
+                                deliveryDate: "March 18, 2025",
+                                responsible: "Dr. Fatima El-Zahra - Quality Control Manager"
+                              })}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                          </TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell className="font-medium">Packaging</TableCell>
@@ -4429,6 +4479,27 @@ const Accounting: React.FC = () => {
                           <TableCell>1 Service</TableCell>
                           <TableCell>$320.00</TableCell>
                           <TableCell className="font-semibold">$320.00</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewServiceDetails({
+                                serviceName: "Packaging",
+                                description: "Professional pharmaceutical packaging and labeling",
+                                quantity: "1 Service",
+                                unitPrice: "320.00",
+                                total: "320.00",
+                                specifications: "Primary packaging: Blister packs, Secondary packaging: Cartons with safety seals",
+                                qualityStandards: "Child-resistant packaging, Tamper-evident seals, Regulatory compliance labels",
+                                deliveryDate: "March 20, 2025",
+                                responsible: "Mohamed Hassan - Packaging Supervisor"
+                              })}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -4728,6 +4799,328 @@ const Accounting: React.FC = () => {
                   Record Payment
                 </Button>
               </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Service Details Dialog */}
+          <Dialog open={isServiceDetailsOpen} onOpenChange={setIsServiceDetailsOpen}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3 text-xl">
+                  <div className="bg-purple-100 p-2 rounded-lg">
+                    <Activity className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <span>Service Details: {selectedServiceDetails?.serviceName}</span>
+                    <p className="text-sm text-gray-600 font-normal mt-1">
+                      Complete specifications and delivery information
+                    </p>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedServiceDetails && (
+                <div className="space-y-6">
+                  {/* Service Overview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className="p-4 bg-blue-50 border-blue-200">
+                      <h3 className="font-semibold text-blue-800 mb-3 flex items-center">
+                        <Target className="h-4 w-4 mr-2" />
+                        Service Overview
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                          <span className="text-sm text-blue-700">Service Name:</span>
+                          <span className="text-sm font-medium text-gray-800 text-right">
+                            {selectedServiceDetails.serviceName}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-sm text-blue-700">Description:</span>
+                          <span className="text-sm font-medium text-gray-800 text-right max-w-xs">
+                            {selectedServiceDetails.description}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">Quantity:</span>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            {selectedServiceDetails.quantity}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">Unit Price:</span>
+                          <span className="text-sm font-bold text-green-600">
+                            ${selectedServiceDetails.unitPrice}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center border-t pt-2">
+                          <span className="text-sm text-blue-800 font-semibold">Total Value:</span>
+                          <span className="text-lg font-bold text-green-600">
+                            ${selectedServiceDetails.total}
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-green-50 border-green-200">
+                      <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Delivery & Responsibility
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Delivery Date:</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            {selectedServiceDetails.deliveryDate}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-sm text-green-700">Responsible:</span>
+                          <span className="text-sm font-medium text-gray-800 text-right max-w-xs">
+                            {selectedServiceDetails.responsible}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Status:</span>
+                          <Badge className="bg-yellow-100 text-yellow-800">
+                            In Progress
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Priority:</span>
+                          <Badge className="bg-red-100 text-red-800">
+                            High
+                          </Badge>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Technical Specifications */}
+                  <Card className="p-6 bg-gray-50">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Shield className="h-5 w-5 mr-2" />
+                      Technical Specifications
+                    </h3>
+                    <div className="bg-white p-4 rounded-lg border">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {selectedServiceDetails.specifications}
+                      </p>
+                    </div>
+                  </Card>
+
+                  {/* Quality Standards & Compliance */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Shield className="h-5 w-5 mr-2" />
+                      Quality Standards & Compliance
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {selectedServiceDetails.qualityStandards.split(', ').map((standard: string, index: number) => (
+                        <div key={index} className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="bg-green-100 p-1 rounded-full mr-3">
+                            <Check className="h-3 w-3 text-green-600" />
+                          </div>
+                          <span className="text-sm font-medium text-green-800">{standard}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+
+                  {/* Production Timeline */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Clock className="h-5 w-5 mr-2" />
+                      Production Timeline
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="bg-green-100 p-2 rounded-full">
+                          <Check className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-green-800">Order Confirmed</p>
+                            <span className="text-xs text-green-600">January 15, 2025</span>
+                          </div>
+                          <p className="text-xs text-green-600">Service order received and confirmed</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                          <Activity className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-blue-800">Production Started</p>
+                            <span className="text-xs text-blue-600">January 20, 2025</span>
+                          </div>
+                          <p className="text-xs text-blue-600">Manufacturing process initiated</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="bg-yellow-100 p-2 rounded-full">
+                          <Clock className="h-4 w-4 text-yellow-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-yellow-800">Quality Testing</p>
+                            <span className="text-xs text-yellow-600">March 10, 2025</span>
+                          </div>
+                          <p className="text-xs text-yellow-600">Comprehensive testing and validation</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="bg-purple-100 p-2 rounded-full">
+                          <Calendar className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-purple-800">Expected Delivery</p>
+                            <span className="text-xs text-purple-600">{selectedServiceDetails.deliveryDate}</span>
+                          </div>
+                          <p className="text-xs text-purple-600">Final delivery and documentation</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Cost Breakdown */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Calculator className="h-5 w-5 mr-2" />
+                      Detailed Cost Breakdown
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-100 p-1 rounded-full">
+                            <DollarSign className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-800">Base Service Cost</span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-800">
+                          ${(parseFloat(selectedServiceDetails.total) * 0.85).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-green-100 p-1 rounded-full">
+                            <Shield className="h-3 w-3 text-green-600" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-800">Quality Assurance</span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-800">
+                          ${(parseFloat(selectedServiceDetails.total) * 0.10).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-purple-100 p-1 rounded-full">
+                            <Activity className="h-3 w-3 text-purple-600" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-800">Administration</span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-800">
+                          ${(parseFloat(selectedServiceDetails.total) * 0.05).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border-t-2 border-blue-200">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-100 p-1 rounded-full">
+                            <Calculator className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-bold text-blue-800">Total Service Cost</span>
+                        </div>
+                        <span className="text-lg font-bold text-blue-600">
+                          ${selectedServiceDetails.total}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Contact Information */}
+                  <Card className="p-6 bg-blue-50">
+                    <h3 className="font-semibold text-blue-800 mb-4 flex items-center">
+                      <Users className="h-5 w-5 mr-2" />
+                      Contact Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-800 mb-2">Service Manager</h4>
+                        <p className="text-sm text-gray-600">{selectedServiceDetails.responsible}</p>
+                        <p className="text-sm text-blue-600">service.manager@premier-erp.com</p>
+                        <p className="text-sm text-blue-600">+20 2 1234 5678</p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-800 mb-2">Quality Control</h4>
+                        <p className="text-sm text-gray-600">Dr. Fatima El-Zahra</p>
+                        <p className="text-sm text-blue-600">quality@premier-erp.com</p>
+                        <p className="text-sm text-blue-600">+20 2 1234 5679</p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Service Report Downloaded",
+                            description: `Detailed report for ${selectedServiceDetails.serviceName} has been downloaded.`,
+                          });
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Report
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Service Manager Contacted",
+                            description: `Message sent to ${selectedServiceDetails.responsible}`,
+                          });
+                        }}
+                        variant="outline"
+                        className="border-green-300 text-green-700 hover:bg-green-50"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Contact Manager
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Production Update Requested",
+                            description: "Latest production status will be updated within 30 minutes",
+                          });
+                        }}
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Request Update
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsServiceDetailsOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </TabsContent>
