@@ -3797,8 +3797,8 @@ const Accounting: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-green-600" />
-                  <span>Customers' Invoices</span>
+                  <Building className="h-5 w-5 mr-2 text-blue-600" />
+                  <span>Customer Profiles & Accounts</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button 
@@ -3807,66 +3807,66 @@ const Accounting: React.FC = () => {
                     onClick={() => setActiveTab("customer-payments")}
                   >
                     <CreditCard className="h-4 w-4 mr-2" /> 
-                    Customer Payments
+                    Payment Center
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                   >
-                    <Download className="h-4 w-4 mr-2" /> 
-                    Export Invoices
+                    <Users className="h-4 w-4 mr-2" /> 
+                    Add Customer
                   </Button>
                 </div>
               </CardTitle>
               <CardDescription>
-                Comprehensive customer invoice management with payment status tracking and history
+                Comprehensive customer management with complete transaction history, profiles, and account details
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {/* Customer Invoice Statistics */}
+              {/* Customer Overview Statistics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-600 font-medium">Total Invoices</p>
-                      <p className="text-2xl font-bold text-green-800">156</p>
-                    </div>
-                    <FileText className="w-8 h-8 text-green-500" />
-                  </div>
-                  <p className="text-xs text-green-600 mt-1">All customer invoices</p>
-                </div>
-                
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-600 font-medium">Paid Invoices</p>
-                      <p className="text-2xl font-bold text-blue-800">124</p>
+                      <p className="text-blue-600 font-medium">Total Customers</p>
+                      <p className="text-2xl font-bold text-blue-800">24</p>
                     </div>
-                    <CheckCircle className="w-8 h-8 text-blue-500" />
+                    <Building className="w-8 h-8 text-blue-500" />
                   </div>
-                  <p className="text-xs text-blue-600 mt-1">$1,285,450 collected</p>
+                  <p className="text-xs text-blue-600 mt-1">Active customer accounts</p>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 font-medium">Total Revenue</p>
+                      <p className="text-2xl font-bold text-green-800">$2.4M</p>
+                    </div>
+                    <DollarSign className="w-8 h-8 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">All-time customer revenue</p>
                 </div>
                 
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-orange-600 font-medium">Unpaid Invoices</p>
-                      <p className="text-2xl font-bold text-orange-800">32</p>
+                      <p className="text-orange-600 font-medium">Outstanding</p>
+                      <p className="text-2xl font-bold text-orange-800">$342K</p>
                     </div>
-                    <Clock className="w-8 h-8 text-orange-500" />
+                    <AlertCircle className="w-8 h-8 text-orange-500" />
                   </div>
-                  <p className="text-xs text-orange-600 mt-1">$285,650 outstanding</p>
+                  <p className="text-xs text-orange-600 mt-1">Pending payments</p>
                 </div>
                 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-600 font-medium">Collection Rate</p>
-                      <p className="text-2xl font-bold text-purple-800">79.5%</p>
+                      <p className="text-purple-600 font-medium">Avg. Account Value</p>
+                      <p className="text-2xl font-bold text-purple-800">$98K</p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-purple-500" />
                   </div>
-                  <p className="text-xs text-purple-600 mt-1">Above target (75%)</p>
+                  <p className="text-xs text-purple-600 mt-1">Per customer average</p>
                 </div>
               </div>
 
@@ -3876,57 +3876,55 @@ const Accounting: React.FC = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
-                      placeholder="Search customers or invoices..."
+                      placeholder="Search customers..."
                       className="pl-10"
                     />
                   </div>
                   
-                  <Select defaultValue="all-customers">
+                  <Select defaultValue="all-industries">
                     <SelectTrigger>
-                      <SelectValue placeholder="Select customer" />
+                      <SelectValue placeholder="Industry type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all-customers">All Customers</SelectItem>
-                      <SelectItem value="cairo-medical">Cairo Medical Center</SelectItem>
-                      <SelectItem value="alexandria-pharma">Alexandria Pharmaceuticals</SelectItem>
-                      <SelectItem value="global-health">Global Health Solutions</SelectItem>
-                      <SelectItem value="mediterranean-labs">Mediterranean Labs</SelectItem>
-                      <SelectItem value="nile-pharma">Nile Pharmaceutical Co.</SelectItem>
+                      <SelectItem value="all-industries">All Industries</SelectItem>
+                      <SelectItem value="pharmaceuticals">Pharmaceuticals</SelectItem>
+                      <SelectItem value="medical-devices">Medical Devices</SelectItem>
+                      <SelectItem value="biotechnology">Biotechnology</SelectItem>
+                      <SelectItem value="research-labs">Research Labs</SelectItem>
                     </SelectContent>
                   </Select>
                   
                   <Select defaultValue="all-status">
                     <SelectTrigger>
-                      <SelectValue placeholder="Payment status" />
+                      <SelectValue placeholder="Account status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all-status">All Status</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="unpaid">Unpaid</SelectItem>
-                      <SelectItem value="partial">Partial Payment</SelectItem>
-                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="outstanding">Outstanding Balance</SelectItem>
+                      <SelectItem value="excellent">Excellent Standing</SelectItem>
+                      <SelectItem value="overdue">Overdue Payments</SelectItem>
                     </SelectContent>
                   </Select>
                   
-                  <Select defaultValue="this-year">
+                  <Select defaultValue="revenue-desc">
                     <SelectTrigger>
-                      <SelectValue placeholder="Date range" />
+                      <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="this-month">This Month</SelectItem>
-                      <SelectItem value="last-month">Last Month</SelectItem>
-                      <SelectItem value="this-quarter">This Quarter</SelectItem>
-                      <SelectItem value="this-year">This Year</SelectItem>
-                      <SelectItem value="last-year">Last Year</SelectItem>
+                      <SelectItem value="revenue-desc">Revenue (High to Low)</SelectItem>
+                      <SelectItem value="revenue-asc">Revenue (Low to High)</SelectItem>
+                      <SelectItem value="name-asc">Customer Name A-Z</SelectItem>
+                      <SelectItem value="recent-activity">Recent Activity</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* Customer Invoices Table */}
+              {/* Customer Profiles Grid */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Customer Invoices History</h3>
+                  <h3 className="text-lg font-semibold">Customer Profiles & Account Management</h3>
                   <div className="flex items-center space-x-2">
                     <Button variant="outline" size="sm">
                       <Filter className="h-4 w-4 mr-2" />
@@ -3939,102 +3937,653 @@ const Accounting: React.FC = () => {
                   </div>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>ETA Number</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Invoice Date</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right">Paid Amount</TableHead>
-                      <TableHead className="text-right">Balance</TableHead>
-                      <TableHead>Payment Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        <span className="text-blue-600">INV-2025-001</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-green-600 text-sm">ETA-2025-05-12345</span>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">Cairo Medical Center</div>
-                          <div className="text-xs text-gray-500">Ibuprofen Manufacturing</div>
+                {/* Customer Profiles Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  
+                  {/* Customer Profile Card 1 - Cairo Medical Center */}
+                  <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-blue-800">Cairo Medical Center</CardTitle>
+                            <p className="text-sm text-gray-600">Pharmaceuticals Manufacturing</p>
+                          </div>
                         </div>
-                      </TableCell>
-                      <TableCell>Jan 15, 2025</TableCell>
-                      <TableCell>Feb 14, 2025</TableCell>
-                      <TableCell className="text-right font-semibold">$54,150.00</TableCell>
-                      <TableCell className="text-right text-green-600">$54,150.00</TableCell>
-                      <TableCell className="text-right text-green-600">$0.00</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0"
-                            title="View Invoice Details"
-                            onClick={() => handleViewInvoiceDetails({
-                              invoiceNumber: 'INV-2025-001',
-                              etaNumber: 'ETA-2025-05-12345',
-                              customerName: 'Cairo Medical Center',
-                              service: 'Ibuprofen Manufacturing',
-                              invoiceDate: 'Jan 15, 2025',
-                              dueDate: 'Feb 14, 2025',
-                              amount: 54150.00,
-                              paidAmount: 54150.00,
-                              balance: 0.00,
-                              paymentStatus: 'Paid'
-                            })}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0 text-blue-600"
-                            title="Download PDF"
-                            onClick={() => handleDownloadInvoicePDF({
-                              invoiceNumber: 'INV-2025-001',
-                              etaNumber: 'ETA-2025-05-12345',
-                              customerName: 'Cairo Medical Center',
-                              service: 'Ibuprofen Manufacturing',
-                              invoiceDate: 'Jan 15, 2025',
-                              dueDate: 'Feb 14, 2025',
-                              amount: 54150.00,
-                              paidAmount: 54150.00,
-                              balance: 0.00,
-                              paymentStatus: 'Paid'
-                            })}
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0 text-green-600"
-                            title="Payment History"
-                            onClick={() => handleViewPaymentHistory({
-                              invoiceNumber: 'INV-2025-001',
-                              customerName: 'Cairo Medical Center'
-                            })}
-                          >
-                            <CreditCard className="h-3 w-3" />
-                          </Button>
+                        <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$342,450</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-orange-600">$0</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">24</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">May 15, 2025</p>
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    <TableRow>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-001</p>
+                              <p className="text-xs text-gray-600">Ibuprofen Manufacturing</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$54,150</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-008</p>
+                              <p className="text-xs text-gray-600">Quality Testing</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$12,300</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'Cairo Medical Center',
+                            totalRevenue: 342450,
+                            outstandingBalance: 0,
+                            totalOrders: 24,
+                            paymentHistory: [
+                              { date: 'May 15, 2025', amount: 54150, method: 'Bank Transfer', invoice: 'INV-2025-001' },
+                              { date: 'Apr 20, 2025', amount: 12300, method: 'Credit Card', invoice: 'INV-2025-008' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-blue-600"
+                        >
+                          <CreditCard className="h-3 w-3 mr-1" />
+                          Payments
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Customer Profile Card 2 - Alexandria Pharmaceuticals */}
+                  <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-green-800">Alexandria Pharmaceuticals</CardTitle>
+                            <p className="text-sm text-gray-600">API Production & Research</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$285,600</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-orange-600">$0</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">18</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">May 12, 2025</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-002</p>
+                              <p className="text-xs text-gray-600">Paracetamol Production</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$41,600</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-007</p>
+                              <p className="text-xs text-gray-600">API Synthesis</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$65,200</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'Alexandria Pharmaceuticals',
+                            totalRevenue: 285600,
+                            outstandingBalance: 0,
+                            totalOrders: 18,
+                            paymentHistory: [
+                              { date: 'May 12, 2025', amount: 41600, method: 'Bank Transfer', invoice: 'INV-2025-002' },
+                              { date: 'Apr 15, 2025', amount: 65200, method: 'Wire Transfer', invoice: 'INV-2025-007' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-green-600"
+                        >
+                          <CreditCard className="h-3 w-3 mr-1" />
+                          Payments
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Customer Profile Card 3 - Global Health Solutions */}
+                  <Card className="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-orange-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-orange-800">Global Health Solutions</CardTitle>
+                            <p className="text-sm text-gray-600">Antibiotic Manufacturing</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-orange-100 text-orange-800">Outstanding</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$456,800</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-orange-600">$48,500</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">32</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">Apr 25, 2025</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-orange-50 rounded border border-orange-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-003</p>
+                              <p className="text-xs text-gray-600">Antibiotic Synthesis</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-orange-600">$78,500</p>
+                              <p className="text-xs text-orange-600">Partial</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-005</p>
+                              <p className="text-xs text-gray-600">Quality Control</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$15,800</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'Global Health Solutions',
+                            totalRevenue: 456800,
+                            outstandingBalance: 48500,
+                            totalOrders: 32,
+                            paymentHistory: [
+                              { date: 'Feb 05, 2025', amount: 30000, method: 'Bank Transfer', invoice: 'INV-2025-003', status: 'Partial Payment' },
+                              { date: 'Apr 10, 2025', amount: 15800, method: 'Credit Card', invoice: 'INV-2025-005' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-orange-600"
+                        >
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Follow Up
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Customer Profile Card 4 - Mediterranean Labs */}
+                  <Card className="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-purple-800">Mediterranean Labs</CardTitle>
+                            <p className="text-sm text-gray-600">Research & Development</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$168,950</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-blue-600">$22,400</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">12</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">May 08, 2025</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-blue-50 rounded border border-blue-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-009</p>
+                              <p className="text-xs text-gray-600">Custom Synthesis</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-blue-600">$22,400</p>
+                              <p className="text-xs text-blue-600">Pending</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-006</p>
+                              <p className="text-xs text-gray-600">Laboratory Testing</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$8,750</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'Mediterranean Labs',
+                            totalRevenue: 168950,
+                            outstandingBalance: 22400,
+                            totalOrders: 12,
+                            paymentHistory: [
+                              { date: 'May 08, 2025', amount: 8750, method: 'Bank Transfer', invoice: 'INV-2025-006' },
+                              { date: 'Apr 05, 2025', amount: 15600, method: 'Credit Card', invoice: 'INV-2025-004' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-purple-600"
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          Due Date
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Customer Profile Card 5 - Nile Pharmaceutical Co. */}
+                  <Card className="border-l-4 border-l-teal-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-teal-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-teal-800">Nile Pharmaceutical Co.</CardTitle>
+                            <p className="text-sm text-gray-600">Generic Drug Manufacturing</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$524,200</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-orange-600">$0</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">38</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">May 18, 2025</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-010</p>
+                              <p className="text-xs text-gray-600">Generic API Production</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$89,500</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-011</p>
+                              <p className="text-xs text-gray-600">Bulk Manufacturing</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$125,800</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'Nile Pharmaceutical Co.',
+                            totalRevenue: 524200,
+                            outstandingBalance: 0,
+                            totalOrders: 38,
+                            paymentHistory: [
+                              { date: 'May 18, 2025', amount: 89500, method: 'Wire Transfer', invoice: 'INV-2025-010' },
+                              { date: 'May 10, 2025', amount: 125800, method: 'Bank Transfer', invoice: 'INV-2025-011' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-teal-600"
+                        >
+                          <CreditCard className="h-3 w-3 mr-1" />
+                          Payments
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Customer Profile Card 6 - BioTech Innovations */}
+                  <Card className="border-l-4 border-l-red-500 hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                            <Building className="h-6 w-6 text-red-600" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg text-red-800">BioTech Innovations</CardTitle>
+                            <p className="text-sm text-gray-600">Biotechnology & Research</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-red-100 text-red-800">Overdue</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Account Summary */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600">Total Revenue:</span>
+                            <p className="font-bold text-green-600">$198,750</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Outstanding:</span>
+                            <p className="font-bold text-red-600">$67,200</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Total Orders:</span>
+                            <p className="font-bold text-blue-600">15</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Payment:</span>
+                            <p className="font-bold text-gray-800">Mar 15, 2025</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Recent Transactions */}
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Recent Transactions</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center p-2 bg-red-50 rounded border border-red-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-012</p>
+                              <p className="text-xs text-gray-600">Bio-process Development</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-red-600">$67,200</p>
+                              <p className="text-xs text-red-600">Overdue</p>
+                            </div>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-green-50 rounded border border-green-200">
+                            <div>
+                              <p className="text-sm font-medium">INV-2025-004</p>
+                              <p className="text-xs text-gray-600">Research Services</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm font-bold text-green-600">$28,900</p>
+                              <p className="text-xs text-green-600">Paid</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewCustomerHistory({
+                            customerName: 'BioTech Innovations',
+                            totalRevenue: 198750,
+                            outstandingBalance: 67200,
+                            totalOrders: 15,
+                            paymentHistory: [
+                              { date: 'Mar 15, 2025', amount: 28900, method: 'Bank Transfer', invoice: 'INV-2025-004' },
+                              { date: 'Feb 10, 2025', amount: 45600, method: 'Credit Card', invoice: 'INV-2025-002' }
+                            ]
+                          })}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-600"
+                        >
+                          <AlertTriangle className="h-3 w-3 mr-1" />
+                          Urgent
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+
+                {/* Customer Account Summary */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <Users className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-blue-900 mb-2">Customer Account Management Summary</h4>
+                      <p className="text-sm text-blue-700 mb-4">
+                        Complete overview of all customer accounts with real-time payment status, transaction history, and account health monitoring.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-gray-600">Excellent Standing</p>
+                          <p className="font-bold text-green-600">4 Customers</p>
+                          <p className="text-xs text-green-600">Perfect payment history</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-gray-600">Active Accounts</p>
+                          <p className="font-bold text-blue-600">1 Customer</p>
+                          <p className="text-xs text-blue-600">Regular transactions</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-gray-600">Outstanding Balance</p>
+                          <p className="font-bold text-orange-600">1 Customer</p>
+                          <p className="text-xs text-orange-600">Partial payments</p>
+                        </div>
+                        <div className="bg-white p-3 rounded border">
+                          <p className="text-gray-600">Overdue Payments</p>
+                          <p className="font-bold text-red-600">1 Customer</p>
+                          <p className="text-xs text-red-600">Requires attention</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center gap-3">
+                        <Button variant="outline" size="sm" className="text-blue-600">
+                          <Download className="h-3 w-3 mr-1" />
+                          Export Customer Report
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-purple-600">
+                          <BarChart className="h-3 w-3 mr-1" />
+                          Analytics Dashboard
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-green-600">
+                          <Mail className="h-3 w-3 mr-1" />
+                          Send Statements
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
                       <TableCell className="font-medium">
                         <span className="text-blue-600">INV-2025-002</span>
                       </TableCell>
