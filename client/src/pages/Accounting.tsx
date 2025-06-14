@@ -3819,6 +3819,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Invoice Details"
+                            onClick={() => handleViewInvoiceDetails({
+                              invoiceNumber: 'INV-2025-001',
+                              etaNumber: 'ETA-2025-05-12345',
+                              customerName: 'Cairo Medical Center',
+                              service: 'Ibuprofen Manufacturing',
+                              invoiceDate: 'Jan 15, 2025',
+                              dueDate: 'Feb 14, 2025',
+                              amount: 54150.00,
+                              paidAmount: 54150.00,
+                              balance: 0.00,
+                              paymentStatus: 'Paid'
+                            })}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -3827,6 +3839,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Download PDF"
+                            onClick={() => handleDownloadInvoicePDF({
+                              invoiceNumber: 'INV-2025-001',
+                              etaNumber: 'ETA-2025-05-12345',
+                              customerName: 'Cairo Medical Center',
+                              service: 'Ibuprofen Manufacturing',
+                              invoiceDate: 'Jan 15, 2025',
+                              dueDate: 'Feb 14, 2025',
+                              amount: 54150.00,
+                              paidAmount: 54150.00,
+                              balance: 0.00,
+                              paymentStatus: 'Paid'
+                            })}
                           >
                             <Download className="h-3 w-3" />
                           </Button>
@@ -3835,6 +3859,10 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-green-600"
                             title="Payment History"
+                            onClick={() => handleViewPaymentHistory({
+                              invoiceNumber: 'INV-2025-001',
+                              customerName: 'Cairo Medical Center'
+                            })}
                           >
                             <CreditCard className="h-3 w-3" />
                           </Button>
@@ -3870,6 +3898,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Invoice Details"
+                            onClick={() => handleViewInvoiceDetails({
+                              invoiceNumber: 'INV-2025-002',
+                              etaNumber: 'ETA-2025-05-12346',
+                              customerName: 'Alexandria Pharmaceuticals',
+                              service: 'Paracetamol Production',
+                              invoiceDate: 'Jan 20, 2025',
+                              dueDate: 'Feb 19, 2025',
+                              amount: 41600.00,
+                              paidAmount: 41600.00,
+                              balance: 0.00,
+                              paymentStatus: 'Paid'
+                            })}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -3878,6 +3918,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Download PDF"
+                            onClick={() => handleDownloadInvoicePDF({
+                              invoiceNumber: 'INV-2025-002',
+                              etaNumber: 'ETA-2025-05-12346',
+                              customerName: 'Alexandria Pharmaceuticals',
+                              service: 'Paracetamol Production',
+                              invoiceDate: 'Jan 20, 2025',
+                              dueDate: 'Feb 19, 2025',
+                              amount: 41600.00,
+                              paidAmount: 41600.00,
+                              balance: 0.00,
+                              paymentStatus: 'Paid'
+                            })}
                           >
                             <Download className="h-3 w-3" />
                           </Button>
@@ -3886,6 +3938,10 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-green-600"
                             title="Payment History"
+                            onClick={() => handleViewPaymentHistory({
+                              invoiceNumber: 'INV-2025-002',
+                              customerName: 'Alexandria Pharmaceuticals'
+                            })}
                           >
                             <CreditCard className="h-3 w-3" />
                           </Button>
@@ -3921,6 +3977,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Invoice Details"
+                            onClick={() => handleViewInvoiceDetails({
+                              invoiceNumber: 'INV-2025-003',
+                              etaNumber: 'ETA-2025-05-12347',
+                              customerName: 'Global Health Solutions',
+                              service: 'Antibiotic Synthesis',
+                              invoiceDate: 'Feb 05, 2025',
+                              dueDate: 'Mar 07, 2025',
+                              amount: 78500.00,
+                              paidAmount: 30000.00,
+                              balance: 48500.00,
+                              paymentStatus: 'Partial Payment'
+                            })}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -3929,6 +3997,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Download PDF"
+                            onClick={() => handleDownloadInvoicePDF({
+                              invoiceNumber: 'INV-2025-003',
+                              etaNumber: 'ETA-2025-05-12347',
+                              customerName: 'Global Health Solutions',
+                              service: 'Antibiotic Synthesis',
+                              invoiceDate: 'Feb 05, 2025',
+                              dueDate: 'Mar 07, 2025',
+                              amount: 78500.00,
+                              paidAmount: 30000.00,
+                              balance: 48500.00,
+                              paymentStatus: 'Partial Payment'
+                            })}
                           >
                             <Download className="h-3 w-3" />
                           </Button>
@@ -3937,6 +4017,11 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-orange-600"
                             title="Record Payment"
+                            onClick={() => handleRecordPayment({
+                              invoiceNumber: 'INV-2025-003',
+                              customerName: 'Global Health Solutions',
+                              balance: 48500.00
+                            })}
                           >
                             <DollarSign className="h-3 w-3" />
                           </Button>
@@ -3972,6 +4057,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Invoice Details"
+                            onClick={() => handleViewInvoiceDetails({
+                              invoiceNumber: 'INV-2025-004',
+                              etaNumber: 'ETA-2025-05-12348',
+                              customerName: 'Mediterranean Labs',
+                              service: 'Chemical Purification',
+                              invoiceDate: 'Feb 12, 2025',
+                              dueDate: 'Mar 14, 2025',
+                              amount: 62800.00,
+                              paidAmount: 0.00,
+                              balance: 62800.00,
+                              paymentStatus: 'Unpaid'
+                            })}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -3980,6 +4077,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Download PDF"
+                            onClick={() => handleDownloadInvoicePDF({
+                              invoiceNumber: 'INV-2025-004',
+                              etaNumber: 'ETA-2025-05-12348',
+                              customerName: 'Mediterranean Labs',
+                              service: 'Chemical Purification',
+                              invoiceDate: 'Feb 12, 2025',
+                              dueDate: 'Mar 14, 2025',
+                              amount: 62800.00,
+                              paidAmount: 0.00,
+                              balance: 62800.00,
+                              paymentStatus: 'Unpaid'
+                            })}
                           >
                             <Download className="h-3 w-3" />
                           </Button>
@@ -3988,6 +4097,10 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-red-600"
                             title="Send Reminder"
+                            onClick={() => handleSendReminderNotification({
+                              invoiceNumber: 'INV-2025-004',
+                              customerName: 'Mediterranean Labs'
+                            })}
                           >
                             <AlertCircle className="h-3 w-3" />
                           </Button>
@@ -4023,6 +4136,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0"
                             title="View Invoice Details"
+                            onClick={() => handleViewInvoiceDetails({
+                              invoiceNumber: 'INV-2025-005',
+                              etaNumber: 'ETA-2025-05-12349',
+                              customerName: 'Nile Pharmaceutical Co.',
+                              service: 'Capsule Manufacturing',
+                              invoiceDate: 'Jan 28, 2025',
+                              dueDate: 'Feb 15, 2025',
+                              amount: 35900.00,
+                              paidAmount: 0.00,
+                              balance: 35900.00,
+                              paymentStatus: 'Overdue'
+                            })}
                           >
                             <Eye className="h-3 w-3" />
                           </Button>
@@ -4031,6 +4156,18 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-blue-600"
                             title="Download PDF"
+                            onClick={() => handleDownloadInvoicePDF({
+                              invoiceNumber: 'INV-2025-005',
+                              etaNumber: 'ETA-2025-05-12349',
+                              customerName: 'Nile Pharmaceutical Co.',
+                              service: 'Capsule Manufacturing',
+                              invoiceDate: 'Jan 28, 2025',
+                              dueDate: 'Feb 15, 2025',
+                              amount: 35900.00,
+                              paidAmount: 0.00,
+                              balance: 35900.00,
+                              paymentStatus: 'Overdue'
+                            })}
                           >
                             <Download className="h-3 w-3" />
                           </Button>
@@ -4039,6 +4176,11 @@ const Accounting: React.FC = () => {
                             size="sm" 
                             className="h-7 w-7 p-0 text-red-600"
                             title="Collection Action"
+                            onClick={() => handleCollectionAction({
+                              invoiceNumber: 'INV-2025-005',
+                              customerName: 'Nile Pharmaceutical Co.',
+                              balance: 35900.00
+                            })}
                           >
                             <AlertCircle className="h-3 w-3" />
                           </Button>
