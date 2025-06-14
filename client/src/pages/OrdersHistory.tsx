@@ -94,125 +94,6 @@ const OrdersHistory: React.FC = () => {
     }
   });
 
-  // Keep the sample data as fallback only for demonstration
-  const sampleOrderHistory: OrderHistoryItem[] = [
-    {
-      id: 'ORD-001',
-      orderNumber: 'PROD-2024-001',
-      batchNumber: 'BATCH-001-240524',
-      type: 'production',
-      customerName: 'Ahmed Hassan',
-      customerCompany: 'Cairo Medical Center',
-      targetProduct: 'Paracetamol 500mg',
-      orderDate: '2024-05-20',
-      completionDate: '2024-05-23',
-      status: 'completed',
-      totalCost: 15420,
-      revenue: 22800,
-      profit: 7380,
-      rawMaterials: ['Para-aminophenol', 'Acetic Anhydride', 'Sodium Acetate'],
-      additionalCosts: {
-        transportation: 850,
-        labor: 2100,
-        equipment: 1200,
-        qualityControl: 750,
-        storage: 520
-      }
-    },
-    {
-      id: 'ORD-002',
-      orderNumber: 'REF-2024-001',
-      batchNumber: 'REF-002-240522',
-      type: 'refining',
-      customerName: 'Fatima Al-Zahra',
-      customerCompany: 'Alexandria Pharmaceuticals',
-      targetProduct: 'Amoxicillin 250mg',
-      orderDate: '2024-05-18',
-      completionDate: '2024-05-22',
-      status: 'completed',
-      totalCost: 18750,
-      revenue: 28900,
-      profit: 10150,
-      rawMaterials: ['Amoxicillin Trihydrate', 'Microcrystalline Cellulose'],
-      additionalCosts: {
-        transportation: 950,
-        labor: 2800,
-        equipment: 1500,
-        qualityControl: 900,
-        storage: 600
-      }
-    },
-    {
-      id: 'ORD-003',
-      orderNumber: 'PROD-2024-002',
-      batchNumber: 'BATCH-003-240521',
-      type: 'production',
-      customerName: 'Mohamed Ibrahim',
-      customerCompany: 'Giza Health Systems',
-      targetProduct: 'Ibuprofen 400mg',
-      orderDate: '2024-05-19',
-      completionDate: '2024-05-24',
-      status: 'in-progress',
-      totalCost: 13200,
-      revenue: 19500,
-      profit: 6300,
-      rawMaterials: ['Isobutylbenzene', 'Propanoic Acid', 'Magnesium Stearate'],
-      additionalCosts: {
-        transportation: 720,
-        labor: 1800,
-        equipment: 1100,
-        qualityControl: 680,
-        storage: 480
-      }
-    },
-    {
-      id: 'ORD-004',
-      orderNumber: 'REF-2024-002',
-      batchNumber: 'REF-004-240523',
-      type: 'refining',
-      customerName: 'Layla Mahmoud',
-      customerCompany: 'Delta Medical Supply',
-      targetProduct: 'Aspirin 325mg',
-      orderDate: '2024-05-21',
-      completionDate: '2024-05-25',
-      status: 'completed',
-      totalCost: 11500,
-      revenue: 17200,
-      profit: 5700,
-      rawMaterials: ['Salicylic Acid', 'Acetic Anhydride'],
-      additionalCosts: {
-        transportation: 650,
-        labor: 1600,
-        equipment: 950,
-        qualityControl: 580,
-        storage: 420
-      }
-    },
-    {
-      id: 'ORD-005',
-      orderNumber: 'PROD-2024-003',
-      batchNumber: 'BATCH-005-240524',
-      type: 'production',
-      customerName: 'Omar Khalil',
-      customerCompany: 'Suez Pharmaceutical Co.',
-      targetProduct: 'Metformin 500mg',
-      orderDate: '2024-05-22',
-      completionDate: '2024-05-26',
-      status: 'in-progress',
-      totalCost: 16800,
-      revenue: 24600,
-      profit: 7800,
-      rawMaterials: ['Dimethylamine Hydrochloride', 'Cyanoguanidine'],
-      additionalCosts: {
-        transportation: 890,
-        labor: 2200,
-        equipment: 1350,
-        qualityControl: 820,
-        storage: 580
-      }
-    }
-  ];
-
   // Debug logging
   console.log('orderHistory data:', orderHistory);
   console.log('orderHistory length:', orderHistory.length);
@@ -483,7 +364,7 @@ const OrdersHistory: React.FC = () => {
   };
 
   // Filter orders based on search and filters
-  const filteredOrders = orderHistory.filter(order => {
+  const filteredOrders = orderHistory.filter((order: OrderHistoryItem) => {
     const matchesSearch = 
       order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -527,271 +408,6 @@ const OrdersHistory: React.FC = () => {
       default:
         return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
     }
-  };
-
-  // Export functions for individual orders
-  const handleExportPDF = (order: OrderHistoryItem) => {
-    try {
-      const doc = new jsPDF();
-      
-      // Header
-      doc.setFontSize(24);
-      doc.setTextColor(41, 128, 185);
-      doc.text('Premier ERP System', 20, 30);
-      
-      doc.setFontSize(18);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Order Production Report', 20, 45);
-      
-      // Order details
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 30);
-      
-      let yPos = 65;
-      
-      // Order Information
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Order Information', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const orderDetails = [
-        ['Order Number:', order.orderNumber],
-        ['Batch Number:', order.batchNumber],
-        ['Type:', order.type.charAt(0).toUpperCase() + order.type.slice(1)],
-        ['Customer:', order.customerName],
-        ['Company:', order.customerCompany],
-        ['Product:', order.targetProduct],
-        ['Order Date:', new Date(order.orderDate).toLocaleDateString()],
-        ['Completion Date:', new Date(order.completionDate).toLocaleDateString()],
-        ['Status:', order.status.toUpperCase()]
-      ];
-      
-      orderDetails.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
-      
-      yPos += 10;
-      
-      // Financial Summary
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Financial Summary', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const financialData = [
-        ['Total Cost:', `$${order.totalCost.toLocaleString()}`],
-        ['Revenue:', `$${order.revenue.toLocaleString()}`],
-        ['Profit:', `$${order.profit.toLocaleString()}`],
-        ['Profit Margin:', `${((order.profit / order.revenue) * 100).toFixed(1)}%`]
-      ];
-      
-      financialData.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
-      
-      yPos += 10;
-      
-      // Additional Costs
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Additional Costs Breakdown', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const additionalCosts = [
-        ['Transportation:', `$${order.additionalCosts.transportation.toLocaleString()}`],
-        ['Labor:', `$${order.additionalCosts.labor.toLocaleString()}`],
-        ['Equipment:', `$${order.additionalCosts.equipment.toLocaleString()}`],
-        ['Quality Control:', `$${order.additionalCosts.qualityControl.toLocaleString()}`],
-        ['Storage:', `$${order.additionalCosts.storage.toLocaleString()}`]
-      ];
-      
-      additionalCosts.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
-      
-      yPos += 10;
-      
-      // Raw Materials
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Raw Materials Used', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      order.rawMaterials.forEach((material, index) => {
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${index + 1}. ${material}`, 25, yPos);
-        yPos += 6;
-      });
-      
-      // Footer
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
-      doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
-      doc.text('Page 1 of 1', 170, pageHeight - 10);
-      
-      const fileName = `order-report-${order.orderNumber.replace(/[\/\\]/g, '-')}.pdf`;
-      doc.save(fileName);
-      
-    } catch (error) {
-      console.error('PDF export error:', error);
-      alert('Failed to export PDF. Please try again.');
-    }
-  };
-
-  const handleExportExcel = (order: OrderHistoryItem) => {
-    try {
-      const workbook = XLSX.utils.book_new();
-      
-      // Order Details Sheet
-      const orderData = [
-        ['Order Information', ''],
-        ['Order Number', order.orderNumber],
-        ['Batch Number', order.batchNumber],
-        ['Type', order.type],
-        ['Customer', order.customerName],
-        ['Company', order.customerCompany],
-        ['Product', order.targetProduct],
-        ['Order Date', order.orderDate],
-        ['Completion Date', order.completionDate],
-        ['Status', order.status],
-        ['', ''],
-        ['Financial Summary', ''],
-        ['Total Cost', order.totalCost],
-        ['Revenue', order.revenue],
-        ['Profit', order.profit],
-        ['Profit Margin (%)', ((order.profit / order.revenue) * 100).toFixed(1)],
-        ['', ''],
-        ['Additional Costs', ''],
-        ['Transportation', order.additionalCosts.transportation],
-        ['Labor', order.additionalCosts.labor],
-        ['Equipment', order.additionalCosts.equipment],
-        ['Quality Control', order.additionalCosts.qualityControl],
-        ['Storage', order.additionalCosts.storage],
-        ['', ''],
-        ['Raw Materials', ''],
-        ...order.rawMaterials.map((material, index) => [`${index + 1}`, material])
-      ];
-      
-      const worksheet = XLSX.utils.aoa_to_sheet(orderData);
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Order Report');
-      
-      const fileName = `order-report-${order.orderNumber.replace(/[\/\\]/g, '-')}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-      
-    } catch (error) {
-      console.error('Excel export error:', error);
-      alert('Failed to export Excel file. Please try again.');
-    }
-  };
-
-  const handlePrintReport = (order: OrderHistoryItem) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow pop-ups to print the report.');
-      return;
-    }
-    
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Order Report - ${order.orderNumber}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .company-name { color: #2980b9; font-size: 24px; font-weight: bold; }
-            .report-title { font-size: 18px; margin-top: 10px; }
-            .section { margin-bottom: 25px; }
-            .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-            .detail-row { display: flex; margin-bottom: 5px; }
-            .detail-label { font-weight: bold; width: 150px; }
-            .detail-value { flex: 1; }
-            .materials-list { margin-left: 20px; }
-            .materials-item { margin-bottom: 3px; }
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="company-name">Premier ERP System</div>
-            <div class="report-title">Order Production Report</div>
-            <div style="font-size: 12px; color: #666; margin-top: 10px;">Generated: ${new Date().toLocaleDateString()}</div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Order Information</div>
-            <div class="detail-row"><span class="detail-label">Order Number:</span><span class="detail-value">${order.orderNumber}</span></div>
-            <div class="detail-row"><span class="detail-label">Batch Number:</span><span class="detail-value">${order.batchNumber}</span></div>
-            <div class="detail-row"><span class="detail-label">Type:</span><span class="detail-value">${order.type.charAt(0).toUpperCase() + order.type.slice(1)}</span></div>
-            <div class="detail-row"><span class="detail-label">Customer:</span><span class="detail-value">${order.customerName}</span></div>
-            <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">${order.customerCompany}</span></div>
-            <div class="detail-row"><span class="detail-label">Product:</span><span class="detail-value">${order.targetProduct}</span></div>
-            <div class="detail-row"><span class="detail-label">Order Date:</span><span class="detail-value">${new Date(order.orderDate).toLocaleDateString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Completion Date:</span><span class="detail-value">${new Date(order.completionDate).toLocaleDateString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${order.status.toUpperCase()}</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Financial Summary</div>
-            <div class="detail-row"><span class="detail-label">Total Cost:</span><span class="detail-value">$${order.totalCost.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Revenue:</span><span class="detail-value">$${order.revenue.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Profit:</span><span class="detail-value">$${order.profit.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Profit Margin:</span><span class="detail-value">${((order.profit / order.revenue) * 100).toFixed(1)}%</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Additional Costs Breakdown</div>
-            <div class="detail-row"><span class="detail-label">Transportation:</span><span class="detail-value">$${order.additionalCosts.transportation.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Labor:</span><span class="detail-value">$${order.additionalCosts.labor.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Equipment:</span><span class="detail-value">$${order.additionalCosts.equipment.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Quality Control:</span><span class="detail-value">$${order.additionalCosts.qualityControl.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Storage:</span><span class="detail-value">$${order.additionalCosts.storage.toLocaleString()}</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Raw Materials Used</div>
-            <div class="materials-list">
-              ${order.rawMaterials.map((material, index) => `<div class="materials-item">${index + 1}. ${material}</div>`).join('')}
-            </div>
-          </div>
-          
-          <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #666;">
-            Generated by Premier ERP System
-          </div>
-        </body>
-      </html>
-    `;
-    
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   };
 
   const exportToCSV = () => {
@@ -848,460 +464,381 @@ const OrdersHistory: React.FC = () => {
         totalCost: order.totalCost,
         revenue: order.revenue,
         profit: order.profit,
-        profitMargin: ((order.profit / order.revenue) * 100).toFixed(2)
+        profitMargin: ((order.profit / order.revenue) * 100).toFixed(1)
       },
       additionalCosts: order.additionalCosts,
       rawMaterials: order.rawMaterials
     };
 
-    const reportContent = `ORDER REPORT\n============\n\nOrder Number: ${reportData.orderNumber}\nBatch Number: ${reportData.batchNumber}\nOrder Type: ${reportData.type.toUpperCase()}\n\nCUSTOMER INFORMATION\n==================\nName: ${reportData.customer.name}\nCompany: ${reportData.customer.company}\n\nPRODUCT INFORMATION\n==================\nTarget Product: ${reportData.product}\n\nTIMELINE\n========\nOrder Date: ${reportData.dates.orderDate}\nCompletion Date: ${reportData.dates.completionDate}\nStatus: ${reportData.status.toUpperCase()}\n\nFINANCIAL SUMMARY\n================\nTotal Cost: $${reportData.financial.totalCost.toLocaleString()}\nRevenue: $${reportData.financial.revenue.toLocaleString()}\nNet Profit: $${reportData.financial.profit.toLocaleString()}\nProfit Margin: ${reportData.financial.profitMargin}%\n\nADDITIONAL COSTS BREAKDOWN\n=========================\nTransportation: $${reportData.additionalCosts.transportation}\nLabor: $${reportData.additionalCosts.labor}\nEquipment: $${reportData.additionalCosts.equipment}\nQuality Control: $${reportData.additionalCosts.qualityControl}\nStorage: $${reportData.additionalCosts.storage}\nTotal Additional: $${Object.values(reportData.additionalCosts).reduce((sum, cost) => sum + cost, 0)}\n\nRAW MATERIALS\n=============\n${reportData.rawMaterials.map((material, index) => `${index + 1}. ${material}`).join('\n')}\n\nReport generated on: ${new Date().toLocaleString()}`;
-
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${order.orderNumber}_report.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `order-report-${order.orderNumber}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   };
 
   const handleGenerateInvoice = (order: OrderHistoryItem) => {
-    // Navigate to create invoice page with pre-filled data from the order
-    const invoiceData = {
-      customer: order.customerName,
-      company: order.customerCompany,
-      items: [
-        {
-          product: order.targetProduct,
-          quantity: 1,
-          unitPrice: order.revenue,
-          total: order.revenue
-        }
-      ],
-      orderReference: order.orderNumber,
-      batchNumber: order.batchNumber
-    };
-    
-    // Store the invoice data in localStorage for the invoice page to use
-    localStorage.setItem('invoiceFromOrder', JSON.stringify(invoiceData));
-    
-    // Navigate to create invoice page
-    window.location.href = '/create-invoice';
+    console.log('Generating invoice for order:', order);
+    // Here you would typically navigate to invoice generation or call an API
+    alert(`Invoice generation for order ${order.orderNumber} will be implemented soon.`);
   };
 
+  // Calculate summary statistics
+  const totalRevenue = filteredOrders.reduce((sum: number, order: OrderHistoryItem) => sum + order.revenue, 0);
+  const totalCosts = filteredOrders.reduce((sum: number, order: OrderHistoryItem) => sum + order.totalCost, 0);
+  const totalProfit = totalRevenue - totalCosts;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3BCEAC] mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading order history...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <HistoryIcon className="h-8 w-8 text-[#3BCEAC]" />
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Orders History</h1>
-            <p className="text-gray-500">Track and review all executed production and refining orders</p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-[#3BCEAC] rounded-lg">
+              <HistoryIcon className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Orders History</h1>
+              <p className="text-gray-600">Production and refining order tracking</p>
+            </div>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <Factory className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{filteredOrders.length}</div>
+                <p className="text-xs text-muted-foreground">Active production orders</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">From completed orders</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Costs</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${totalCosts.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Production expenses</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">${totalProfit.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">
+                  {totalRevenue > 0 ? `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` : 'No data'}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
-        <Button onClick={exportToCSV} className="bg-[#3BCEAC] hover:bg-[#2A9A7A]">
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
-      </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+        {/* Filters and Search */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters & Search
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{orderHistory.length}</div>
-            <p className="text-xs text-muted-foreground">All time orders</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-            <Factory className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {orderHistory.filter(o => o.status === 'completed').length}
-            </div>
-            <p className="text-xs text-muted-foreground">Successfully completed</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${orderHistory.reduce((sum, order) => sum + order.revenue, 0).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">From all orders</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Profit</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${Math.round(orderHistory.reduce((sum, order) => sum + order.profit, 0) / orderHistory.length).toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Per order</p>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search orders..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters & Search</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search orders, customers, products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="production">Production</SelectItem>
-                <SelectItem value="refining">Refining</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by date" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Time</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
 
-      {/* Orders Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Order History ({filteredOrders.length} orders)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order Details
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Timeline
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Financial
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {order.orderNumber}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Batch: {order.batchNumber}
-                        </div>
-                        <div className="mt-1">
-                          {getTypeBadge(order.type)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {order.customerName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {order.customerCompany}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {order.targetProduct}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Materials: {order.rawMaterials.length} items
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm text-gray-900">
-                          Started: {new Date(order.orderDate).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Completed: {new Date(order.completionDate).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm text-gray-900">
-                          Revenue: ${order.revenue.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Cost: ${order.totalCost.toLocaleString()}
-                        </div>
-                        <div className="text-sm font-medium text-green-600">
-                          Profit: ${order.profit.toLocaleString()}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(order.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadReport(order)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download Report
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleGenerateInvoice(order)}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Generate Invoice
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                  <SelectItem value="refining">Refining</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button onClick={exportToCSV} variant="outline" className="w-full">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Orders Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order History ({filteredOrders.length} orders)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-4 font-medium">Order #</th>
+                    <th className="text-left p-4 font-medium">Batch #</th>
+                    <th className="text-left p-4 font-medium">Type</th>
+                    <th className="text-left p-4 font-medium">Customer</th>
+                    <th className="text-left p-4 font-medium">Product</th>
+                    <th className="text-left p-4 font-medium">Status</th>
+                    <th className="text-left p-4 font-medium">Revenue</th>
+                    <th className="text-left p-4 font-medium">Profit</th>
+                    <th className="text-left p-4 font-medium">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-center space-x-2 mt-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            
-            <div className="flex items-center space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={currentPage === page ? "bg-[#3BCEAC] hover:bg-[#2A9A7A]" : ""}
-                >
-                  {page}
-                </Button>
-              ))}
+                </thead>
+                <tbody>
+                  {paginatedOrders.map((order: OrderHistoryItem) => (
+                    <tr key={order.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4 font-medium text-blue-600">{order.orderNumber}</td>
+                      <td className="p-4 text-gray-600">{order.batchNumber}</td>
+                      <td className="p-4">{getTypeBadge(order.type)}</td>
+                      <td className="p-4">
+                        <div>
+                          <div className="font-medium">{order.customerName}</div>
+                          <div className="text-sm text-gray-500">{order.customerCompany}</div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-gray-600">{order.targetProduct}</td>
+                      <td className="p-4">{getStatusBadge(order.status)}</td>
+                      <td className="p-4 font-medium text-green-600">${order.revenue.toLocaleString()}</td>
+                      <td className="p-4 font-medium text-blue-600">${order.profit.toLocaleString()}</td>
+                      <td className="p-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadReport(order)}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Download Report
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-600">
+                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Order Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedOrder && (
             <>
-              <DialogHeader className="border-b pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-2xl font-bold">
-                      Order #{selectedOrder.orderNumber}
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-600 mt-1">
-                      {selectedOrder.orderDate} • Status: {getStatusBadge(selectedOrder.status)}
-                    </DialogDescription>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-600">Batch Number</div>
-                    <div className="font-semibold text-lg">{selectedOrder.batchNumber}</div>
-                  </div>
-                </div>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <Factory className="h-6 w-6 text-[#3BCEAC]" />
+                  Order Details: {selectedOrder.orderNumber}
+                </DialogTitle>
+                <DialogDescription>
+                  Complete information for batch {selectedOrder.batchNumber}
+                </DialogDescription>
               </DialogHeader>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-6">
-                {/* Left Column - Order Information */}
-                <div className="space-y-6">
-                  {/* Customer Information */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
+              {/* Order Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Order Information</h3>
+                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Order Number:</span>
+                        <span className="font-medium">{selectedOrder.orderNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Batch Number:</span>
+                        <span className="font-medium">{selectedOrder.batchNumber}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Type:</span>
+                        {getTypeBadge(selectedOrder.type)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        {getStatusBadge(selectedOrder.status)}
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Target Product:</span>
+                        <span className="font-medium">{selectedOrder.targetProduct}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
                     <h3 className="text-lg font-semibold mb-3 text-gray-800">Customer Information</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-sm text-gray-600">Customer:</span>
-                        <div className="font-medium">{selectedOrder.customerName}</div>
+                    <div className="space-y-2 bg-blue-50 p-4 rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Customer Name:</span>
+                        <span className="font-medium text-blue-900">{selectedOrder.customerName}</span>
                       </div>
-                      <div>
-                        <span className="text-sm text-gray-600">Company:</span>
-                        <div className="font-medium">{selectedOrder.customerCompany}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Product Information */}
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-3 text-blue-800">Product Information</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-sm text-blue-600">Target Product:</span>
-                        <div className="font-medium text-blue-900">{selectedOrder.targetProduct}</div>
-                      </div>
-                      <div>
-                        <span className="text-sm text-blue-600">Order Type:</span>
-                        <div className="font-medium text-blue-900 capitalize">{selectedOrder.type}</div>
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Company:</span>
+                        <span className="font-medium text-blue-900">{selectedOrder.customerCompany}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Timeline */}
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-3 text-green-800">Timeline</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-sm text-green-600">Order Date:</span>
-                        <div className="font-medium text-green-900">{selectedOrder.orderDate}</div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Timeline</h3>
+                    <div className="space-y-2 bg-green-50 p-4 rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Order Date:</span>
+                        <span className="font-medium text-green-900">{new Date(selectedOrder.orderDate).toLocaleDateString()}</span>
                       </div>
-                      <div>
-                        <span className="text-sm text-green-600">Completion Date:</span>
-                        <div className="font-medium text-green-900">{selectedOrder.completionDate}</div>
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Completion Date:</span>
+                        <span className="font-medium text-green-900">{new Date(selectedOrder.completionDate).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Column - Financial Summary */}
-                <div className="space-y-6">
-                  {/* Financial Summary */}
-                  <div className="bg-amber-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-4 text-amber-800">Financial Summary</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-amber-700">Total Cost:</span>
-                        <span className="font-bold text-amber-900">${selectedOrder.totalCost.toLocaleString()}</span>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Financial Summary</h3>
+                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Total Cost:</span>
+                        <span className="font-medium text-red-600">${selectedOrder.totalCost.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-amber-700">Revenue:</span>
-                        <span className="font-bold text-amber-900">${selectedOrder.revenue.toLocaleString()}</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Revenue:</span>
+                        <span className="font-medium text-green-600">${selectedOrder.revenue.toLocaleString()}</span>
                       </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-semibold text-amber-800">Net Profit:</span>
-                          <span className="text-xl font-bold text-green-600">${selectedOrder.profit.toLocaleString()}</span>
-                        </div>
-                        <div className="text-sm text-amber-600 text-right">
-                          Margin: {((selectedOrder.profit / selectedOrder.revenue) * 100).toFixed(1)}%
-                        </div>
+                      <div className="flex justify-between border-t pt-2">
+                        <span className="text-gray-800 font-semibold">Net Profit:</span>
+                        <span className="font-bold text-blue-600">${selectedOrder.profit.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Profit Margin:</span>
+                        <span className="font-medium text-blue-600">
+                          {((selectedOrder.profit / selectedOrder.revenue) * 100).toFixed(1)}%
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Additional Costs Breakdown */}
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-4 text-red-800">Additional Costs Breakdown</h3>
-                    <div className="space-y-2">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Additional Costs</h3>
+                    <div className="space-y-2 bg-red-50 p-4 rounded-lg">
                       <div className="flex justify-between">
                         <span className="text-red-700">Transportation:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.transportation}</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.transportation.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-red-700">Labor:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.labor}</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.labor.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-red-700">Equipment:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.equipment}</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.equipment.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-red-700">Quality Control:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.qualityControl}</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.qualityControl.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-red-700">Storage:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.storage}</span>
+                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.storage.toLocaleString()}</span>
                       </div>
                       <div className="border-t pt-2">
                         <div className="flex justify-between font-semibold">
                           <span className="text-red-800">Total Additional:</span>
                           <span className="text-red-900">
-                            ${Object.values(selectedOrder.additionalCosts).reduce((sum, cost) => sum + cost, 0)}
+                            ${Object.values(selectedOrder.additionalCosts).reduce((sum, cost) => sum + cost, 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
