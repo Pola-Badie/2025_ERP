@@ -4584,43 +4584,172 @@ const Accounting: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
-                      <TableCell className="font-medium">
-                        <span className="text-blue-600">INV-2025-002</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-green-600 text-sm">ETA-2025-05-12346</span>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">Alexandria Pharmaceuticals</div>
-                          <div className="text-xs text-gray-500">Paracetamol Production</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>Jan 20, 2025</TableCell>
-                      <TableCell>Feb 19, 2025</TableCell>
-                      <TableCell className="text-right font-semibold">$41,600.00</TableCell>
-                      <TableCell className="text-right text-green-600">$41,600.00</TableCell>
-                      <TableCell className="text-right text-green-600">$0.00</TableCell>
-                      <TableCell>
-                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0"
-                            title="View Invoice Details"
-                            onClick={() => handleViewInvoiceDetails({
-                              invoiceNumber: 'INV-2025-002',
-                              etaNumber: 'ETA-2025-05-12346',
-                              customerName: 'Alexandria Pharmaceuticals',
-                              service: 'Paracetamol Production',
-                              invoiceDate: 'Jan 20, 2025',
-                              dueDate: 'Feb 19, 2025',
-                              amount: 41600.00,
-                              paidAmount: 41600.00,
-                              balance: 0.00,
+        
+        <TabsContent value="customer-payments">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2 text-green-600" />
+                  <span>Customer Payment Center</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveTab("customers-invoices")}
+                  >
+                    <Building className="h-4 w-4 mr-2" /> 
+                    Customer Profiles
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" /> 
+                    Export Payments
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Centralized payment processing and management for all customer accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <CreditCard className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Center</h3>
+                <p className="text-gray-600 mb-6">Manage all customer payments and transactions from this centralized hub.</p>
+                <Button onClick={() => setActiveTab("customers-invoices")}>
+                  <Building className="h-4 w-4 mr-2" />
+                  View Customer Profiles
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+      {/* Invoice Details Dialog */}
+      <Dialog open={isInvoiceDetailsOpen} onOpenChange={setIsInvoiceDetailsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <FileText className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <span>Invoice Details: {selectedInvoice?.invoiceNumber}</span>
+                <p className="text-sm text-gray-600 font-normal mt-1">
+                  Complete invoice information and payment history
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedInvoice && (
+            <div className="space-y-6">
+              {/* Invoice Overview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="p-4 bg-blue-50 border-blue-200">
+                  <h3 className="font-semibold text-blue-800 mb-3 flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Invoice Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Invoice Number:</span>
+                      <span className="font-medium">{selectedInvoice.invoiceNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">ETA Number:</span>
+                      <span className="font-medium">{selectedInvoice.etaNumber}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Service:</span>
+                      <span className="font-medium">{selectedInvoice.service}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Invoice Date:</span>
+                      <span className="font-medium">{selectedInvoice.invoiceDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Due Date:</span>
+                      <span className="font-medium">{selectedInvoice.dueDate}</span>
+                    </div>
+                  </div>
+                </Card>
+                
+                <Card className="p-4 bg-green-50 border-green-200">
+                  <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Payment Information
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Total Amount:</span>
+                      <span className="font-bold text-lg">${selectedInvoice.amount?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Paid Amount:</span>
+                      <span className="font-medium">${selectedInvoice.paidAmount?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Outstanding:</span>
+                      <span className="font-medium">${selectedInvoice.balance?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-green-700">Status:</span>
+                      <Badge className={
+                        selectedInvoice.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
+                        selectedInvoice.paymentStatus === 'Partial Payment' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      }>
+                        {selectedInvoice.paymentStatus}
+                      </Badge>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={() => handleDownloadInvoicePDF(selectedInvoice)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  
+                  {selectedInvoice.balance > 0 && (
+                    <Button
+                      onClick={() => {
+                        setIsInvoiceDetailsOpen(false);
+                        handleRecordPayment(selectedInvoice);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      Record Payment
+                    </Button>
+                  )}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setIsInvoiceDetailsOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
                               paymentStatus: 'Paid'
                             })}
                           >
