@@ -2325,6 +2325,7 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="pending-purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Pending Purchases</TabsTrigger>
             <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
+            <TabsTrigger value="customer-accounts" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Accounts</TabsTrigger>
             <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
             <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
             <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
@@ -2487,6 +2488,10 @@ const Accounting: React.FC = () => {
         
         <TabsContent value="customer-payments">
           <CustomerPayments />
+        </TabsContent>
+        
+        <TabsContent value="customer-accounts">
+          <CustomerAccountsHistory />
         </TabsContent>
         
         <TabsContent value="payroll">
@@ -10353,6 +10358,671 @@ const Accounting: React.FC = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+// Customer Accounts History Component
+const CustomerAccountsHistory = () => {
+  const [selectedCustomer, setSelectedCustomer] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isCustomerDetailsOpen, setIsCustomerDetailsOpen] = useState(false);
+  const [selectedCustomerDetails, setSelectedCustomerDetails] = useState<any>(null);
+
+  // Sample customer accounts data with comprehensive payment and invoice history
+  const customerAccounts = [
+    {
+      id: 'CUST001',
+      customerName: 'Ahmed Chemical Industries',
+      contactPerson: 'Ahmed Hassan',
+      email: 'ahmed@ahmedchem.com',
+      phone: '+20 100 123 4567',
+      totalInvoices: 24,
+      totalAmountInvoiced: 485750.00,
+      totalPaid: 445250.00,
+      totalOutstanding: 40500.00,
+      creditLimit: 500000.00,
+      paymentTerms: 'Net 30',
+      accountStatus: 'active',
+      lastPaymentDate: '2025-01-10',
+      invoices: [
+        {
+          invoiceNumber: 'INV-2025-001',
+          date: '2025-01-15',
+          dueDate: '2025-02-14',
+          amount: 15750.00,
+          paidAmount: 15750.00,
+          status: 'paid',
+          etaNumber: 'ETA-2025-15478963',
+          products: ['Sulfuric Acid 98%', 'Sodium Hydroxide'],
+          paymentHistory: [
+            { date: '2025-01-10', amount: 15750.00, method: 'Bank Transfer', reference: 'TXN-001' }
+          ]
+        },
+        {
+          invoiceNumber: 'INV-2025-002',
+          date: '2025-01-20',
+          dueDate: '2025-02-19',
+          amount: 24750.00,
+          paidAmount: 0.00,
+          status: 'unpaid',
+          etaNumber: 'ETA-2025-15478964',
+          products: ['Hydrochloric Acid', 'Ammonia Solution'],
+          paymentHistory: []
+        }
+      ],
+      payments: [
+        {
+          date: '2025-01-10',
+          amount: 15750.00,
+          method: 'Bank Transfer',
+          reference: 'TXN-001',
+          invoiceNumber: 'INV-2025-001'
+        },
+        {
+          date: '2025-01-05',
+          amount: 32500.00,
+          method: 'Cash',
+          reference: 'CASH-001',
+          invoiceNumber: 'INV-2024-125'
+        }
+      ]
+    },
+    {
+      id: 'CUST002',
+      customerName: 'Cairo Pharmaceuticals Ltd',
+      contactPerson: 'Fatima Al-Zahra',
+      email: 'fatima@cairopharma.com',
+      phone: '+20 122 456 7890',
+      totalInvoices: 18,
+      totalAmountInvoiced: 325400.00,
+      totalPaid: 305400.00,
+      totalOutstanding: 20000.00,
+      creditLimit: 400000.00,
+      paymentTerms: 'Net 15',
+      accountStatus: 'active',
+      lastPaymentDate: '2025-01-12',
+      invoices: [
+        {
+          invoiceNumber: 'INV-2025-003',
+          date: '2025-01-12',
+          dueDate: '2025-01-27',
+          amount: 20000.00,
+          paidAmount: 0.00,
+          status: 'overdue',
+          etaNumber: 'ETA-2025-15478965',
+          products: ['Ethanol 99.9%', 'Isopropyl Alcohol'],
+          paymentHistory: []
+        }
+      ],
+      payments: [
+        {
+          date: '2025-01-12',
+          amount: 18500.00,
+          method: 'Check',
+          reference: 'CHK-002',
+          invoiceNumber: 'INV-2024-098'
+        }
+      ]
+    },
+    {
+      id: 'CUST003',
+      customerName: 'Alexandria Fertilizer Co',
+      contactPerson: 'Omar Mahmoud',
+      email: 'omar@alexfert.com',
+      phone: '+20 101 789 0123',
+      totalInvoices: 35,
+      totalAmountInvoiced: 750200.00,
+      totalPaid: 750200.00,
+      totalOutstanding: 0.00,
+      creditLimit: 800000.00,
+      paymentTerms: 'Net 45',
+      accountStatus: 'active',
+      lastPaymentDate: '2025-01-08',
+      invoices: [
+        {
+          invoiceNumber: 'INV-2025-004',
+          date: '2025-01-08',
+          dueDate: '2025-02-22',
+          amount: 45250.00,
+          paidAmount: 45250.00,
+          status: 'paid',
+          etaNumber: 'ETA-2025-15478966',
+          products: ['Urea', 'Ammonium Nitrate'],
+          paymentHistory: [
+            { date: '2025-01-08', amount: 45250.00, method: 'Wire Transfer', reference: 'WIRE-001' }
+          ]
+        }
+      ],
+      payments: [
+        {
+          date: '2025-01-08',
+          amount: 45250.00,
+          method: 'Wire Transfer',
+          reference: 'WIRE-001',
+          invoiceNumber: 'INV-2025-004'
+        }
+      ]
+    }
+  ];
+
+  const filteredCustomers = customerAccounts.filter(customer => {
+    const matchesSearch = 
+      customer.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && customer.accountStatus === 'active') ||
+      (statusFilter === 'overdue' && customer.totalOutstanding > 0);
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const handleViewCustomerDetails = (customer: any) => {
+    setSelectedCustomerDetails(customer);
+    setIsCustomerDetailsOpen(true);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge className="bg-green-100 text-green-800">Paid</Badge>;
+      case 'unpaid':
+        return <Badge className="bg-yellow-100 text-yellow-800">Unpaid</Badge>;
+      case 'overdue':
+        return <Badge className="bg-red-100 text-red-800">Overdue</Badge>;
+      case 'partial':
+        return <Badge className="bg-blue-100 text-blue-800">Partial</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+    }
+  };
+
+  const exportCustomerReport = (customer: any) => {
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(41, 128, 185);
+    doc.text('Premier ERP System', 20, 20);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Customer Account Statement', 20, 35);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 20);
+    
+    let yPos = 55;
+    
+    // Customer Information
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Customer Information', 20, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(10);
+    const customerInfo = [
+      ['Customer Name:', customer.customerName],
+      ['Contact Person:', customer.contactPerson],
+      ['Email:', customer.email],
+      ['Phone:', customer.phone],
+      ['Payment Terms:', customer.paymentTerms],
+      ['Credit Limit:', `$${customer.creditLimit.toLocaleString()}`],
+      ['Account Status:', customer.accountStatus.toUpperCase()]
+    ];
+    
+    customerInfo.forEach(([label, value]) => {
+      doc.setTextColor(80, 80, 80);
+      doc.text(String(label), 20, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(value), 80, yPos);
+      yPos += 7;
+    });
+    
+    yPos += 10;
+    
+    // Account Summary
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Account Summary', 20, yPos);
+    yPos += 10;
+    
+    const summaryData = [
+      ['Total Invoices:', customer.totalInvoices.toString()],
+      ['Total Amount Invoiced:', `$${customer.totalAmountInvoiced.toLocaleString()}`],
+      ['Total Paid:', `$${customer.totalPaid.toLocaleString()}`],
+      ['Outstanding Balance:', `$${customer.totalOutstanding.toLocaleString()}`],
+      ['Last Payment Date:', customer.lastPaymentDate]
+    ];
+    
+    summaryData.forEach(([label, value]) => {
+      doc.setTextColor(80, 80, 80);
+      doc.text(String(label), 20, yPos);
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(value), 80, yPos);
+      yPos += 7;
+    });
+    
+    // Invoice Table
+    if (customer.invoices && customer.invoices.length > 0) {
+      yPos += 15;
+      doc.setFontSize(14);
+      doc.text('Invoice History', 20, yPos);
+      yPos += 10;
+      
+      const invoiceTableData = customer.invoices.map((invoice: any) => [
+        invoice.invoiceNumber,
+        invoice.date,
+        invoice.dueDate,
+        `$${invoice.amount.toLocaleString()}`,
+        `$${invoice.paidAmount.toLocaleString()}`,
+        invoice.status.toUpperCase(),
+        invoice.etaNumber || 'N/A'
+      ]);
+      
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Invoice #', 'Date', 'Due Date', 'Amount', 'Paid', 'Status', 'ETA Number']],
+        body: invoiceTableData,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [41, 128, 185] }
+      });
+    }
+    
+    // Footer
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
+    
+    const fileName = `customer-statement-${customer.customerName.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
+    doc.save(fileName);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Users className="h-5 w-5 mr-2 text-blue-600" />
+            <span>Customer Accounts History</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // Export all customer data
+                const doc = new jsPDF();
+                doc.text('All Customer Accounts Report', 20, 20);
+                // Add comprehensive report logic here
+                doc.save('all-customer-accounts.pdf');
+              }}
+            >
+              <Download className="h-4 w-4 mr-2" /> 
+              Export All
+            </Button>
+          </div>
+        </CardTitle>
+        <CardDescription>
+          Comprehensive customer payment and invoice history with detailed transaction tracking
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 font-medium">Total Customers</p>
+                <p className="text-2xl font-bold text-blue-800">{customerAccounts.length}</p>
+              </div>
+              <Users className="w-8 h-8 text-blue-500" />
+            </div>
+            <p className="text-xs text-blue-600 mt-1">Active accounts</p>
+          </div>
+          
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 font-medium">Total Invoiced</p>
+                <p className="text-2xl font-bold text-green-800">
+                  ${customerAccounts.reduce((sum, c) => sum + c.totalAmountInvoiced, 0).toLocaleString()}
+                </p>
+              </div>
+              <FileText className="w-8 h-8 text-green-500" />
+            </div>
+            <p className="text-xs text-green-600 mt-1">All time revenue</p>
+          </div>
+          
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 font-medium">Total Collected</p>
+                <p className="text-2xl font-bold text-purple-800">
+                  ${customerAccounts.reduce((sum, c) => sum + c.totalPaid, 0).toLocaleString()}
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-purple-500" />
+            </div>
+            <p className="text-xs text-purple-600 mt-1">Payments received</p>
+          </div>
+          
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-600 font-medium">Outstanding</p>
+                <p className="text-2xl font-bold text-red-800">
+                  ${customerAccounts.reduce((sum, c) => sum + c.totalOutstanding, 0).toLocaleString()}
+                </p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <p className="text-xs text-red-600 mt-1">Pending collection</p>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search customers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="current">Current Month</SelectItem>
+              <SelectItem value="previous">Previous Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSearchQuery('');
+              setStatusFilter('all');
+              setDateFilter('all');
+            }}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Reset Filters
+          </Button>
+        </div>
+
+        {/* Customer Accounts Table */}
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead className="text-right">Total Invoiced</TableHead>
+                <TableHead className="text-right">Paid</TableHead>
+                <TableHead className="text-right">Outstanding</TableHead>
+                <TableHead>Payment Terms</TableHead>
+                <TableHead>Last Payment</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCustomers.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{customer.customerName}</div>
+                      <div className="text-sm text-gray-500">{customer.id}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{customer.contactPerson}</div>
+                      <div className="text-sm text-gray-500">{customer.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    ${customer.totalAmountInvoiced.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right text-green-600 font-medium">
+                    ${customer.totalPaid.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className={customer.totalOutstanding > 0 ? 'text-red-600 font-medium' : 'text-gray-500'}>
+                      ${customer.totalOutstanding.toLocaleString()}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{customer.paymentTerms}</Badge>
+                  </TableCell>
+                  <TableCell>{customer.lastPaymentDate}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewCustomerDetails(customer)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => exportCustomerReport(customer)}>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export Statement
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+
+      {/* Customer Details Dialog */}
+      <Dialog open={isCustomerDetailsOpen} onOpenChange={setIsCustomerDetailsOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          {selectedCustomerDetails && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <Building className="h-6 w-6 text-blue-600" />
+                  {selectedCustomerDetails.customerName} - Account Details
+                </DialogTitle>
+                <DialogDescription>
+                  Complete payment and invoice history for {selectedCustomerDetails.customerName}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {/* Customer Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Customer Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Customer ID:</span>
+                      <span className="font-medium">{selectedCustomerDetails.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Contact Person:</span>
+                      <span className="font-medium">{selectedCustomerDetails.contactPerson}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-medium">{selectedCustomerDetails.email}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="font-medium">{selectedCustomerDetails.phone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Payment Terms:</span>
+                      <Badge variant="outline">{selectedCustomerDetails.paymentTerms}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Credit Limit:</span>
+                      <span className="font-medium">${selectedCustomerDetails.creditLimit.toLocaleString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Account Summary */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Account Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Invoices:</span>
+                      <span className="font-medium">{selectedCustomerDetails.totalInvoices}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Invoiced:</span>
+                      <span className="font-medium text-blue-600">${selectedCustomerDetails.totalAmountInvoiced.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Paid:</span>
+                      <span className="font-medium text-green-600">${selectedCustomerDetails.totalPaid.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Outstanding:</span>
+                      <span className={`font-medium ${selectedCustomerDetails.totalOutstanding > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                        ${selectedCustomerDetails.totalOutstanding.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Last Payment:</span>
+                      <span className="font-medium">{selectedCustomerDetails.lastPaymentDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Account Status:</span>
+                      <Badge className={selectedCustomerDetails.accountStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                        {selectedCustomerDetails.accountStatus.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Invoice History */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Invoice History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead>ETA Number</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Paid</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Products</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedCustomerDetails.invoices?.map((invoice: any, index: number) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                          <TableCell>{invoice.date}</TableCell>
+                          <TableCell>{invoice.dueDate}</TableCell>
+                          <TableCell className="text-sm text-blue-600">{invoice.etaNumber}</TableCell>
+                          <TableCell className="text-right font-medium">${invoice.amount.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-green-600">${invoice.paidAmount.toLocaleString()}</TableCell>
+                          <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                          <TableCell className="text-sm">{invoice.products.join(', ')}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Payment History */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg">Payment History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Reference</TableHead>
+                        <TableHead>Invoice</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedCustomerDetails.payments?.map((payment: any, index: number) => (
+                        <TableRow key={index}>
+                          <TableCell>{payment.date}</TableCell>
+                          <TableCell className="text-green-600 font-medium">${payment.amount.toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{payment.method}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">{payment.reference}</TableCell>
+                          <TableCell className="text-blue-600">{payment.invoiceNumber}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <DialogFooter className="mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => exportCustomerReport(selectedCustomerDetails)}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Statement
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsCustomerDetailsOpen(false)}
+                >
+                  Close
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 };
 
