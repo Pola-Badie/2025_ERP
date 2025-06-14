@@ -257,12 +257,7 @@ const Accounting: React.FC = () => {
   // Employee list for payroll
   const employees = ['select-emp-001', 'select-emp-002', 'select-emp-003', 'select-emp-004'];
 
-  // Customer Invoice states
-  const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('bank-transfer');
-  const [paymentReference, setPaymentReference] = useState('');
-  const [paymentNotes, setPaymentNotes] = useState('');
+
 
   // Handle purchase approval
   const handleApprovePurchase = (purchaseId: string) => {
@@ -458,11 +453,6 @@ const Accounting: React.FC = () => {
         variant: "destructive"
       });
     }
-  };
-
-  const handleViewInvoiceDetails = (invoice: any) => {
-    setSelectedInvoice(invoice);
-    setIsInvoiceDetailsOpen(true);
   };
 
   const handleViewPaymentHistory = (invoice: any) => {
@@ -4243,6 +4233,503 @@ const Accounting: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Enhanced Invoice Details Dialog */}
+          <Dialog open={isInvoiceDetailsOpen} onOpenChange={setIsInvoiceDetailsOpen}>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3 text-xl">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <span>Invoice Details: {selectedInvoice?.invoiceNumber}</span>
+                    <p className="text-sm text-gray-600 font-normal mt-1">
+                      Comprehensive transaction and payment information
+                    </p>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedInvoice && (
+                <div className="space-y-6">
+                  {/* Invoice Header Information */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className="p-4 bg-blue-50 border-blue-200">
+                      <h3 className="font-semibold text-blue-800 mb-3 flex items-center">
+                        <Building className="h-4 w-4 mr-2" />
+                        Invoice Information
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">Invoice Number:</span>
+                          <Badge variant="outline" className="bg-white text-blue-800 border-blue-300">
+                            {selectedInvoice.invoiceNumber}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">ETA Number:</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            {selectedInvoice.etaNumber}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">Service Type:</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {selectedInvoice.service}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-blue-700">Created by:</span>
+                          <span className="text-sm font-medium text-gray-800">Ahmed Hassan</span>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-green-50 border-green-200">
+                      <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                        <Users className="h-4 w-4 mr-2" />
+                        Customer Details
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Company:</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {selectedInvoice.customerName}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Contact:</span>
+                          <span className="text-sm font-medium text-gray-800">Dr. Mahmoud Ali</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Phone:</span>
+                          <span className="text-sm font-medium text-gray-800">+20 2 2345 6789</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-green-700">Email:</span>
+                          <span className="text-sm font-medium text-gray-800">finance@customer.com</span>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-purple-50 border-purple-200">
+                      <h3 className="font-semibold text-purple-800 mb-3 flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Timeline & Status
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-purple-700">Invoice Date:</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {selectedInvoice.invoiceDate}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-purple-700">Due Date:</span>
+                          <span className="text-sm font-medium text-gray-800">
+                            {selectedInvoice.dueDate}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-purple-700">Days Overdue:</span>
+                          <span className="text-sm font-medium text-red-600">
+                            {selectedInvoice.paymentStatus === 'Overdue' ? '12 days' : 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-purple-700">Status:</span>
+                          <Badge className={
+                            selectedInvoice.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' :
+                            selectedInvoice.paymentStatus === 'Partial Payment' ? 'bg-blue-100 text-blue-800' :
+                            selectedInvoice.paymentStatus === 'Overdue' ? 'bg-red-100 text-red-800' :
+                            'bg-orange-100 text-orange-800'
+                          }>
+                            {selectedInvoice.paymentStatus}
+                          </Badge>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Financial Summary */}
+                  <Card className="p-6 bg-gray-50">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Calculator className="h-5 w-5 mr-2" />
+                      Financial Summary
+                    </h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                      <div className="text-center p-4 bg-white rounded-lg border">
+                        <p className="text-sm text-gray-600">Subtotal</p>
+                        <p className="text-lg font-bold text-gray-800">
+                          ${(selectedInvoice.amount * 0.877).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg border">
+                        <p className="text-sm text-gray-600">VAT (14%)</p>
+                        <p className="text-lg font-bold text-blue-600">
+                          ${(selectedInvoice.amount * 0.123).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg border">
+                        <p className="text-sm text-gray-600">Total Amount</p>
+                        <p className="text-xl font-bold text-green-600">
+                          ${selectedInvoice.amount?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg border">
+                        <p className="text-sm text-gray-600">Paid Amount</p>
+                        <p className="text-lg font-bold text-blue-600">
+                          ${selectedInvoice.paidAmount?.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg border">
+                        <p className="text-sm text-gray-600">Outstanding</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          ${selectedInvoice.balance?.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Service Details */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Activity className="h-5 w-5 mr-2" />
+                      Service & Product Details
+                    </h3>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product/Service</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead>Quantity</TableHead>
+                          <TableHead>Unit Price</TableHead>
+                          <TableHead>Total</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow>
+                          <TableCell className="font-medium">{selectedInvoice.service}</TableCell>
+                          <TableCell>High-grade pharmaceutical manufacturing service with quality assurance</TableCell>
+                          <TableCell>1 Batch</TableCell>
+                          <TableCell>${(selectedInvoice.amount * 0.877).toFixed(2)}</TableCell>
+                          <TableCell className="font-semibold">${(selectedInvoice.amount * 0.877).toFixed(2)}</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Quality Testing</TableCell>
+                          <TableCell>Comprehensive quality control and laboratory testing</TableCell>
+                          <TableCell>1 Service</TableCell>
+                          <TableCell>$850.00</TableCell>
+                          <TableCell className="font-semibold">$850.00</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell className="font-medium">Packaging</TableCell>
+                          <TableCell>Professional pharmaceutical packaging and labeling</TableCell>
+                          <TableCell>1 Service</TableCell>
+                          <TableCell>$320.00</TableCell>
+                          <TableCell className="font-semibold">$320.00</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Card>
+
+                  {/* Payment Transaction History */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Payment Transaction History
+                    </h3>
+                    <div className="space-y-4">
+                      {selectedInvoice.paymentStatus === 'Paid' && (
+                        <>
+                          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center space-x-4">
+                              <div className="bg-green-100 p-2 rounded-full">
+                                <Check className="h-4 w-4 text-green-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-green-800">Full Payment Received</p>
+                                <p className="text-sm text-green-600">Bank Transfer • Reference: BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}</p>
+                                <p className="text-xs text-green-500">
+                                  {new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toLocaleDateString()} at {new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleTimeString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-green-600">${selectedInvoice.amount?.toLocaleString()}</p>
+                              <p className="text-xs text-green-500">Confirmed</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {selectedInvoice.paymentStatus === 'Partial Payment' && (
+                        <>
+                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center space-x-4">
+                              <div className="bg-blue-100 p-2 rounded-full">
+                                <CreditCard className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-blue-800">Partial Payment Received</p>
+                                <p className="text-sm text-blue-600">Bank Transfer • Reference: BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}-1</p>
+                                <p className="text-xs text-blue-500">
+                                  {new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString()} at 2:30 PM
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-blue-600">${selectedInvoice.paidAmount?.toLocaleString()}</p>
+                              <p className="text-xs text-blue-500">Confirmed</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="flex items-center space-x-4">
+                              <div className="bg-orange-100 p-2 rounded-full">
+                                <Clock className="h-4 w-4 text-orange-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-orange-800">Outstanding Balance</p>
+                                <p className="text-sm text-orange-600">Awaiting final payment</p>
+                                <p className="text-xs text-orange-500">Due: {selectedInvoice.dueDate}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-orange-600">${selectedInvoice.balance?.toLocaleString()}</p>
+                              <p className="text-xs text-orange-500">Pending</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {(selectedInvoice.paymentStatus === 'Unpaid' || selectedInvoice.paymentStatus === 'Overdue') && (
+                        <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                          <div className="flex items-center space-x-4">
+                            <div className="bg-red-100 p-2 rounded-full">
+                              <AlertCircle className="h-4 w-4 text-red-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-red-800">
+                                {selectedInvoice.paymentStatus === 'Overdue' ? 'Payment Overdue' : 'Payment Pending'}
+                              </p>
+                              <p className="text-sm text-red-600">No payments received</p>
+                              <p className="text-xs text-red-500">Due: {selectedInvoice.dueDate}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-red-600">${selectedInvoice.amount?.toLocaleString()}</p>
+                            <p className="text-xs text-red-500">
+                              {selectedInvoice.paymentStatus === 'Overdue' ? 'Overdue' : 'Unpaid'}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Invoice Creation History */}
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center space-x-4">
+                          <div className="bg-gray-100 p-2 rounded-full">
+                            <FileText className="h-4 w-4 text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800">Invoice Created</p>
+                            <p className="text-sm text-gray-600">Generated by Premier ERP System</p>
+                            <p className="text-xs text-gray-500">{selectedInvoice.invoiceDate} at 9:15 AM</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-gray-600">${selectedInvoice.amount?.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500">Issued</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Communication Log */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <Mail className="h-5 w-5 mr-2" />
+                      Communication Log
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                        <div className="bg-blue-100 p-1 rounded-full mt-1">
+                          <Mail className="h-3 w-3 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-blue-800">Invoice Sent</p>
+                            <span className="text-xs text-blue-600">{selectedInvoice.invoiceDate} 9:30 AM</span>
+                          </div>
+                          <p className="text-xs text-blue-600">
+                            Invoice {selectedInvoice.invoiceNumber} sent to finance@customer.com
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {selectedInvoice.paymentStatus === 'Unpaid' && (
+                        <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                          <div className="bg-yellow-100 p-1 rounded-full mt-1">
+                            <AlertCircle className="h-3 w-3 text-yellow-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-yellow-800">Payment Reminder Sent</p>
+                              <span className="text-xs text-yellow-600">2 days ago</span>
+                            </div>
+                            <p className="text-xs text-yellow-600">
+                              Automated reminder sent for overdue payment
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                        <div className="bg-green-100 p-1 rounded-full mt-1">
+                          <Check className="h-3 w-3 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-green-800">Email Opened</p>
+                            <span className="text-xs text-green-600">{selectedInvoice.invoiceDate} 11:45 AM</span>
+                          </div>
+                          <p className="text-xs text-green-600">
+                            Customer opened invoice email - IP: 192.168.1.100
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={() => handleDownloadInvoicePDF(selectedInvoice)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                      
+                      {selectedInvoice.balance > 0 && (
+                        <Button
+                          onClick={() => {
+                            setIsInvoiceDetailsOpen(false);
+                            handleRecordPayment(selectedInvoice);
+                          }}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Record Payment
+                        </Button>
+                      )}
+                      
+                      {selectedInvoice.paymentStatus === 'Unpaid' && (
+                        <Button
+                          onClick={() => handleSendReminderNotification(selectedInvoice)}
+                          variant="outline"
+                          className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                        >
+                          <AlertCircle className="h-4 w-4 mr-2" />
+                          Send Reminder
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsInvoiceDetailsOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Payment Recording Dialog */}
+          <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <DollarSign className="h-6 w-6 text-green-600" />
+                  Record Payment
+                </DialogTitle>
+                <DialogDescription>
+                  Record a payment for invoice {selectedInvoice?.invoiceNumber}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex justify-between text-sm">
+                    <span>Outstanding Balance:</span>
+                    <span className="font-semibold">${selectedInvoice?.balance?.toLocaleString()}</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-amount">Payment Amount</Label>
+                  <Input
+                    id="payment-amount"
+                    type="number"
+                    step="0.01"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    placeholder="Enter payment amount"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bank-transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="check">Check</SelectItem>
+                      <SelectItem value="credit-card">Credit Card</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-reference">Reference Number</Label>
+                  <Input
+                    id="payment-reference"
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    placeholder="Transaction reference"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="payment-notes">Notes (Optional)</Label>
+                  <Input
+                    id="payment-notes"
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
+                    placeholder="Payment notes"
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmitPayment} className="bg-green-600 hover:bg-green-700 text-white">
+                  Record Payment
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
         
         <TabsContent value="accounting-periods">
@@ -6364,7 +6851,7 @@ const Accounting: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleSendReminder({id: 'INV-2025-003', customer: 'Alexandria Pharmacy', total: '$8,750.00', remaining: '$8,750.00', eta: 'ETA240605102'})}>
+                              <DropdownMenuItem onClick={() => handleSendReminderNotification({invoiceNumber: 'INV-2025-003', customerName: 'Alexandria Pharmacy'})}>
                                 Send Reminder
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleViewInvoice({id: 'INV-2025-003', customer: 'Alexandria Pharmacy', total: '$8,750.00', remaining: '$8,750.00', eta: 'ETA240605102'})}>
