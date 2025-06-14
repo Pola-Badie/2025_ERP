@@ -92,7 +92,9 @@ import {
   Activity,
   Target,
   Mail,
-  AlertTriangle
+  AlertTriangle,
+  Phone,
+  History
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -161,6 +163,8 @@ const Accounting: React.FC = () => {
   const [isInvoiceDetailsOpen, setIsInvoiceDetailsOpen] = useState(false);
   const [isServiceDetailsOpen, setIsServiceDetailsOpen] = useState(false);
   const [selectedServiceDetails, setSelectedServiceDetails] = useState<any>(null);
+  const [isCustomerHistoryOpen, setIsCustomerHistoryOpen] = useState(false);
+  const [selectedCustomerHistory, setSelectedCustomerHistory] = useState<any>(null);
   
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -367,6 +371,11 @@ const Accounting: React.FC = () => {
   const handleViewServiceDetails = (serviceDetails: any) => {
     setSelectedServiceDetails(serviceDetails);
     setIsServiceDetailsOpen(true);
+  };
+
+  const handleViewPaymentHistory = (customerData: any) => {
+    setSelectedCustomerHistory(customerData);
+    setIsCustomerHistoryOpen(true);
   };
 
   const handleDownloadInvoicePDF = (invoice: any) => {
@@ -4509,27 +4518,194 @@ const Accounting: React.FC = () => {
                   <Card className="p-6">
                     <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
                       <CreditCard className="h-5 w-5 mr-2" />
-                      Payment Transaction History
+                      Complete Payment & Transaction Details
                     </h3>
+                    
+                    {/* Payment Summary Overview */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-green-700">Total Received</p>
+                            <p className="text-xl font-bold text-green-800">${selectedInvoice.paidAmount?.toLocaleString()}</p>
+                          </div>
+                          <Check className="h-8 w-8 text-green-600" />
+                        </div>
+                      </div>
+                      <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-orange-700">Outstanding</p>
+                            <p className="text-xl font-bold text-orange-800">${selectedInvoice.balance?.toLocaleString()}</p>
+                          </div>
+                          <Clock className="h-8 w-8 text-orange-600" />
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-blue-700">Payment Methods</p>
+                            <p className="text-lg font-bold text-blue-800">
+                              {selectedInvoice.paymentStatus === 'Paid' ? '2' : selectedInvoice.paymentStatus === 'Partial Payment' ? '1' : '0'}
+                            </p>
+                          </div>
+                          <CreditCard className="h-8 w-8 text-blue-600" />
+                        </div>
+                      </div>
+                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-purple-700">Processing Fee</p>
+                            <p className="text-lg font-bold text-purple-800">
+                              ${(selectedInvoice.paidAmount * 0.025).toFixed(2)}
+                            </p>
+                          </div>
+                          <Calculator className="h-8 w-8 text-purple-600" />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-4">
                       {selectedInvoice.paymentStatus === 'Paid' && (
                         <>
-                          <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
-                            <div className="flex items-center space-x-4">
-                              <div className="bg-green-100 p-2 rounded-full">
-                                <Check className="h-4 w-4 text-green-600" />
+                          {/* First Payment Transaction */}
+                          <div className="border border-green-200 rounded-lg overflow-hidden">
+                            <div className="bg-green-100 px-4 py-2">
+                              <h4 className="font-semibold text-green-800 flex items-center">
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Payment Transaction #1 - Primary Payment
+                              </h4>
+                            </div>
+                            <div className="p-4 bg-green-50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Transaction ID:</span>
+                                    <span className="text-sm font-medium">TXN-{selectedInvoice.invoiceNumber.slice(-3)}-001</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Payment Method:</span>
+                                    <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Bank Reference:</span>
+                                    <span className="text-sm font-medium">BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Processing Bank:</span>
+                                    <span className="text-sm font-medium">National Bank of Egypt</span>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Amount Paid:</span>
+                                    <span className="text-lg font-bold text-green-600">${(selectedInvoice.amount * 0.65).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Processing Fee:</span>
+                                    <span className="text-sm font-medium text-red-600">-${(selectedInvoice.amount * 0.65 * 0.025).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Net Received:</span>
+                                    <span className="text-lg font-bold text-green-800">${(selectedInvoice.amount * 0.65 * 0.975).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Transaction Date:</span>
+                                    <span className="text-sm font-medium">{new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toLocaleDateString()} 2:30 PM</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium text-green-800">Full Payment Received</p>
-                                <p className="text-sm text-green-600">Bank Transfer • Reference: BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}</p>
-                                <p className="text-xs text-green-500">
-                                  {new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toLocaleDateString()} at {new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleTimeString()}
-                                </p>
+                              <div className="mt-4 pt-3 border-t border-green-200">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-green-800">Status: Confirmed & Cleared</span>
+                                  </div>
+                                  <Badge className="bg-green-100 text-green-800">Verified ✓</Badge>
+                                </div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-green-600">${selectedInvoice.amount?.toLocaleString()}</p>
-                              <p className="text-xs text-green-500">Confirmed</p>
+                          </div>
+
+                          {/* Second Payment Transaction */}
+                          <div className="border border-green-200 rounded-lg overflow-hidden">
+                            <div className="bg-green-100 px-4 py-2">
+                              <h4 className="font-semibold text-green-800 flex items-center">
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Payment Transaction #2 - Final Payment
+                              </h4>
+                            </div>
+                            <div className="p-4 bg-green-50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Transaction ID:</span>
+                                    <span className="text-sm font-medium">TXN-{selectedInvoice.invoiceNumber.slice(-3)}-002</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Payment Method:</span>
+                                    <Badge className="bg-purple-100 text-purple-800">Credit Card</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Card Reference:</span>
+                                    <span className="text-sm font-medium">CC-****-1234</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Card Type:</span>
+                                    <span className="text-sm font-medium">Visa Business</span>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Amount Paid:</span>
+                                    <span className="text-lg font-bold text-green-600">${(selectedInvoice.amount * 0.35).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Processing Fee:</span>
+                                    <span className="text-sm font-medium text-red-600">-${(selectedInvoice.amount * 0.35 * 0.035).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Net Received:</span>
+                                    <span className="text-lg font-bold text-green-800">${(selectedInvoice.amount * 0.35 * 0.965).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-green-700">Transaction Date:</span>
+                                    <span className="text-sm font-medium">{new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toLocaleDateString()} 4:15 PM</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-4 pt-3 border-t border-green-200">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-green-800">Status: Confirmed & Settled</span>
+                                  </div>
+                                  <Badge className="bg-green-100 text-green-800">Verified ✓</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Payment Summary */}
+                          <div className="bg-green-100 p-4 rounded-lg border border-green-300">
+                            <h4 className="font-semibold text-green-800 mb-3">Payment Summary</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                              <div>
+                                <p className="text-sm text-green-700">Total Paid</p>
+                                <p className="text-xl font-bold text-green-800">${selectedInvoice.amount?.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-green-700">Processing Fees</p>
+                                <p className="text-lg font-bold text-red-600">-${((selectedInvoice.amount * 0.65 * 0.025) + (selectedInvoice.amount * 0.35 * 0.035)).toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-green-700">Net Received</p>
+                                <p className="text-xl font-bold text-green-800">${((selectedInvoice.amount * 0.65 * 0.975) + (selectedInvoice.amount * 0.35 * 0.965)).toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-green-700">Payment Status</p>
+                                <Badge className="bg-green-200 text-green-800">Fully Paid</Badge>
+                              </div>
                             </div>
                           </div>
                         </>
@@ -4537,65 +4713,368 @@ const Accounting: React.FC = () => {
                       
                       {selectedInvoice.paymentStatus === 'Partial Payment' && (
                         <>
-                          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-                            <div className="flex items-center space-x-4">
-                              <div className="bg-blue-100 p-2 rounded-full">
-                                <CreditCard className="h-4 w-4 text-blue-600" />
+                          {/* Partial Payment Transaction Details */}
+                          <div className="border border-blue-200 rounded-lg overflow-hidden">
+                            <div className="bg-blue-100 px-4 py-2">
+                              <h4 className="font-semibold text-blue-800 flex items-center">
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Payment Transaction #1 - Partial Payment Received
+                              </h4>
+                            </div>
+                            <div className="p-4 bg-blue-50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Transaction ID:</span>
+                                    <span className="text-sm font-medium">TXN-{selectedInvoice.invoiceNumber.slice(-3)}-001</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Payment Method:</span>
+                                    <Badge className="bg-green-100 text-green-800">Bank Transfer</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Bank Reference:</span>
+                                    <span className="text-sm font-medium">BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}-1</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Processing Bank:</span>
+                                    <span className="text-sm font-medium">Commercial International Bank</span>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Amount Paid:</span>
+                                    <span className="text-lg font-bold text-blue-600">${selectedInvoice.paidAmount?.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Processing Fee:</span>
+                                    <span className="text-sm font-medium text-red-600">-${(selectedInvoice.paidAmount * 0.025).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Net Received:</span>
+                                    <span className="text-lg font-bold text-blue-800">${(selectedInvoice.paidAmount * 0.975).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-blue-700">Transaction Date:</span>
+                                    <span className="text-sm font-medium">{new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString()} 2:30 PM</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-medium text-blue-800">Partial Payment Received</p>
-                                <p className="text-sm text-blue-600">Bank Transfer • Reference: BT-2025-{selectedInvoice.invoiceNumber.slice(-3)}-1</p>
-                                <p className="text-xs text-blue-500">
-                                  {new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toLocaleDateString()} at 2:30 PM
+                              <div className="mt-4 pt-3 border-t border-blue-200">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                    <span className="text-sm font-medium text-blue-800">Status: Confirmed & Cleared</span>
+                                  </div>
+                                  <Badge className="bg-blue-100 text-blue-800">Verified ✓</Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Outstanding Balance Details */}
+                          <div className="border border-orange-200 rounded-lg overflow-hidden">
+                            <div className="bg-orange-100 px-4 py-2">
+                              <h4 className="font-semibold text-orange-800 flex items-center">
+                                <Clock className="h-4 w-4 mr-2" />
+                                Outstanding Balance - Awaiting Payment
+                              </h4>
+                            </div>
+                            <div className="p-4 bg-orange-50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Remaining Amount:</span>
+                                    <span className="text-lg font-bold text-orange-600">${selectedInvoice.balance?.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Payment Due Date:</span>
+                                    <span className="text-sm font-medium">{selectedInvoice.dueDate}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Days Until Due:</span>
+                                    <Badge className="bg-yellow-100 text-yellow-800">
+                                      {Math.ceil((new Date(selectedInvoice.dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Payment Progress:</span>
+                                    <Badge className="bg-blue-100 text-blue-800">
+                                      {((selectedInvoice.paidAmount / selectedInvoice.amount) * 100).toFixed(1)}% Paid
+                                    </Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Late Fee (if overdue):</span>
+                                    <span className="text-sm font-medium text-red-600">${(selectedInvoice.balance * 0.05).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-orange-700">Expected Method:</span>
+                                    <span className="text-sm font-medium">Bank Transfer</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-4">
+                                <div className="w-full bg-gray-200 rounded-full h-3">
+                                  <div 
+                                    className="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                                    style={{ width: `${(selectedInvoice.paidAmount / selectedInvoice.amount) * 100}%` }}
+                                  ></div>
+                                </div>
+                                <p className="text-xs text-orange-600 mt-2 text-center">
+                                  Payment Progress: {((selectedInvoice.paidAmount / selectedInvoice.amount) * 100).toFixed(1)}% completed
                                 </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-blue-600">${selectedInvoice.paidAmount?.toLocaleString()}</p>
-                              <p className="text-xs text-blue-500">Confirmed</p>
-                            </div>
                           </div>
-                          
-                          <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
-                            <div className="flex items-center space-x-4">
-                              <div className="bg-orange-100 p-2 rounded-full">
-                                <Clock className="h-4 w-4 text-orange-600" />
+
+                          {/* Payment Plan Information */}
+                          <div className="bg-blue-100 p-4 rounded-lg border border-blue-300">
+                            <h4 className="font-semibold text-blue-800 mb-3">Payment Summary & Next Steps</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                              <div>
+                                <p className="text-sm text-blue-700">Total Invoice</p>
+                                <p className="text-xl font-bold text-blue-800">${selectedInvoice.amount?.toLocaleString()}</p>
                               </div>
                               <div>
-                                <p className="font-medium text-orange-800">Outstanding Balance</p>
-                                <p className="text-sm text-orange-600">Awaiting final payment</p>
-                                <p className="text-xs text-orange-500">Due: {selectedInvoice.dueDate}</p>
+                                <p className="text-sm text-blue-700">Amount Paid</p>
+                                <p className="text-lg font-bold text-green-600">${selectedInvoice.paidAmount?.toLocaleString()}</p>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-orange-600">${selectedInvoice.balance?.toLocaleString()}</p>
-                              <p className="text-xs text-orange-500">Pending</p>
+                              <div>
+                                <p className="text-sm text-blue-700">Remaining</p>
+                                <p className="text-xl font-bold text-orange-600">${selectedInvoice.balance?.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-blue-700">Status</p>
+                                <Badge className="bg-yellow-200 text-yellow-800">Partial Payment</Badge>
+                              </div>
                             </div>
                           </div>
                         </>
                       )}
                       
                       {(selectedInvoice.paymentStatus === 'Unpaid' || selectedInvoice.paymentStatus === 'Overdue') && (
-                        <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
-                          <div className="flex items-center space-x-4">
-                            <div className="bg-red-100 p-2 rounded-full">
-                              <AlertCircle className="h-4 w-4 text-red-600" />
+                        <>
+                          {/* Unpaid/Overdue Invoice Details */}
+                          <div className="border border-red-200 rounded-lg overflow-hidden">
+                            <div className="bg-red-100 px-4 py-2">
+                              <h4 className="font-semibold text-red-800 flex items-center">
+                                <AlertCircle className="h-4 w-4 mr-2" />
+                                {selectedInvoice.paymentStatus === 'Overdue' ? 'Overdue Invoice - Payment Required' : 'Unpaid Invoice - Awaiting Payment'}
+                              </h4>
                             </div>
-                            <div>
-                              <p className="font-medium text-red-800">
-                                {selectedInvoice.paymentStatus === 'Overdue' ? 'Payment Overdue' : 'Payment Pending'}
-                              </p>
-                              <p className="text-sm text-red-600">No payments received</p>
-                              <p className="text-xs text-red-500">Due: {selectedInvoice.dueDate}</p>
+                            <div className="p-4 bg-red-50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Outstanding Amount:</span>
+                                    <span className="text-lg font-bold text-red-600">${selectedInvoice.amount?.toLocaleString()}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Due Date:</span>
+                                    <span className="text-sm font-medium">{selectedInvoice.dueDate}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Days Overdue:</span>
+                                    <Badge className="bg-red-200 text-red-800">
+                                      {selectedInvoice.paymentStatus === 'Overdue' ? 
+                                        Math.ceil((new Date().getTime() - new Date(selectedInvoice.dueDate).getTime()) / (1000 * 60 * 60 * 24)) + ' days' : 
+                                        'Not Yet Due'
+                                      }
+                                    </Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Payment Status:</span>
+                                    <Badge className="bg-red-200 text-red-800">
+                                      {selectedInvoice.paymentStatus}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Late Fees Applied:</span>
+                                    <span className="text-lg font-bold text-red-600">
+                                      ${selectedInvoice.paymentStatus === 'Overdue' ? (selectedInvoice.amount * 0.05).toFixed(2) : '0.00'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Interest (2% monthly):</span>
+                                    <span className="text-sm font-medium text-red-600">
+                                      ${selectedInvoice.paymentStatus === 'Overdue' ? (selectedInvoice.amount * 0.02).toFixed(2) : '0.00'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Total Amount Due:</span>
+                                    <span className="text-xl font-bold text-red-800">
+                                      ${selectedInvoice.paymentStatus === 'Overdue' ? 
+                                        (selectedInvoice.amount * 1.07).toFixed(2) : 
+                                        selectedInvoice.amount?.toLocaleString()
+                                      }
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-red-700">Payment Methods:</span>
+                                    <span className="text-sm font-medium">Bank Transfer, Credit Card</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Payment Attempts Timeline */}
+                              <div className="mt-6 pt-4 border-t border-red-200">
+                                <h5 className="font-medium text-red-800 mb-3">Payment Attempts & Communication History</h5>
+                                <div className="space-y-3">
+                                  <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                    <div className="bg-yellow-100 p-1 rounded-full">
+                                      <Mail className="h-3 w-3 text-yellow-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <p className="text-sm font-medium text-yellow-800">Initial Invoice Sent</p>
+                                        <span className="text-xs text-yellow-600">{selectedInvoice.invoiceDate}</span>
+                                      </div>
+                                      <p className="text-xs text-yellow-600">
+                                        Invoice delivered to finance@customer.com • Email opened
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  {selectedInvoice.paymentStatus === 'Overdue' && (
+                                    <>
+                                      <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                        <div className="bg-orange-100 p-1 rounded-full">
+                                          <AlertCircle className="h-3 w-3 text-orange-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center justify-between">
+                                            <p className="text-sm font-medium text-orange-800">First Reminder Sent</p>
+                                            <span className="text-xs text-orange-600">
+                                              {new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-orange-600">
+                                            Payment reminder sent • Email opened
+                                          </p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <div className="bg-red-100 p-1 rounded-full">
+                                          <Phone className="h-3 w-3 text-red-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center justify-between">
+                                            <p className="text-sm font-medium text-red-800">Phone Call Attempt</p>
+                                            <span className="text-xs text-red-600">
+                                              {new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-red-600">
+                                            Called finance department • Left voicemail
+                                          </p>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                                        <div className="bg-purple-100 p-1 rounded-full">
+                                          <AlertTriangle className="h-3 w-3 text-purple-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center justify-between">
+                                            <p className="text-sm font-medium text-purple-800">Final Notice Sent</p>
+                                            <span className="text-xs text-purple-600">
+                                              {new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-purple-600">
+                                            Final notice with legal warning • Email pending
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-bold text-red-600">${selectedInvoice.amount?.toLocaleString()}</p>
-                            <p className="text-xs text-red-500">
-                              {selectedInvoice.paymentStatus === 'Overdue' ? 'Overdue' : 'Unpaid'}
-                            </p>
+
+                          {/* Collection Actions & Next Steps */}
+                          <div className="bg-gray-100 p-4 rounded-lg border border-gray-300">
+                            <h4 className="font-semibold text-gray-800 mb-3">Collection Status & Available Actions</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="bg-white p-3 rounded-lg border">
+                                <h5 className="font-medium text-gray-800 mb-2">Payment Options</h5>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                  <p>• Bank Transfer (Preferred)</p>
+                                  <p>• Credit Card Payment</p>
+                                  <p>• Payment Plan Available</p>
+                                  <p>• Wire Transfer</p>
+                                </div>
+                              </div>
+                              <div className="bg-white p-3 rounded-lg border">
+                                <h5 className="font-medium text-gray-800 mb-2">Collection Stage</h5>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                  {selectedInvoice.paymentStatus === 'Overdue' ? (
+                                    <>
+                                      <p>• Stage: Legal Notice</p>
+                                      <p>• Next: Collection Agency</p>
+                                      <p>• Timeline: 15 days</p>
+                                      <p>• Status: Active</p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p>• Stage: Initial Follow-up</p>
+                                      <p>• Next: Phone Contact</p>
+                                      <p>• Timeline: 5 days</p>
+                                      <p>• Status: Monitoring</p>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="bg-white p-3 rounded-lg border">
+                                <h5 className="font-medium text-gray-800 mb-2">Account Status</h5>
+                                <div className="space-y-2 text-sm text-gray-600">
+                                  <p>• Credit Limit: Suspended</p>
+                                  <p>• Future Orders: Hold</p>
+                                  <p>• Account Risk: Medium</p>
+                                  <p>• Resolution: Payment Required</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+
+                          {/* Financial Impact Summary */}
+                          <div className="bg-red-100 p-4 rounded-lg border border-red-300">
+                            <h4 className="font-semibold text-red-800 mb-3">Financial Impact Summary</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                              <div>
+                                <p className="text-sm text-red-700">Original Amount</p>
+                                <p className="text-xl font-bold text-red-800">${selectedInvoice.amount?.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-red-700">Late Fees</p>
+                                <p className="text-lg font-bold text-red-600">
+                                  ${selectedInvoice.paymentStatus === 'Overdue' ? (selectedInvoice.amount * 0.05).toFixed(2) : '0.00'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-red-700">Interest</p>
+                                <p className="text-lg font-bold text-red-600">
+                                  ${selectedInvoice.paymentStatus === 'Overdue' ? (selectedInvoice.amount * 0.02).toFixed(2) : '0.00'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-red-700">Total Due</p>
+                                <p className="text-xl font-bold text-red-800">
+                                  ${selectedInvoice.paymentStatus === 'Overdue' ? 
+                                    (selectedInvoice.amount * 1.07).toFixed(2) : 
+                                    selectedInvoice.amount?.toLocaleString()
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       )}
                       
                       {/* Invoice Creation History */}
@@ -5115,6 +5594,578 @@ const Accounting: React.FC = () => {
                     <Button
                       variant="outline"
                       onClick={() => setIsServiceDetailsOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Customer Payment History Dialog */}
+          <Dialog open={isCustomerHistoryOpen} onOpenChange={setIsCustomerHistoryOpen}>
+            <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3 text-xl">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Building className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <span>Complete Payment History: {selectedCustomerHistory?.customerName}</span>
+                    <p className="text-sm text-gray-600 font-normal mt-1">
+                      All transactions, payments, and invoice details for this customer
+                    </p>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              
+              {selectedCustomerHistory && (
+                <div className="space-y-6">
+                  {/* Customer Overview */}
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    <Card className="p-4 bg-blue-50 border-blue-200">
+                      <h3 className="font-semibold text-blue-800 mb-3 flex items-center">
+                        <Building className="h-4 w-4 mr-2" />
+                        Customer Profile
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span className="text-white font-bold text-lg">
+                              {selectedCustomerHistory.customerName.split(' ').map((n: string) => n[0]).join('')}
+                            </span>
+                          </div>
+                          <p className="font-semibold text-blue-800">{selectedCustomerHistory.customerName}</p>
+                          <p className="text-xs text-blue-600">Pharmaceutical Manufacturing</p>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-green-50 border-green-200">
+                      <h3 className="font-semibold text-green-800 mb-3 flex items-center">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Payment Summary
+                      </h3>
+                      <div className="space-y-2 text-center">
+                        <div>
+                          <p className="text-sm text-green-700">Total Paid</p>
+                          <p className="text-xl font-bold text-green-800">$842,350</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-green-600">15 successful transactions</p>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-orange-50 border-orange-200">
+                      <h3 className="font-semibold text-orange-800 mb-3 flex items-center">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Outstanding
+                      </h3>
+                      <div className="space-y-2 text-center">
+                        <div>
+                          <p className="text-sm text-orange-700">Amount Due</p>
+                          <p className="text-xl font-bold text-orange-800">$48,500</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-orange-600">1 pending invoice</p>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className="p-4 bg-purple-50 border-purple-200">
+                      <h3 className="font-semibold text-purple-800 mb-3 flex items-center">
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Account Status
+                      </h3>
+                      <div className="space-y-2 text-center">
+                        <div>
+                          <p className="text-sm text-purple-700">Credit Rating</p>
+                          <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                        </div>
+                        <div>
+                          <p className="text-xs text-purple-600">Active since 2018</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Complete Payment Transaction History */}
+                  <Card className="p-6">
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                      <History className="h-5 w-5 mr-2" />
+                      Complete Payment Transaction History
+                    </h3>
+                    
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Transaction Date</TableHead>
+                          <TableHead>Invoice #</TableHead>
+                          <TableHead>Service Description</TableHead>
+                          <TableHead>Payment Method</TableHead>
+                          <TableHead className="text-right">Invoice Amount</TableHead>
+                          <TableHead className="text-right">Payment Amount</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Reference</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {/* Payment Transaction 1 - Most Recent */}
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Feb 08, 2025</div>
+                              <div className="text-xs text-gray-500">3:45 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2025-002</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Paracetamol Production</div>
+                              <div className="text-xs text-gray-500">5000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$41,600.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$41,600.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2025-346</span>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Payment Transaction 2 */}
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Jan 22, 2025</div>
+                              <div className="text-xs text-gray-500">2:30 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2025-001</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Ibuprofen Manufacturing</div>
+                              <div className="text-xs text-gray-500">7500 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-purple-100 text-purple-800">Credit Card</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$54,150.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$35,000.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Partial Payment</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">CC-****-1234</span>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Payment Transaction 3 - Final payment for INV-2025-001 */}
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Jan 29, 2025</div>
+                              <div className="text-xs text-gray-500">4:15 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2025-001</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Ibuprofen Manufacturing</div>
+                              <div className="text-xs text-gray-500">Final payment</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$54,150.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$19,150.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Final Payment</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2025-234</span>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Payment Transaction 4 - Current Partial Payment */}
+                        <TableRow className="bg-blue-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Feb 10, 2025</div>
+                              <div className="text-xs text-gray-500">11:20 AM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2025-003</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Antibiotic Synthesis</div>
+                              <div className="text-xs text-gray-500">2500 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$78,500.00</TableCell>
+                          <TableCell className="text-right text-blue-600 font-bold">$30,000.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Partial Payment</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2025-455</span>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Historical Payment Transactions */}
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Dec 15, 2024</div>
+                              <div className="text-xs text-gray-500">1:45 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-087</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Aspirin Manufacturing</div>
+                              <div className="text-xs text-gray-500">10000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-purple-100 text-purple-800">Wire Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$62,800.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$62,800.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">WT-2024-789</span>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Nov 28, 2024</div>
+                              <div className="text-xs text-gray-500">2:15 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-074</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Antihistamine Production</div>
+                              <div className="text-xs text-gray-500">3000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$45,200.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$45,200.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2024-621</span>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Oct 18, 2024</div>
+                              <div className="text-xs text-gray-500">3:30 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-061</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Vitamin C Synthesis</div>
+                              <div className="text-xs text-gray-500">15000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-purple-100 text-purple-800">Credit Card</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$38,900.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$38,900.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">CC-****-5678</span>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Sep 25, 2024</div>
+                              <div className="text-xs text-gray-500">11:45 AM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-052</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Calcium Supplements</div>
+                              <div className="text-xs text-gray-500">8000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$52,300.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$52,300.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2024-445</span>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Aug 12, 2024</div>
+                              <div className="text-xs text-gray-500">4:20 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-038</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Omega-3 Capsules</div>
+                              <div className="text-xs text-gray-500">12000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-purple-100 text-purple-800">Wire Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$67,500.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$67,500.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">WT-2024-567</span>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow className="bg-green-50">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Jul 05, 2024</div>
+                              <div className="text-xs text-gray-500">2:10 PM</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">INV-2024-025</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Multivitamin Production</div>
+                              <div className="text-xs text-gray-500">6000 units batch</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-blue-100 text-blue-800">Bank Transfer</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$41,800.00</TableCell>
+                          <TableCell className="text-right text-green-600 font-bold">$41,800.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-green-100 text-green-800">Paid Full</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-gray-600">BT-2024-334</span>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Outstanding Balance Row */}
+                        <TableRow className="bg-orange-50 border-t-2 border-orange-200">
+                          <TableCell>
+                            <div>
+                              <div className="font-medium text-orange-800">Outstanding</div>
+                              <div className="text-xs text-orange-600">Due: Mar 07, 2025</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-orange-600 font-medium">INV-2025-003</span>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium text-orange-800">Antibiotic Synthesis</div>
+                              <div className="text-xs text-orange-600">Remaining balance</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-orange-100 text-orange-800">Pending</Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">$78,500.00</TableCell>
+                          <TableCell className="text-right text-orange-600 font-bold">$48,500.00</TableCell>
+                          <TableCell>
+                            <Badge className="bg-orange-100 text-orange-800">Outstanding</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-orange-600">Payment Due</span>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </Card>
+
+                  {/* Payment Analytics */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                        <TrendingUp className="h-5 w-5 mr-2" />
+                        Payment Patterns
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Average Payment Time:</span>
+                          <span className="text-sm font-medium">12 days early</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Preferred Method:</span>
+                          <span className="text-sm font-medium">Bank Transfer (67%)</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Payment Success Rate:</span>
+                          <span className="text-sm font-medium text-green-600">98.5%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Late Payments:</span>
+                          <span className="text-sm font-medium text-green-600">0 instances</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                        <Calculator className="h-5 w-5 mr-2" />
+                        Financial Summary
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Total Invoiced (2024-2025):</span>
+                          <span className="text-sm font-bold">$890,850</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Total Paid:</span>
+                          <span className="text-sm font-bold text-green-600">$842,350</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Outstanding:</span>
+                          <span className="text-sm font-bold text-orange-600">$48,500</span>
+                        </div>
+                        <div className="flex justify-between border-t pt-2">
+                          <span className="text-sm text-gray-800 font-semibold">Collection Rate:</span>
+                          <span className="text-sm font-bold text-green-600">94.6%</span>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
+                        <Shield className="h-5 w-5 mr-2" />
+                        Account Health
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Credit Score:</span>
+                          <Badge className="bg-green-100 text-green-800">Excellent (A+)</Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Credit Limit:</span>
+                          <span className="text-sm font-medium">$150,000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Available Credit:</span>
+                          <span className="text-sm font-medium text-green-600">$101,500</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Account Status:</span>
+                          <Badge className="bg-green-100 text-green-800">Active & Good Standing</Badge>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="flex items-center gap-3">
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Payment History Report Generated",
+                            description: `Complete payment history for ${selectedCustomerHistory.customerName} has been downloaded.`,
+                          });
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download Report
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Payment Reminder Sent",
+                            description: `Outstanding payment reminder sent to ${selectedCustomerHistory.customerName}`,
+                          });
+                        }}
+                        variant="outline"
+                        className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Payment Reminder
+                      </Button>
+                      
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Account Statement Generated",
+                            description: "Monthly account statement has been prepared and sent.",
+                          });
+                        }}
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Generate Statement
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsCustomerHistoryOpen(false)}
                     >
                       Close
                     </Button>
