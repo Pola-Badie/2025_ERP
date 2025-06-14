@@ -90,7 +90,9 @@ import {
   Zap,
   PieChart,
   Activity,
-  Target
+  Target,
+  Mail,
+  AlertTriangle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -2323,6 +2325,7 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="payroll" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Payroll</TabsTrigger>
             <TabsTrigger value="purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Purchases</TabsTrigger>
             <TabsTrigger value="pending-purchases" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Pending Purchases</TabsTrigger>
+            <TabsTrigger value="customers-invoices" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customers' Invoices</TabsTrigger>
             <TabsTrigger value="invoices-due" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Invoices Due</TabsTrigger>
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
             <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
@@ -3457,6 +3460,469 @@ const Accounting: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="customers-invoices">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2 text-green-600" />
+                  <span>Customers' Invoices</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setActiveTab("customer-payments")}
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" /> 
+                    Customer Payments
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" /> 
+                    Export Invoices
+                  </Button>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Comprehensive customer invoice management with payment status tracking and history
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Customer Invoice Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-600 font-medium">Total Invoices</p>
+                      <p className="text-2xl font-bold text-green-800">156</p>
+                    </div>
+                    <FileText className="w-8 h-8 text-green-500" />
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">All customer invoices</p>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-600 font-medium">Paid Invoices</p>
+                      <p className="text-2xl font-bold text-blue-800">124</p>
+                    </div>
+                    <CheckCircle className="w-8 h-8 text-blue-500" />
+                  </div>
+                  <p className="text-xs text-blue-600 mt-1">$1,285,450 collected</p>
+                </div>
+                
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-600 font-medium">Unpaid Invoices</p>
+                      <p className="text-2xl font-bold text-orange-800">32</p>
+                    </div>
+                    <Clock className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <p className="text-xs text-orange-600 mt-1">$285,650 outstanding</p>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-600 font-medium">Collection Rate</p>
+                      <p className="text-2xl font-bold text-purple-800">79.5%</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-purple-500" />
+                  </div>
+                  <p className="text-xs text-purple-600 mt-1">Above target (75%)</p>
+                </div>
+              </div>
+
+              {/* Customer Search and Filters */}
+              <div className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search customers or invoices..."
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <Select defaultValue="all-customers">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select customer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-customers">All Customers</SelectItem>
+                      <SelectItem value="cairo-medical">Cairo Medical Center</SelectItem>
+                      <SelectItem value="alexandria-pharma">Alexandria Pharmaceuticals</SelectItem>
+                      <SelectItem value="global-health">Global Health Solutions</SelectItem>
+                      <SelectItem value="mediterranean-labs">Mediterranean Labs</SelectItem>
+                      <SelectItem value="nile-pharma">Nile Pharmaceutical Co.</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select defaultValue="all-status">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Payment status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-status">All Status</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="unpaid">Unpaid</SelectItem>
+                      <SelectItem value="partial">Partial Payment</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select defaultValue="this-year">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Date range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="this-month">This Month</SelectItem>
+                      <SelectItem value="last-month">Last Month</SelectItem>
+                      <SelectItem value="this-quarter">This Quarter</SelectItem>
+                      <SelectItem value="this-year">This Year</SelectItem>
+                      <SelectItem value="last-year">Last Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Customer Invoices Table */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Customer Invoices History</h3>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Advanced Filters
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>ETA Number</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Invoice Date</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Paid Amount</TableHead>
+                      <TableHead className="text-right">Balance</TableHead>
+                      <TableHead>Payment Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">INV-2025-001</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12345</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Cairo Medical Center</div>
+                          <div className="text-xs text-gray-500">Ibuprofen Manufacturing</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Jan 15, 2025</TableCell>
+                      <TableCell>Feb 14, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$54,150.00</TableCell>
+                      <TableCell className="text-right text-green-600">$54,150.00</TableCell>
+                      <TableCell className="text-right text-green-600">$0.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Invoice Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            title="Payment History"
+                          >
+                            <CreditCard className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">INV-2025-002</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12346</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Alexandria Pharmaceuticals</div>
+                          <div className="text-xs text-gray-500">Paracetamol Production</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Jan 20, 2025</TableCell>
+                      <TableCell>Feb 19, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$41,600.00</TableCell>
+                      <TableCell className="text-right text-green-600">$41,600.00</TableCell>
+                      <TableCell className="text-right text-green-600">$0.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Invoice Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-green-600"
+                            title="Payment History"
+                          >
+                            <CreditCard className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">INV-2025-003</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12347</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Global Health Solutions</div>
+                          <div className="text-xs text-gray-500">Antibiotic Synthesis</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Feb 05, 2025</TableCell>
+                      <TableCell>Mar 07, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$78,500.00</TableCell>
+                      <TableCell className="text-right text-blue-600">$30,000.00</TableCell>
+                      <TableCell className="text-right text-orange-600">$48,500.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-blue-100 text-blue-800">Partial Payment</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Invoice Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-orange-600"
+                            title="Record Payment"
+                          >
+                            <DollarSign className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">INV-2025-004</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12348</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Mediterranean Labs</div>
+                          <div className="text-xs text-gray-500">Chemical Purification</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Feb 12, 2025</TableCell>
+                      <TableCell>Mar 14, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$62,800.00</TableCell>
+                      <TableCell className="text-right text-gray-600">$0.00</TableCell>
+                      <TableCell className="text-right text-red-600">$62,800.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-orange-100 text-orange-800">Unpaid</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Invoice Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-red-600"
+                            title="Send Reminder"
+                          >
+                            <AlertCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <span className="text-blue-600">INV-2025-005</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-green-600 text-sm">ETA-2025-05-12349</span>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">Nile Pharmaceutical Co.</div>
+                          <div className="text-xs text-gray-500">Capsule Manufacturing</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>Jan 28, 2025</TableCell>
+                      <TableCell>Feb 15, 2025</TableCell>
+                      <TableCell className="text-right font-semibold">$35,900.00</TableCell>
+                      <TableCell className="text-right text-gray-600">$0.00</TableCell>
+                      <TableCell className="text-right text-red-600">$35,900.00</TableCell>
+                      <TableCell>
+                        <Badge className="bg-red-100 text-red-800">Overdue</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0"
+                            title="View Invoice Details"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-blue-600"
+                            title="Download PDF"
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 w-7 p-0 text-red-600"
+                            title="Collection Action"
+                          >
+                            <AlertCircle className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Customer Summary Section */}
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Customer Payment Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Top Paying Customer</p>
+                        <p className="font-semibold">Cairo Medical Center</p>
+                        <p className="text-xs text-green-600">$285,450 total paid</p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-green-500" />
+                    </div>
+                  </Card>
+                  
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Largest Outstanding</p>
+                        <p className="font-semibold">Global Health Solutions</p>
+                        <p className="text-xs text-orange-600">$48,500 pending</p>
+                      </div>
+                      <Clock className="h-8 w-8 text-orange-500" />
+                    </div>
+                  </Card>
+                  
+                  <Card className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-600">Payment Timeline</p>
+                        <p className="font-semibold">Avg 18 days</p>
+                        <p className="text-xs text-blue-600">Customer payment cycle</p>
+                      </div>
+                      <Calendar className="h-8 w-8 text-blue-500" />
+                    </div>
+                  </Card>
                 </div>
               </div>
             </CardContent>
