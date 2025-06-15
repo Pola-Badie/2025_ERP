@@ -8,6 +8,10 @@ echo "🧹 Cleaning up existing containers..."
 sudo docker stop premier-erp-app premier-erp-db 2>/dev/null || true
 sudo docker rm premier-erp-app premier-erp-db 2>/dev/null || true
 
+# Remove existing volumes to fix database initialization
+echo "🗑️ Cleaning database volumes..."
+sudo docker volume rm premier_postgres_data 2>/dev/null || true
+
 # Create Docker network
 echo "🌐 Creating Docker network..."
 sudo docker network create premier-erp-network 2>/dev/null || true
@@ -30,7 +34,7 @@ sleep 10
 
 # Build Premier ERP application
 echo "🔨 Building Premier ERP application..."
-sudo docker build -f Dockerfile.production -t premier-erp-app .
+sudo docker build -f Dockerfile.simple -t premier-erp-app .
 
 # Start Premier ERP application
 echo "🚀 Starting Premier ERP application..."

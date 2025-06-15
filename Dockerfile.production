@@ -31,4 +31,4 @@ EXPOSE 5000
 # Health check removed to fix Docker Compose compatibility
 
 # Start the backend server
-CMD ["tsx", "server/index.ts"]
+CMD ["tsx", "server/index.production.ts"]

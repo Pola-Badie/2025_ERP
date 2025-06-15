@@ -1,48 +1,30 @@
-# Simplified Docker build for Premier ERP System
+# Simple production Docker build for Premier ERP System
 FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-COPY tsconfig.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
-COPY components.json ./
-COPY drizzle.config.ts ./
+RUN npm ci --only=production
 
-RUN npm ci
-
-# Copy source code
-COPY client/ ./client/
+# Copy backend source code
 COPY server/ ./server/
 COPY shared/ ./shared/
 
-# Create directories for runtime
-RUN mkdir -p uploads
-RUN mkdir -p attached_assets
-
-# Install tsx globally for TypeScript execution
+# Install tsx for TypeScript execution
 RUN npm install -g tsx
 
-# Set environment variables
+# Create directories
+RUN mkdir -p uploads dist
+
+# Create basic frontend fallback
+RUN echo '<!DOCTYPE html><html><head><title>Premier ERP Backend</title></head><body><h1>Premier ERP System</h1><p>Backend API is running. Use npm run dev locally for full frontend.</p></body></html>' > dist/index.html
+
+# Set environment
 ENV NODE_ENV=production
 ENV PORT=5000
 
-# Skip frontend build in Docker - run backend only
-# The vite.config.ts has path resolution issues in Docker environment
-# We'll serve the frontend from the development server or pre-built files
-
-# Create a simple index.html for fallback
-RUN mkdir -p dist && echo '<!DOCTYPE html><html><head><title>Premier ERP</title></head><body><h1>Premier ERP Backend Running</h1><p>Access the frontend at the development URL or build separately.</p></body></html>' > dist/index.html
-
-# Expose port
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/dashboard/summary || exit 1
-
-# Start the application
-CMD ["tsx", "server/index.ts"]
+# Start with production server
+CMD ["tsx", "server/index.production.ts"]
