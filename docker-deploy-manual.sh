@@ -34,7 +34,7 @@ sleep 10
 
 # Build Premier ERP application
 echo "🔨 Building Premier ERP application..."
-sudo docker build -f Dockerfile.simple -t premier-erp-app .
+sudo docker build -t premier-erp-app .
 
 # Start Premier ERP application
 echo "🚀 Starting Premier ERP application..."
