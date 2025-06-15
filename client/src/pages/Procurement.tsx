@@ -637,25 +637,25 @@ export default function Procurement() {
               
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <div className="grid grid-cols-20 gap-2 text-sm font-medium text-gray-700">
-                    <div className="col-span-3">Product Name</div>
-                    <div className="col-span-3">Description</div>
+                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
+                    <div className="col-span-2">Product Name</div>
+                    <div className="col-span-2">Description</div>
                     <div className="col-span-1">Qty</div>
                     <div className="col-span-1">Unit</div>
-                    <div className="col-span-2">Unit Price ($)</div>
-                    <div className="col-span-2">Expiry Date</div>
-                    <div className="col-span-2">Discount</div>
-                    <div className="col-span-2">Subtotal ($)</div>
-                    <div className="col-span-2">Total ($)</div>
-                    <div className="col-span-2">Action</div>
+                    <div className="col-span-1">Unit Price ($)</div>
+                    <div className="col-span-1">Expiry Date</div>
+                    <div className="col-span-1">Discount</div>
+                    <div className="col-span-1">Subtotal ($)</div>
+                    <div className="col-span-1">Total ($)</div>
+                    <div className="col-span-1">Action</div>
                   </div>
                 </div>
                 
                 <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                   {purchaseItems.map((item, index) => (
                     <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <div className="grid grid-cols-20 gap-2 items-center">
-                        <div className="col-span-3">
+                      <div className="grid grid-cols-12 gap-2 items-center">
+                        <div className="col-span-2">
                           <input
                             type="text"
                             value={item.name}
@@ -664,7 +664,7 @@ export default function Procurement() {
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <input
                             type="text"
                             value={item.description}
@@ -680,12 +680,12 @@ export default function Procurement() {
                             onChange={(e) => updatePurchaseItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
                         <div className="col-span-1">
                           <Select value={item.unit} onValueChange={(value) => updatePurchaseItem(item.id, 'unit', value)}>
-                            <SelectTrigger className="h-8 text-sm">
+                            <SelectTrigger className="h-8 text-xs">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -701,33 +701,33 @@ export default function Procurement() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1">
                           <input
                             type="number"
                             value={item.unitPrice}
                             onChange={(e) => updatePurchaseItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
-                            placeholder="Unit price"
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            placeholder="Price"
+                            className="w-full px-1 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1">
                           <input
                             type="date"
                             value={item.expiryDate}
                             onChange={(e) => updatePurchaseItem(item.id, 'expiryDate', e.target.value)}
-                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-1">
                           <div className="space-y-1">
-                            <div className="flex gap-1">
+                            <div className="flex flex-col gap-1">
                               <Select 
                                 value={item.discountType} 
                                 onValueChange={(value) => updatePurchaseItem(item.id, 'discountType', value)}
                               >
-                                <SelectTrigger className="h-7 text-xs flex-1">
+                                <SelectTrigger className="h-6 text-xs">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -742,32 +742,29 @@ export default function Procurement() {
                                 min="0"
                                 step="0.01"
                                 placeholder="0"
-                                className="w-16 px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full px-1 py-0.5 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                               />
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              -{item.discountType === 'percentage' ? `${item.discountValue}%` : `$${item.discountValue}`}
                             </div>
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <div className="text-sm font-medium text-right text-gray-600">
+                        <div className="col-span-1">
+                          <div className="text-xs font-medium text-right text-gray-600">
                             ${(item.subtotal || 0).toFixed(2)}
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <div className="text-sm font-medium text-right text-green-600">
+                        <div className="col-span-1">
+                          <div className="text-xs font-medium text-right text-green-600">
                             ${(item.total || 0).toFixed(2)}
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <div className="flex items-center gap-1">
+                        <div className="col-span-1">
+                          <div className="flex flex-col items-center gap-1">
                             <Button
                               type="button"
                               onClick={() => removePurchaseItem(item.id)}
                               variant="ghost"
                               size="sm"
-                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                              className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
