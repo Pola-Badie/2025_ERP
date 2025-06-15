@@ -28,7 +28,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.simple
+      dockerfile: Dockerfile.production
     container_name: premier-erp-app
     restart: unless-stopped
     depends_on:
