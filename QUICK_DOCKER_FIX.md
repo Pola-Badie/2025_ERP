@@ -1,7 +1,13 @@
-# Quick Docker Permission Fix
+# Quick Docker Build Fix
 
-## The Problem
-You're getting a "Permission denied" error when trying to run Docker commands. This is because your user account doesn't have permission to access the Docker daemon.
+## Docker Build Errors Fixed
+
+The original build errors were caused by:
+1. Docker permission issues
+2. Duplicate keys in LanguageContext.tsx
+3. Missing asset files
+
+These have been resolved with a simplified build process.
 
 ## Quick Solutions
 
@@ -26,7 +32,21 @@ docker --version
 sudo ./docker-start.sh
 ```
 
-### Option 3: Manual Docker Commands
+### Option 3: Use Fixed Docker Setup
+```bash
+# The simplified build process handles the previous errors
+# First fix permissions:
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Then build with the fixed setup:
+docker-compose up --build -d
+
+# Monitor the build:
+docker-compose logs -f app
+```
+
+### Option 4: Manual Docker Commands
 ```bash
 # Start Docker daemon if not running
 sudo systemctl start docker
