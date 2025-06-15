@@ -9,12 +9,36 @@ echo "🚀 Starting Premier ERP System with Docker..."
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo "❌ Docker is not installed. Please install Docker first."
+    echo "   Visit: https://docs.docker.com/get-docker/"
     exit 1
 fi
 
 # Check if Docker Compose is installed
 if ! command -v docker-compose &> /dev/null; then
     echo "❌ Docker Compose is not installed. Please install Docker Compose first."
+    echo "   Visit: https://docs.docker.com/compose/install/"
+    exit 1
+fi
+
+# Check Docker daemon and permissions
+echo "🔍 Checking Docker daemon..."
+if ! docker info >/dev/null 2>&1; then
+    echo "❌ Cannot connect to Docker daemon. This usually means:"
+    echo "   1. Docker daemon is not running"
+    echo "   2. Your user doesn't have permission to access Docker"
+    echo ""
+    echo "🔧 To fix this:"
+    echo "   Option 1 - Add your user to docker group (recommended):"
+    echo "   sudo usermod -aG docker $USER"
+    echo "   newgrp docker"
+    echo ""
+    echo "   Option 2 - Run with sudo (not recommended for production):"
+    echo "   sudo ./docker-start.sh"
+    echo ""
+    echo "   Option 3 - Start Docker daemon if not running:"
+    echo "   sudo systemctl start docker"
+    echo "   sudo systemctl enable docker"
+    echo ""
     exit 1
 fi
 

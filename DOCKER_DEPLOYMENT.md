@@ -13,7 +13,14 @@ This guide provides complete instructions for deploying the Premier ERP System u
 
 ## Quick Start
 
-1. **Clone and prepare environment:**
+1. **Setup Docker permissions (if needed):**
+   ```bash
+   # Run setup script to handle permissions
+   chmod +x docker-setup.sh
+   ./docker-setup.sh
+   ```
+
+2. **Prepare environment:**
    ```bash
    # Copy environment configuration
    cp .env.example .env
@@ -22,16 +29,19 @@ This guide provides complete instructions for deploying the Premier ERP System u
    nano .env
    ```
 
-2. **Start the application:**
+3. **Start the application:**
    ```bash
-   # Make startup script executable
-   chmod +x docker-start.sh
-   
-   # Run the startup script
+   # Option A: Use automated script
    ./docker-start.sh
+   
+   # Option B: If permission issues persist
+   sudo ./docker-start.sh
+   
+   # Option C: Manual commands
+   docker-compose up --build -d
    ```
 
-3. **Access the application:**
+4. **Access the application:**
    - Frontend & Backend: http://localhost:5000
    - PostgreSQL Database: localhost:5432
    - Redis Cache: localhost:6379
@@ -164,7 +174,24 @@ docker-compose config | grep -A 10 logging:
 
 ### Common Issues
 
-1. **Port conflicts:**
+1. **Docker Permission Denied (Most Common):**
+   ```bash
+   # Add user to docker group
+   sudo usermod -aG docker $USER
+   newgrp docker
+   
+   # Or start Docker daemon
+   sudo systemctl start docker
+   sudo systemctl enable docker
+   
+   # Test Docker access
+   docker info
+   
+   # If still failing, run with sudo
+   sudo docker-compose up --build -d
+   ```
+
+2. **Port conflicts:**
    ```bash
    # Check port usage
    netstat -tulpn | grep :5000
@@ -174,7 +201,7 @@ docker-compose config | grep -A 10 logging:
      - "3000:5000"  # External:Internal
    ```
 
-2. **Database connection issues:**
+3. **Database connection issues:**
    ```bash
    # Check database logs
    docker-compose logs postgres
@@ -183,7 +210,7 @@ docker-compose config | grep -A 10 logging:
    docker-compose exec app tsx -e "console.log(process.env.DATABASE_URL)"
    ```
 
-3. **File permission issues:**
+4. **File permission issues:**
    ```bash
    # Fix upload directory permissions
    sudo chown -R 1000:1000 uploads/
