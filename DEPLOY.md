@@ -1,9 +1,16 @@
 # Premier ERP System - Docker Deployment
 
-## Quick Deployment
+## Full Stack Deployment (Frontend + Backend)
 
 ```bash
-# Deploy with the consolidated setup
+# Deploy complete application with Nginx frontend
+sudo ./docker-deploy-full.sh
+```
+
+## Backend Only Deployment
+
+```bash
+# Deploy backend only (use npm run dev for frontend)
 sudo ./docker-deploy-manual.sh
 ```
 
@@ -40,10 +47,16 @@ sudo docker run -d \
   premier-erp-app
 ```
 
-## Access
+## Access Options
 
+### Full Stack Deployment
+- **Complete Application:** http://localhost (Nginx + React)
 - **Backend API:** http://localhost:5000
-- **Full Frontend:** Run `npm run dev` locally
+- **Database:** localhost:5432
+
+### Backend Only Deployment  
+- **Backend API:** http://localhost:5000
+- **Frontend:** Run `npm run dev` locally (connects automatically)
 
 ## Verification
 
