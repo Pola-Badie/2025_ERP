@@ -22,6 +22,7 @@ A comprehensive Enterprise Resource Planning (ERP) dashboard for chemical manufa
 - **June 15, 2025:** Created separate frontend Dockerfile with Nginx for complete containerized deployment
 - **June 15, 2025:** Fixed Dockerfile.frontend syntax errors and created proper nginx configuration files
 - **June 15, 2025:** Configured production deployment with demo.premiererp.io domain binding and automatic SSL certificate acquisition via Let's Encrypt
+- **June 15, 2025:** Reconfigured production deployment to use Nginx reverse proxy instead of Traefik with Certbot for SSL management
 
 ## Project Architecture
 

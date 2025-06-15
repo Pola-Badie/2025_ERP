@@ -26,15 +26,16 @@
 ## Production Deployment
 
 ```bash
-sudo ./docker-deploy-production.sh
+sudo ./docker-deploy-nginx.sh
 ```
 
 ## What This Deploys
 
-1. **Traefik Reverse Proxy**
-   - Automatic SSL certificate acquisition via Let's Encrypt
+1. **Nginx Reverse Proxy**
+   - Automatic SSL certificate acquisition via Let's Encrypt with Certbot
    - HTTP to HTTPS redirects
-   - Load balancing and routing
+   - Rate limiting and security headers
+   - Production-optimized caching
 
 2. **Premier ERP Frontend**
    - React application served via Nginx
@@ -54,7 +55,7 @@ sudo ./docker-deploy-production.sh
 
 - **Application:** https://demo.premiererp.io
 - **API:** https://demo.premiererp.io/api/
-- **Traefik Dashboard:** http://YOUR_SERVER_IP:8080
+- **HTTP Redirect:** http://demo.premiererp.io (auto-redirects to HTTPS)
 
 ## SSL Certificate Management
 
