@@ -239,7 +239,12 @@ export default function Procurement() {
       quantity: 500,
       unit: "kg",
       unitPrice: 25.50,
-      total: 12750.00
+      expiryDate: "2026-12-31",
+      discountType: "percentage", // "percentage" or "amount"
+      discountValue: 5.0,
+      discountAmount: 637.50,
+      subtotal: 12750.00,
+      total: 12112.50
     }
   ]);
   const [purchaseVatPercentage, setPurchaseVatPercentage] = useState(14);
@@ -254,6 +259,11 @@ export default function Procurement() {
       quantity: 0,
       unit: "kg",
       unitPrice: 0,
+      expiryDate: "",
+      discountType: "percentage",
+      discountValue: 0,
+      discountAmount: 0,
+      subtotal: 0,
       total: 0
     };
     setPurchaseItems([...purchaseItems, newItem]);
@@ -263,9 +273,24 @@ export default function Procurement() {
     setPurchaseItems(items => items.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
+        
+        // Calculate subtotal (quantity * unitPrice)
         if (field === 'quantity' || field === 'unitPrice') {
-          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+          updatedItem.subtotal = updatedItem.quantity * updatedItem.unitPrice;
         }
+        
+        // Calculate discount amount based on type
+        if (field === 'discountType' || field === 'discountValue' || field === 'quantity' || field === 'unitPrice') {
+          if (updatedItem.discountType === 'percentage') {
+            updatedItem.discountAmount = updatedItem.subtotal * (updatedItem.discountValue / 100);
+          } else if (updatedItem.discountType === 'amount') {
+            updatedItem.discountAmount = updatedItem.discountValue;
+          }
+        }
+        
+        // Calculate final total (subtotal - discount)
+        updatedItem.total = updatedItem.subtotal - updatedItem.discountAmount;
+        
         return updatedItem;
       }
       return item;
@@ -612,22 +637,25 @@ export default function Procurement() {
               
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-700">
-                    <div className="col-span-2">Product Name</div>
+                  <div className="grid grid-cols-20 gap-2 text-sm font-medium text-gray-700">
+                    <div className="col-span-3">Product Name</div>
                     <div className="col-span-3">Description</div>
                     <div className="col-span-1">Qty</div>
                     <div className="col-span-1">Unit</div>
                     <div className="col-span-2">Unit Price ($)</div>
+                    <div className="col-span-2">Expiry Date</div>
+                    <div className="col-span-2">Discount</div>
+                    <div className="col-span-2">Subtotal ($)</div>
                     <div className="col-span-2">Total ($)</div>
-                    <div className="col-span-1">Action</div>
+                    <div className="col-span-2">Action</div>
                   </div>
                 </div>
                 
                 <div className="max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
                   {purchaseItems.map((item, index) => (
                     <div key={item.id} className={`px-4 py-3 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                      <div className="grid grid-cols-12 gap-2 items-center">
-                        <div className="col-span-2">
+                      <div className="grid grid-cols-20 gap-2 items-center">
+                        <div className="col-span-3">
                           <input
                             type="text"
                             value={item.name}
@@ -680,24 +708,75 @@ export default function Procurement() {
                             onChange={(e) => updatePurchaseItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
+                            placeholder="Unit price"
                             className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
                         </div>
                         <div className="col-span-2">
-                          <div className="text-sm font-medium text-right">
-                            ${item.total.toFixed(2)}
+                          <input
+                            type="date"
+                            value={item.expiryDate}
+                            onChange={(e) => updatePurchaseItem(item.id, 'expiryDate', e.target.value)}
+                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <div className="space-y-1">
+                            <div className="flex gap-1">
+                              <Select 
+                                value={item.discountType} 
+                                onValueChange={(value) => updatePurchaseItem(item.id, 'discountType', value)}
+                              >
+                                <SelectTrigger className="h-7 text-xs flex-1">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="percentage">%</SelectItem>
+                                  <SelectItem value="amount">$</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <input
+                                type="number"
+                                value={item.discountValue}
+                                onChange={(e) => updatePurchaseItem(item.id, 'discountValue', parseFloat(e.target.value) || 0)}
+                                min="0"
+                                step="0.01"
+                                placeholder="0"
+                                className="w-16 px-1 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              -{item.discountType === 'percentage' ? `${item.discountValue}%` : `$${item.discountValue}`}
+                            </div>
                           </div>
                         </div>
-                        <div className="col-span-1">
-                          <Button
-                            type="button"
-                            onClick={() => removePurchaseItem(item.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
+                        <div className="col-span-2">
+                          <div className="text-sm font-medium text-right text-gray-600">
+                            ${(item.subtotal || 0).toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <div className="text-sm font-medium text-right text-green-600">
+                            ${(item.total || 0).toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="col-span-2">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              onClick={() => removePurchaseItem(item.id)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                            {item.expiryDate && new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && (
+                              <div className="text-xs text-orange-500" title="Expires within 30 days">
+                                ⚠️
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -708,7 +787,15 @@ export default function Procurement() {
                 <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
+                      <span>Subtotal (before discounts):</span>
+                      <span className="font-medium">${purchaseItems.reduce((sum, item) => sum + (item.subtotal || 0), 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-red-600">
+                      <span>Total Discounts:</span>
+                      <span className="font-medium">-${purchaseItems.reduce((sum, item) => sum + (item.discountAmount || 0), 0).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal (after discounts):</span>
                       <span className="font-medium">${calculatePurchaseSubtotal().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
@@ -733,6 +820,23 @@ export default function Procurement() {
                       <span>Grand Total:</span>
                       <span className="text-blue-600">${calculatePurchaseGrandTotal().toFixed(2)}</span>
                     </div>
+                    
+                    {/* Expiry Date Summary */}
+                    {purchaseItems.some(item => item.expiryDate) && (
+                      <div className="border-t border-gray-300 pt-2 mt-3">
+                        <div className="text-xs text-gray-600 mb-1">Expiry Summary:</div>
+                        {purchaseItems.filter(item => item.expiryDate && new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)).length > 0 && (
+                          <div className="text-xs text-orange-600 flex items-center gap-1">
+                            ⚠️ {purchaseItems.filter(item => item.expiryDate && new Date(item.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)).length} item(s) expire within 30 days
+                          </div>
+                        )}
+                        {purchaseItems.filter(item => item.expiryDate && new Date(item.expiryDate) < new Date()).length > 0 && (
+                          <div className="text-xs text-red-600 flex items-center gap-1">
+                            🚨 {purchaseItems.filter(item => item.expiryDate && new Date(item.expiryDate) < new Date()).length} item(s) already expired
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
