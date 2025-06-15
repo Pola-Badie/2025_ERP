@@ -9,16 +9,19 @@ The error you encountered occurs because `import.meta.dirname` is undefined in D
 ### Quick Fix - Deploy Backend Only
 
 ```bash
-# Stop the current container
-docker stop e7274be9c3f4
-docker rm e7274be9c3f4
+# Stop any existing containers
+docker stop $(docker ps -q) 2>/dev/null || true
+docker rm $(docker ps -aq) 2>/dev/null || true
 
-# Deploy with the production setup
-docker-compose up --build -d
+# Deploy with the fixed production setup
+./docker-start.sh
+
+# Or manually:
+docker-compose -f docker-compose.simple.yml up --build -d
 
 # Check status
-docker-compose ps
-docker-compose logs -f app
+docker-compose -f docker-compose.simple.yml ps
+docker-compose -f docker-compose.simple.yml logs -f app
 ```
 
 ### Access Your Application

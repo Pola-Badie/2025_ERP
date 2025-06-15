@@ -58,7 +58,7 @@ mkdir -p backups
 
 # Build and start services
 echo "🔨 Building and starting services..."
-docker-compose up --build -d
+docker-compose -f docker-compose.simple.yml up --build -d
 
 # Wait for services to be healthy
 echo "⏳ Waiting for services to start..."
