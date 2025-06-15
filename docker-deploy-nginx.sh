@@ -54,11 +54,39 @@ docker network create premier-erp-network 2>/dev/null || true
 
 # Start initial deployment without SSL
 echo "🚀 Starting initial deployment..."
-docker-compose -f docker-compose.nginx.yml --env-file .env.nginx up -d postgres backend frontend
+docker-compose -f docker-compose.nginx.yml --env-file .env.nginx up -d postgres
 
-# Wait for services to start
-echo "⏳ Waiting for backend services to initialize..."
-sleep 20
+# Wait for database
+echo "⏳ Waiting for database to initialize..."
+sleep 15
+
+# Start backend
+docker-compose -f docker-compose.nginx.yml --env-file .env.nginx up -d backend
+
+# Wait for backend to be ready
+echo "⏳ Waiting for backend to be ready..."
+for i in {1..30}; do
+    if docker exec premier-erp-app curl -f http://localhost:5000/api/dashboard/summary > /dev/null 2>&1; then
+        echo "✅ Backend is ready"
+        break
+    fi
+    echo "Waiting for backend... ($i/30)"
+    sleep 2
+done
+
+# Start frontend
+docker-compose -f docker-compose.nginx.yml --env-file .env.nginx up -d frontend
+
+# Wait for frontend to be ready
+echo "⏳ Waiting for frontend to be ready..."
+for i in {1..20}; do
+    if docker exec premier-erp-frontend curl -f http://localhost:80 > /dev/null 2>&1; then
+        echo "✅ Frontend is ready"
+        break
+    fi
+    echo "Waiting for frontend... ($i/20)"
+    sleep 2
+done
 
 # Create temporary nginx config for certificate acquisition
 echo "🔒 Setting up temporary Nginx for SSL certificate acquisition..."
