@@ -10,10 +10,22 @@ services:
       POSTGRES_DB: premier_erp
       POSTGRES_USER: erp_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp_secure_password_2024}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - erp-network
+    command: >
+      sh -c "
+        if [ -d /var/lib/postgresql/data/pgdata ] && [ ! -z \"$$(ls -A /var/lib/postgresql/data/pgdata)\" ]; then
+          echo 'PostgreSQL data directory exists, starting normally...'
+        else
+          echo 'Initializing fresh PostgreSQL database...'
+          rm -rf /var/lib/postgresql/data/pgdata
+        fi
+        exec docker-entrypoint.sh postgres
+      "
 
   # Premier ERP Backend
   backend:

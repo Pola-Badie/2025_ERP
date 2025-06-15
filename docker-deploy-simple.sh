@@ -14,6 +14,23 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Check for existing PostgreSQL data and offer cleanup
+if docker volume ls | grep -q postgres 2>/dev/null; then
+    echo "⚠️ Existing PostgreSQL data detected."
+    echo "This may cause initialization conflicts."
+    echo ""
+    echo "To resolve this, you can:"
+    echo "1. Run: sudo ./reset-database.sh (recommended for fresh install)"
+    echo "2. Continue anyway (may fail if data is corrupted)"
+    echo ""
+    read -p "Continue with existing data? (y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Deployment cancelled. Run 'sudo ./reset-database.sh' first."
+        exit 1
+    fi
+fi
+
 # Create environment file for production
 echo "⚙️ Setting up production environment..."
 cat > .env.nginx << 'EOF'
@@ -29,6 +46,12 @@ mkdir -p ssl-certs
 mkdir -p ssl-certs/live/demo.premiererp.io
 chmod 755 ssl-certs
 
+# Clean up existing containers and volumes
+echo "🧹 Cleaning up existing containers and volumes..."
+docker stop $(docker ps -q --filter "name=premier-erp") 2>/dev/null || true
+docker rm $(docker ps -aq --filter "name=premier-erp") 2>/dev/null || true
+docker volume rm $(docker volume ls -q --filter "name=postgres") 2>/dev/null || true
+
 # Create Docker network
 echo "🌐 Creating Docker network..."
 docker network create erp-network 2>/dev/null || true
@@ -40,16 +63,37 @@ docker-compose -f docker-compose.simple-nginx.yml --env-file .env.nginx build
 echo "🗄️ Starting database..."
 docker-compose -f docker-compose.simple-nginx.yml --env-file .env.nginx up -d postgres
 
-# Wait for database
-echo "⏳ Waiting for database..."
-for i in {1..30}; do
+# Wait for database with detailed error checking
+echo "⏳ Waiting for database initialization..."
+database_ready=false
+for i in {1..60}; do
     if docker exec premier-erp-db pg_isready -U erp_user -d premier_erp > /dev/null 2>&1; then
         echo "✅ Database ready"
+        database_ready=true
         break
     fi
-    echo "Waiting for database... ($i/30)"
-    sleep 2
+    
+    # Check if database container is running
+    if ! docker ps | grep -q premier-erp-db; then
+        echo "❌ Database container stopped. Checking logs..."
+        docker logs premier-erp-db --tail 20
+        echo ""
+        echo "💡 Try running: sudo ./reset-database.sh"
+        exit 1
+    fi
+    
+    echo "Waiting for database... ($i/60)"
+    sleep 3
 done
+
+if [ "$database_ready" = false ]; then
+    echo "❌ Database failed to initialize after 3 minutes"
+    echo "📋 Database logs:"
+    docker logs premier-erp-db --tail 30
+    echo ""
+    echo "💡 Try running: sudo ./reset-database.sh"
+    exit 1
+fi
 
 echo "🖥️ Starting backend..."
 docker-compose -f docker-compose.simple-nginx.yml --env-file .env.nginx up -d backend
