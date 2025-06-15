@@ -19,8 +19,8 @@ COPY client/ ./client/
 COPY shared/ ./shared/
 COPY attached_assets/ ./attached_assets/
 
-# Build the frontend
-RUN npm run build
+# Build only the frontend (avoid server build)
+RUN npx vite build
 
 # Production stage with Nginx
 FROM nginx:alpine
