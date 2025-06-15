@@ -49,7 +49,9 @@ chmod 755 ssl-certs
 # Clean up existing containers and volumes
 echo "🧹 Cleaning up existing containers and volumes..."
 docker stop $(docker ps -q --filter "name=premier-erp") 2>/dev/null || true
+docker stop $(docker ps -q --filter "name=pharma-erp") 2>/dev/null || true
 docker rm $(docker ps -aq --filter "name=premier-erp") 2>/dev/null || true
+docker rm $(docker ps -aq --filter "name=pharma-erp") 2>/dev/null || true
 docker volume rm $(docker volume ls -q --filter "name=postgres") 2>/dev/null || true
 
 # Create Docker network

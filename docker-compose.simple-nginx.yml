@@ -41,6 +41,8 @@ services:
       DOMAIN: demo.premiererp.io
     networks:
       - erp-network
+    depends_on:
+      - postgres
 
   # Premier ERP Frontend
   frontend:
@@ -51,6 +53,8 @@ services:
     restart: unless-stopped
     networks:
       - erp-network
+    depends_on:
+      - backend
 
   # Nginx Reverse Proxy with SSL
   nginx-proxy:
@@ -66,6 +70,9 @@ services:
       - certbot_webroot:/var/www/certbot:ro
     networks:
       - erp-network
+    depends_on:
+      - backend
+      - frontend
 
   # Certbot for SSL certificates
   certbot:
