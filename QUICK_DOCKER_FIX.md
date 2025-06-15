@@ -1,98 +1,73 @@
-# Quick Docker Build Fix
+# Quick Docker Fix for ContainerConfig Error
 
-## Docker Build Errors Fixed
+## The Problem
+Docker Compose version 1.29.2 has compatibility issues with container configuration, causing `'ContainerConfig'` KeyError.
 
-The original build errors were caused by:
-1. Docker permission issues
-2. Duplicate keys in LanguageContext.tsx
-3. Missing asset files
+## Immediate Solution
 
-These have been resolved with a simplified build process.
-
-## Quick Solutions
-
-### Option 1: Add User to Docker Group (Recommended)
+**Option 1: Manual Docker Deployment (Recommended)**
 ```bash
-# Add your user to the docker group
-sudo usermod -aG docker $USER
-
-# Apply the group change
-newgrp docker
-
-# Test Docker access
-docker --version
-
-# Now run the startup script
-./docker-start.sh
+# Make the script executable and run
+chmod +x docker-deploy-manual.sh
+sudo ./docker-deploy-manual.sh
 ```
 
-### Option 2: Run with Sudo (Temporary Fix)
+**Option 2: Direct Commands**
 ```bash
-# Run the startup script with sudo
-sudo ./docker-start.sh
+# Clean slate
+sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
+sudo docker rm $(sudo docker ps -aq) 2>/dev/null || true
+
+# Create network
+sudo docker network create premier-erp-network 2>/dev/null || true
+
+# Start database
+sudo docker run -d \
+  --name premier-erp-db \
+  --network premier-erp-network \
+  -e POSTGRES_DB=premier_erp \
+  -e POSTGRES_USER=erp_user \
+  -e POSTGRES_PASSWORD=erp_secure_password \
+  -p 5432:5432 \
+  postgres:15-alpine
+
+# Build application
+sudo docker build -f Dockerfile.production -t premier-erp-app .
+
+# Start application
+sudo docker run -d \
+  --name premier-erp-app \
+  --network premier-erp-network \
+  -e NODE_ENV=production \
+  -e DATABASE_URL=postgresql://erp_user:erp_secure_password@premier-erp-db:5432/premier_erp \
+  -e PORT=5000 \
+  -p 5000:5000 \
+  premier-erp-app
 ```
 
-### Option 3: Use Fixed Docker Setup
+## Verify Success
 ```bash
-# The simplified build process handles the previous errors
-# First fix permissions:
-sudo usermod -aG docker $USER
-newgrp docker
+# Check containers
+sudo docker ps
 
-# Then build with the fixed setup:
-docker-compose up --build -d
-
-# Monitor the build:
-docker-compose logs -f app
-```
-
-### Option 4: Manual Docker Commands
-```bash
-# Start Docker daemon if not running
-sudo systemctl start docker
-sudo systemctl enable docker
-
-# Build and run with sudo
-sudo docker-compose up --build -d
-
-# Check status
-sudo docker-compose ps
+# Test API
+curl http://localhost:5000/api/dashboard/summary
 
 # View logs
-sudo docker-compose logs -f
+sudo docker logs premier-erp-app
 ```
 
-## Alternative: Run Without Docker
+## Access Your Application
 
-If Docker continues to cause issues, you can run the application normally:
+**Backend API:** http://localhost:5000  
+**Frontend:** Run `npm run dev` locally (connects to Docker backend automatically)  
+**Database:** localhost:5432
 
-```bash
-# Install dependencies
-npm install
+## Benefits of This Approach
 
-# Start the application
-npm run dev
-```
+- Bypasses Docker Compose compatibility issues completely
+- Uses stable Docker commands that work across versions
+- Provides better error visibility and control
+- Maintains all ERP functionality
 
-The application will run on http://localhost:5000
-
-## Verify Docker Setup
-
-After fixing permissions, test with:
-```bash
-# Check Docker info
-docker info
-
-# Test simple container
-docker run hello-world
-
-# Check compose version
-docker-compose --version
-```
-
-## Production Deployment
-
-For production servers, ensure:
-1. Docker daemon starts on boot: `sudo systemctl enable docker`
-2. User is in docker group: `groups $USER | grep docker`
-3. Firewall allows port 5000: `sudo ufw allow 5000`
+Your Premier ERP System will be fully operational with this manual deployment approach.

@@ -17,6 +17,7 @@ A comprehensive Enterprise Resource Planning (ERP) dashboard for chemical manufa
 - **June 15, 2025:** Implemented comprehensive Customer Accounts tab in Accounting module with ETA compliance
 - **June 15, 2025:** Fixed UI layout issues using proper 12-column grid system for better responsiveness
 - **June 15, 2025:** Created complete Docker deployment setup with multi-stage builds and orchestration
+- **June 15, 2025:** Fixed Docker Compose ContainerConfig compatibility issues with manual deployment solution
 
 ## Project Architecture
 
