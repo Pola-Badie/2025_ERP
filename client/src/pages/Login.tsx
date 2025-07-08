@@ -27,6 +27,7 @@ import {
   LoaderIcon
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/contexts/AuthContext';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -35,10 +36,11 @@ const loginSchema = z.object({
 
 const Login: React.FC = () => {
   const [, navigate] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -53,19 +55,14 @@ const Login: React.FC = () => {
     setError(null);
 
     try {
-      // Simulate traditional login
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await login(values.email, values.password);
+      setSuccess('Login successful! Redirecting...');
       
-      const mockUser = {
-        displayName: values.email.split('@')[0],
-        email: values.email,
-        uid: 'mock-uid',
-      };
-
-      setSuccess(`Welcome back, ${mockUser.displayName}!`);
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (error: any) {
-      setError(`Login failed: ${error.message}`);
+      setError(error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }

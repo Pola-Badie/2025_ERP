@@ -7,6 +7,7 @@ import { CSVProvider } from "./contexts/CSVContext";
 import { PaginationProvider } from "./contexts/PaginationContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Import components directly to avoid issues with wouter
 import DashboardNew from "@/pages/DashboardNew";
@@ -40,44 +41,46 @@ function App() {
   }, []);
 
   return (
-    <LanguageProvider>
-      <CSVProvider>
-        <PaginationProvider>
-          <NotificationProvider>
-            <SidebarProvider>
-              <MainLayout>
-              <Switch>
-                <Route path="/" component={DashboardNew} />
-                <Route path="/inventory" component={Inventory} />
-                <Route path="/expenses" component={Expenses} />
-                <Route path="/sales" component={Reports} />
-                <Route path="/reports" component={Reports} />
-                <Route path="/accounting" component={Accounting} />
-                <Route path="/create-invoice" component={CreateInvoice} />
-                <Route path="/create-quotation" component={CreateQuotation} />
-                <Route path="/invoice-history" component={InvoiceHistory} />
-                <Route path="/quotation-history" component={QuotationHistory} />
-                <Route path="/label" component={LabelGenerator} />
-                <Route path="/suppliers" component={Suppliers} />
-                <Route path="/backup" component={BackupRestore} />
-                <Route path="/settings" component={Settings} />
-                <Route path="/system-preferences" component={SystemPreferences} />
-                <Route path="/users" component={UserManagement} />
-                <Route path="/customers-demo" component={CustomersDemo} />
-                <Route path="/procurement" component={Procurement} />
-                <Route path="/order-management" component={OrderManagement} />
-                <Route path="/orders-history" component={OrdersHistory} />
-                <Route path="/notifications" component={Notifications} />
-                <Route path="/payroll" component={Payroll} />
-                <Route path="/login" component={Login} />
-                <Route component={NotFound} />
-              </Switch>
-              </MainLayout>
-            </SidebarProvider>
-          </NotificationProvider>
-        </PaginationProvider>
-      </CSVProvider>
-    </LanguageProvider>
+    <AuthProvider>
+      <LanguageProvider>
+        <CSVProvider>
+          <PaginationProvider>
+            <NotificationProvider>
+              <SidebarProvider>
+                <MainLayout>
+                <Switch>
+                  <Route path="/" component={DashboardNew} />
+                  <Route path="/inventory" component={Inventory} />
+                  <Route path="/expenses" component={Expenses} />
+                  <Route path="/sales" component={Reports} />
+                  <Route path="/reports" component={Reports} />
+                  <Route path="/accounting" component={Accounting} />
+                  <Route path="/create-invoice" component={CreateInvoice} />
+                  <Route path="/create-quotation" component={CreateQuotation} />
+                  <Route path="/invoice-history" component={InvoiceHistory} />
+                  <Route path="/quotation-history" component={QuotationHistory} />
+                  <Route path="/label" component={LabelGenerator} />
+                  <Route path="/suppliers" component={Suppliers} />
+                  <Route path="/backup" component={BackupRestore} />
+                  <Route path="/settings" component={Settings} />
+                  <Route path="/system-preferences" component={SystemPreferences} />
+                  <Route path="/users" component={UserManagement} />
+                  <Route path="/customers-demo" component={CustomersDemo} />
+                  <Route path="/procurement" component={Procurement} />
+                  <Route path="/order-management" component={OrderManagement} />
+                  <Route path="/orders-history" component={OrdersHistory} />
+                  <Route path="/notifications" component={Notifications} />
+                  <Route path="/payroll" component={Payroll} />
+                  <Route path="/login" component={Login} />
+                  <Route component={NotFound} />
+                </Switch>
+                </MainLayout>
+              </SidebarProvider>
+            </NotificationProvider>
+          </PaginationProvider>
+        </CSVProvider>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 

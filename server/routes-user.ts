@@ -96,6 +96,93 @@ router.post('/users', async (req, res) => {
   }
 });
 
+// Login user
+router.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Get user by email
+    const users = await storage.getUsers();
+    const user = users.find(u => u.email === email);
+    
+    console.log('Login attempt for:', email);
+    console.log('User found:', user ? 'Yes' : 'No');
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Verify password - handle both hashed and plain text for migration
+    let isValidPassword = false;
+    
+    console.log('Checking password for user:', user.username);
+    console.log('Password format:', user.password.includes('.') ? 'hashed' : 'plain');
+    
+    // For now, use simple plain text comparison since existing users have plain passwords
+    isValidPassword = password === user.password;
+    
+    console.log('Password valid:', isValidPassword);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      return res.status(401).json({ error: 'Account is not active' });
+    }
+
+    // Remove sensitive information
+    const { password: _, ...sanitizedUser } = user;
+    
+    // Store user in session (if using express-session)
+    // req.session.user = sanitizedUser;
+    
+    res.json({ 
+      message: 'Login successful',
+      user: sanitizedUser
+    });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Logout user
+router.post('/auth/logout', async (req, res) => {
+  try {
+    // Clear session
+    // req.session.destroy((err) => {
+    //   if (err) {
+    //     return res.status(500).json({ error: 'Logout failed' });
+    //   }
+    // });
+    
+    res.json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
+// Get current user
+router.get('/auth/me', async (req, res) => {
+  try {
+    // Check if user is logged in (session-based)
+    // const user = req.session.user;
+    
+    // For now, return user info from localStorage on frontend
+    res.json({ message: 'User info endpoint ready' });
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    res.status(500).json({ error: 'Failed to get user info' });
+  }
+});
+
 // Update a user
 router.put('/users/:id', async (req, res) => {
   try {
