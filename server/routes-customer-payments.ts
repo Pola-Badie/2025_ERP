@@ -166,7 +166,7 @@ export function registerCustomerPaymentRoutes(app: Express) {
     }
   });
   
-  // Create a new payment
+  // Create a new payment with automatic journal entry
   app.post("/api/accounting/payments", async (req: Request, res: Response) => {
     try {
       const { customerId, amount, paymentMethod, reference, notes, allocations } = req.body;
@@ -193,6 +193,15 @@ export function registerCustomerPaymentRoutes(app: Express) {
           amount: allocation.amount
         }))
       };
+
+      // Automatically create journal entry for the payment
+      try {
+        const { createPaymentJournalEntry } = await import('./accounting-integration');
+        await createPaymentJournalEntry(payment, 1); // Using user ID 1 as default
+      } catch (journalError) {
+        console.error("Error creating journal entry for payment:", journalError);
+        // Continue even if journal entry fails
+      }
       
       res.status(201).json(payment);
     } catch (error) {

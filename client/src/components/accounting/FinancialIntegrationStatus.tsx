@@ -1,0 +1,167 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle, AlertTriangle, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+
+interface FinancialIntegrationData {
+  status: 'active' | 'error';
+  accountingIntegration: 'connected' | 'disconnected';
+  lastSync: string;
+  summary: {
+    totalRevenue: number;
+    totalExpenses: number;
+    netProfit: number;
+  };
+}
+
+const FinancialIntegrationStatus: React.FC = () => {
+  const { data: integrationStatus, isLoading, error } = useQuery<FinancialIntegrationData>({
+    queryKey: ['/api/financial-integration/status'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const { data: accountingSummary, isLoading: isAccountingLoading } = useQuery({
+    queryKey: ['/api/accounting/summary'],
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Financial Integration Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert className="mb-6">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Unable to check financial integration status. Some features may be limited.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const isConnected = integrationStatus?.status === 'active' && integrationStatus?.accountingIntegration === 'connected';
+
+  return (
+    <div className="mb-6 space-y-4">
+      {/* Integration Status Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Financial Integration Status</CardTitle>
+            <Badge variant={isConnected ? "default" : "destructive"} className="flex items-center gap-1">
+              {isConnected ? (
+                <>
+                  <CheckCircle className="h-3 w-3" />
+                  Active
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-3 w-3" />
+                  Error
+                </>
+              )}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Accounting System:</span>
+              <p className="font-medium">
+                {integrationStatus?.accountingIntegration === 'connected' ? '✓ Connected' : '✗ Disconnected'}
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Last Sync:</span>
+              <p className="font-medium">
+                {integrationStatus?.lastSync ? 
+                  new Date(integrationStatus.lastSync).toLocaleString() : 
+                  'Never'
+                }
+              </p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Auto Journal Entries:</span>
+              <p className="font-medium">
+                {isConnected ? '✓ Enabled' : '✗ Disabled'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Financial Summary */}
+      {isConnected && integrationStatus?.summary && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <DollarSign className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                  <p className="text-2xl font-bold">
+                    EGP {integrationStatus.summary.totalRevenue.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <TrendingDown className="h-8 w-8 text-red-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Total Expenses</p>
+                  <p className="text-2xl font-bold">
+                    EGP {integrationStatus.summary.totalExpenses.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <TrendingUp className={`h-8 w-8 ${integrationStatus.summary.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-muted-foreground">Net Profit</p>
+                  <p className={`text-2xl font-bold ${integrationStatus.summary.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    EGP {integrationStatus.summary.netProfit.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Integration Info */}
+      {isConnected && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Financial integration is active. All new invoices, expenses, and payments will automatically generate journal entries.
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+};
+
+export default FinancialIntegrationStatus;

@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes-new";
 import { registerOrderRoutes } from "./routes-orders";
 import { registerReportsRoutes } from "./routes-reports";
+import { registerFinancialIntegrationRoutes } from "./routes-financial-integration";
 // import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -49,6 +50,7 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
   registerOrderRoutes(app);
   registerReportsRoutes(app);
+  registerFinancialIntegrationRoutes(app);
   // app.use("/api", comprehensiveRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

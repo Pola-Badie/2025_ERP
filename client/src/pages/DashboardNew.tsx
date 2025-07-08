@@ -80,6 +80,11 @@ const DashboardNew = () => {
     queryKey: ['/api/dashboard/summary'],
   });
 
+  // Fetch accounting summary
+  const { data: accountingSummary, isLoading: isAccountingLoading } = useQuery<any>({
+    queryKey: ['/api/accounting/summary'],
+  });
+
   // Fetch detailed product information when a product is selected
   const { data: productDetails, isLoading: isLoadingDetails } = useQuery<any>({
     queryKey: ['/api/products', selectedProductId, 'details'],
@@ -107,6 +112,61 @@ const DashboardNew = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
         <p className="text-muted-foreground">Welcome to Premier ERP - Your business overview</p>
+      </div>
+
+      {/* Financial Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-white">TOTAL REVENUE</CardTitle>
+            <DollarSign className="h-4 w-4 text-white opacity-80" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.totalRevenue?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-white opacity-80">All-time revenue</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
+            <TrendingUp className="h-4 w-4 text-white opacity-80" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.netProfit?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-white opacity-80">Revenue minus expenses</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
+            <Receipt className="h-4 w-4 text-white opacity-80" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.outstandingAR?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-white opacity-80">Pending collections</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-white">TOTAL ASSETS</CardTitle>
+            <Package className="h-4 w-4 text-white opacity-80" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.totalAssets?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-white opacity-80">Company assets</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Key Metrics Cards */}

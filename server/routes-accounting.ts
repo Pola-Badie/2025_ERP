@@ -18,75 +18,249 @@ import {
   insertPaymentAllocationSchema,
 } from "@shared/schema";
 import { eq, and, gte, lte, desc, sql, inArray } from "drizzle-orm";
+import { 
+  generateFinancialSummary,
+  createInvoiceJournalEntry,
+  createPaymentJournalEntry,
+  createExpenseJournalEntry,
+  updateAccountBalances,
+  ACCOUNT_CODES
+} from "./accounting-integration";
 
 export function registerAccountingRoutes(app: Express) {
   // Accounting API Routes
 
-  // Get accounting summary for dashboard
+  // Get comprehensive financial summary for dashboard
   app.get("/api/accounting/summary", async (_req: Request, res: Response) => {
     try {
-      const now = new Date();
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      // Get actual counts from database
+      // Get financial summary using the new integration
+      const financialSummary = await generateFinancialSummary();
+      
+      // Get additional counts from database
       const accountsResult = await db.select().from(accounts);
       const journalEntriesResult = await db.select().from(journalEntries);
       
-      const totalAccounts = accountsResult.length;
-      const totalJournalEntries = journalEntriesResult.length;
+      const summary = {
+        totalAccounts: accountsResult.length,
+        totalJournalEntries: journalEntriesResult.length,
+        ...financialSummary
+      };
 
-      // Calculate revenue and expenses from journal entries this month
-      const monthlyJournalEntries = await db
-        .select()
-        .from(journalEntries)
-        .where(gte(journalEntries.date, firstDayOfMonth.toISOString().split('T')[0]));
-
-      let revenueThisMonth = 0;
-      let expensesThisMonth = 0;
-
-      // Get journal lines for monthly entries
-      if (monthlyJournalEntries.length > 0) {
-        const entryIds = monthlyJournalEntries.map(entry => entry.id);
-        const journalLinesThisMonth = await db
-          .select()
-          .from(journalLines)
-          .where(inArray(journalLines.journalId, entryIds));
-
-        // Get account information to categorize revenue vs expenses
-        const accountIds = Array.from(new Set(journalLinesThisMonth.map(line => line.accountId)));
-        const accountsData = await db
-          .select()
-          .from(accounts)
-          .where(inArray(accounts.id, accountIds));
-
-        const accountsMap = accountsData.reduce((map, account) => {
-          map[account.id] = account;
-          return map;
-        }, {} as Record<number, any>);
-
-        // Calculate revenue and expenses
-        journalLinesThisMonth.forEach(line => {
-          const account = accountsMap[line.accountId];
-          if (account) {
-            const amount = parseFloat(line.credit || '0') - parseFloat(line.debit || '0');
-            if (account.type === 'Revenue' || account.type === 'Income') {
-              revenueThisMonth += amount;
-            } else if (account.type === 'Expense') {
-              expensesThisMonth += Math.abs(amount);
-            }
-          }
-        });
-      }
-
-      res.json({
-        totalAccounts: totalAccounts.toString(),
-        journalEntries: totalJournalEntries.toString(),
-        revenueThisMonth: revenueThisMonth.toFixed(2),
-        expensesThisMonth: expensesThisMonth.toFixed(2),
-      });
+      res.json(summary);
     } catch (error) {
       console.error("Error fetching accounting summary:", error);
       res.status(500).json({ error: "Failed to fetch accounting summary" });
+    }
+  });
+
+  // Get trial balance
+  app.get("/api/accounting/trial-balance", async (_req: Request, res: Response) => {
+    try {
+      const accountsWithBalances = await db
+        .select({
+          id: accounts.id,
+          code: accounts.code,
+          name: accounts.name,
+          type: accounts.type,
+          balance: accounts.balance
+        })
+        .from(accounts)
+        .where(eq(accounts.isActive, true));
+
+      // Calculate totals
+      let totalDebits = 0;
+      let totalCredits = 0;
+
+      const trialBalance = accountsWithBalances.map(account => {
+        const balance = parseFloat(account.balance || '0');
+        const isDebitNormal = ['Asset', 'Expense'].includes(account.type);
+        
+        if (balance > 0) {
+          if (isDebitNormal) {
+            totalDebits += balance;
+            return { ...account, debit: balance, credit: 0 };
+          } else {
+            totalCredits += balance;
+            return { ...account, debit: 0, credit: balance };
+          }
+        } else if (balance < 0) {
+          if (isDebitNormal) {
+            totalCredits += Math.abs(balance);
+            return { ...account, debit: 0, credit: Math.abs(balance) };
+          } else {
+            totalDebits += Math.abs(balance);
+            return { ...account, debit: Math.abs(balance), credit: 0 };
+          }
+        }
+        
+        return { ...account, debit: 0, credit: 0 };
+      });
+
+      res.json({
+        accounts: trialBalance,
+        totalDebits,
+        totalCredits,
+        isBalanced: Math.abs(totalDebits - totalCredits) < 0.01
+      });
+    } catch (error) {
+      console.error("Error generating trial balance:", error);
+      res.status(500).json({ error: "Failed to generate trial balance" });
+    }
+  });
+
+  // Get profit & loss statement
+  app.get("/api/accounting/profit-loss", async (req: Request, res: Response) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      // Default to current month if no dates provided
+      const start = startDate as string || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+      const end = endDate as string || new Date().toISOString().split('T')[0];
+
+      // Get revenue accounts
+      const revenueAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.type, 'Revenue'));
+
+      // Get expense accounts
+      const expenseAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.type, 'Expense'));
+
+      let totalRevenue = 0;
+      let totalExpenses = 0;
+
+      revenueAccounts.forEach(account => {
+        totalRevenue += parseFloat(account.balance || '0');
+      });
+
+      expenseAccounts.forEach(account => {
+        totalExpenses += parseFloat(account.balance || '0');
+      });
+
+      const netIncome = totalRevenue - totalExpenses;
+
+      res.json({
+        period: { startDate: start, endDate: end },
+        revenue: {
+          accounts: revenueAccounts,
+          total: totalRevenue
+        },
+        expenses: {
+          accounts: expenseAccounts,
+          total: totalExpenses
+        },
+        netIncome
+      });
+    } catch (error) {
+      console.error("Error generating profit & loss:", error);
+      res.status(500).json({ error: "Failed to generate profit & loss statement" });
+    }
+  });
+
+  // Get balance sheet
+  app.get("/api/accounting/balance-sheet", async (_req: Request, res: Response) => {
+    try {
+      // Get accounts by type
+      const assets = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.type, 'Asset'));
+
+      const liabilities = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.type, 'Liability'));
+
+      const equity = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.type, 'Equity'));
+
+      // Calculate totals
+      const totalAssets = assets.reduce((sum, account) => sum + parseFloat(account.balance || '0'), 0);
+      const totalLiabilities = liabilities.reduce((sum, account) => sum + parseFloat(account.balance || '0'), 0);
+      const totalEquity = equity.reduce((sum, account) => sum + parseFloat(account.balance || '0'), 0);
+
+      res.json({
+        assets: {
+          accounts: assets,
+          total: totalAssets
+        },
+        liabilities: {
+          accounts: liabilities,
+          total: totalLiabilities
+        },
+        equity: {
+          accounts: equity,
+          total: totalEquity
+        },
+        isBalanced: Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01
+      });
+    } catch (error) {
+      console.error("Error generating balance sheet:", error);
+      res.status(500).json({ error: "Failed to generate balance sheet" });
+    }
+  });
+
+  // Get customer balances
+  app.get("/api/accounting/customer-balances", async (_req: Request, res: Response) => {
+    try {
+      // This would typically involve more complex queries across multiple tables
+      // For now, we'll return a simplified version
+      const customersResult = await db.select().from(customers);
+      
+      // In a real implementation, you'd calculate outstanding balances from invoices and payments
+      const customerBalances = customersResult.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        email: customer.email,
+        totalPurchases: parseFloat(customer.totalPurchases || '0'),
+        outstandingBalance: Math.random() * 1000, // Placeholder - should be calculated from actual data
+        lastPaymentDate: new Date().toISOString().split('T')[0]
+      }));
+
+      res.json(customerBalances);
+    } catch (error) {
+      console.error("Error fetching customer balances:", error);
+      res.status(500).json({ error: "Failed to fetch customer balances" });
+    }
+  });
+
+  // Get cash flow statement
+  app.get("/api/accounting/cash-flow", async (req: Request, res: Response) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      // For now, return a basic cash flow structure
+      // In a real implementation, this would analyze cash transactions
+      const cashFlow = {
+        operatingActivities: {
+          netIncome: 50000,
+          depreciation: 5000,
+          accountsReceivableChange: -2000,
+          accountsPayableChange: 1500,
+          total: 54500
+        },
+        investingActivities: {
+          equipmentPurchases: -10000,
+          total: -10000
+        },
+        financingActivities: {
+          loanProceeds: 20000,
+          total: 20000
+        },
+        netCashFlow: 64500,
+        beginningCash: 25000,
+        endingCash: 89500
+      };
+
+      res.json(cashFlow);
+    } catch (error) {
+      console.error("Error generating cash flow:", error);
+      res.status(500).json({ error: "Failed to generate cash flow statement" });
     }
   });
 

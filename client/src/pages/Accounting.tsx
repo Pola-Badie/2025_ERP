@@ -122,6 +122,7 @@ import ProfitAndLoss from '@/components/accounting/ProfitAndLoss';
 import BalanceSheet from '@/components/accounting/BalanceSheet';
 import CustomerPayments from '@/components/accounting/CustomerPayments';
 import AccountingPeriods from '@/components/accounting/AccountingPeriods';
+import FinancialIntegrationStatus from '@/components/accounting/FinancialIntegrationStatus';
 
 const Accounting: React.FC = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -2312,6 +2313,9 @@ const Accounting: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Financial Integration Status */}
+      <FinancialIntegrationStatus />
 
       <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="w-full overflow-x-auto">
