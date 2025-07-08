@@ -88,9 +88,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
       let products;
-      const { categoryId, status } = req.query;
+      const { categoryId, status, warehouseId } = req.query;
 
-      if (categoryId) {
+      if (warehouseId && warehouseId !== '0') {
+        // Get products for specific warehouse
+        products = await storage.getProductsByWarehouse(Number(warehouseId));
+      } else if (categoryId) {
         products = await storage.getProductsByCategory(Number(categoryId));
       } else if (status) {
         products = await storage.getProductsByStatus(status as string);

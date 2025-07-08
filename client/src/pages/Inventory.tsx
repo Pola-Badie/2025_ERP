@@ -252,7 +252,15 @@ const Inventory: React.FC = () => {
 
   // Fetch products and categories
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/products', selectedWarehouse],
+    queryFn: async () => {
+      const url = selectedWarehouse === 0 
+        ? '/api/products' 
+        : `/api/products?warehouseId=${selectedWarehouse}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
+    },
   });
 
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery<Category[]>({

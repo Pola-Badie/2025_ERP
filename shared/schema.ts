@@ -1031,6 +1031,18 @@ export const warehouseLocations = pgTable("warehouse_locations", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+// Product-Warehouse associations
+export const productWarehouses = pgTable("product_warehouses", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  warehouseId: integer("warehouse_id").references(() => warehouses.id).notNull(),
+  quantity: integer("quantity").default(0).notNull(),
+  location: text("location"),
+  shelf: text("shelf"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Stock Movements
 export const stockMovements = pgTable("stock_movements", {
   id: serial("id").primaryKey(),
