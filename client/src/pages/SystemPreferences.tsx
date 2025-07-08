@@ -4,21 +4,31 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
 import {
-  Building2,
-  Mail,
-  Shield,
-  Database,
-  Bell,
-  Settings
+  UsersIcon,
+  PackageIcon,
+  DollarSignIcon,
+  ShieldIcon,
+  MessageSquareIcon,
+  CloudIcon,
+  FileTextIcon,
+  SettingsIcon,
+  ReceiptIcon,
+  FileDownIcon,
+  Building2Icon
 } from 'lucide-react';
 
-// Import enhanced functional tab components
-import EnhancedCompanyInfoTab from '@/components/system-preferences/EnhancedCompanyInfoTab';
-import EnhancedEmailSettingsTab from '@/components/system-preferences/EnhancedEmailSettingsTab';
-import EnhancedSecuritySettingsTab from '@/components/system-preferences/EnhancedSecuritySettingsTab';
-import EnhancedBackupTab from '@/components/system-preferences/EnhancedBackupTab';
-import EnhancedNotificationsTab from '@/components/system-preferences/EnhancedNotificationsTab';
-import EnhancedGeneralSettingsTab from '@/components/system-preferences/EnhancedGeneralSettingsTab';
+// Import tab components
+import CompanyInfoTab from '@/components/system-preferences/CompanyInfoTab';
+import UserManagementTab from '@/components/system-preferences/UserManagementTab-new';
+import InventorySettingsTab from '@/components/system-preferences/InventorySettingsTab';
+import FinancialConfigurationTab from '@/components/system-preferences/FinancialConfigurationTab';
+import SecuritySettingsTab from '@/components/system-preferences/SecuritySettingsTab';
+import CommunicationSettingsTab from '@/components/system-preferences/CommunicationSettingsTab';
+import BackupTab from '@/components/system-preferences/BackupTab';
+import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab';
+import QuotationPreviewSettingsTab from '@/components/system-preferences/QuotationPreviewSettingsTab';
+import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePreviewSettingsTab';
+import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
   const [activeTab, setActiveTab] = useState('company');
@@ -34,17 +44,27 @@ const SystemPreferences: React.FC = () => {
     
     switch (tabValue) {
       case 'company':
-        return <Building2 className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'email':
-        return <Mail className={`h-5 w-5 mr-2 ${activeClass}`} />;
+        return <Building2Icon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'users':
+        return <UsersIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'inventory':
+        return <PackageIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'financial':
+        return <DollarSignIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'security':
-        return <Shield className={`h-5 w-5 mr-2 ${activeClass}`} />;
+        return <ShieldIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'communication':
+        return <MessageSquareIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'backup':
-        return <Database className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'notifications':
-        return <Bell className={`h-5 w-5 mr-2 ${activeClass}`} />;
-      case 'general':
-        return <Settings className={`h-5 w-5 mr-2 ${activeClass}`} />;
+        return <CloudIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'eta':
+        return <FileTextIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'quotation-preview':
+        return <FileDownIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'invoice-preview':
+        return <ReceiptIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'modules':
+        return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
         return null;
     }
@@ -81,79 +101,134 @@ const SystemPreferences: React.FC = () => {
       <Card>
         <CardContent className="p-0">
           <Tabs 
-            defaultValue="company" 
+            defaultValue="users" 
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 border-b rounded-none h-auto gap-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="company" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('company')}
                 <span className="hidden sm:inline ml-1 truncate">Company</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="email" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                value="users" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
-                {renderTabIcon('email')}
-                <span className="hidden sm:inline ml-1 truncate">Email</span>
+                {renderTabIcon('users')}
+                <span className="hidden sm:inline ml-1 truncate">Users</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="inventory" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('inventory')}
+                <span className="hidden sm:inline ml-1 truncate">Inventory</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financial" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('financial')}
+                <span className="hidden sm:inline ml-1 truncate">Financial</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="security" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('security')}
                 <span className="hidden sm:inline ml-1 truncate">Security</span>
               </TabsTrigger>
               <TabsTrigger 
+                value="communication" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('communication')}
+                <span className="hidden lg:inline ml-1 truncate">Comm</span>
+              </TabsTrigger>
+              <TabsTrigger 
                 value="backup" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
                 {renderTabIcon('backup')}
-                <span className="hidden sm:inline ml-1 truncate">Backup</span>
+                <span className="hidden lg:inline ml-1 truncate">Backup</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="notifications" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                value="eta" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
-                {renderTabIcon('notifications')}
-                <span className="hidden lg:inline ml-1 truncate">Notifications</span>
+                {renderTabIcon('eta')}
+                <span className="hidden lg:inline ml-1 truncate">ETA</span>
               </TabsTrigger>
               <TabsTrigger 
-                value="general" 
-                className="flex items-center justify-center py-3 px-2 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+                value="quotation-preview" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
               >
-                {renderTabIcon('general')}
-                <span className="hidden lg:inline ml-1 truncate">General</span>
+                {renderTabIcon('quotation-preview')}
+                <span className="hidden lg:inline ml-1 truncate">Quote</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="invoice-preview" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('invoice-preview')}
+                <span className="hidden lg:inline ml-1 truncate">Invoice</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="modules" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('modules')}
+                <span className="hidden lg:inline ml-1 truncate">Modules</span>
               </TabsTrigger>
             </TabsList>
             
             <div className="p-6">
               <TabsContent value="company" className="mt-0">
-                <EnhancedCompanyInfoTab />
+                <CompanyInfoTab preferences={preferences as any[] || []} refetch={refetch} />
               </TabsContent>
               
-              <TabsContent value="email" className="mt-0">
-                <EnhancedEmailSettingsTab />
+              <TabsContent value="users" className="mt-0">
+                <UserManagementTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="inventory" className="mt-0">
+                <InventorySettingsTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="financial" className="mt-0">
+                <FinancialConfigurationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="security" className="mt-0">
-                <EnhancedSecuritySettingsTab />
+                <SecuritySettingsTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="communication" className="mt-0">
+                <CommunicationSettingsTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
               <TabsContent value="backup" className="mt-0">
-                <EnhancedBackupTab />
+                <BackupTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
-              <TabsContent value="notifications" className="mt-0">
-                <EnhancedNotificationsTab />
+              <TabsContent value="eta" className="mt-0">
+                <ETAIntegrationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
               
-              <TabsContent value="general" className="mt-0">
-                <EnhancedGeneralSettingsTab />
+              <TabsContent value="quotation-preview" className="mt-0">
+                <QuotationPreviewSettingsTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="invoice-preview" className="mt-0">
+                <InvoicePreviewSettingsTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="modules" className="mt-0">
+                <ModuleConfigurationTab preferences={preferences} refetch={refetch} />
               </TabsContent>
             </div>
           </Tabs>
