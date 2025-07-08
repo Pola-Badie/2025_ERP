@@ -202,7 +202,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/order-management')}>
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/orders-history')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
