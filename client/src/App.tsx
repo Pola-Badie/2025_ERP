@@ -9,7 +9,7 @@ import { NotificationProvider } from "./contexts/NotificationContext";
 import { SidebarProvider } from "./contexts/SidebarContext";
 
 // Import components directly to avoid issues with wouter
-import Dashboard from "@/pages/DashboardNew";
+import DashboardNew from "@/pages/DashboardNew";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
 import Reports from "@/pages/ReportsNew";
@@ -36,7 +36,7 @@ import NotFound from "@/pages/not-found";
 function App() {
   // Set document title
   useEffect(() => {
-    document.title = "Morgan ERP - Enterprise Resource Planning System";
+    document.title = "Premier ERP - Enterprise Resource Planning System";
   }, []);
 
   return (
@@ -47,7 +47,7 @@ function App() {
             <SidebarProvider>
               <MainLayout>
               <Switch>
-                <Route path="/" component={Dashboard} />
+                <Route path="/" component={DashboardNew} />
                 <Route path="/inventory" component={Inventory} />
                 <Route path="/expenses" component={Expenses} />
                 <Route path="/sales" component={Reports} />
