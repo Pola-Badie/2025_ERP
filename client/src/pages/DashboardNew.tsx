@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,6 @@ const salesData = [
 ];
 
 const DashboardNew = () => {
-  const { t, isRTL } = useLanguage();
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
@@ -144,61 +142,61 @@ const DashboardNew = () => {
     <div className="space-y-6 px-6 pt-2 pb-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('dashboard.title')}</h1>
-        <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome to Premier ERP - Your business overview</p>
       </div>
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">{t('dashboard.monthlyRevenue')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">MONTHLY REVENUE</CardTitle>
             <DollarSign className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyPayments?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{t('dashboard.currentMonthRevenue')}</p>
+            <p className="text-xs text-white opacity-80">Current month revenue</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">{t('dashboard.netProfit')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
             <TrendingUp className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.netProfit?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{t('dashboard.revenueMinusExpenses')}</p>
+            <p className="text-xs text-white opacity-80">Revenue minus expenses</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/invoices'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">{t('dashboard.outstandingReceivables')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
             <Receipt className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.outstandingInvoices?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{accountingOverview?.pendingInvoiceCount || 0} {t('dashboard.pendingInvoices')}</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.pendingInvoiceCount || 0} pending invoices</p>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/orders'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">{t('dashboard.pendingOrders')}</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.pendingOrders?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{accountingOverview?.orderCount || 0} {t('dashboard.ordersPending')}</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.orderCount || 0} orders pending</p>
           </CardContent>
         </Card>
       </div>

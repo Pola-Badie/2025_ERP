@@ -35,7 +35,7 @@ const MobileNav: React.FC = () => {
                 <rect width="7" height="9" x="14" y="12" rx="1"></rect>
                 <rect width="7" height="5" x="3" y="16" rx="1"></rect>
               </svg>
-              <span className="text-xs mt-1">{t('navigation.dashboard')}</span>
+              <span className="text-xs mt-1">{t('dashboard')}</span>
             </div>
           </Link>
           
@@ -50,7 +50,7 @@ const MobileNav: React.FC = () => {
                 <polyline points="3.29 7 12 12 20.71 7"></polyline>
                 <line x1="12" y1="22" x2="12" y2="12"></line>
               </svg>
-              <span className="text-xs mt-1">{t('navigation.inventory')}</span>
+              <span className="text-xs mt-1">{t('products')}</span>
             </div>
           </Link>
           
@@ -60,7 +60,7 @@ const MobileNav: React.FC = () => {
               location === "/procurement" ? "text-primary" : "text-slate-500"
             )}>
               <ShoppingBag size={20} />
-              <span className="text-xs mt-1">{t('navigation.procurement')}</span>
+              <span className="text-xs mt-1">{t('procurement')}</span>
             </div>
           </Link>
           
@@ -75,7 +75,7 @@ const MobileNav: React.FC = () => {
                 <circle cx="7" cy="18" r="2"></circle>
                 <circle cx="17" cy="18" r="2"></circle>
               </svg>
-              <span className="text-xs mt-1">{t('navigation.suppliers')}</span>
+              <span className="text-xs mt-1">{t('suppliers')}</span>
             </div>
           </Link>
           
@@ -92,7 +92,7 @@ const MobileNav: React.FC = () => {
                 <line x1="18" x2="18" y1="18" y2="11"></line>
                 <polygon points="12 2 20 7 4 7"></polygon>
               </svg>
-              <span className="text-xs mt-1">{t('navigation.accounting')}</span>
+              <span className="text-xs mt-1">{t('accounting')}</span>
             </div>
           </Link>
         </div>

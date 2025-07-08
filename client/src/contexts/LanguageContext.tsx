@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { en } from '../translations/en';
-import { ar } from '../translations/ar';
 
 type Language = 'en' | 'ar';
 
@@ -13,10 +11,9 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Merge old translations with new comprehensive translations
+// Translation keys
 const translations = {
   en: {
-    ...en,
     // Navigation
     dashboard: 'Dashboard',
     products: 'Products',
@@ -282,8 +279,7 @@ const translations = {
     etaNumber: 'ETA Number'
   },
   ar: {
-    ...ar,
-    // Keep old translations as fallback
+    // Navigation
     dashboard: 'لوحة التحكم',
     products: 'المنتجات',
     inventory: 'المخزون',
@@ -586,20 +582,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const isRTL = language === 'ar';
 
   const t = (key: string): string => {
-    // Support nested keys like 'navigation.dashboard'
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
-        value = value[k];
-      } else {
-        // Fallback to old flat structure if nested key not found
-        return translations[language][key as keyof typeof translations.en] || key;
-      }
-    }
-    
-    return typeof value === 'string' ? value : key;
+    return translations[language][key as keyof typeof translations.en] || key;
   };
 
   useEffect(() => {

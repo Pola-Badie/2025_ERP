@@ -1,193 +1,0 @@
-APPLY COMPLETE ARABIC TRANSLATION ACROSS ALL MODULES
-
-Implement Arabic language support for the ENTIRE Premier ERP system. Apply Arabic translation to every module, page, button, label, and text element throughout the application.
-
-## 🌍 COMPLETE ARABIC LOCALIZATION REQUIRED
-
-### 1. TRANSLATE ALL NAVIGATION & SIDEBAR
-- Dashboard → لوحة التحكم
-- Inventory → المخزون
-- Accounting → المحاسبة
-- Expenses → المصروفات
-- Orders → الطلبات
-- Order History → تاريخ الطلبات
-- Create Invoice → إنشاء فاتورة
-- Invoice History → تاريخ الفواتير
-- Create Quotation → إنشاء عرض سعر
-- Quotation History → تاريخ عروض الأسعار
-- Customers → العملاء
-- Suppliers → الموردين
-- Procurement → المشتريات
-- Reports → التقارير
-- System Preferences → إعدادات النظام
-- User Management → إدارة المستخدمين
-- Notifications → الإشعارات
-
-### 2. TRANSLATE ALL MODULE CONTENT
-
-**DASHBOARD MODULE:**
-- Welcome to Premier ERP → مرحباً بك في نظام بريمير لتخطيط موارد المؤسسة
-- Total Products → إجمالي المنتجات
-- Total Customers → إجمالي العملاء
-- Monthly Revenue → الإيرادات الشهرية
-- Monthly Expenses → المصروفات الشهرية
-- Low Stock Alert → تنبيه نقص المخزون
-- Expiring Products → المنتجات منتهية الصلاحية
-- Recent Orders → الطلبات الحديثة
-- Quick Actions → إجراءات سريعة
-
-**INVENTORY MODULE:**
-- Add Product → إضافة منتج
-- Edit Product → تعديل منتج
-- Product Name → اسم المنتج
-- Category → الفئة
-- Stock Quantity → كمية المخزون
-- Reorder Point → نقطة إعادة الطلب
-- Expiry Date → تاريخ انتهاء الصلاحية
-- Supplier → المورد
-- Unit Price → سعر الوحدة
-- Search products → البحث في المنتجات
-- All Categories → جميع الفئات
-- Low Stock → مخزون منخفض
-- Out of Stock → نفدت الكمية
-
-**ACCOUNTING MODULE:**
-- Trial Balance → ميزان المراجعة
-- Profit & Loss → الأرباح والخسائر
-- Balance Sheet → الميزانية العمومية
-- Journal Entries → قيود اليومية
-- Chart of Accounts → دليل الحسابات
-- Account Code → رمز الحساب
-- Account Name → اسم الحساب
-- Debit → مدين
-- Credit → دائن
-- Total → الإجمالي
-
-**INVOICING MODULE:**
-- Invoice Number → رقم الفاتورة
-- Customer → العميل
-- Invoice Date → تاريخ الفاتورة
-- Due Date → تاريخ الاستحقاق
-- Subtotal → المجموع الفرعي
-- Tax → الضريبة
-- Total Amount → المبلغ الإجمالي
-- Generate PDF → إنشاء ملف PDF
-- Send Email → إرسال بريد إلكتروني
-- Payment Status → حالة الدفع
-
-**EXPENSES MODULE:**
-- Add Expense → إضافة مصروف
-- Description → الوصف
-- Amount → المبلغ
-- Category → الفئة
-- Date → التاريخ
-- Payment Method → طريقة الدفع
-- Receipt → الإيصال
-- Upload Receipt → رفع الإيصال
-
-**ORDERS MODULE:**
-- Order Number → رقم الطلب
-- Order Date → تاريخ الطلب
-- Order Status → حالة الطلب
-- Pending → في الانتظار
-- Completed → مكتمل
-- Cancelled → ملغي
-- Order Items → عناصر الطلب
-- Quantity → الكمية
-
-### 3. TRANSLATE ALL COMMON ELEMENTS
-- Save → حفظ
-- Cancel → إلغاء
-- Delete → حذف
-- Edit → تعديل
-- Add → إضافة
-- Search → بحث
-- Filter → تصفية
-- Export → تصدير
-- Import → استيراد
-- Print → طباعة
-- Email → بريد إلكتروني
-- Status → الحالة
-- Actions → الإجراءات
-- Loading → جاري التحميل
-- Success → نجح
-- Error → خطأ
-- Warning → تحذير
-
-### 4. TRANSLATE ALL FORM LABELS & BUTTONS
-- First Name → الاسم الأول
-- Last Name → اسم العائلة
-- Email Address → عنوان البريد الإلكتروني
-- Phone Number → رقم الهاتف
-- Address → العنوان
-- City → المدينة
-- Country → البلد
-- Submit → إرسال
-- Reset → إعادة تعيين
-- Required Field → حقل مطلوب
-- Invalid Input → إدخال غير صحيح
-
-### 5. TRANSLATE ALL STATUS MESSAGES
-- Record saved successfully → تم حفظ السجل بنجاح
-- Record deleted successfully → تم حذف السجل بنجاح
-- Error saving record → خطأ في حفظ السجل
-- Please fill all required fields → يرجى ملء جميع الحقول المطلوبة
-- Are you sure you want to delete? → هل أنت متأكد من الحذف؟
-
-### 6. TRANSLATE ALL REPORTS
-- Financial Reports → التقارير المالية
-- Inventory Reports → تقارير المخزون
-- Sales Reports → تقارير المبيعات
-- Expense Reports → تقارير المصروفات
-- Generate Report → إنشاء تقرير
-- Export to PDF → تصدير إلى PDF
-- Export to Excel → تصدير إلى إكسل
-
-### 7. TRANSLATE USER MANAGEMENT
-- Users → المستخدمين
-- Roles → الأدوار
-- Permissions → الصلاحيات
-- Add User → إضافة مستخدم
-- User Profile → ملف المستخدم
-- Change Password → تغيير كلمة المرور
-- Login → تسجيل الدخول
-- Logout → تسجيل الخروج
-
-## 🔧 IMPLEMENTATION REQUIREMENTS
-
-### RTL (Right-to-Left) SUPPORT:
-- Apply RTL layout for Arabic text
-- Adjust all CSS for proper Arabic display
-- Flip navigation and layout elements
-- Ensure proper text alignment
-
-### LANGUAGE SWITCHING:
-- Add language toggle button (EN/AR)
-- Implement language persistence
-- Apply translation immediately when switched
-- Update all dynamic content
-
-### DATE & NUMBER FORMATTING:
-- Format dates for Arabic locale
-- Format numbers for Arabic display
-- Currency formatting in Arabic
-- Calendar display in Arabic
-
-## ✅ COMPLETE TRANSLATION CHECKLIST
-
-Apply Arabic translation to:
-- [ ] All page titles and headers
-- [ ] All navigation menu items
-- [ ] All form labels and placeholders
-- [ ] All button text
-- [ ] All table headers and content
-- [ ] All status messages and alerts
-- [ ] All modal dialog content
-- [ ] All dropdown options
-- [ ] All tooltip text
-- [ ] All error messages
-- [ ] All success messages
-- [ ] All loading text
-- [ ] All report headers and content
-
-**IMPLEMENT COMPLETE ARABIC LOCALIZATION ACROSS THE ENTIRE ERP SYSTEM WITH RTL SUPPORT AND LANGUAGE SWITCHING FUNCTIONALITY.**
