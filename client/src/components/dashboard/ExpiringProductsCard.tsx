@@ -1,0 +1,189 @@
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, Package, XCircle, Calendar, ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useLocation } from 'wouter';
+
+interface ExpiringProduct {
+  id: number;
+  name: string;
+  drugName: string;
+  expiryDate: string;
+  currentStock: number;
+  unitOfMeasure: string;
+  categoryName: string;
+  manufacturer: string;
+  daysUntilExpiry: number;
+  expiryStatus: 'no_expiry' | 'expired' | 'critical' | 'warning' | 'normal';
+}
+
+interface InventorySummary {
+  totalProducts: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  expiringCount: number;
+  expiredCount: number;
+}
+
+const ExpiringProductsCard = () => {
+  const [, setLocation] = useLocation();
+  
+  const { data: expiringProducts, isLoading, error } = useQuery<ExpiringProduct[]>({
+    queryKey: ['expiring-products'],
+    queryFn: () => fetch('/api/inventory/expiring').then(r => r.json()),
+    refetchInterval: 3600000 // Refresh every hour
+  });
+
+  const { data: summary } = useQuery<InventorySummary>({
+    queryKey: ['inventory-summary'],
+    queryFn: () => fetch('/api/inventory/summary').then(r => r.json()),
+    refetchInterval: 3600000
+  });
+
+  const getExpiryStatusColor = (status: string) => {
+    switch (status) {
+      case 'expired': return 'bg-red-100 text-red-800 border-red-200';
+      case 'critical': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'warning': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getExpiryIcon = (status: string) => {
+    switch (status) {
+      case 'expired': return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'critical': return <AlertTriangle className="h-4 w-4 text-orange-600" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      default: return <Calendar className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const formatDaysUntilExpiry = (days: number) => {
+    if (days < 0) return 'Expired';
+    if (days === 0) return 'Expires today';
+    if (days === 1) return 'Expires tomorrow';
+    return `${days} days left`;
+  };
+
+  const formatExpiryDate = (dateString: string) => {
+    if (!dateString) return 'No expiry';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Expiring Products
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-2">
+            {[1,2,3].map(i => (
+              <div key={i} className="h-16 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-600">
+            <XCircle className="h-5 w-5" />
+            Error Loading Expiry Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-500">Unable to load expiry information. Please try again later.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm font-medium">
+          <AlertTriangle className="h-4 w-4" />
+          Expiring Products
+        </CardTitle>
+        <div className="flex gap-2">
+          <Badge variant="destructive" className="text-xs">
+            {summary?.expiredCount || 0} Expired
+          </Badge>
+          <Badge variant="secondary" className="text-xs">
+            {summary?.expiringCount || 0} Expiring
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {!expiringProducts || expiringProducts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+            <p>No products expiring soon!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {expiringProducts.slice(0, 5).map((product) => (
+              <div 
+                key={product.id} 
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                onClick={() => setLocation(`/inventory?filter=${product.id}`)}
+              >
+                <div className="flex items-center gap-3">
+                  {getExpiryIcon(product.expiryStatus)}
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{product.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{product.drugName}</p>
+                    <p className="text-xs text-gray-400">
+                      {product.manufacturer || product.categoryName}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <Badge 
+                    className={`${getExpiryStatusColor(product.expiryStatus)} text-xs mb-1`}
+                  >
+                    {formatDaysUntilExpiry(product.daysUntilExpiry)}
+                  </Badge>
+                  <p className="text-xs text-gray-500">
+                    {formatExpiryDate(product.expiryDate)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Stock: {product.currentStock} {product.unitOfMeasure}
+                  </p>
+                </div>
+              </div>
+            ))}
+            
+            {expiringProducts.length > 5 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setLocation('/inventory')}
+              >
+                View All {expiringProducts.length} Expiring Items
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ExpiringProductsCard;

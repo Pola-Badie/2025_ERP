@@ -1732,6 +1732,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(500).json({ message: "Internal server error", error: err.message });
   });
 
+  // Low Stock Products API
+  app.get('/api/inventory/low-stock', async (req: Request, res: Response) => {
+    try {
+      const lowStockProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        currentStock: products.quantity,
+        reorderPoint: products.lowStockThreshold,
+        unitOfMeasure: products.unitOfMeasure,
+        categoryName: productCategories.name,
+        stockStatus: sql`
+          CASE 
+            WHEN ${products.quantity} = 0 THEN 'out_of_stock'
+            WHEN ${products.quantity} <= (${products.lowStockThreshold} * 0.5) THEN 'critical'
+            WHEN ${products.quantity} <= ${products.lowStockThreshold} THEN 'low'
+            ELSE 'normal'
+          END
+        `,
+        daysUntilReorder: sql`
+          CASE 
+            WHEN ${products.quantity} <= ${products.lowStockThreshold} THEN 0
+            ELSE ${products.quantity} - ${products.lowStockThreshold}
+          END
+        `
+      })
+      .from(products)
+      .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+      .where(
+        and(
+          eq(products.status, 'active'),
+          lte(products.quantity, products.lowStockThreshold)
+        )
+      )
+      .orderBy(products.quantity);
+
+      res.json(lowStockProducts);
+    } catch (error) {
+      console.error('Low stock fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch low stock products' });
+    }
+  });
+
+  // Expiring Products API
+  app.get('/api/inventory/expiring', async (req: Request, res: Response) => {
+    try {
+      const today = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+      const expiringProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        expiryDate: products.expiryDate,
+        currentStock: products.quantity,
+        unitOfMeasure: products.unitOfMeasure,
+        categoryName: productCategories.name,
+        manufacturer: products.manufacturer,
+        daysUntilExpiry: sql`
+          CASE 
+            WHEN ${products.expiryDate} IS NULL THEN NULL
+            ELSE ${products.expiryDate} - CURRENT_DATE
+          END
+        `,
+        expiryStatus: sql`
+          CASE 
+            WHEN ${products.expiryDate} IS NULL THEN 'no_expiry'
+            WHEN ${products.expiryDate} < CURRENT_DATE THEN 'expired'
+            WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '7 days' THEN 'critical'
+            WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+            ELSE 'normal'
+          END
+        `
+      })
+      .from(products)
+      .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+      .where(
+        and(
+          eq(products.status, 'active'),
+          lte(products.expiryDate, thirtyDaysFromNow.toISOString().split('T')[0])
+        )
+      )
+      .orderBy(products.expiryDate);
+
+      res.json(expiringProducts);
+    } catch (error) {
+      console.error('Expiring products fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch expiring products' });
+    }
+  });
+
+  // Inventory Summary for Dashboard
+  app.get('/api/inventory/summary', async (req: Request, res: Response) => {
+    try {
+      const summary = await db.select({
+        totalProducts: count(),
+        lowStockCount: sum(sql`
+          CASE WHEN ${products.quantity} <= ${products.lowStockThreshold} THEN 1 ELSE 0 END
+        `),
+        outOfStockCount: sum(sql`
+          CASE WHEN ${products.quantity} = 0 THEN 1 ELSE 0 END
+        `),
+        expiringCount: sum(sql`
+          CASE WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '30 days' AND ${products.expiryDate} IS NOT NULL THEN 1 ELSE 0 END
+        `),
+        expiredCount: sum(sql`
+          CASE WHEN ${products.expiryDate} < CURRENT_DATE AND ${products.expiryDate} IS NOT NULL THEN 1 ELSE 0 END
+        `)
+      })
+      .from(products)
+      .where(eq(products.status, 'active'));
+
+      res.json(summary[0]);
+    } catch (error) {
+      console.error('Inventory summary error:', error);
+      res.status(500).json({ error: 'Failed to fetch inventory summary' });
+    }
+  });
+
   return httpServer;
 }
 

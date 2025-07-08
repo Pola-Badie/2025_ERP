@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import LowStockCard from '@/components/dashboard/LowStockCard';
+import ExpiringProductsCard from '@/components/dashboard/ExpiringProductsCard';
 import { 
   Users, 
   DollarSign, 
@@ -443,79 +445,10 @@ const DashboardNew = () => {
         </Card>
       </div>
 
-      {/* Bottom Row - Alerts and Stock Info */}
+      {/* Bottom Row - Functional Inventory Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Expiring Products */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              Expiring Products
-            </CardTitle>
-            <CardDescription>Products expiring within 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardData?.expiringProducts?.map((product: Product) => (
-                <div 
-                  key={product.id} 
-                  className="flex items-center justify-between p-3 bg-orange-50 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
-                  onClick={() => setSelectedProductId(product.id)}
-                >
-                  <div>
-                    <p className="font-medium text-sm">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.drugName}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-orange-600">Expires: {product.expiryDate}</p>
-                    <p className="text-xs">Qty: {product.quantity}</p>
-                  </div>
-                </div>
-              )) || (
-                <div className="text-center text-gray-500 py-4">
-                  <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                  <p>No products expiring soon</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Products */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              Low Stock Products
-            </CardTitle>
-            <CardDescription>Products with low inventory levels</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardData?.lowStockProducts?.map((product: Product) => (
-                <div 
-                  key={product.id} 
-                  className="flex items-center justify-between p-3 bg-red-50 rounded-lg cursor-pointer hover:bg-red-100 transition-colors"
-                  onClick={() => setSelectedProductId(product.id)}
-                >
-                  <div>
-                    <p className="font-medium text-sm">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.drugName}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-red-600">Stock: {product.quantity}</p>
-                    <p className="text-xs">{product.status}</p>
-                  </div>
-                </div>
-              )) || (
-                <div className="text-center text-gray-500 py-4">
-                  <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                  <p>All products well stocked</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <ExpiringProductsCard />
+        <LowStockCard />
       </div>
 
       {/* Enhanced Product Details Dialog */}
