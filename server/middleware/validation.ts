@@ -1,68 +1,143 @@
 
-import { z } from 'zod';
-import type { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { ValidationError } from './errorHandler.js';
 
-export const validateBody = (schema: z.ZodSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      req.body = schema.parse(req.body);
-      next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation failed',
-          errors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message
-          }))
-        });
-      }
-      next(error);
-    }
+export interface ValidationSchema {
+  [key: string]: {
+    required?: boolean;
+    type?: 'string' | 'number' | 'email' | 'date' | 'boolean' | 'array';
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    pattern?: RegExp;
+    enum?: string[];
   };
-};
+}
 
-export const validateQuery = (schema: z.ZodSchema) => {
+export const validateSchema = (schema: ValidationSchema, location: 'body' | 'query' | 'params' = 'body') => {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      req.query = schema.parse(req.query);
-      next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Query validation failed',
-          errors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message
-          }))
-        });
+    const data = req[location];
+    const errors: string[] = [];
+
+    for (const [field, rules] of Object.entries(schema)) {
+      const value = data[field];
+
+      // Check required fields
+      if (rules.required && (value === undefined || value === null || value === '')) {
+        errors.push(`${field} is required`);
+        continue;
       }
-      next(error);
+
+      // Skip validation if field is not provided and not required
+      if (value === undefined || value === null || value === '') {
+        continue;
+      }
+
+      // Type validation
+      if (rules.type) {
+        switch (rules.type) {
+          case 'string':
+            if (typeof value !== 'string') {
+              errors.push(`${field} must be a string`);
+            }
+            break;
+          case 'number':
+            if (typeof value !== 'number' && isNaN(Number(value))) {
+              errors.push(`${field} must be a number`);
+            }
+            break;
+          case 'email':
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+              errors.push(`${field} must be a valid email address`);
+            }
+            break;
+          case 'date':
+            if (isNaN(Date.parse(value))) {
+              errors.push(`${field} must be a valid date`);
+            }
+            break;
+          case 'boolean':
+            if (typeof value !== 'boolean' && value !== 'true' && value !== 'false') {
+              errors.push(`${field} must be a boolean`);
+            }
+            break;
+          case 'array':
+            if (!Array.isArray(value)) {
+              errors.push(`${field} must be an array`);
+            }
+            break;
+        }
+      }
+
+      // String length validation
+      if (rules.minLength && typeof value === 'string' && value.length < rules.minLength) {
+        errors.push(`${field} must be at least ${rules.minLength} characters long`);
+      }
+      if (rules.maxLength && typeof value === 'string' && value.length > rules.maxLength) {
+        errors.push(`${field} must be no more than ${rules.maxLength} characters long`);
+      }
+
+      // Number range validation
+      const numValue = Number(value);
+      if (rules.min && !isNaN(numValue) && numValue < rules.min) {
+        errors.push(`${field} must be at least ${rules.min}`);
+      }
+      if (rules.max && !isNaN(numValue) && numValue > rules.max) {
+        errors.push(`${field} must be no more than ${rules.max}`);
+      }
+
+      // Pattern validation
+      if (rules.pattern && typeof value === 'string' && !rules.pattern.test(value)) {
+        errors.push(`${field} format is invalid`);
+      }
+
+      // Enum validation
+      if (rules.enum && !rules.enum.includes(value)) {
+        errors.push(`${field} must be one of: ${rules.enum.join(', ')}`);
+      }
     }
-  };
-};
 
-// Rate limiting
-export const rateLimit = (maxRequests: number, windowMs: number) => {
-  const requests = new Map();
-
-  return (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip;
-    const now = Date.now();
-    const windowStart = now - windowMs;
-
-    if (!requests.has(ip)) {
-      requests.set(ip, []);
+    if (errors.length > 0) {
+      throw new ValidationError(`Validation failed: ${errors.join(', ')}`);
     }
 
-    const userRequests = requests.get(ip).filter((time: number) => time > windowStart);
-    
-    if (userRequests.length >= maxRequests) {
-      return res.status(429).json({ message: 'Too many requests' });
-    }
-
-    userRequests.push(now);
-    requests.set(ip, userRequests);
     next();
   };
+};
+
+// Common validation schemas
+export const schemas = {
+  user: {
+    username: { required: true, type: 'string' as const, minLength: 3, maxLength: 50 },
+    email: { required: true, type: 'email' as const },
+    password: { required: true, type: 'string' as const, minLength: 8 },
+    role: { required: true, type: 'string' as const, enum: ['admin', 'manager', 'user', 'accountant', 'inventory_manager'] },
+  },
+  product: {
+    name: { required: true, type: 'string' as const, minLength: 1, maxLength: 200 },
+    description: { type: 'string' as const, maxLength: 1000 },
+    price: { required: true, type: 'number' as const, min: 0 },
+    stock: { required: true, type: 'number' as const, min: 0 },
+    category: { required: true, type: 'string' as const },
+    unit: { required: true, type: 'string' as const },
+  },
+  customer: {
+    name: { required: true, type: 'string' as const, minLength: 1, maxLength: 200 },
+    email: { type: 'email' as const },
+    phone: { type: 'string' as const, maxLength: 20 },
+    address: { type: 'string' as const, maxLength: 500 },
+  },
+  order: {
+    customerId: { required: true, type: 'number' as const },
+    items: { required: true, type: 'array' as const },
+    status: { type: 'string' as const, enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'] },
+  },
+  expense: {
+    description: { required: true, type: 'string' as const, minLength: 1, maxLength: 200 },
+    amount: { required: true, type: 'number' as const, min: 0.01 },
+    category: { required: true, type: 'string' as const },
+    date: { required: true, type: 'date' as const },
+  },
 };

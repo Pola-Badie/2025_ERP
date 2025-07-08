@@ -1,60 +1,113 @@
 
-import type { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import winston from 'winston';
+
+// Configure logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'premier-erp' },
+  transports: [
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple()
+  }));
+}
 
 export interface AppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
 }
 
-export const createError = (message: string, statusCode: number = 500): AppError => {
-  const error: AppError = new Error(message);
-  error.statusCode = statusCode;
-  error.isOperational = true;
-  return error;
-};
+export class ValidationError extends Error {
+  statusCode = 400;
+  isOperational = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'ValidationError';
+  }
+}
+
+export class DatabaseError extends Error {
+  statusCode = 500;
+  isOperational = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'DatabaseError';
+  }
+}
+
+export class AuthenticationError extends Error {
+  statusCode = 401;
+  isOperational = true;
+
+  constructor(message: string = 'Authentication failed') {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
+export class AuthorizationError extends Error {
+  statusCode = 403;
+  isOperational = true;
+
+  constructor(message: string = 'Access denied') {
+    super(message);
+    this.name = 'AuthorizationError';
+  }
+}
 
 export const errorHandler = (
-  error: AppError,
+  err: AppError,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  let statusCode = error.statusCode || 500;
-  let message = error.message || 'Internal Server Error';
+  const { statusCode = 500, message, stack } = err;
 
-  // Handle specific error types
-  if (error.name === 'ValidationError') {
-    statusCode = 400;
-    message = 'Validation Error';
-  }
-
-  if (error.name === 'CastError') {
-    statusCode = 400;
-    message = 'Invalid ID format';
-  }
-
-  if (error.code === 11000) {
-    statusCode = 400;
-    message = 'Duplicate field value';
-  }
-
-  console.error(`Error: ${message}`, {
+  // Log error
+  logger.error({
+    message: err.message,
     statusCode,
-    stack: error.stack,
+    stack: err.stack,
     url: req.url,
     method: req.method,
     ip: req.ip,
-    timestamp: new Date().toISOString()
+    userAgent: req.get('User-Agent'),
   });
 
-  res.status(statusCode).json({
-    success: false,
-    message,
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-  });
+  // Don't expose stack traces in production
+  const response = {
+    error: {
+      message,
+      ...(process.env.NODE_ENV === 'development' && { stack }),
+    },
+  };
+
+  res.status(statusCode).json(response);
 };
 
 export const notFound = (req: Request, res: Response, next: NextFunction) => {
-  const error = createError(`Route ${req.originalUrl} not found`, 404);
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  res.status(404);
   next(error);
 };
+
+export const asyncHandler = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+export { logger };
