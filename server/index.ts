@@ -3,7 +3,6 @@ import { registerRoutes } from "./routes-new";
 import { registerOrderRoutes } from "./routes-orders";
 import { registerReportsRoutes } from "./routes-reports";
 import { registerFinancialIntegrationRoutes } from "./routes-financial-integration";
-import { registerSystemPreferencesRoutes } from "./routes-system-preferences";
 // import comprehensiveRoutes from "./routes-comprehensive";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -52,7 +51,6 @@ app.use((req, res, next) => {
   registerOrderRoutes(app);
   registerReportsRoutes(app);
   registerFinancialIntegrationRoutes(app);
-  registerSystemPreferencesRoutes(app);
   // app.use("/api", comprehensiveRoutes);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

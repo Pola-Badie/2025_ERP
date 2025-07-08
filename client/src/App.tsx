@@ -17,7 +17,6 @@ import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
 import SystemPreferences from "@/pages/SystemPreferences";
-import SystemPreferencesNew from "@/pages/SystemPreferencesNew";
 import CreateInvoice from "@/pages/CreateInvoice";
 import CreateQuotation from "@/pages/CreateQuotation";
 import InvoiceHistory from "@/pages/InvoiceHistory";
@@ -62,8 +61,7 @@ function App() {
                 <Route path="/suppliers" component={Suppliers} />
                 <Route path="/backup" component={BackupRestore} />
                 <Route path="/settings" component={Settings} />
-                <Route path="/system-preferences" component={SystemPreferencesNew} />
-                <Route path="/system-preferences-old" component={SystemPreferences} />
+                <Route path="/system-preferences" component={SystemPreferences} />
                 <Route path="/users" component={UserManagement} />
                 <Route path="/customers-demo" component={CustomersDemo} />
                 <Route path="/procurement" component={Procurement} />
