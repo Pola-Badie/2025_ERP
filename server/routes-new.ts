@@ -2084,8 +2084,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       switch (reportType) {
         case 'trial-balance':
-          // Get actual trial balance from database
-          const trialBalanceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/trial-balance`);
+          // Get actual trial balance from database with filters
+          const tbParams = new URLSearchParams({
+            accountFilter: filter || 'all',
+            includeZeroBalance: 'true'
+          });
+          const trialBalanceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/trial-balance?${tbParams}`);
           const trialBalance = await trialBalanceResponse.json();
           
           reportData = {

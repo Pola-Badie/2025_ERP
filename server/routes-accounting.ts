@@ -53,8 +53,8 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 
-  // Get trial balance
-  app.get("/api/accounting/trial-balance", async (_req: Request, res: Response) => {
+  // Get trial balance with filtering support
+  app.get("/api/accounting/trial-balance", async (req: Request, res: Response) => {
     try {
       // Add cache-busting headers
       res.set({
@@ -62,7 +62,17 @@ export function registerAccountingRoutes(app: Express) {
         'Pragma': 'no-cache',
         'Expires': '0'
       });
-      const accountsWithBalances = await db
+
+      const { 
+        accountFilter = 'all', 
+        fromDate, 
+        toDate, 
+        includeZeroBalance = 'true',
+        showTransactionDetails = 'false',
+        groupByAccountType = 'false' 
+      } = req.query;
+
+      let accountsWithBalances = await db
         .select({
           id: accounts.id,
           code: accounts.code,
@@ -72,6 +82,37 @@ export function registerAccountingRoutes(app: Express) {
         })
         .from(accounts)
         .where(eq(accounts.isActive, true));
+
+      // Apply account filter
+      if (accountFilter !== 'all') {
+        accountsWithBalances = accountsWithBalances.filter(account => {
+          const filterType = String(accountFilter).toLowerCase();
+          const accountType = account.type.toLowerCase();
+          
+          switch (filterType) {
+            case 'assets only':
+            case 'assets':
+            case 'asset':
+              return accountType === 'asset';
+            case 'liabilities only':
+            case 'liabilities':
+            case 'liability':
+              return accountType === 'liability';
+            case 'equity only':
+            case 'equity':
+              return accountType === 'equity';
+            case 'revenue only':
+            case 'revenue':
+              return accountType === 'revenue';
+            case 'expenses only':
+            case 'expenses':
+            case 'expense':
+              return accountType === 'expense';
+            default:
+              return true;
+          }
+        });
+      }
 
       // Calculate totals
       let totalDebits = 0;
@@ -102,11 +143,36 @@ export function registerAccountingRoutes(app: Express) {
         return { ...account, debit: 0, credit: 0 };
       });
 
+      // Filter out zero balances if requested
+      let filteredTrialBalance = trialBalance;
+      if (includeZeroBalance === 'false') {
+        filteredTrialBalance = trialBalance.filter(account => 
+          account.debit > 0 || account.credit > 0
+        );
+      }
+
+      // Recalculate totals for filtered accounts
+      const filteredTotalDebits = filteredTrialBalance.reduce((sum, acc) => sum + (acc.debit || 0), 0);
+      const filteredTotalCredits = filteredTrialBalance.reduce((sum, acc) => sum + (acc.credit || 0), 0);
+
       res.json({
-        accounts: trialBalance,
-        totalDebits,
-        totalCredits,
-        isBalanced: Math.abs(totalDebits - totalCredits) < 0.01
+        accounts: filteredTrialBalance,
+        totalDebits: filteredTotalDebits,
+        totalCredits: filteredTotalCredits,
+        isBalanced: Math.abs(filteredTotalDebits - filteredTotalCredits) < 0.01,
+        filters: {
+          accountFilter,
+          fromDate,
+          toDate,
+          includeZeroBalance,
+          showTransactionDetails,
+          groupByAccountType
+        },
+        summary: {
+          totalAccounts: filteredTrialBalance.length,
+          originalAccountCount: accountsWithBalances.length,
+          appliedFilter: accountFilter
+        }
       });
     } catch (error) {
       console.error("Error generating trial balance:", error);

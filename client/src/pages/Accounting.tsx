@@ -5930,11 +5930,11 @@ const Accounting: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Accounts</SelectItem>
-                          <SelectItem value="asset">Assets Only</SelectItem>
-                          <SelectItem value="liability">Liabilities Only</SelectItem>
+                          <SelectItem value="assets">Assets Only</SelectItem>
+                          <SelectItem value="liabilities">Liabilities Only</SelectItem>
                           <SelectItem value="equity">Equity Only</SelectItem>
                           <SelectItem value="revenue">Revenue Only</SelectItem>
-                          <SelectItem value="expense">Expenses Only</SelectItem>
+                          <SelectItem value="expenses">Expenses Only</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
