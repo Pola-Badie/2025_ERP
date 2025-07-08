@@ -1886,6 +1886,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalInventoryValue: sum(sql`
           ${products.quantity} * COALESCE(${products.costPrice}, 0)
         `),
+        totalSellingValue: sum(sql`
+          ${products.quantity} * COALESCE(${products.sellingPrice}, 0)
+        `),
         totalQuantity: sum(products.quantity),
         activeProducts: sum(sql`
           CASE WHEN ${products.status} = 'active' THEN 1 ELSE 0 END

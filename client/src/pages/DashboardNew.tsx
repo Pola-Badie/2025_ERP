@@ -55,6 +55,7 @@ interface InventorySummary {
   expiringCount: string | number;
   expiredCount: string | number;
   totalInventoryValue: string | number;
+  totalSellingValue: string | number;
   totalQuantity: number;
   activeProducts: string | number;
   warehouseCount: string | number;
@@ -250,7 +251,10 @@ const DashboardNew = () => {
               {isInventoryLoading ? "..." : `EGP ${Math.round(Number(inventorySummary?.totalInventoryValue) || 0)?.toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {inventorySummary?.totalProducts || 0} products across {inventorySummary?.warehouseCount || 0} warehouses
+              Cost value • Selling: EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {inventorySummary?.totalProducts || 0} products • {inventorySummary?.warehouseCount || 0} warehouses
             </p>
           </CardContent>
         </Card>
