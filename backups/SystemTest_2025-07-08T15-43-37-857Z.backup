@@ -1,0 +1,7 @@
+{
+  "created": "2025-07-08T15:43:37.858Z",
+  "type": "manual",
+  "description": "Test backup from API",
+  "database": "PostgreSQL",
+  "size": "0 MB"
+}
