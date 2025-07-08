@@ -36,14 +36,14 @@ export { dbClient };
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Database configuration
+// Database configuration - optimized for better performance
 const dbConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://erp_user:erp_secure_password@localhost:5432/premier_erp',
   ssl: isProduction ? { rejectUnauthorized: false } : false,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return error after 2 seconds if connection could not be established
-  maxUses: 7500, // Close (and replace) a connection after it has been used 7500 times
+  max: 10, // Reduced pool size to prevent connection overload
+  idleTimeoutMillis: 10000, // Reduced idle timeout
+  connectionTimeoutMillis: 5000, // Increased timeout for slower connections
+  maxUses: 1000, // Reduced connection reuse to prevent stale connections
 };
 
 // Create connection pool

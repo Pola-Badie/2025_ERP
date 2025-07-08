@@ -18,15 +18,17 @@ export const loginRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting for API calls
+// Rate limiting for API calls - more lenient for development
 export const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 1000, // Increased limit for development
   message: {
     error: 'Too many API requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: true, // Trust proxy headers
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1', // Skip rate limiting for localhost
 });
 
 export interface AuthenticatedRequest extends Request {

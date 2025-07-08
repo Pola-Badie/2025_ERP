@@ -40,6 +40,8 @@ A comprehensive Enterprise Resource Planning (ERP) dashboard for chemical manufa
 - **July 8, 2025:** ✓ Corrected dashboard warehouse breakdown labels to show actual unit quantities instead of product counts
 - **July 8, 2025:** ✓ Fixed dashboard card navigation crashes by replacing window.location.href with proper React routing
 - **July 8, 2025:** ✓ Updated card routing paths to match actual application routes (PENDING ORDERS → orders-history, OUTSTANDING A/R → invoice-history)
+- **July 8, 2025:** ✓ Fixed performance issues and crashes by optimizing rate limiting and database connection pooling
+- **July 8, 2025:** ✓ Resolved X-Forwarded-For header errors by enabling trust proxy settings
 
 ## Project Architecture
 

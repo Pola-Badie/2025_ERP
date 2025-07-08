@@ -68,10 +68,8 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// Trust proxy for rate limiting in production
-if (NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
+// Trust proxy for rate limiting - enable for all environments to fix X-Forwarded-For error
+app.set('trust proxy', 1);
 
 // CORS configuration
 app.use(cors({
