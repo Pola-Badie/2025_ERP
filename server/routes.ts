@@ -1777,6 +1777,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Also provide /api/purchase-orders endpoint for backward compatibility
+  app.get("/api/purchase-orders", async (req: Request, res: Response) => {
+    try {
+      const purchases = await storage.getPurchaseOrders();
+      res.json(purchases);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch purchase orders" });
+    }
+  });
+
   // Create new purchase order
   app.post("/api/purchases", async (req: Request, res: Response) => {
     try {

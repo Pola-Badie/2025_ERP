@@ -443,6 +443,8 @@ export const insertProductSchema = createInsertSchema(products)
     // Override the numeric fields to accept either string or number
     costPrice: z.union([z.string(), z.number()]),
     sellingPrice: z.union([z.string(), z.number()]),
+    // Override expiryDate to accept string that will be converted to Date
+    expiryDate: z.union([z.string(), z.date()]).optional(),
   });
 
 export const insertCustomerSchema = createInsertSchema(customers).pick({
@@ -1705,6 +1707,11 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   notes: true,
   userId: true,
   receiptPath: true,
+}).extend({
+  // Override amount to accept either string or number
+  amount: z.union([z.string(), z.number()]),
+  // Override date to accept string that will be converted to Date
+  date: z.union([z.string(), z.date()]).optional(),
 });
 
 export const updateExpenseStatusSchema = z.object({

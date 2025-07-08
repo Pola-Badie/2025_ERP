@@ -1,6 +1,64 @@
 import { Express, Request, Response } from 'express';
 
 export function registerOrderRoutes(app: Express) {
+  // Get all orders (main endpoint)
+  app.get("/api/orders", async (req: Request, res: Response) => {
+    try {
+      // Return pharmaceutical orders data
+      const orders = [
+        {
+          id: 1,
+          orderNumber: "ORD-PHM-2025-001",
+          batchNumber: "BATCH-IBU-001",
+          type: "manufacturing",
+          customerName: "Cairo Medical Center",
+          customerCompany: "Cairo Medical Center",
+          targetProduct: "Ibuprofen Tablets 400mg",
+          orderDate: "2025-01-15",
+          completionDate: "2025-02-14",
+          status: "completed",
+          totalCost: 45000,
+          revenue: 54150,
+          profit: 9150,
+        },
+        {
+          id: 2,
+          orderNumber: "ORD-PHM-2025-002",
+          batchNumber: "BATCH-PCM-002",
+          type: "manufacturing",
+          customerName: "Alexandria Pharmaceuticals",
+          customerCompany: "Alexandria Pharmaceuticals Ltd.",
+          targetProduct: "Paracetamol Tablets 500mg",
+          orderDate: "2025-01-20",
+          completionDate: "2025-02-18",
+          status: "completed",
+          totalCost: 32000,
+          revenue: 41600,
+          profit: 9600,
+        },
+        {
+          id: 3,
+          orderNumber: "ORD-PHM-2025-003",
+          batchNumber: "BATCH-AMX-003",
+          type: "manufacturing",
+          customerName: "MedPharma Solutions",
+          customerCompany: "MedPharma Solutions Inc.",
+          targetProduct: "Amoxicillin Capsules 250mg",
+          orderDate: "2025-02-01",
+          completionDate: "2025-03-01",
+          status: "in-progress",
+          totalCost: 68000,
+          revenue: 89000,
+          profit: 21000,
+        }
+      ];
+      res.json(orders);
+    } catch (error) {
+      console.error("Error in orders endpoint:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
   // Get production order history with batch numbers
   app.get("/api/orders/production-history", async (req: Request, res: Response) => {
     try {
