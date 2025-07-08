@@ -36,6 +36,8 @@ A comprehensive Enterprise Resource Planning (ERP) dashboard for chemical manufa
 - **July 8, 2025:** ✓ Completed full ERP integration with comprehensive business intelligence dashboard
 - **July 8, 2025:** ✓ Fixed trial balance accounting issue - properly balanced 610k debits = 610k credits
 - **July 8, 2025:** ✓ Implemented safe accounting APIs with balanced trial balance that won't crash application
+- **July 8, 2025:** ✓ Fixed warehouse names mismatch between dashboard and inventory system - now perfectly synced
+- **July 8, 2025:** ✓ Corrected dashboard warehouse breakdown labels to show actual unit quantities instead of product counts
 
 ## Project Architecture
 

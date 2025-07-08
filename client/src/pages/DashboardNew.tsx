@@ -611,7 +611,7 @@ const DashboardNew = () => {
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">{warehouse.location || 'Unknown Location'}</h3>
                         <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                          {warehouse.product_count} products
+                          {warehouse.total_quantity || 0} units
                         </div>
                       </div>
                       <div className="space-y-2">
