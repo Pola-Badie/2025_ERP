@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Package, XCircle, Calendar, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Package, XCircle, Calendar, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
+import { useState } from 'react';
 
 interface ExpiringProduct {
   id: number;
@@ -28,6 +29,7 @@ interface InventorySummary {
 
 const ExpiringProductsCard = () => {
   const [, setLocation] = useLocation();
+  const [showAll, setShowAll] = useState(false);
 
   // Function to navigate to inventory with highlight
   const navigateToProduct = (productId: number, productName: string) => {
@@ -141,7 +143,7 @@ const ExpiringProductsCard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {expiringProducts.slice(0, 5).map((product) => (
+            {(showAll ? expiringProducts : expiringProducts.slice(0, 5)).map((product) => (
               <div 
                 key={product.id} 
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md alert-card-item"
@@ -174,15 +176,34 @@ const ExpiringProductsCard = () => {
             ))}
             
             {expiringProducts.length > 5 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => setLocation('/inventory?tab=expiring')}
-              >
-                View All {expiringProducts.length} Expiring Items
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? (
+                    <>
+                      Show Less
+                      <ChevronUp className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Show All {expiringProducts.length} Items
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setLocation('/inventory?tab=expiring')}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
         )}

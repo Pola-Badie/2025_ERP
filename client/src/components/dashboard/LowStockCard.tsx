@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Package, XCircle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, Package, XCircle, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
+import { useState } from 'react';
 
 interface LowStockProduct {
   id: number;
@@ -27,6 +28,7 @@ interface InventorySummary {
 
 const LowStockCard = () => {
   const [, setLocation] = useLocation();
+  const [showAll, setShowAll] = useState(false);
 
   // Function to navigate to inventory with highlight
   const navigateToProduct = (productId: number, productName: string) => {
@@ -123,7 +125,7 @@ const LowStockCard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {lowStockProducts.slice(0, 5).map((product) => (
+            {(showAll ? lowStockProducts : lowStockProducts.slice(0, 5)).map((product) => (
               <div 
                 key={product.id} 
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md alert-card-item"
@@ -151,15 +153,34 @@ const LowStockCard = () => {
             ))}
             
             {lowStockProducts.length > 5 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => setLocation('/inventory?tab=low-stock')}
-              >
-                View All {lowStockProducts.length} Low Stock Items
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => setShowAll(!showAll)}
+                >
+                  {showAll ? (
+                    <>
+                      Show Less
+                      <ChevronUp className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Show All {lowStockProducts.length} Items
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setLocation('/inventory?tab=low-stock')}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
         )}
