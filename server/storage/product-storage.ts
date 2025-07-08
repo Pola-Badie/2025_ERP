@@ -2,7 +2,7 @@ import { BaseStorage } from "./base";
 import { IProductStorage } from "./interfaces";
 import { like, sql, count } from "drizzle-orm";
 import {
-  products, productCategories, productWarehouses, warehouses,
+  products, productCategories,
   type Product, type InsertProduct, type ProductCategory, type InsertProductCategory
 } from "@shared/schema";
 
@@ -95,49 +95,6 @@ export class ProductStorage extends BaseStorage implements IProductStorage {
 
   async deleteProductCategory(id: number): Promise<boolean> {
     return await this.deleteById(productCategories, id);
-  }
-
-  // Get products by warehouse
-  async getProductsByWarehouse(warehouseId: number): Promise<Product[]> {
-    console.log('ProductStorage: getProductsByWarehouse called with warehouseId:', warehouseId);
-    
-    try {
-      const result = await this.db
-        .select({
-          id: products.id,
-          name: products.name,
-          drugName: products.drugName,
-          categoryId: products.categoryId,
-          description: products.description,
-          sku: products.sku,
-          barcode: products.barcode,
-          costPrice: products.costPrice,
-          sellingPrice: products.sellingPrice,
-          quantity: productWarehouses.quantity,
-          unitOfMeasure: products.unitOfMeasure,
-          lowStockThreshold: products.lowStockThreshold,
-          expiryDate: products.expiryDate,
-          status: products.status,
-          productType: products.productType,
-          manufacturer: products.manufacturer,
-          location: productWarehouses.location,
-          shelf: productWarehouses.shelf,
-          imagePath: products.imagePath,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-        })
-        .from(productWarehouses)
-        .innerJoin(products, this.eq(productWarehouses.productId, products.id))
-        .where(this.eq(productWarehouses.warehouseId, warehouseId))
-        .orderBy(products.name);
-
-      console.log('ProductStorage: Found', result.length, 'products for warehouse', warehouseId);
-      console.log('ProductStorage: Sample products:', result.slice(0, 3).map(p => p.name));
-      return result as Product[];
-    } catch (error) {
-      console.error('ProductStorage: Error in getProductsByWarehouse:', error);
-      throw error;
-    }
   }
 
   // Helper methods for advanced product operations
