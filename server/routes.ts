@@ -90,24 +90,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let products;
       const { categoryId, status, warehouseId } = req.query;
       
-      console.log('Product query params:', { categoryId, status, warehouseId });
+      console.log('🔍 Product API - Query params:', { categoryId, status, warehouseId });
 
       if (warehouseId && warehouseId !== '0') {
         // Get products for specific warehouse
-        console.log('Fetching products for warehouse:', warehouseId);
+        console.log('📦 Fetching products for warehouse ID:', warehouseId);
         products = await storage.getProductsByWarehouse(Number(warehouseId));
-        console.log('Products found for warehouse:', products.length);
+        console.log('✅ Products found for warehouse:', products.length);
+        console.log('📋 Sample products:', products.slice(0, 2).map(p => p.name));
       } else if (categoryId) {
+        console.log('📂 Fetching products for category:', categoryId);
         products = await storage.getProductsByCategory(Number(categoryId));
       } else if (status) {
+        console.log('📊 Fetching products for status:', status);
         products = await storage.getProductsByStatus(status as string);
       } else {
+        console.log('📦 Fetching all products');
         products = await storage.getProducts();
       }
 
+      console.log('📤 Returning', products.length, 'products');
       res.json(products);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('❌ Error fetching products:', error);
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });

@@ -46,6 +46,7 @@ export interface IProductStorage {
   getProducts(filters?: { type?: string; status?: string; categoryId?: number }): Promise<Product[]>;
   getProductsByCategory(categoryId: number): Promise<Product[]>;
   getProductsByStatus(status: string): Promise<Product[]>;
+  getProductsByWarehouse(warehouseId: number): Promise<Product[]>;
   getLowStockProducts(): Promise<Product[]>;
   getProduct(id: number): Promise<Product | undefined>;
   getProductBySku(sku: string): Promise<Product | undefined>;
