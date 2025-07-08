@@ -18,7 +18,7 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import * as cron from "node-cron";
-import { eq, and, gte, lte, desc, count, sum, sql, max, lt, gt, not, or, isNotNull, like, asc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, count, sum, sql, max } from "drizzle-orm";
 
 // Set up multer for file uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -1775,50 +1775,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Expired & Expiring Products API (includes both expired and expiring) - FAILSAFE VERSION
+  // Expiring Products API
   app.get('/api/inventory/expiring', async (req: Request, res: Response) => {
     try {
-      // Failsafe: Return sample data that works
-      const sampleExpiringProducts = [
-        {
-          id: 8,
-          name: "Daflon 500",
-          drugName: "Diosmin/Hesperidin",
-          expiryDate: "2023-06-19",
-          currentStock: 10,
-          unitOfMeasure: "PCS",
-          categoryName: "Cardiovascular",
-          manufacturer: "Servier",
-          daysUntilExpiry: -750,
-          expiryStatus: "expired"
-        },
-        {
-          id: 9,
-          name: "Aspirin Tablets",
-          drugName: "Acetylsalicylic Acid",
-          expiryDate: "2025-08-15",
-          currentStock: 25,
-          unitOfMeasure: "PCS",
-          categoryName: "Pain Relief",
-          manufacturer: "Bayer",
-          daysUntilExpiry: 15,
-          expiryStatus: "warning"
-        },
-        {
-          id: 10,
-          name: "Vitamin C",
-          drugName: "Ascorbic Acid",
-          expiryDate: "2025-07-20",
-          currentStock: 50,
-          unitOfMeasure: "PCS",
-          categoryName: "Vitamins",
-          manufacturer: "Nature's Way",
-          daysUntilExpiry: 5,
-          expiryStatus: "critical"
-        }
-      ];
+      const today = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(today.getDate() + 30);
 
-      res.json(sampleExpiringProducts);
+      const expiringProducts = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        expiryDate: products.expiryDate,
+        currentStock: products.quantity,
+        unitOfMeasure: products.unitOfMeasure,
+        categoryName: productCategories.name,
+        manufacturer: products.manufacturer,
+        daysUntilExpiry: sql`
+          CASE 
+            WHEN ${products.expiryDate} IS NULL THEN NULL
+            ELSE ${products.expiryDate} - CURRENT_DATE
+          END
+        `,
+        expiryStatus: sql`
+          CASE 
+            WHEN ${products.expiryDate} IS NULL THEN 'no_expiry'
+            WHEN ${products.expiryDate} < CURRENT_DATE THEN 'expired'
+            WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '7 days' THEN 'critical'
+            WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '30 days' THEN 'warning'
+            ELSE 'normal'
+          END
+        `
+      })
+      .from(products)
+      .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+      .where(
+        and(
+          eq(products.status, 'active'),
+          lte(products.expiryDate, thirtyDaysFromNow.toISOString().split('T')[0])
+        )
+      )
+      .orderBy(products.expiryDate);
+
+      res.json(expiringProducts);
     } catch (error) {
       console.error('Expiring products fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch expiring products' });

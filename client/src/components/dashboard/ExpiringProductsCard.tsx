@@ -117,7 +117,7 @@ const ExpiringProductsCard = () => {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <AlertTriangle className="h-4 w-4" />
-          Expired & Expiring Products
+          Expiring Products
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="destructive" className="text-xs">
@@ -132,19 +132,11 @@ const ExpiringProductsCard = () => {
         {!expiringProducts || expiringProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-            <p>No expired or expiring products!</p>
+            <p>No products expiring soon!</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Sort products: expired first, then by days until expiry */}
-            {(Array.isArray(expiringProducts) ? expiringProducts : [])
-              .sort((a, b) => {
-                if (a.expiryStatus === 'expired' && b.expiryStatus !== 'expired') return -1;
-                if (a.expiryStatus !== 'expired' && b.expiryStatus === 'expired') return 1;
-                return (a.daysUntilExpiry || 0) - (b.daysUntilExpiry || 0);
-              })
-              .slice(0, 6)
-              .map((product) => (
+            {expiringProducts.slice(0, 5).map((product) => (
               <div 
                 key={product.id} 
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
@@ -176,14 +168,14 @@ const ExpiringProductsCard = () => {
               </div>
             ))}
             
-            {(Array.isArray(expiringProducts) ? expiringProducts : []).length > 6 && (
+            {expiringProducts.length > 5 && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="w-full"
                 onClick={() => setLocation('/inventory')}
               >
-                View All {(Array.isArray(expiringProducts) ? expiringProducts : []).length} Expired & Expiring Items
+                View All {expiringProducts.length} Expiring Items
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}
