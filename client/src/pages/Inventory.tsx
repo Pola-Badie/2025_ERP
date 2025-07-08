@@ -48,7 +48,8 @@ import {
   Search, 
   Filter, 
   MoreHorizontal, 
-  AlertCircle, 
+  AlertCircle,
+  AlertTriangle,
   Calendar,
   Pencil,
   Tag,
@@ -109,6 +110,51 @@ const Inventory: React.FC = () => {
   const [activeTab, setActiveTab] = useState('inventory');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
+  
+  // Highlight functionality for navigation from dashboard
+  const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
+  
+  // Get URL search parameters for highlighting
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightId = urlParams.get('highlight');
+    const productName = urlParams.get('product');
+    
+    if (highlightId) {
+      const productId = parseInt(highlightId);
+      setHighlightedProductId(productId);
+      
+      // If product name is provided, set it as search term to filter
+      if (productName) {
+        setSearchTerm(decodeURIComponent(productName));
+      }
+      
+      // Show toast notification
+      if (productName) {
+        toast({
+          title: "Product Located",
+          description: `Found ${decodeURIComponent(productName)} in inventory`,
+          duration: 3000,
+        });
+      }
+      
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedProductId(null);
+      }, 3000);
+      
+      // Scroll to the highlighted product after a short delay
+      setTimeout(() => {
+        const element = document.getElementById(`product-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 500);
+    }
+  }, [window.location.search, toast]);
   
   // Warehouse management
   const [warehouses, setWarehouses] = useState([
@@ -834,8 +880,35 @@ const Inventory: React.FC = () => {
                     <tbody>
                       {paginatedProducts.map((product) => {
                         const expiryStatus = getExpiryStatus(product.expiryDate);
+                        
+                        // Get row className with highlight effect
+                        const getRowClassName = () => {
+                          const baseClasses = "border-b border-slate-100 hover:bg-slate-50 transition-all duration-300";
+                          
+                          if (highlightedProductId === product.id) {
+                            return `${baseClasses} bg-red-100 border-2 border-red-300 highlight-product shadow-lg`;
+                          }
+                          
+                          // Add subtle background colors based on status
+                          if (product.quantity === 0) {
+                            return `${baseClasses} bg-red-50 border-l-4 border-red-500`;
+                          } else if (product.quantity <= (product.lowStockThreshold || 10)) {
+                            return `${baseClasses} bg-orange-50 border-l-4 border-orange-500`;
+                          } else if (expiryStatus?.status === 'Expired') {
+                            return `${baseClasses} bg-red-50 border-l-4 border-red-400`;
+                          } else if (expiryStatus?.status === 'Expiring Soon') {
+                            return `${baseClasses} bg-yellow-50 border-l-4 border-yellow-400`;
+                          }
+                          
+                          return baseClasses;
+                        };
+                        
                         return (
-                          <tr key={product.id} className="border-b border-slate-100 hover:bg-slate-50">
+                          <tr 
+                            key={product.id} 
+                            id={`product-${product.id}`}
+                            className={getRowClassName()}
+                          >
                             <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <Checkbox 
                                 checked={selectedProducts.includes(product.id)}
@@ -850,7 +923,12 @@ const Inventory: React.FC = () => {
                             </td>
                             <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <div>
-                                <div className="font-medium">{product.name}</div>
+                                <div className="font-medium flex items-center gap-2">
+                                  {product.name}
+                                  {highlightedProductId === product.id && (
+                                    <span className="text-red-600 animate-bounce">📍</span>
+                                  )}
+                                </div>
                                 <div className="text-slate-500 text-xs">{product.drugName}</div>
                               </div>
                             </td>
@@ -877,7 +955,12 @@ const Inventory: React.FC = () => {
                               ) : '-'}
                             </td>
                             <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
-                              {product.quantity} {product.unitOfMeasure}
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{product.quantity} {product.unitOfMeasure}</span>
+                                {highlightedProductId === product.id && (product.quantity === 0 || product.quantity <= (product.lowStockThreshold || 10)) && (
+                                  <span className="text-red-600 text-xs animate-pulse">⚠️</span>
+                                )}
+                              </div>
                             </td>
                             <td className={`px-4 py-3 text-slate-600 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <div className="flex flex-col">

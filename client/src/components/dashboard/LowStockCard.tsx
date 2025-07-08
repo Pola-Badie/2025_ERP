@@ -27,6 +27,11 @@ interface InventorySummary {
 
 const LowStockCard = () => {
   const [, setLocation] = useLocation();
+
+  // Function to navigate to inventory with highlight
+  const navigateToProduct = (productId: number, productName: string) => {
+    setLocation(`/inventory?highlight=${productId}&product=${encodeURIComponent(productName)}`);
+  };
   
   const { data: lowStockProducts, isLoading, error } = useQuery<LowStockProduct[]>({
     queryKey: ['low-stock-products'],
@@ -121,8 +126,8 @@ const LowStockCard = () => {
             {lowStockProducts.slice(0, 5).map((product) => (
               <div 
                 key={product.id} 
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => setLocation(`/inventory?filter=${product.id}`)}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md alert-card-item"
+                onClick={() => navigateToProduct(product.id, product.name)}
               >
                 <div className="flex items-center gap-3">
                   {getStockIcon(product.stockStatus)}
@@ -150,7 +155,7 @@ const LowStockCard = () => {
                 variant="outline" 
                 size="sm" 
                 className="w-full"
-                onClick={() => setLocation('/inventory')}
+                onClick={() => setLocation('/inventory?tab=low-stock')}
               >
                 View All {lowStockProducts.length} Low Stock Items
                 <ArrowRight className="ml-2 h-4 w-4" />

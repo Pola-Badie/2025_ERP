@@ -336,3 +336,49 @@
   }
 }
 
+/* Inventory highlight animations */
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    background-color: rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+  }
+}
+
+.highlight-product {
+  animation: highlightFade 3s ease-in-out;
+}
+
+/* Enhanced hover effects for alert cards */
+.alert-card-item {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.alert-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: #3b82f6;
+}
+
+/* Pulse animation for highlighted items */
+.highlight-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+

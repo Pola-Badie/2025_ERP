@@ -28,6 +28,11 @@ interface InventorySummary {
 
 const ExpiringProductsCard = () => {
   const [, setLocation] = useLocation();
+
+  // Function to navigate to inventory with highlight
+  const navigateToProduct = (productId: number, productName: string) => {
+    setLocation(`/inventory?highlight=${productId}&product=${encodeURIComponent(productName)}`);
+  };
   
   const { data: expiringProducts, isLoading, error } = useQuery<ExpiringProduct[]>({
     queryKey: ['expiring-products'],
@@ -139,8 +144,8 @@ const ExpiringProductsCard = () => {
             {expiringProducts.slice(0, 5).map((product) => (
               <div 
                 key={product.id} 
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => setLocation(`/inventory?filter=${product.id}`)}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md alert-card-item"
+                onClick={() => navigateToProduct(product.id, product.name)}
               >
                 <div className="flex items-center gap-3">
                   {getExpiryIcon(product.expiryStatus)}
@@ -173,7 +178,7 @@ const ExpiringProductsCard = () => {
                 variant="outline" 
                 size="sm" 
                 className="w-full"
-                onClick={() => setLocation('/inventory')}
+                onClick={() => setLocation('/inventory?tab=expiring')}
               >
                 View All {expiringProducts.length} Expiring Items
                 <ArrowRight className="ml-2 h-4 w-4" />
