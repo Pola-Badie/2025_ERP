@@ -23,9 +23,24 @@ export default defineConfig({
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(__dirname, "dist"),
     emptyOutDir: true,
+  },
+  server: {
+    host: "0.0.0.0",
+    port: 5000,
+    hmr: {
+      overlay: false,
+    },
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false,
+        timeout: 30000,
+      },
+    },
   },
 });

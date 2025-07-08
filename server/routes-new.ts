@@ -68,10 +68,10 @@ import userRoutes from "./routes-user";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register chemical-specific routes
   registerChemicalRoutes(app);
-  
+
   // Register ETA routes for Egyptian Tax Authority integration
   registerETARoutes(app);
-  
+
   // Register user and permissions routes
   app.use("/api", userRoutes);
   // Get all suppliers
@@ -225,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         }
       ];
-      
+
       res.json(sampleInvoices);
     } catch (error) {
       console.error("Error generating sample invoices:", error);
@@ -234,17 +234,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   // Create HTTP server
   const httpServer = createServer(app);
-  
+
   // Register accounting routes
   registerAccountingRoutes(app);
-  
+
   // Register customer payment routes
   registerCustomerPaymentRoutes(app);
 
   // ============= User Management Endpoints =============
 
   // Get all users
-  app.get("/api/users", async (_req: Request, res: Response) => {
+  app.get("/api/users", async (req: Request, res: Response) => {
     try {
       const result = await db.execute(sql`SELECT id, username, password, name, email, role, status, avatar, created_at, updated_at FROM users ORDER BY id`);
       const allUsers = result.rows.map(row => ({
@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
-      
+
       res.json(allUsers);
     } catch (error) {
       console.error("Users error:", error);
@@ -282,11 +282,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         avatar: users.avatar,
         createdAt: users.createdAt
       }).from(users).where(eq(users.id, id));
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch user" });
@@ -297,17 +297,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", async (req: Request, res: Response) => {
     try {
       const validatedData = insertUserSchema.parse(req.body);
-      
+
       // Check if username already exists
       const existingUser = await db.select()
         .from(users)
         .where(eq(users.username, validatedData.username))
         .limit(1);
-      
+
       if (existingUser.length > 0) {
         return res.status(400).json({ message: "Username already exists" });
       }
-      
+
       // Insert user
       const [newUser] = await db.insert(users).values(validatedData).returning({
         id: users.id,
@@ -318,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         avatar: users.avatar,
         createdAt: users.createdAt
       });
-      
+
       res.status(201).json(newUser);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -333,14 +333,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
-      
+
       // First check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, id));
-      
+
       if (!existingUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Create update schema that makes all fields optional
       const updateUserSchema = z.object({
         name: z.string().optional(),
@@ -349,9 +349,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         avatar: z.string().optional(),
         password: z.string().optional(),
       });
-      
+
       const validatedData = updateUserSchema.parse(req.body);
-      
+
       // Update user
       const [updatedUser] = await db.update(users)
         .set(validatedData)
@@ -365,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           avatar: users.avatar,
           createdAt: users.createdAt
         });
-      
+
       res.json(updatedUser);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -380,17 +380,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/users/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
-      
+
       // Check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, id));
-      
+
       if (!existingUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Delete user
       await db.delete(users).where(eq(users.id, id));
-      
+
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
       console.error("Delete user error:", error);
@@ -404,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/:id/permissions", async (req: Request, res: Response) => {
     try {
       const userId = Number(req.params.id);
-      
+
       // Check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
       if (!existingUser) {
@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         moduleName: userPermissions.moduleName,
         accessGranted: userPermissions.accessGranted,
       }).from(userPermissions).where(eq(userPermissions.userId, userId));
-      
+
       res.json(userPermissionsList);
     } catch (error) {
       console.error("Get user permissions error:", error);
@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = Number(req.params.id);
       const { moduleName, accessGranted } = req.body;
-      
+
       // Check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
       if (!existingUser) {
@@ -462,7 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .values({ userId, moduleName, accessGranted })
           .returning();
       }
-      
+
       res.status(201).json(permission);
     } catch (error) {
       console.error("Add user permission error:", error);
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = Number(req.params.id);
       const moduleName = req.params.moduleName;
       const { accessGranted } = req.body;
-      
+
       // Check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
       if (!existingUser) {
@@ -503,7 +503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(userPermissions.moduleName, moduleName)
         ))
         .returning();
-      
+
       res.json(updatedPermission);
     } catch (error) {
       console.error("Update user permission error:", error);
@@ -516,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = Number(req.params.id);
       const moduleName = req.params.moduleName;
-      
+
       // Check if user exists
       const [existingUser] = await db.select().from(users).where(eq(users.id, userId));
       if (!existingUser) {
@@ -529,7 +529,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(userPermissions.userId, userId),
           eq(userPermissions.moduleName, moduleName)
         ));
-      
+
       res.status(204).send();
     } catch (error) {
       console.error("Delete user permission error:", error);
@@ -538,7 +538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= File Upload Endpoints =============
-  
+
   // Logo upload endpoint
   app.post("/api/upload-logo", upload.single("image"), async (req: any, res: Response) => {
     try {
@@ -556,7 +556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate URL for the uploaded file
       const fileUrl = `/uploads/${req.file.filename}`;
-      
+
       res.json({
         url: fileUrl,
         filename: req.file.filename,
@@ -571,7 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Dashboard Endpoints =============
-  
+
   // API endpoint for dashboard summary data
   app.get("/api/dashboard/summary", async (_req: Request, res: Response) => {
     try {
@@ -579,32 +579,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [customersResult] = await db.select({ 
         count: count() 
       }).from(customers);
-      
+
       // Get customers added in last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
+
       const [newCustomersResult] = await db.select({ 
         count: count() 
       }).from(customers).where(gte(customers.createdAt, thirtyDaysAgo));
-      
+
       // Get today's sales
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const [todaySalesResult] = await db.select({ 
         total: sum(sales.totalAmount) 
       }).from(sales).where(gte(sales.date, today));
-      
+
       // Get current month sales
       const firstDayOfMonth = new Date();
       firstDayOfMonth.setDate(1);
       firstDayOfMonth.setHours(0, 0, 0, 0);
-      
+
       const [monthSalesResult] = await db.select({ 
         total: sum(sales.totalAmount) 
       }).from(sales).where(gte(sales.date, firstDayOfMonth));
-      
+
       // Get low stock products (exclude expired products from low stock alerts)
       const lowStockProducts = await db.select({
         id: products.id,
@@ -618,11 +618,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sql`(${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock') AND ${products.status} != 'expired'`
       )
       .limit(5);
-      
+
       // Get expiring products
       const expiryLimit = new Date();
       expiryLimit.setDate(expiryLimit.getDate() + 90); // next 90 days
-      
+
       const expiringProducts = await db.select({
         id: products.id,
         name: products.name,
@@ -636,13 +636,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       )
       .orderBy(products.expiryDate)
       .limit(5);
-      
+
       // Format the response
       const totalCustomers = Number(customersResult.count) || 0;
       const newCustomers = Number(newCustomersResult.count) || 0;
       const todaySales = Number(todaySalesResult.total) || 0;
       const monthSales = Number(monthSalesResult.total) || 0;
-      
+
       res.json({
         totalCustomers,
         newCustomers,
@@ -658,12 +658,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Product Endpoints =============
-  
+
   // Get detailed product information including sales and customer data
   app.get("/api/products/:id/details", async (req: Request, res: Response) => {
     try {
       const productId = parseInt(req.params.id);
-      
+
       // Get product details
       const [product] = await db.select().from(products).where(eq(products.id, productId));
       if (!product) {
@@ -720,7 +720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const expiry = new Date(product.expiryDate);
         const diffTime = expiry.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         expiryInfo = {
           expiryDate: product.expiryDate,
           daysUntilExpiry: diffDays,
@@ -745,12 +745,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch product details" });
     }
   });
-  
+
   // Get all products
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
       const { categoryId, status } = req.query;
-      
+
       let whereConditions = [];
       if (categoryId) {
         whereConditions.push(eq(products.categoryId, Number(categoryId)));
@@ -775,11 +775,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = Number(req.params.id);
       const [product] = await db.select().from(products).where(eq(products.id, id));
-      
+
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       res.json(product);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch product" });
@@ -799,12 +799,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : 10,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       });
-      
+
       // Add image path if uploaded
       if (req.file) {
         validatedData.imagePath = req.file.path;
       }
-      
+
       // Insert into database
       const [product] = await db.insert(products).values([validatedData]).returning();
       res.status(201).json(product);
@@ -818,7 +818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Category Endpoints =============
-  
+
   // Get all categories
   app.get("/api/categories", async (_req: Request, res: Response) => {
     try {
@@ -842,53 +842,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create category" });
     }
   });
-  
+
   // Update category
   app.patch("/api/categories/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const { name, description } = req.body;
-      
+
       // Validate the data
       if (!name) {
         return res.status(400).json({ message: "Category name is required" });
       }
-      
+
       // Check if category exists
       const [existingCategory] = await db.select().from(productCategories).where(eq(productCategories.id, id));
-      
+
       if (!existingCategory) {
         return res.status(404).json({ message: "Category not found" });
       }
-      
+
       // Update category
       const [updatedCategory] = await db.update(productCategories)
         .set({ name, description })
         .where(eq(productCategories.id, id))
         .returning();
-      
+
       res.json(updatedCategory);
     } catch (error) {
       console.error("Update category error:", error);
       res.status(500).json({ message: "Failed to update category" });
     }
   });
-  
+
   // Delete category
   app.delete("/api/categories/:id", async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
-      
+
       // Check if category exists
       const [existingCategory] = await db.select().from(productCategories).where(eq(productCategories.id, id));
-      
+
       if (!existingCategory) {
         return res.status(404).json({ message: "Category not found" });
       }
-      
+
       // Delete category
       await db.delete(productCategories).where(eq(productCategories.id, id));
-      
+
       res.status(200).json({ message: "Category deleted successfully" });
     } catch (error) {
       console.error("Delete category error:", error);
@@ -897,7 +897,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Customer Endpoints =============
-  
+
   // Get all customers
   app.get("/api/customers", async (_req: Request, res: Response) => {
     try {
@@ -961,25 +961,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Sales Endpoints =============
-  
+
   // Get all sales
   app.get("/api/sales", async (req: Request, res: Response) => {
     try {
       let salesQuery = db.select().from(sales);
-      
+
       const { customerId, startDate, endDate } = req.query;
-      
+
       if (customerId) {
         salesQuery = salesQuery.where(eq(sales.customerId, Number(customerId)));
       } 
-      
+
       if (startDate && endDate) {
         salesQuery = salesQuery.where(and(
           gte(sales.date, new Date(startDate as string)),
           lte(sales.date, new Date(endDate as string))
         ));
       }
-      
+
       const result = await salesQuery.orderBy(desc(sales.date));
       res.json(result);
     } catch (error) {
@@ -992,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/sales", async (req: Request, res: Response) => {
     try {
       const { sale, items } = req.body;
-      
+
       // Validate sale data
       const validatedSale = insertSaleSchema.parse({
         ...sale,
@@ -1002,10 +1002,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discount: sale.discount || "0",
         tax: sale.tax || "0"
       });
-      
+
       // Insert sale
       const [createdSale] = await db.insert(sales).values(validatedSale).returning();
-      
+
       // Insert sale items
       for (const item of items) {
         const validatedItem = insertSaleItemSchema.parse({
@@ -1017,9 +1017,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           discount: item.discount || "0",
           total: item.total
         });
-        
+
         await db.insert(saleItems).values(validatedItem);
-        
+
         // Update product stock
         await db.update(products)
           .set({ 
@@ -1027,7 +1027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .where(eq(products.id, validatedItem.productId));
       }
-      
+
       res.status(201).json(createdSale);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1039,12 +1039,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Quotations Endpoints =============
-  
+
   // Get quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
       const { query, status, type, date } = req.query;
-      
+
       // Generate realistic pharmaceutical quotations based on your business operations
       const quotations = [
         // Manufacturing Quotations
@@ -1104,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           ]
         },
-        
+
         // Refining Quotations
         {
           id: 3,
@@ -1162,7 +1162,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           ]
         },
-        
+
         // Finished Products Quotations
         {
           id: 5,
@@ -1351,7 +1351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Here you would typically save to database
       // For now, we'll return the created quotation
-      
+
       res.status(201).json({
         success: true,
         quotation: newQuotation,
@@ -1369,7 +1369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Expenses Endpoints =============
-  
+
   // Get expenses
   app.get("/api/expenses", async (_req: Request, res: Response) => {
     try {
@@ -1588,7 +1588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           costCenter: "Regulatory"
         }
       ];
-      
+
       res.json(expenses);
     } catch (error) {
       console.error("Get expenses error:", error);
@@ -1597,21 +1597,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= System Preferences Endpoints =============
-  
+
   // Middleware to check admin role
   const isAdmin = (req: Request, res: Response, next: Function) => {
     // Check if user is authenticated and is an admin
     // For now, we'll just pass through since auth isn't fully implemented
     // In production, use JWT token verification
-    
+
     // Example:
     // if (!req.user || req.user.role !== 'admin') {
     //   return res.status(403).json({ message: "Access denied. Admin privileges required." });
     // }
-    
+
     next();
   };
-  
+
   // Get all system preferences
   app.get("/api/system-preferences", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1622,7 +1622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch system preferences" });
     }
   });
-  
+
   // Get system preferences by category
   app.get("/api/system-preferences/category/:category", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1635,25 +1635,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch system preferences" });
     }
   });
-  
+
   // Get a specific system preference
   app.get("/api/system-preferences/:key", isAdmin, async (req: Request, res: Response) => {
     try {
       const key = req.params.key;
       const [preference] = await db.select().from(systemPreferences)
         .where(eq(systemPreferences.key, key));
-      
+
       if (!preference) {
         return res.status(404).json({ message: "System preference not found" });
       }
-      
+
       res.json(preference);
     } catch (error) {
       console.error("System preference error:", error);
       res.status(500).json({ message: "Failed to fetch system preference" });
     }
   });
-  
+
   // Create a new system preference
   app.post("/api/system-preferences", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1668,22 +1668,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create system preference" });
     }
   });
-  
+
   // Update a system preference
   app.patch("/api/system-preferences/:key", isAdmin, async (req: Request, res: Response) => {
     try {
       const key = req.params.key;
       const { value } = updateSystemPreferenceSchema.parse(req.body);
-      
+
       const [preference] = await db.update(systemPreferences)
         .set({ value })
         .where(eq(systemPreferences.key, key))
         .returning();
-      
+
       if (!preference) {
         return res.status(404).json({ message: "System preference not found" });
       }
-      
+
       res.json(preference);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1693,9 +1693,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update system preference" });
     }
   });
-  
+
   // ============= Role Permissions Endpoints =============
-  
+
   // Get permissions for a role
   app.get("/api/role-permissions/:role", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1708,7 +1708,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch role permissions" });
     }
   });
-  
+
   // Create a new role permission
   app.post("/api/role-permissions", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1723,7 +1723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create role permission" });
     }
   });
-  
+
   // Delete a role permission
   app.delete("/api/role-permissions/:id", isAdmin, async (req: Request, res: Response) => {
     try {
@@ -1737,11 +1737,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Login Logs Endpoints =============
-  
+
   // Get login logs
   app.get("/api/login-logs", isAdmin, async (req: Request, res: Response) => {
     try {
-      const limit = req.query.limit ? Number(req.query.limit) : 100;
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
       const logs = await db.select().from(loginLogs)
         .orderBy(desc(loginLogs.timestamp))
         .limit(limit);
@@ -1751,7 +1751,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch login logs" });
     }
   });
-  
+
   // Create login log
   app.post("/api/login-logs", async (req: Request, res: Response) => {
     try {
@@ -1894,7 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= CRITICAL MISSING APIs =============
-  
+
   // Auth Check API for session management
   app.get('/api/auth/check', (req: Request, res: Response) => {
     if (req.session && req.session.userId) {
@@ -1915,17 +1915,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get invoice statistics from sales table
       const invoices = await db.select().from(sales);
-      
+
       const outstandingInvoices = invoices
         .filter(invoice => invoice.status !== 'paid')
         .reduce((sum, invoice) => sum + (Number(invoice.totalAmount) || 0), 0);
-      
+
       const pendingInvoiceCount = invoices.filter(invoice => invoice.status !== 'paid').length;
-      
+
       // Calculate monthly revenue for current month
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
-      
+
       const monthlyRevenue = invoices
         .filter(invoice => {
           const invoiceDate = new Date(invoice.saleDate);
@@ -1938,7 +1938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pendingOrders = purchaseOrdersList
         .filter(order => order.status === 'pending')
         .reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0);
-      
+
       const orderCount = purchaseOrdersList.filter(order => order.status === 'pending').length;
 
       // Calculate realistic financial metrics
@@ -1965,7 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= SAFE ACCOUNTING APIs - Won't Crash =============
-  
+
   // SIMPLE TRIAL BALANCE API - Perfectly Balanced
   app.get('/api/accounting/trial-balance', async (req: Request, res: Response) => {
     try {
@@ -2120,9 +2120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { reportType } = req.params;
       const { startDate, endDate, accountFilter } = req.query;
-      
+
       let reportData;
-      
+
       switch (reportType) {
         case 'trial-balance':
           // Simple hardcoded trial balance data with filtering
@@ -2155,7 +2155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const totalDebits = filteredAccounts.reduce((sum, acc) => sum + acc.debit, 0);
           const totalCredits = filteredAccounts.reduce((sum, acc) => sum + acc.credit, 0);
-          
+
           reportData = {
             title: `Trial Balance Report${filter && filter !== 'all' ? ` - ${filter}` : ''}`,
             headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
@@ -2173,11 +2173,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           break;
-          
+
         case 'profit-loss':
           const plResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/profit-loss`);
           const profitLoss = await plResponse.json();
-          
+
           reportData = {
             title: "Profit & Loss Statement",
             headers: ["Account", "Amount"],
@@ -2194,11 +2194,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           break;
-          
+
         case 'balance-sheet':
           const bsResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/balance-sheet`);
           const balanceSheetData = await bsResponse.json();
-          
+
           reportData = {
             title: "Balance Sheet",
             headers: ["Account", "Amount"],
@@ -2221,11 +2221,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           break;
-          
+
         case 'chart-of-accounts':
           const coaResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/chart-of-accounts`);
           const chartOfAccounts = await coaResponse.json();
-          
+
           reportData = {
             title: "Chart of Accounts",
             headers: ["Account Code", "Account Name", "Account Type", "Status"],
@@ -2241,11 +2241,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           break;
-          
+
         case 'journal-entries':
           const jeResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/journal-entries`);
           const journalEntries = await jeResponse.json();
-          
+
           reportData = {
             title: "Journal Entries Report",
             headers: ["Entry #", "Date", "Description", "Debit", "Credit", "Status"],
@@ -2264,11 +2264,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           };
           break;
-          
+
         default:
           return res.status(400).json({ error: 'Invalid report type' });
       }
-      
+
       res.json({
         reportType,
         generatedAt: new Date().toISOString(),
@@ -2279,7 +2279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filter: accountFilter || 'all',
         data: reportData
       });
-      
+
     } catch (error) {
       console.error('Report generation error:', error);
       res.status(500).json({ error: 'Failed to generate report' });
@@ -2294,17 +2294,17 @@ async function setupAutomaticBackups() {
   try {
     // Get current settings
     const [settings] = await db.select().from(backupSettings).limit(1);
-    
+
     if (!settings) {
       console.log("No backup settings found, skipping automatic backup setup");
       return;
     }
-    
+
     // Cancel any existing backup jobs
     for (const job of Object.values(cronJobs)) {
       if (job) job.stop();
     }
-    
+
     // Set up daily backup if enabled
     if (settings.dailyBackup) {
       const [hour, minute] = settings.backupTime.split(':');
@@ -2317,7 +2317,7 @@ async function setupAutomaticBackups() {
         }
       });
     }
-    
+
     // Set up weekly backup if enabled
     if (settings.weeklyBackup) {
       const [hour, minute] = settings.backupTime.split(':');
@@ -2330,7 +2330,7 @@ async function setupAutomaticBackups() {
         }
       });
     }
-    
+
     // Set up monthly backup if enabled
     if (settings.monthlyBackup) {
       const [hour, minute] = settings.backupTime.split(':');
@@ -2347,3 +2347,31 @@ async function setupAutomaticBackups() {
     console.error('Failed to setup automatic backups:', error);
   }
 }
+// Get users
+  app.get("/api/users", async (req: Request, res: Response) => {
+    try {
+      const allUsers = await db.select().from(users);
+      console.log("API GET request to /api/users:", allUsers);
+      res.json(allUsers || []);
+    } catch (error) {
+      console.error("Users error:", error);
+      console.log("API GET request to /api/users:", null);
+      res.status(500).json({ message: "Failed to fetch users", error: error.message });
+    }
+  });
+// Get user permissions
+  app.get("/api/users/:id/permissions", async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.params.id);
+      const userPermissions = await db.select()
+        .from(userPermissions)
+        .where(eq(userPermissions.userId, userId));
+
+      console.log("API GET request to /api/users/:id/permissions:", userPermissions);
+      res.json(userPermissions || []);
+    } catch (error) {
+      console.error("User permissions error:", error);
+      console.log("API GET request to /api/users/:id/permissions:", null);
+      res.status(500).json({ message: "Failed to fetch user permissions", error: error.message });
+    }
+  });
