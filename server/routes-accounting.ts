@@ -53,11 +53,10 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 
-  // Get trial balance with corrected accounting calculations
+  // Get trial balance
   app.get("/api/accounting/trial-balance", async (_req: Request, res: Response) => {
     try {
-      // Get all active accounts
-      const accountsList = await db
+      const accountsWithBalances = await db
         .select({
           id: accounts.id,
           code: accounts.code,
@@ -68,96 +67,43 @@ export function registerAccountingRoutes(app: Express) {
         .from(accounts)
         .where(eq(accounts.isActive, true));
 
-      const trialBalance = [];
+      // Calculate totals
       let totalDebits = 0;
       let totalCredits = 0;
 
-      for (const account of accountsList) {
-        // Calculate balance for each account from journal entries  
-        const balanceResult = await db
-          .select({
-            totalDebits: sql`COALESCE(SUM(CAST(${journalLines.debit} AS DECIMAL)), 0)`,
-            totalCredits: sql`COALESCE(SUM(CAST(${journalLines.credit} AS DECIMAL)), 0)`
-          })
-          .from(journalLines)
-          .where(eq(journalLines.accountId, account.id));
-
-        const debits = parseFloat(balanceResult[0]?.totalDebits?.toString() || '0');
-        const credits = parseFloat(balanceResult[0]?.totalCredits?.toString() || '0');
+      const trialBalance = accountsWithBalances.map(account => {
+        const balance = parseFloat(account.balance || '0');
+        const isDebitNormal = ['Asset', 'Expense'].includes(account.type);
         
-        // For debugging - if no journal entries exist, use account balance as fallback
-        let netBalance = debits - credits;
-        if (debits === 0 && credits === 0 && account.balance) {
-          // Fallback to account balance if no journal entries
-          const accountBalance = parseFloat(account.balance || '0');
-          if (['Asset', 'Expense'].includes(account.type)) {
-            netBalance = accountBalance; // Positive balance for Asset/Expense accounts
+        if (balance > 0) {
+          if (isDebitNormal) {
+            totalDebits += balance;
+            return { ...account, debit: balance, credit: 0 };
           } else {
-            netBalance = -accountBalance; // Negative balance for Liability/Equity/Revenue accounts (credit normal)
+            totalCredits += balance;
+            return { ...account, debit: 0, credit: balance };
+          }
+        } else if (balance < 0) {
+          if (isDebitNormal) {
+            totalCredits += Math.abs(balance);
+            return { ...account, debit: 0, credit: Math.abs(balance) };
+          } else {
+            totalDebits += Math.abs(balance);
+            return { ...account, debit: Math.abs(balance), credit: 0 };
           }
         }
-
-        // Determine if balance should be debit or credit based on account type
-        let debitBalance = 0;
-        let creditBalance = 0;
-
-        if (['Asset', 'Expense'].includes(account.type)) {
-          // Assets and Expenses have normal debit balances
-          if (netBalance >= 0) {
-            debitBalance = netBalance;
-            totalDebits += netBalance;
-          } else {
-            creditBalance = Math.abs(netBalance);
-            totalCredits += Math.abs(netBalance);
-          }
-        } else {
-          // Liabilities, Equity, Revenue have normal credit balances  
-          if (netBalance <= 0) {
-            creditBalance = Math.abs(netBalance);
-            totalCredits += Math.abs(netBalance);
-          } else {
-            debitBalance = netBalance;
-            totalDebits += netBalance;
-          }
-        }
-
-        // Only include accounts with non-zero balances
-        if (debitBalance > 0 || creditBalance > 0) {
-          trialBalance.push({
-            id: account.id,
-            code: account.code,
-            name: account.name,
-            type: account.type,
-            debitBalance: debitBalance.toFixed(2),
-            creditBalance: creditBalance.toFixed(2),
-            debit: debitBalance,
-            credit: creditBalance
-          });
-        }
-      }
-
-      // Add totals row
-      const totalsRow = {
-        id: null,
-        code: '',
-        name: 'TOTAL',
-        type: 'Total',
-        debitBalance: totalDebits.toFixed(2),
-        creditBalance: totalCredits.toFixed(2),
-        debit: totalDebits,
-        credit: totalCredits
-      };
+        
+        return { ...account, debit: 0, credit: 0 };
+      });
 
       res.json({
         accounts: trialBalance,
-        totals: totalsRow,
-        totalDebits: totalDebits.toFixed(2),
-        totalCredits: totalCredits.toFixed(2),
-        difference: (totalDebits - totalCredits).toFixed(2),
+        totalDebits,
+        totalCredits,
         isBalanced: Math.abs(totalDebits - totalCredits) < 0.01
       });
     } catch (error) {
-      console.error("Trial balance calculation error:", error);
+      console.error("Error generating trial balance:", error);
       res.status(500).json({ error: "Failed to generate trial balance" });
     }
   });
