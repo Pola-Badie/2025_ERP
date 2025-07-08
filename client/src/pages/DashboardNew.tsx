@@ -48,6 +48,15 @@ interface DashboardSummary {
   expiringProducts: Product[];
 }
 
+interface InventorySummary {
+  totalProducts: number;
+  lowStockCount: string | number;
+  outOfStockCount: string | number;
+  expiringCount: string | number;
+  expiredCount: string | number;
+  totalInventoryValue: string | number;
+}
+
 interface Product {
   id: number;
   name: string;
@@ -90,6 +99,11 @@ const DashboardNew = () => {
   // Fetch comprehensive accounting overview for enhanced dashboard metrics
   const { data: accountingOverview, isLoading: isOverviewLoading } = useQuery<any>({
     queryKey: ['/api/accounting/overview'],
+  });
+
+  // Fetch inventory summary for real inventory value
+  const { data: inventorySummary, isLoading: isInventoryLoading } = useQuery<InventorySummary>({
+    queryKey: ['/api/inventory/summary'],
   });
 
   // Fetch detailed product information when a product is selected
@@ -230,10 +244,10 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isAccountingLoading ? "..." : `EGP ${(accountingSummary?.totalAssets || 125000)?.toLocaleString()}`}
+              {isInventoryLoading ? "..." : `EGP ${Math.round(inventorySummary?.totalInventoryValue || 0)?.toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total inventory assets
+              Total inventory assets ({inventorySummary?.totalProducts || 0} products)
             </p>
           </CardContent>
         </Card>
@@ -248,10 +262,10 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : dashboardData?.totalCustomers?.toLocaleString() || "1,284"}
+              {isLoading ? "..." : dashboardData?.totalCustomers?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-muted-foreground">
-              +{dashboardData?.newCustomers || 12} new this month
+              +{dashboardData?.newCustomers || 0} new this month
             </p>
           </CardContent>
           <CardFooter className="p-2">
@@ -269,7 +283,7 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
-              {isLoading ? "..." : `EGP ${dashboardData?.todaySales?.toLocaleString() || "2,500"}`}
+              {isLoading ? "..." : `EGP ${dashboardData?.todaySales?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs mt-1">Daily</p>
           </CardContent>
@@ -282,7 +296,7 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
-              {isLoading ? "..." : `EGP ${dashboardData?.monthSales?.toLocaleString() || "12,500"}`}
+              {isLoading ? "..." : `EGP ${dashboardData?.monthSales?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs mt-1">Monthly</p>
           </CardContent>

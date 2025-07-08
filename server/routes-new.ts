@@ -1881,6 +1881,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `),
         expiredCount: sum(sql`
           CASE WHEN ${products.expiryDate} < CURRENT_DATE AND ${products.expiryDate} IS NOT NULL THEN 1 ELSE 0 END
+        `),
+        totalInventoryValue: sum(sql`
+          ${products.quantity} * COALESCE(${products.costPrice}, 0)
         `)
       })
       .from(products)
