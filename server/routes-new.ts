@@ -2347,31 +2347,3 @@ async function setupAutomaticBackups() {
     console.error('Failed to setup automatic backups:', error);
   }
 }
-// Get users
-  app.get("/api/users", async (req: Request, res: Response) => {
-    try {
-      const allUsers = await db.select().from(users);
-      console.log("API GET request to /api/users:", allUsers);
-      res.json(allUsers || []);
-    } catch (error) {
-      console.error("Users error:", error);
-      console.log("API GET request to /api/users:", null);
-      res.status(500).json({ message: "Failed to fetch users", error: error.message });
-    }
-  });
-// Get user permissions
-  app.get("/api/users/:id/permissions", async (req: Request, res: Response) => {
-    try {
-      const userId = Number(req.params.id);
-      const userPermissions = await db.select()
-        .from(userPermissions)
-        .where(eq(userPermissions.userId, userId));
-
-      console.log("API GET request to /api/users/:id/permissions:", userPermissions);
-      res.json(userPermissions || []);
-    } catch (error) {
-      console.error("User permissions error:", error);
-      console.log("API GET request to /api/users/:id/permissions:", null);
-      res.status(500).json({ message: "Failed to fetch user permissions", error: error.message });
-    }
-  });
