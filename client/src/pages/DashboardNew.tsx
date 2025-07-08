@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -73,6 +74,7 @@ interface Product {
 // Real data for charts from API endpoints
 
 const DashboardNew = () => {
+  const [, setLocation] = useLocation();
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
@@ -161,7 +163,7 @@ const DashboardNew = () => {
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">MONTHLY REVENUE</CardTitle>
             <DollarSign className="h-4 w-4 text-white opacity-80" />
@@ -174,7 +176,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
             <TrendingUp className="h-4 w-4 text-white opacity-80" />
@@ -187,7 +189,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/invoices'}>
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/invoices')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
             <Receipt className="h-4 w-4 text-white opacity-80" />
@@ -200,7 +202,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/orders'}>
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/orders')}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
@@ -216,7 +218,7 @@ const DashboardNew = () => {
 
       {/* Financial Integration Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/expenses'}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/expenses')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">MONTHLY EXPENSES</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
@@ -231,7 +233,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CASH BALANCE</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -246,7 +248,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">PAYMENTS RECEIVED</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
