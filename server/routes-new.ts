@@ -1904,6 +1904,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Warehouse Breakdown API for inventory popup
+  app.get('/api/inventory/warehouse-breakdown', async (req: Request, res: Response) => {
+    try {
+      // Use raw SQL for better compatibility
+      const warehouseBreakdown = await db.execute(sql`
+        SELECT 
+          location,
+          COUNT(*) as product_count,
+          SUM(quantity) as total_quantity,
+          SUM(quantity * COALESCE(cost_price, 0)) as total_cost_value,
+          SUM(quantity * COALESCE(selling_price, 0)) as total_selling_value,
+          ROUND(
+            SUM(quantity * COALESCE(cost_price, 0)) / NULLIF(SUM(quantity), 0), 2
+          ) as avg_unit_cost
+        FROM products 
+        WHERE quantity > 0 
+        GROUP BY location 
+        ORDER BY SUM(quantity * COALESCE(cost_price, 0)) DESC
+      `);
+
+      res.json(warehouseBreakdown.rows);
+    } catch (error) {
+      console.error('Warehouse breakdown error:', error);
+      res.status(500).json({ error: 'Failed to fetch warehouse breakdown' });
+    }
+  });
+
   // ============= CRITICAL MISSING APIs =============
 
   // Auth Check API for session management

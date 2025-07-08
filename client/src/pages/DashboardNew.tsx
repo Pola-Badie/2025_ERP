@@ -89,6 +89,7 @@ const salesData = [
 const DashboardNew = () => {
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
@@ -108,6 +109,12 @@ const DashboardNew = () => {
   // Fetch inventory summary for real inventory value
   const { data: inventorySummary, isLoading: isInventoryLoading } = useQuery<InventorySummary>({
     queryKey: ['/api/inventory/summary'],
+  });
+
+  // Fetch warehouse breakdown data
+  const { data: warehouseBreakdown, isLoading: isWarehouseLoading } = useQuery<any[]>({
+    queryKey: ['/api/inventory/warehouse-breakdown'],
+    enabled: showInventoryBreakdown,
   });
 
   // Fetch detailed product information when a product is selected
@@ -241,7 +248,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/inventory'}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowInventoryBreakdown(true)}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">INVENTORY VALUE</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
@@ -539,6 +546,100 @@ const DashboardNew = () => {
         <ExpiringProductsCard />
         <LowStockCard />
       </div>
+
+      {/* Inventory Breakdown Dialog */}
+      <Dialog open={showInventoryBreakdown} onOpenChange={setShowInventoryBreakdown}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <div className="bg-gradient-to-r from-green-600 to-blue-700 text-white p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Package className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <span className="text-2xl font-bold">Inventory Value Breakdown</span>
+                    <p className="text-blue-100 text-sm font-normal">Real-time warehouse inventory analysis</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowInventoryBreakdown(false)}
+                  className="h-10 w-10 p-0 text-white hover:bg-white/20"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          
+          <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
+            {isWarehouseLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <span className="text-lg text-gray-600">Loading warehouse breakdown...</span>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Total Summary Card */}
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Cost Value</p>
+                      <p className="text-2xl font-bold text-blue-900">EGP {Math.round(Number(inventorySummary?.totalInventoryValue) || 0)?.toLocaleString()}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Selling Value</p>
+                      <p className="text-2xl font-bold text-green-900">EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Products</p>
+                      <p className="text-2xl font-bold text-purple-900">{inventorySummary?.totalProducts || 0}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600">Total Quantity</p>
+                      <p className="text-2xl font-bold text-orange-900">{inventorySummary?.totalQuantity || 0}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warehouse Breakdown Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {warehouseBreakdown?.map((warehouse, index) => (
+                    <div key={warehouse.location || index} className="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{warehouse.location || 'Unknown Location'}</h3>
+                        <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                          {warehouse.product_count} products
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Cost Value:</span>
+                          <span className="font-semibold text-blue-600">EGP {Math.round(Number(warehouse.total_cost_value) || 0)?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Selling Value:</span>
+                          <span className="font-semibold text-green-600">EGP {Math.round(Number(warehouse.total_selling_value) || 0)?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Total Quantity:</span>
+                          <span className="font-semibold text-gray-900">{warehouse.total_quantity || 0} units</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Avg Unit Cost:</span>
+                          <span className="font-medium text-gray-700">EGP {warehouse.avg_unit_cost || '0'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Enhanced Product Details Dialog */}
       <Dialog open={!!selectedProductId} onOpenChange={() => setSelectedProductId(null)}>
