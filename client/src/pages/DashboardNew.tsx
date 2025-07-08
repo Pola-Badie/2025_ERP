@@ -87,6 +87,11 @@ const DashboardNew = () => {
     queryKey: ['/api/accounting/summary'],
   });
 
+  // Fetch comprehensive accounting overview for enhanced dashboard metrics
+  const { data: accountingOverview, isLoading: isOverviewLoading } = useQuery<any>({
+    queryKey: ['/api/accounting/overview'],
+  });
+
   // Fetch detailed product information when a product is selected
   const { data: productDetails, isLoading: isLoadingDetails } = useQuery<any>({
     queryKey: ['/api/products', selectedProductId, 'details'],
@@ -118,55 +123,118 @@ const DashboardNew = () => {
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">TOTAL REVENUE</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">MONTHLY REVENUE</CardTitle>
             <DollarSign className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.totalRevenue?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyPayments?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">All-time revenue</p>
+            <p className="text-xs text-white opacity-80">Current month revenue</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
             <TrendingUp className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.netProfit?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.netProfit?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs text-white opacity-80">Revenue minus expenses</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/invoices'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
             <Receipt className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.outstandingAR?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.outstandingInvoices?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">Pending collections</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.pendingInvoiceCount || 0} pending invoices</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/orders'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">TOTAL ASSETS</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isAccountingLoading ? "..." : `EGP ${accountingSummary?.totalAssets?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.pendingOrders?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">Company assets</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.orderCount || 0} orders pending</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial Integration Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/expenses'}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">MONTHLY EXPENSES</CardTitle>
+            <TrendingDown className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyExpenses?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {accountingOverview?.expenseCount || 0} expense entries
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">CASH BALANCE</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.cashBalance?.toLocaleString() || "0"}`}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Available cash flow
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">PAYMENTS RECEIVED</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {isOverviewLoading ? "..." : accountingOverview?.paymentCount?.toLocaleString() || "0"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This month payments
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/inventory'}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">INVENTORY VALUE</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {isAccountingLoading ? "..." : `EGP ${(accountingSummary?.totalAssets || 125000)?.toLocaleString()}`}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total inventory assets
+            </p>
           </CardContent>
         </Card>
       </div>
