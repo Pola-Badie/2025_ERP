@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,6 +39,7 @@ const loginSchema = z.object({
 const Login: React.FC = () => {
   const [, navigate] = useLocation();
   const { login } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -71,15 +74,20 @@ const Login: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-md w-full space-y-6">
+        {/* Language Toggle */}
+        <div className="flex justify-end">
+          <LanguageToggle />
+        </div>
+        
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4">
             <ShieldIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Premier Chemical ERP</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('login.subtitle')}</p>
         </div>
 
         {/* Success Alert */}
@@ -101,9 +109,9 @@ const Login: React.FC = () => {
         {/* Main Login Card */}
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl text-center">Welcome Back</CardTitle>
+            <CardTitle className="text-xl text-center">{t('login.welcomeBack')}</CardTitle>
             <p className="text-sm text-muted-foreground text-center">
-              Sign in to your Premier ERP account
+              {t('login.signInPrompt')}
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -115,13 +123,13 @@ const Login: React.FC = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('login.email')}</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <UserIcon className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400`} />
                           <Input 
-                            placeholder="Enter your email" 
-                            className="pl-10"
+                            placeholder={t('login.emailPlaceholder')} 
+                            className={isRTL ? 'pr-10' : 'pl-10'}
                             {...field} 
                           />
                         </div>
@@ -136,20 +144,20 @@ const Login: React.FC = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('login.password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input 
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter your password" 
-                            className="pr-10"
+                            placeholder={t('login.passwordPlaceholder')} 
+                            className={isRTL ? 'pl-10' : 'pr-10'}
                             {...field} 
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-0 h-full px-3 py-2 hover:bg-transparent`}
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
@@ -171,21 +179,21 @@ const Login: React.FC = () => {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <LoaderIcon className="w-4 h-4 mr-2 animate-spin" />
+                    <LoaderIcon className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'} animate-spin`} />
                   ) : (
-                    <LogInIcon className="w-4 h-4 mr-2" />
+                    <LogInIcon className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   )}
-                  Sign In
+                  {t('login.signInButton')}
                 </Button>
               </form>
             </Form>
 
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground">
-              <p>Secure Premier ERP system</p>
+              <p>{t('login.secureSystem')}</p>
               <Badge variant="outline" className="mt-2">
-                <ShieldIcon className="w-3 h-3 mr-1" />
-                Enterprise Security
+                <ShieldIcon className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                {t('login.enterpriseSecurity')}
               </Badge>
             </div>
           </CardContent>
@@ -193,7 +201,7 @@ const Login: React.FC = () => {
 
         {/* Additional Info */}
         <div className="text-center text-xs text-gray-500">
-          <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
+          <p>{t('login.termsAndPrivacy')}</p>
         </div>
       </div>
     </div>

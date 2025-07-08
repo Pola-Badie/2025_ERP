@@ -8,6 +8,7 @@ import { useSidebarContext } from "@/contexts/SidebarContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import EnhancedNotifications from "@/components/EnhancedNotifications";
 import LanguageSelector from "@/components/LanguageSelector";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { ProfileDialog } from "@/components/dialogs/ProfileDialog";
 import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
 import { LogoutDialog } from "@/components/dialogs/LogoutDialog";
@@ -98,6 +99,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <h1 className="font-semibold text-gray-900 text-[20px]">{t('companyName')}</h1>
             </div>
             <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
+              {/* Language Toggle */}
+              <LanguageToggle />
+              
               {/* Language Selector */}
               <LanguageSelector />
               
