@@ -1490,8 +1490,17 @@ const Accounting: React.FC = () => {
       
       const reportResult = await response.json();
       console.log('Report API Response:', reportResult);
-      setCurrentReportData(reportResult.data);
+      
+      // Add timestamp to force re-render
+      const dataWithTimestamp = {
+        ...reportResult.data,
+        _timestamp: Date.now()
+      };
+      
+      setCurrentReportData(dataWithTimestamp);
       setReportGenerated(true);
+      
+      console.log('Updated currentReportData:', dataWithTimestamp);
       
       toast({
         title: "Report Generated",
@@ -5983,8 +5992,9 @@ const Accounting: React.FC = () => {
                       ) : (
                         (() => {
                           const reportData = getReportData();
+                          const reportKey = `${selectedReportType}-${currentReportData?._timestamp || 'fallback'}`;
                           return (
-                            <>
+                            <div key={reportKey}>
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold text-gray-900">{reportData.title}</h3>
                                 <div className="text-sm text-gray-600">
@@ -6005,7 +6015,7 @@ const Accounting: React.FC = () => {
                                   </thead>
                                   <tbody className="bg-white">
                                     {reportData.rows.map((row, rowIndex) => (
-                                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                                      <tr key={`${reportKey}-row-${rowIndex}`} className="border-b hover:bg-gray-50">
                                         {row.map((cell, cellIndex) => (
                                           <td key={cellIndex} className={`p-3 ${cellIndex === 0 ? 'font-mono' : ''} ${cellIndex > 1 ? 'text-right font-semibold' : ''}`}>
                                             {cell}
@@ -6014,7 +6024,7 @@ const Accounting: React.FC = () => {
                                       </tr>
                                     ))}
                                     {reportData.totals && (
-                                      <tr className="bg-gray-100 font-semibold">
+                                      <tr key={`${reportKey}-totals`} className="bg-gray-100 font-semibold">
                                         {reportData.totals.map((total, index) => (
                                           <td key={index} className={`p-3 ${index > 1 ? 'text-right' : ''}`}>
                                             {total}
@@ -6027,10 +6037,10 @@ const Accounting: React.FC = () => {
                               </div>
 
                               <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
-                                <span>{currentReportData ? 'Report generated from live API data' : 'Default preview - click Generate Report for live data'}</span>
-                                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                                <span>{currentReportData ? `✓ Live API data (${reportData._timestamp ? new Date(reportData._timestamp).toLocaleTimeString() : 'loaded'})` : 'Default preview - click Generate Report for live data'}</span>
+                                <span>Filter: {accountFilter} | Type: {selectedReportType}</span>
                               </div>
-                            </>
+                            </div>
                           );
                         })()
                       )}
