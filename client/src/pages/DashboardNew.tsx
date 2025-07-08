@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -71,14 +70,27 @@ interface Product {
   status: string;
 }
 
-// Real data for charts from API endpoints
+// Sample data for the sales overview chart
+const salesData = [
+  { name: 'Jan', sales: 65 },
+  { name: 'Feb', sales: 59 },
+  { name: 'Mar', sales: 80 },
+  { name: 'Apr', sales: 81 },
+  { name: 'May', sales: 56 },
+  { name: 'Jun', sales: 55 },
+  { name: 'Jul', sales: 40 },
+  { name: 'Aug', sales: 50 },
+  { name: 'Sep', sales: 65 },
+  { name: 'Oct', sales: 75 },
+  { name: 'Nov', sales: 96 },
+  { name: 'Dec', sales: 110 },
+];
 
 const DashboardNew = () => {
-  const [, setLocation] = useLocation();
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
-  
+
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
     queryKey: ['/api/dashboard/summary'],
@@ -111,46 +123,19 @@ const DashboardNew = () => {
     enabled: !!selectedProductId,
   });
 
-  // Fetch real sales data for charts
-  const { data: salesChartData } = useQuery<any>({
-    queryKey: ['/api/dashboard/sales-chart'],
-  });
-
-  // Fetch real category performance data
-  const { data: categoryData } = useQuery<any>({
-    queryKey: ['/api/dashboard/category-performance'],
-  });
-
-  // Calculate growth metrics from real data
-  const calculateGrowth = (current: number, previous: number) => {
-    if (!previous || previous === 0) return 0;
-    return ((current - previous) / previous * 100).toFixed(1);
-  };
-
-  // Real sales data with fallback for chart display
-  const salesData = salesChartData?.monthlyData || [
-    { name: 'Jan', sales: dashboardData?.monthSales || 0 },
-    { name: 'Feb', sales: (dashboardData?.monthSales || 0) * 0.9 },
-    { name: 'Mar', sales: (dashboardData?.monthSales || 0) * 1.1 },
-    { name: 'Apr', sales: (dashboardData?.monthSales || 0) * 1.2 },
-    { name: 'May', sales: (dashboardData?.monthSales || 0) * 0.8 },
-    { name: 'Jun', sales: dashboardData?.monthSales || 0 },
+  const salesDistributionData = [
+    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
+    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
+    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
   ];
 
-  // Real category performance data
-  const categoryPerformanceData = categoryData?.categories || [
-    { name: 'Pharmaceuticals', value: 45, color: '#3BCEAC' },
-    { name: 'Medical Devices', value: 25, color: '#0077B6' },
-    { name: 'Supplies', value: 20, color: '#48CAE4' },
-    { name: 'Equipment', value: 10, color: '#90E0EF' },
-  ];
-
-  // Real sales distribution data from database
-  const salesDistributionData = salesChartData?.distributionData || [
-    { name: 'Chemical Compounds', value: 35, color: '#1D3E78' },
-    { name: 'Raw Materials', value: 28, color: '#3BCEAC' },
-    { name: 'Finished Products', value: 25, color: '#0077B6' },
-    { name: 'Equipment', value: 12, color: '#48CAE4' },
+  const categoryPerformanceData = [
+    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
+    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
+    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
+    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
+    { name: 'Other', value: 6.0, color: '#CAF0F8' },
   ];
 
   return (
@@ -163,7 +148,7 @@ const DashboardNew = () => {
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">MONTHLY REVENUE</CardTitle>
             <DollarSign className="h-4 w-4 text-white opacity-80" />
@@ -176,7 +161,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
             <TrendingUp className="h-4 w-4 text-white opacity-80" />
@@ -189,7 +174,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/invoice-history')}>
+        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/invoices'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
             <Receipt className="h-4 w-4 text-white opacity-80" />
@@ -202,7 +187,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/orders-history')}>
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/orders'}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
@@ -218,7 +203,7 @@ const DashboardNew = () => {
 
       {/* Financial Integration Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/expenses')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/expenses'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">MONTHLY EXPENSES</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
@@ -233,7 +218,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CASH BALANCE</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -248,7 +233,7 @@ const DashboardNew = () => {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setLocation('/accounting')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">PAYMENTS RECEIVED</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
@@ -300,7 +285,7 @@ const DashboardNew = () => {
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +{calculateGrowth(dashboardData?.totalCustomers || 0, (dashboardData?.totalCustomers || 0) - (dashboardData?.newCustomers || 0))}% from last month
+              +15% from last month
             </div>
           </CardFooter>
         </Card>
@@ -317,7 +302,7 @@ const DashboardNew = () => {
             <p className="text-xs mt-1">Daily</p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-[#3BCEAC] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
@@ -330,7 +315,7 @@ const DashboardNew = () => {
             <p className="text-xs mt-1">Monthly</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -347,7 +332,7 @@ const DashboardNew = () => {
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +{calculateGrowth((dashboardData?.monthSales || 0) * 0.14, ((dashboardData?.monthSales || 0) * 0.85) * 0.14)}% from last month
+              +8% from last month
             </div>
           </CardFooter>
         </Card>
@@ -588,7 +573,7 @@ const DashboardNew = () => {
               </DialogTitle>
             </DialogHeader>
           </div>
-          
+
           <div className="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
             {isWarehouseLoading ? (
               <div className="flex flex-col items-center justify-center py-12">
@@ -685,7 +670,7 @@ const DashboardNew = () => {
               </DialogDescription>
             </DialogHeader>
           </div>
-          
+
           <div className="overflow-y-auto max-h-[calc(95vh-140px)] p-6">
             {isLoadingDetails ? (
               <div className="flex flex-col items-center justify-center py-12">
@@ -744,7 +729,7 @@ const DashboardNew = () => {
                     <p className="text-2xl font-bold text-emerald-900">EGP {productDetails.costPrice}</p>
                     <p className="text-sm text-emerald-700">Purchase Price</p>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
                     <div className="flex items-center justify-between mb-2">
                       <TrendingUp className="h-8 w-8 text-blue-600" />
@@ -753,7 +738,7 @@ const DashboardNew = () => {
                     <p className="text-2xl font-bold text-blue-900">EGP {productDetails.sellingPrice}</p>
                     <p className="text-sm text-blue-700">Retail Price</p>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
                     <div className="flex items-center justify-between mb-2">
                       <BarChart3 className="h-8 w-8 text-purple-600" />
@@ -764,7 +749,7 @@ const DashboardNew = () => {
                     </p>
                     <p className="text-sm text-purple-700">Per Unit</p>
                   </div>
-                  
+
                   <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-xl border border-amber-200">
                     <div className="flex items-center justify-between mb-2">
                       <Calendar className="h-8 w-8 text-amber-600" />
@@ -826,7 +811,7 @@ const DashboardNew = () => {
                       <p className="text-gray-500">No expiry date configured</p>
                     )}
                   </div>
-                  
+
                   <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <Package className="h-5 w-5 text-blue-600 mr-2" />
@@ -848,7 +833,7 @@ const DashboardNew = () => {
                     </div>
                   </div>
                 </div>
-              
+
               {/* Sales Statistics */}
               {productDetails.salesStats && (
                 <div className="border-t pt-6">
@@ -869,7 +854,7 @@ const DashboardNew = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Top Buyers */}
               {productDetails.topBuyers && productDetails.topBuyers.length > 0 && (
                 <div className="border-t pt-6">
@@ -893,7 +878,7 @@ const DashboardNew = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Sales History */}
               {productDetails.salesHistory && productDetails.salesHistory.length > 0 && (
                 <div className="border-t pt-6">
@@ -1017,7 +1002,7 @@ const DashboardNew = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1030,7 +1015,7 @@ const DashboardNew = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1043,7 +1028,7 @@ const DashboardNew = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>

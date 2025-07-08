@@ -467,16 +467,13 @@ const Reports = () => {
     });
   };
 
-  // Sample chart data for rendering
-  const chartDataSales = [
-    { month: 'Jan', revenue: 4000, transactions: 45 },
-    { month: 'Feb', revenue: 3000, transactions: 38 },
-    { month: 'Mar', revenue: 5000, transactions: 52 },
-    { month: 'Apr', revenue: 4500, transactions: 48 },
-    { month: 'May', revenue: 6000, transactions: 62 },
-    { month: 'Jun', revenue: 5500, transactions: 58 }
-  ];
+  // Real chart data from API
+  const { data: realChartDataSales, isLoading: isChartLoading } = useQuery({
+    queryKey: ['/api/reports/sales-chart-data'],
+    enabled: activeTab === 'sales'
+  });
 
+  const chartDataSales = realChartDataSales || [];
   const colors = ['#1976D2', '#42A5F5', '#90CAF9', '#E3F2FD', '#0D47A1'];
 
   return (

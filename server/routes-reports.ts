@@ -59,14 +59,14 @@ export function registerReportsRoutes(app: Express) {
       for (let i = 14; i >= 0; i--) {
         const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
         const dateStr = date.toISOString().split('T')[0];
-        
+
         const daySales = actualSales.filter(sale => {
           const saleDate = new Date(sale.date).toISOString().split('T')[0];
           return saleDate === dateStr;
         });
 
         const dayTotal = daySales.reduce((sum, sale) => sum + parseFloat(sale.grandTotal?.toString() || '0'), 0);
-        
+
         salesTrend.push({
           date: dateStr,
           amount: Math.round(dayTotal),
@@ -94,7 +94,7 @@ export function registerReportsRoutes(app: Express) {
   app.get("/api/reports/financial", async (req: Request, res: Response) => {
     try {
       const productsData = await db.select().from(products);
-      
+
       const totalAssets = productsData.reduce((sum, product) => {
         const cost = parseFloat(product.costPrice?.toString() || '0');
         const qty = product.quantity || 0;
@@ -362,13 +362,13 @@ export function registerReportsRoutes(app: Express) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         const dateStr = date.toISOString().split('T')[0];
-        
+
         const dayTransactions = productionTransactions.filter(t => 
           new Date(t.date).toISOString().split('T')[0] === dateStr
         );
-        
+
         const dayTotal = dayTransactions.reduce((sum, t) => sum + (t.quantity || 0), 0);
-        
+
         dailyProduction.push({
           date: dateStr,
           produced: dayTotal,

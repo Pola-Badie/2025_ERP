@@ -47,7 +47,9 @@ export function registerFinancialIntegrationRoutes(app: Express) {
             grandTotal: parseFloat(sale.total || '0')
           };
           
-          const journalEntry = await createInvoiceJournalEntry(invoiceData, 1); // Using user ID 1 as default
+          // Get user ID from request or session, default to 1 if not available
+          const userId = req.user?.id || req.body.userId || 1;
+          const journalEntry = await createInvoiceJournalEntry(invoiceData, userId);
           await updateAccountBalances(journalEntry.id);
           
           console.log(`Journal entry created for invoice ${sale.invoiceNumber}: ${journalEntry.entryNumber}`);
@@ -83,7 +85,9 @@ export function registerFinancialIntegrationRoutes(app: Express) {
           category: expense.category || 'Other'
         };
         
-        const journalEntry = await createExpenseJournalEntry(expenseData, expense.userId || 1);
+        // Use the expense's user ID or get from request context
+        const userId = expense.userId || req.user?.id || req.body.userId || 1;
+        const journalEntry = await createExpenseJournalEntry(expenseData, userId);
         await updateAccountBalances(journalEntry.id);
         
         console.log(`Journal entry created for expense ${expense.id}: ${journalEntry.entryNumber}`);
