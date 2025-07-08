@@ -14,6 +14,9 @@ import { initializeDatabase, closeDatabaseConnection } from "./config/database.j
 // Import routes
 import healthRoutes from "./routes/health.js";
 
+// Import Vite setup for development
+import { setupVite } from "./vite.js";
+
 // Import route handlers with error handling
 async function importRoutes() {
   try {
@@ -140,7 +143,7 @@ async function setupRoutes() {
   }
 }
 
-// Serve static frontend files in production
+// Development vs Production frontend serving
 if (NODE_ENV === 'production') {
   const distPath = path.join(process.cwd(), 'dist');
   app.use(express.static(distPath));
@@ -154,8 +157,10 @@ if (NODE_ENV === 'production') {
   });
 }
 
-// 404 handler
-app.use(notFound);
+// 404 handler (only for production or non-Vite routes)
+if (NODE_ENV === 'production') {
+  app.use(notFound);
+}
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
@@ -194,12 +199,20 @@ async function startServer() {
     await setupRoutes();
     
     // Start server
-    const server = app.listen(PORT, "0.0.0.0", () => {
+    const server = app.listen(PORT, "0.0.0.0", async () => {
       logger.info(`🚀 Premier ERP System running on port ${PORT}`);
       logger.info(`📊 Environment: ${NODE_ENV}`);
       logger.info(`📋 Health check: http://localhost:${PORT}/api/health`);
+      
+      // Setup Vite middleware for development
       if (NODE_ENV === 'development') {
-        logger.info(`🌐 API Base: http://localhost:${PORT}/api/`);
+        try {
+          await setupVite(app, server);
+          logger.info(`🌐 Frontend: http://localhost:${PORT}/`);
+          logger.info(`🌐 API Base: http://localhost:${PORT}/api/`);
+        } catch (error) {
+          logger.error('Failed to setup Vite middleware:', error);
+        }
       }
     });
 
