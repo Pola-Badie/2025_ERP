@@ -156,14 +156,15 @@ const Inventory: React.FC = () => {
     }
   }, [window.location.search, toast]);
   
-  // Warehouse management
+  // Warehouse management - Updated to match actual database locations
   const [warehouses, setWarehouses] = useState([
-    { id: 1, name: 'Warehouse 1', location: 'Cairo' },
-    { id: 2, name: 'Warehouse 2', location: 'Alexandria' },
-    { id: 3, name: 'Warehouse 3', location: 'Giza' },
-    { id: 4, name: 'Warehouse 4', location: 'Aswan' },
-    { id: 5, name: 'Warehouse 5', location: 'Luxor' },
-    { id: 6, name: 'Warehouse 6', location: 'Port Said' },
+    { id: 1, name: 'Warehouse 1', location: 'Main Storage - Cairo' },
+    { id: 2, name: 'Warehouse 2', location: 'Secondary Storage - Alexandria' },
+    { id: 3, name: 'Warehouse 3', location: 'Distribution Center - Giza' },
+    { id: 4, name: 'Warehouse A', location: 'Raw Materials - Cairo' },
+    { id: 5, name: 'Warehouse B', location: 'Semi-Finished - Alexandria' },
+    { id: 6, name: 'Warehouse C', location: 'Finished Products - Giza' },
+    { id: 7, name: 'A-1', location: 'Special Storage - Cairo' },
   ]);
   const [selectedWarehouse, setSelectedWarehouse] = useState(1);
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
@@ -285,7 +286,7 @@ const Inventory: React.FC = () => {
         importButtonText: 'Import Products',
         onImport: handleImportProducts,
         showWarehouseDropdown: true,
-        warehouseLocations: ['Warehouse 1', 'Warehouse 2', 'Central Storage'],
+        warehouseLocations: ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse A', 'Warehouse B', 'Warehouse C', 'A-1'],
         onWarehouseFilter: (location: string | null) => {
           if (!location) return products;
           return products.filter(product => product.location === location);

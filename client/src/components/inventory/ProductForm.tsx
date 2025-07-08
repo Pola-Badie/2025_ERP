@@ -78,14 +78,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Warehouse data - would normally come from an API endpoint
+  // Warehouse data - Updated to match actual database locations
   const [warehouses] = useState([
-    { id: 1, name: 'Warehouse 1', location: 'Cairo' },
-    { id: 2, name: 'Warehouse 2', location: 'Alexandria' },
-    { id: 3, name: 'Warehouse 3', location: 'Giza' },
-    { id: 4, name: 'Warehouse 4', location: 'Aswan' },
-    { id: 5, name: 'Warehouse 5', location: 'Luxor' },
-    { id: 6, name: 'Warehouse 6', location: 'Port Said' },
+    { id: 1, name: 'Warehouse 1', location: 'Main Storage - Cairo' },
+    { id: 2, name: 'Warehouse 2', location: 'Secondary Storage - Alexandria' },
+    { id: 3, name: 'Warehouse 3', location: 'Distribution Center - Giza' },
+    { id: 4, name: 'Warehouse A', location: 'Raw Materials - Cairo' },
+    { id: 5, name: 'Warehouse B', location: 'Semi-Finished - Alexandria' },
+    { id: 6, name: 'Warehouse C', location: 'Finished Products - Giza' },
+    { id: 7, name: 'A-1', location: 'Special Storage - Cairo' },
   ]);
 
   // Fetch categories for select options
