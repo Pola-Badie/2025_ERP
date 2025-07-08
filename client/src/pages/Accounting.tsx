@@ -1489,6 +1489,7 @@ const Accounting: React.FC = () => {
       }
       
       const reportResult = await response.json();
+      console.log('Report API Response:', reportResult);
       setCurrentReportData(reportResult.data);
       setReportGenerated(true);
       
@@ -1995,8 +1996,11 @@ const Accounting: React.FC = () => {
   const getReportData = () => {
     // If we have current report data from API, use it
     if (currentReportData) {
+      console.log('Using API data:', currentReportData);
       return currentReportData;
     }
+    
+    console.log('Using fallback data for:', selectedReportType);
     
     // Otherwise return default data based on report type
     switch (selectedReportType) {
@@ -5866,7 +5870,11 @@ const Accounting: React.FC = () => {
                   <div className="lg:col-span-1 space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="report-type">Report Type</Label>
-                      <Select value={selectedReportType} onValueChange={setSelectedReportType}>
+                      <Select value={selectedReportType} onValueChange={(value) => {
+                        setSelectedReportType(value);
+                        setCurrentReportData(null); // Clear current data when report type changes
+                        setReportGenerated(false);
+                      }}>
                         <SelectTrigger id="report-type">
                           <SelectValue placeholder="Select report type" />
                         </SelectTrigger>
@@ -5965,58 +5973,67 @@ const Accounting: React.FC = () => {
                   {/* Report Preview */}
                   <div className="lg:col-span-2">
                     <div className="border rounded-lg p-4 bg-gray-50 min-h-[400px]">
-                      {(() => {
-                        const reportData = getReportData();
-                        return (
-                          <>
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-lg font-semibold text-gray-900">{reportData.title}</h3>
-                              <div className="text-sm text-gray-600">
-                                {reportStartDate} to {reportEndDate}
+                      {isGeneratingReport ? (
+                        <div className="flex items-center justify-center h-64">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600">Generating report...</p>
+                          </div>
+                        </div>
+                      ) : (
+                        (() => {
+                          const reportData = getReportData();
+                          return (
+                            <>
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">{reportData.title}</h3>
+                                <div className="text-sm text-gray-600">
+                                  {reportStartDate} to {reportEndDate}
+                                </div>
                               </div>
-                            </div>
-                            
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-sm">
-                                <thead>
-                                  <tr className="border-b bg-white">
-                                    {reportData.headers.map((header, index) => (
-                                      <th key={index} className={`p-3 font-medium text-gray-700 ${index > 1 ? 'text-right' : 'text-left'}`}>
-                                        {header}
-                                      </th>
+                              
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b bg-white">
+                                      {reportData.headers.map((header, index) => (
+                                        <th key={index} className={`p-3 font-medium text-gray-700 ${index > 1 ? 'text-right' : 'text-left'}`}>
+                                          {header}
+                                        </th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody className="bg-white">
+                                    {reportData.rows.map((row, rowIndex) => (
+                                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                                        {row.map((cell, cellIndex) => (
+                                          <td key={cellIndex} className={`p-3 ${cellIndex === 0 ? 'font-mono' : ''} ${cellIndex > 1 ? 'text-right font-semibold' : ''}`}>
+                                            {cell}
+                                          </td>
+                                        ))}
+                                      </tr>
                                     ))}
-                                  </tr>
-                                </thead>
-                                <tbody className="bg-white">
-                                  {reportData.rows.map((row, rowIndex) => (
-                                    <tr key={rowIndex} className="border-b hover:bg-gray-50">
-                                      {row.map((cell, cellIndex) => (
-                                        <td key={cellIndex} className={`p-3 ${cellIndex === 0 ? 'font-mono' : ''} ${cellIndex > 1 ? 'text-right font-semibold' : ''}`}>
-                                          {cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                  {reportData.totals && (
-                                    <tr className="bg-gray-100 font-semibold">
-                                      {reportData.totals.map((total, index) => (
-                                        <td key={index} className={`p-3 ${index > 1 ? 'text-right' : ''}`}>
-                                          {total}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  )}
-                                </tbody>
-                              </table>
-                            </div>
+                                    {reportData.totals && (
+                                      <tr className="bg-gray-100 font-semibold">
+                                        {reportData.totals.map((total, index) => (
+                                          <td key={index} className={`p-3 ${index > 1 ? 'text-right' : ''}`}>
+                                            {total}
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
 
-                            <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
-                              <span>Report generated from live accounting data</span>
-                              <span>Last updated: {new Date().toLocaleTimeString()}</span>
-                            </div>
-                          </>
-                        );
-                      })()}
+                              <div className="mt-4 text-xs text-gray-600 flex items-center justify-between">
+                                <span>{currentReportData ? 'Report generated from live API data' : 'Default preview - click Generate Report for live data'}</span>
+                                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+                              </div>
+                            </>
+                          );
+                        })()
+                      )}
                     </div>
                   </div>
                 </div>
