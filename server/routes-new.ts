@@ -1868,6 +1868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Inventory Summary for Dashboard
   app.get('/api/inventory/summary', async (req: Request, res: Response) => {
     try {
+      // Get summary for ALL products in warehouses, not just 'active' status
       const summary = await db.select({
         totalProducts: count(),
         lowStockCount: sum(sql`
@@ -1884,10 +1885,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `),
         totalInventoryValue: sum(sql`
           ${products.quantity} * COALESCE(${products.costPrice}, 0)
-        `)
+        `),
+        totalQuantity: sum(products.quantity),
+        activeProducts: sum(sql`
+          CASE WHEN ${products.status} = 'active' THEN 1 ELSE 0 END
+        `),
+        warehouseCount: sql`COUNT(DISTINCT ${products.location})`
       })
-      .from(products)
-      .where(eq(products.status, 'active'));
+      .from(products);
 
       res.json(summary[0]);
     } catch (error) {
