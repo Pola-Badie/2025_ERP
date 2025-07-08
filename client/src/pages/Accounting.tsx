@@ -1779,8 +1779,12 @@ const Accounting: React.FC = () => {
                 ["4000", "Sales Revenue", "-", "$180,000.00"],
                 ["5000", "Cost of Goods Sold", "$90,000.00", "-"],
                 ["5100", "Utilities Expense", "$12,000.00", "-"],
+                ["5200", "Marketing Expense", "$8,000.00", "-"],
+                ["5300", "Laboratory Testing", "$15,000.00", "-"],
+                ["5400", "Administrative Expense", "$25,000.00", "-"],
+                ["3100", "Retained Earnings", "-", "$70,000.00"],
               ],
-              totals: ["Total", "", "$562,000.00", "$540,000.00"]
+              totals: ["Total", "", "$610,000.00", "$610,000.00"]
             };
             break;
           case "general-ledger":
@@ -1824,7 +1828,7 @@ const Accounting: React.FC = () => {
                 ["Revenue", "1", "-", "$180,000.00", "($180,000.00)"],
                 ["Expenses", "2", "$102,000.00", "-", "$102,000.00"],
               ],
-              totals: ["Total", "10", "$562,000.00", "$540,000.00", "$22,000.00"]
+              totals: ["Total", "10", "$610,000.00", "$610,000.00", "$0.00"]
             };
             break;
           case "journal-register":
@@ -1976,8 +1980,12 @@ const Accounting: React.FC = () => {
             ["4000", "Sales Revenue", "-", "$180,000.00"],
             ["5000", "Cost of Goods Sold", "$90,000.00", "-"],
             ["5100", "Utilities Expense", "$12,000.00", "-"],
+            ["5200", "Marketing Expense", "$8,000.00", "-"],
+            ["5300", "Laboratory Testing", "$15,000.00", "-"],
+            ["5400", "Administrative Expense", "$25,000.00", "-"],
+            ["3100", "Retained Earnings", "-", "$70,000.00"],
           ],
-          totals: ["Total", "", "$562,000.00", "$540,000.00"]
+          totals: ["Total", "", "$610,000.00", "$610,000.00"]
         };
       case "general-ledger":
         return {
@@ -2020,7 +2028,7 @@ const Accounting: React.FC = () => {
             ["Revenue", "1", "-", "$180,000.00", "($180,000.00)"],
             ["Expenses", "2", "$102,000.00", "-", "$102,000.00"],
           ],
-          totals: ["Total", "10", "$562,000.00", "$540,000.00", "$22,000.00"]
+          totals: ["Total", "10", "$610,000.00", "$610,000.00", "$0.00"]
         };
       case "journal-register":
         return {

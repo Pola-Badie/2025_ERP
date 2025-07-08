@@ -56,6 +56,12 @@ export function registerAccountingRoutes(app: Express) {
   // Get trial balance
   app.get("/api/accounting/trial-balance", async (_req: Request, res: Response) => {
     try {
+      // Add cache-busting headers
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       const accountsWithBalances = await db
         .select({
           id: accounts.id,
