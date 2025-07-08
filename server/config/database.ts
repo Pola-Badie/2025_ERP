@@ -36,32 +36,37 @@ export { dbClient };
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Database configuration - optimized for better performance
+// Database configuration - optimized for better performance and error handling
 const dbConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://erp_user:erp_secure_password@localhost:5432/premier_erp',
   ssl: isProduction ? { rejectUnauthorized: false } : false,
-  max: 10, // Reduced pool size to prevent connection overload
+  max: 5, // Further reduced pool size for stability
   idleTimeoutMillis: 10000, // Reduced idle timeout
-  connectionTimeoutMillis: 5000, // Increased timeout for slower connections
-  maxUses: 1000, // Reduced connection reuse to prevent stale connections
+  connectionTimeoutMillis: 10000, // Increased timeout for stability
+  maxUses: 500, // Reduced connection reuse
+  allowExitOnIdle: true, // Allow pool to exit when idle
 };
 
-// Create connection pool
+// Create connection pool with error handling
 export const pool = new Pool(dbConfig);
 
 // Create Drizzle instance
 export const db = drizzle(pool);
 
-// Database health check
+// Database health check with better error handling
 export const checkDatabaseHealth = async (): Promise<boolean> => {
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
     await client.query('SELECT 1');
-    client.release();
     return true;
   } catch (error) {
     logger.error('Database health check failed:', error);
     return false;
+  } finally {
+    if (client) {
+      client.release();
+    }
   }
 };
 
@@ -75,7 +80,7 @@ export const checkDatabaseHealth = async (): Promise<boolean> => {
 //   }
 // };
 
-// Connection event handlers
+// Connection event handlers with better error management
 pool.on('connect', (client) => {
   if (isDevelopment) {
     logger.info('New database client connected');
@@ -83,12 +88,16 @@ pool.on('connect', (client) => {
 });
 
 pool.on('error', (err, client) => {
-  logger.error('Unexpected error on idle client:', err);
+  logger.error('Database pool error:', err);
+  // Don't exit process, just log the error
+  if (err.code === '57P01') {
+    logger.warn('Database connection terminated by administrator - will reconnect automatically');
+  }
 });
 
 pool.on('remove', (client) => {
   if (isDevelopment) {
-    logger.info('Database client removed');
+    logger.info('Database client removed from pool');
   }
 });
 

@@ -225,6 +225,21 @@ async function startServer() {
     // Graceful shutdown
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
+    // Handle uncaught database errors to prevent crashes
+    process.on('unhandledRejection', (reason, promise) => {
+      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      // Don't exit the process, just log the error
+    });
+    
+    process.on('uncaughtException', (error) => {
+      logger.error('Uncaught Exception:', error);
+      // Don't exit for database connection errors
+      if (error.code !== '57P01' && error.code !== 'ECONNRESET') {
+        logger.error('Fatal error, exiting...');
+        process.exit(1);
+      }
+    });
 
     return server;
   } catch (error) {
