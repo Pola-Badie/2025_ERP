@@ -192,8 +192,11 @@ const gracefulShutdown = async (signal: string) => {
 // Initialize and start server
 async function startServer() {
   try {
-    // Initialize database
+    // Initialize database first
     await initializeDatabase();
+    
+    // Wait a moment for database to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Setup routes
     await setupRoutes();

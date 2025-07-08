@@ -16,7 +16,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Restart Dev Server"
+runButton = "Start Development Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -67,3 +67,16 @@ args = "npm run build"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "NODE_ENV=production npm start"
+
+[[workflows.workflow]]
+name = "Start Development Server"
+author = 41805457
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "chmod +x start-dev.sh"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./start-dev.sh"
