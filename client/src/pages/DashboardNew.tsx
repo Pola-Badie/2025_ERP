@@ -106,7 +106,7 @@ const DashboardNew = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to Morgan ERP - Your business overview</p>
+        <p className="text-muted-foreground">Welcome to Premier ERP - Your business overview</p>
       </div>
 
       {/* Key Metrics Cards */}
