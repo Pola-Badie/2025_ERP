@@ -137,6 +137,8 @@ const Accounting: React.FC = () => {
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [accountFilter, setAccountFilter] = useState("all");
   const [reportGenerated, setReportGenerated] = useState(false);
+  const [currentReportData, setCurrentReportData] = useState<any>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
     date: '',
     description: '',
@@ -1471,13 +1473,40 @@ const Accounting: React.FC = () => {
   };
 
   // Financial Reports Generation Function
-  const generateFinancialReport = () => {
-    setReportGenerated(true);
-    toast({
-      title: "Report Generated",
-      description: `${getReportTypeName(selectedReportType)} generated successfully for ${reportStartDate} to ${reportEndDate}`,
-      variant: "default"
-    });
+  const generateFinancialReport = async () => {
+    setIsGeneratingReport(true);
+    try {
+      const params = new URLSearchParams({
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+        accountFilter: accountFilter
+      });
+      
+      const response = await fetch(`/api/accounting/reports/${selectedReportType}?${params}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
+      }
+      
+      const reportResult = await response.json();
+      setCurrentReportData(reportResult.data);
+      setReportGenerated(true);
+      
+      toast({
+        title: "Report Generated",
+        description: `${getReportTypeName(selectedReportType)} generated successfully for ${reportStartDate} to ${reportEndDate}`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Report generation error:', error);
+      toast({
+        title: "Report Generation Failed",
+        description: "There was an error generating the report. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   // Enhanced PDF Export Function
@@ -1503,7 +1532,7 @@ const Accounting: React.FC = () => {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('MORGAN ERP', 20, 16);
+      doc.text('PREMIER ERP', 20, 16);
       
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
@@ -1603,7 +1632,7 @@ const Accounting: React.FC = () => {
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
-        doc.text('Morgan ERP - Confidential Financial Report', 20, 285);
+        doc.text('Premier ERP - Confidential Financial Report', 20, 285);
         doc.text(`Report: ${reportData.title}`, 20, 290);
       }
       
@@ -1651,7 +1680,7 @@ const Accounting: React.FC = () => {
       
       // Create workbook data
       const workbookData = [
-        ['MORGAN ERP - Financial Report'],
+        ['PREMIER ERP - Financial Report'],
         ['Pharmaceutical Enterprise Resource Planning'],
         [''],
         [`Report: ${reportData.title}`],
@@ -1927,7 +1956,7 @@ const Accounting: React.FC = () => {
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
-        doc.text('Morgan ERP - Comprehensive Financial Reports', 20, 285);
+        doc.text('Premier ERP - Comprehensive Financial Reports', 20, 285);
         doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 290);
       }
       
@@ -1964,6 +1993,12 @@ const Accounting: React.FC = () => {
   };
 
   const getReportData = () => {
+    // If we have current report data from API, use it
+    if (currentReportData) {
+      return currentReportData;
+    }
+    
+    // Otherwise return default data based on report type
     switch (selectedReportType) {
       case "trial-balance":
         return {
@@ -5837,10 +5872,13 @@ const Accounting: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="trial-balance">Trial Balance</SelectItem>
-                          <SelectItem value="general-ledger">General Ledger</SelectItem>
+                          <SelectItem value="profit-loss">Profit & Loss Statement</SelectItem>
+                          <SelectItem value="balance-sheet">Balance Sheet</SelectItem>
                           <SelectItem value="cash-flow">Cash Flow Statement</SelectItem>
+                          <SelectItem value="chart-of-accounts">Chart of Accounts</SelectItem>
+                          <SelectItem value="journal-entries">Journal Entries</SelectItem>
+                          <SelectItem value="general-ledger">General Ledger</SelectItem>
                           <SelectItem value="account-summary">Account Summary</SelectItem>
-                          <SelectItem value="journal-register">Journal Register</SelectItem>
                           <SelectItem value="aging-analysis">Aging Analysis</SelectItem>
                         </SelectContent>
                       </Select>
@@ -5903,9 +5941,13 @@ const Accounting: React.FC = () => {
                     </div>
                     
                     <div className="flex flex-col gap-2 pt-4">
-                      <Button className="w-full" onClick={generateFinancialReport}>
+                      <Button 
+                        className="w-full" 
+                        onClick={generateFinancialReport}
+                        disabled={isGeneratingReport}
+                      >
                         <BarChart className="h-4 w-4 mr-2" />
-                        Generate Report
+                        {isGeneratingReport ? "Generating..." : "Generate Report"}
                       </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button variant="outline" size="sm" onClick={exportReportToPDF}>
@@ -5992,7 +6034,15 @@ const Accounting: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("trial-balance");
+                      setAccountFilter("all");
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <PieChart className="h-5 w-5 text-blue-600" />
                       <span className="font-medium">Account Balances</span>
@@ -6000,7 +6050,16 @@ const Accounting: React.FC = () => {
                     <p className="text-xs text-gray-600 text-left">Current balances for all accounts</p>
                   </Button>
 
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("profit-loss");
+                      setReportStartDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+                      setReportEndDate(new Date().toISOString().split('T')[0]);
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <TrendingUp className="h-5 w-5 text-green-600" />
                       <span className="font-medium">Monthly P&L</span>
@@ -6008,7 +6067,16 @@ const Accounting: React.FC = () => {
                     <p className="text-xs text-gray-600 text-left">Profit and loss for current month</p>
                   </Button>
 
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("cash-flow");
+                      setReportStartDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+                      setReportEndDate(new Date().toISOString().split('T')[0]);
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <Activity className="h-5 w-5 text-purple-600" />
                       <span className="font-medium">Cash Flow</span>
@@ -6016,7 +6084,16 @@ const Accounting: React.FC = () => {
                     <p className="text-xs text-gray-600 text-left">Cash inflows and outflows</p>
                   </Button>
 
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("journal-entries");
+                      setReportStartDate(new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]);
+                      setReportEndDate(new Date().toISOString().split('T')[0]);
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-5 w-5 text-orange-600" />
                       <span className="font-medium">Journal Summary</span>
@@ -6024,20 +6101,37 @@ const Accounting: React.FC = () => {
                     <p className="text-xs text-gray-600 text-left">Summary of journal entries</p>
                   </Button>
 
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("chart-of-accounts");
+                      setAccountFilter("all");
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <Users className="h-5 w-5 text-red-600" />
-                      <span className="font-medium">Vendor Analysis</span>
+                      <span className="font-medium">Chart of Accounts</span>
                     </div>
-                    <p className="text-xs text-gray-600 text-left">Analysis of vendor payments</p>
+                    <p className="text-xs text-gray-600 text-left">Complete account structure</p>
                   </Button>
 
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-start space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-start space-y-2"
+                    onClick={() => {
+                      setSelectedReportType("balance-sheet");
+                      setReportStartDate(new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0]);
+                      setReportEndDate(new Date().toISOString().split('T')[0]);
+                      generateFinancialReport();
+                    }}
+                  >
                     <div className="flex items-center space-x-2">
                       <Target className="h-5 w-5 text-indigo-600" />
-                      <span className="font-medium">Budget vs Actual</span>
+                      <span className="font-medium">Balance Sheet</span>
                     </div>
-                    <p className="text-xs text-gray-600 text-left">Budget comparison analysis</p>
+                    <p className="text-xs text-gray-600 text-left">Assets, liabilities & equity</p>
                   </Button>
                 </div>
               </CardContent>

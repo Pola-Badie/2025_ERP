@@ -2074,6 +2074,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // COMPREHENSIVE REPORT GENERATION API
+  app.get('/api/accounting/reports/:reportType', async (req: Request, res: Response) => {
+    try {
+      const { reportType } = req.params;
+      const { startDate, endDate, accountFilter } = req.query;
+      
+      let reportData;
+      
+      switch (reportType) {
+        case 'trial-balance':
+          // Get actual trial balance from database
+          const trialBalanceResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/trial-balance`);
+          const trialBalance = await trialBalanceResponse.json();
+          
+          reportData = {
+            title: "Trial Balance Report",
+            headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
+            rows: trialBalance.accounts.map((account: any) => [
+              account.code,
+              account.name,
+              account.debit > 0 ? `$${account.debit.toLocaleString()}.00` : "-",
+              account.credit > 0 ? `$${account.credit.toLocaleString()}.00` : "-"
+            ]),
+            totals: ["Total", "", `$${trialBalance.totalDebits.toLocaleString()}.00`, `$${trialBalance.totalCredits.toLocaleString()}.00`],
+            summary: {
+              isBalanced: trialBalance.isBalanced,
+              difference: Math.abs(trialBalance.totalDebits - trialBalance.totalCredits)
+            }
+          };
+          break;
+          
+        case 'profit-loss':
+          const plResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/profit-loss`);
+          const profitLoss = await plResponse.json();
+          
+          reportData = {
+            title: "Profit & Loss Statement",
+            headers: ["Account", "Amount"],
+            rows: [
+              ...profitLoss.revenue.accounts.map((acc: any) => [acc.name, `$${parseFloat(acc.balance).toLocaleString()}.00`]),
+              ["", ""],
+              ...profitLoss.expenses.accounts.map((acc: any) => [acc.name, `($${parseFloat(acc.balance).toLocaleString()}.00)`]),
+            ],
+            totals: ["Net Income", `$${profitLoss.netIncome.toLocaleString()}.00`],
+            summary: {
+              totalRevenue: profitLoss.revenue.total,
+              totalExpenses: profitLoss.expenses.total,
+              netIncome: profitLoss.netIncome
+            }
+          };
+          break;
+          
+        case 'balance-sheet':
+          const bsResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/balance-sheet`);
+          const balanceSheetData = await bsResponse.json();
+          
+          reportData = {
+            title: "Balance Sheet",
+            headers: ["Account", "Amount"],
+            rows: [
+              ["ASSETS", ""],
+              ...balanceSheetData.assets.accounts.map((acc: any) => [acc.name, `$${parseFloat(acc.balance).toLocaleString()}.00`]),
+              ["", ""],
+              ["LIABILITIES", ""],
+              ...balanceSheetData.liabilities.accounts.map((acc: any) => [acc.name, `$${parseFloat(acc.balance).toLocaleString()}.00`]),
+              ["", ""],
+              ["EQUITY", ""],
+              ...balanceSheetData.equity.accounts.map((acc: any) => [acc.name, `$${parseFloat(acc.balance).toLocaleString()}.00`]),
+            ],
+            totals: ["Total Assets", `$${balanceSheetData.assets.total.toLocaleString()}.00`],
+            summary: {
+              totalAssets: balanceSheetData.assets.total,
+              totalLiabilities: balanceSheetData.liabilities.total,
+              totalEquity: balanceSheetData.equity.total,
+              isBalanced: balanceSheetData.isBalanced
+            }
+          };
+          break;
+          
+        case 'chart-of-accounts':
+          const coaResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/chart-of-accounts`);
+          const chartOfAccounts = await coaResponse.json();
+          
+          reportData = {
+            title: "Chart of Accounts",
+            headers: ["Account Code", "Account Name", "Account Type", "Status"],
+            rows: chartOfAccounts.map((account: any) => [
+              account.accountCode,
+              account.accountName,
+              account.accountType,
+              account.isActive ? "Active" : "Inactive"
+            ]),
+            summary: {
+              totalAccounts: chartOfAccounts.length,
+              activeAccounts: chartOfAccounts.filter((acc: any) => acc.isActive).length
+            }
+          };
+          break;
+          
+        case 'journal-entries':
+          const jeResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/journal-entries`);
+          const journalEntries = await jeResponse.json();
+          
+          reportData = {
+            title: "Journal Entries Report",
+            headers: ["Entry #", "Date", "Description", "Debit", "Credit", "Status"],
+            rows: journalEntries.map((entry: any) => [
+              entry.entryNumber,
+              entry.entryDate,
+              entry.description,
+              `$${entry.totalDebit.toLocaleString()}.00`,
+              `$${entry.totalCredit.toLocaleString()}.00`,
+              entry.status.charAt(0).toUpperCase() + entry.status.slice(1)
+            ]),
+            summary: {
+              totalEntries: journalEntries.length,
+              totalDebits: journalEntries.reduce((sum: number, entry: any) => sum + entry.totalDebit, 0),
+              totalCredits: journalEntries.reduce((sum: number, entry: any) => sum + entry.totalCredit, 0)
+            }
+          };
+          break;
+          
+        default:
+          return res.status(400).json({ error: 'Invalid report type' });
+      }
+      
+      res.json({
+        reportType,
+        generatedAt: new Date().toISOString(),
+        period: {
+          startDate: startDate || 'N/A',
+          endDate: endDate || 'N/A'
+        },
+        filter: accountFilter || 'all',
+        data: reportData
+      });
+      
+    } catch (error) {
+      console.error('Report generation error:', error);
+      res.status(500).json({ error: 'Failed to generate report' });
+    }
+  });
+
   return httpServer;
 }
 
