@@ -21,14 +21,27 @@ export const loginRateLimit = rateLimit({
 // Rate limiting for API calls - more lenient for development
 export const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Increased limit for development
+  max: 2000, // Increased limit to prevent crashes
   message: {
     error: 'Too many API requests from this IP, please try again later.',
   },
   standardHeaders: true,
   legacyHeaders: false,
   trustProxy: true, // Trust proxy headers
-  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1', // Skip rate limiting for localhost
+  skip: (req) => {
+    // Skip rate limiting for localhost and development
+    return req.ip === '127.0.0.1' || req.ip === '::1' || process.env.NODE_ENV === 'development';
+  },
+  keyGenerator: (req) => {
+    // Use X-Forwarded-For if available, otherwise use req.ip
+    return req.headers['x-forwarded-for']?.toString().split(',')[0] || req.ip || 'unknown';
+  },
+  handler: (req, res) => {
+    res.status(429).json({
+      error: 'Too many requests. Please try again later.',
+      retryAfter: Math.ceil(req.rateLimit?.resetTime?.getTime() / 1000) || 60
+    });
+  }
 });
 
 export interface AuthenticatedRequest extends Request {

@@ -10,6 +10,7 @@ import { Client } from 'pg';
 import { apiRateLimit, sanitizeInput } from "./middleware/auth.js";
 import { errorHandler, notFound, logger } from "./middleware/errorHandler.js";
 import { initializeDatabase, closeDatabaseConnection } from "./config/database.js";
+import { memoryMonitor, requestTimeout } from "./middleware/requestLogger.js";
 
 // Import routes
 import healthRoutes from "./routes/health.js";
@@ -94,6 +95,12 @@ app.use('/api', apiRateLimit);
 // Input sanitization
 app.use(sanitizeInput);
 
+// Memory monitoring
+app.use(memoryMonitor);
+
+// Request timeout (30 seconds)
+app.use(requestTimeout(30000));
+
 // Request logging
 app.use((req, res, next) => {
   const start = Date.now();
@@ -168,28 +175,33 @@ if (NODE_ENV === 'production') {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
+// Global server reference
+let globalServer: any = null;
+
 // Graceful shutdown handling
 const gracefulShutdown = async (signal: string) => {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
-  server.close(async () => {
-    logger.info('HTTP server closed');
+  if (globalServer) {
+    globalServer.close(async () => {
+      logger.info('HTTP server closed');
 
-    try {
-      await closeDatabaseConnection();
-      logger.info('Database connections closed');
-      process.exit(0);
-    } catch (error) {
-      logger.error('Error during graceful shutdown:', error);
-      process.exit(1);
-    }
-  });
+      try {
+        await closeDatabaseConnection();
+        logger.info('Database connections closed');
+        process.exit(0);
+      } catch (error) {
+        logger.error('Error during graceful shutdown:', error);
+        process.exit(1);
+      }
+    });
+  }
 
-  // Force shutdown after 30 seconds
+  // Force shutdown after 10 seconds
   setTimeout(() => {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
-  }, 30000);
+  }, 10000);
 };
 
 // Initialize and start server
@@ -222,23 +234,41 @@ async function startServer() {
       }
     });
 
+    // Store server reference globally
+    globalServer = server;
+
     // Graceful shutdown
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
     
-    // Handle uncaught database errors to prevent crashes
+    // Handle uncaught errors to prevent crashes
     process.on('unhandledRejection', (reason, promise) => {
-      logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-      // Don't exit the process, just log the error
+      logger.error('Unhandled Rejection:', { reason, promise });
+      // Don't exit - keep the app running
     });
     
-    process.on('uncaughtException', (error) => {
-      logger.error('Uncaught Exception:', error);
-      // Don't exit for database connection errors
-      if (error.code !== '57P01' && error.code !== 'ECONNRESET') {
-        logger.error('Fatal error, exiting...');
-        process.exit(1);
+    process.on('uncaughtException', (error: any) => {
+      logger.error('Uncaught Exception:', { 
+        message: error.message, 
+        code: error.code, 
+        stack: error.stack 
+      });
+      
+      // Only exit for truly fatal errors
+      const nonFatalErrors = ['57P01', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'ECONNREFUSED'];
+      if (error.code && nonFatalErrors.includes(error.code)) {
+        logger.warn('Non-fatal error detected, keeping app running');
+        return;
       }
+      
+      // For unknown errors, try to recover
+      if (!error.code) {
+        logger.warn('Unknown error type, attempting to continue');
+        return;
+      }
+      
+      logger.error('Fatal error detected, exiting...');
+      gracefulShutdown('FATAL_ERROR');
     });
 
     return server;

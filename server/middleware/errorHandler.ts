@@ -74,6 +74,11 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  // Prevent multiple responses
+  if (res.headersSent) {
+    return next(err);
+  }
+
   const { statusCode = 500, message, stack } = err;
 
   // Log error
@@ -87,10 +92,19 @@ export const errorHandler = (
     userAgent: req.get('User-Agent'),
   });
 
+  // Handle specific database errors
+  if (err.code === '57P01') {
+    return res.status(503).json({
+      error: {
+        message: 'Database connection temporarily unavailable. Please try again.',
+      },
+    });
+  }
+
   // Don't expose stack traces in production
   const response = {
     error: {
-      message,
+      message: message || 'An unexpected error occurred',
       ...(process.env.NODE_ENV === 'development' && { stack }),
     },
   };
@@ -105,8 +119,24 @@ export const notFound = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await fn(req, res, next);
+    } catch (error) {
+      // Log the error but don't crash
+      logger.error('Async handler error:', error);
+      
+      // Send appropriate error response
+      if (!res.headersSent) {
+        const statusCode = error.statusCode || 500;
+        res.status(statusCode).json({
+          error: {
+            message: error.message || 'Internal server error',
+            ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+          }
+        });
+      }
+    }
   };
 };
 
