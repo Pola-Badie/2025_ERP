@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,6 +38,7 @@ const loginSchema = z.object({
 const Login: React.FC = () => {
   const [, navigate] = useLocation();
   const { login } = useAuth();
+  const { t, isRTL } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -78,8 +80,8 @@ const Login: React.FC = () => {
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4">
             <ShieldIcon className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Premier Chemical ERP</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('companyName')}</h1>
+          <p className="text-gray-600 mt-2">{t('signInToAccount')}</p>
         </div>
 
         {/* Success Alert */}
@@ -101,9 +103,9 @@ const Login: React.FC = () => {
         {/* Main Login Card */}
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl text-center">Welcome Back</CardTitle>
+            <CardTitle className="text-xl text-center">{t('welcomeBack')}</CardTitle>
             <p className="text-sm text-muted-foreground text-center">
-              Sign in to your Premier ERP account
+              {t('signInPrompt')}
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -115,12 +117,12 @@ const Login: React.FC = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{t('email')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input 
-                            placeholder="Enter your email" 
+                            placeholder={t('enterEmail')} 
                             className="pl-10"
                             {...field} 
                           />
@@ -136,12 +138,12 @@ const Login: React.FC = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('password')}</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input 
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter your password" 
+                            placeholder={t('enterPassword')} 
                             className="pr-10"
                             {...field} 
                           />
@@ -175,17 +177,17 @@ const Login: React.FC = () => {
                   ) : (
                     <LogInIcon className="w-4 h-4 mr-2" />
                   )}
-                  Sign In
+                  {t('signIn')}
                 </Button>
               </form>
             </Form>
 
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground">
-              <p>Secure Premier ERP system</p>
+              <p>{t('secureERPSystem')}</p>
               <Badge variant="outline" className="mt-2">
                 <ShieldIcon className="w-3 h-3 mr-1" />
-                Enterprise Security
+                {t('enterpriseSecurity')}
               </Badge>
             </div>
           </CardContent>
@@ -193,7 +195,7 @@ const Login: React.FC = () => {
 
         {/* Additional Info */}
         <div className="text-center text-xs text-gray-500">
-          <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
+          <p>{t('termsAndPrivacy')}</p>
         </div>
       </div>
     </div>

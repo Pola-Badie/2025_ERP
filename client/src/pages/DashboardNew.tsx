@@ -159,7 +159,7 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyPayments?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">Current month revenue</p>
+            <p className="text-xs text-white opacity-80">{t('currentMonthRevenue')}</p>
           </CardContent>
         </Card>
 
@@ -172,7 +172,7 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.netProfit?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">Revenue minus expenses</p>
+            <p className="text-xs text-white opacity-80">{t('revenueMinusExpenses')}</p>
           </CardContent>
         </Card>
 
@@ -185,7 +185,7 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.outstandingInvoices?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{accountingOverview?.pendingInvoiceCount || 0} pending invoices</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.pendingInvoiceCount || 0} {t('pendingInvoices')}</p>
           </CardContent>
         </Card>
 
@@ -198,7 +198,7 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.pendingOrders?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{accountingOverview?.orderCount || 0} orders pending</p>
+            <p className="text-xs text-white opacity-80">{accountingOverview?.orderCount || 0} {t('ordersPending')}</p>
           </CardContent>
         </Card>
       </div>
@@ -215,7 +215,7 @@ const DashboardNew = () => {
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyExpenses?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {accountingOverview?.expenseCount || 0} expense entries
+              {accountingOverview?.expenseCount || 0} {t('expenseEntries')}
             </p>
           </CardContent>
         </Card>
@@ -230,14 +230,14 @@ const DashboardNew = () => {
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.cashBalance?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Available cash flow
+              {t('availableCashFlow')}
             </p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">PAYMENTS RECEIVED</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('paymentsReceived').toUpperCase()}</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -245,14 +245,14 @@ const DashboardNew = () => {
               {isOverviewLoading ? "..." : accountingOverview?.paymentCount?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-muted-foreground">
-              This month payments
+              {t('thisMonthPayments')}
             </p>
           </CardContent>
         </Card>
 
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowInventoryBreakdown(true)}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">INVENTORY VALUE</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('inventoryValue').toUpperCase()}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -260,10 +260,10 @@ const DashboardNew = () => {
               {isInventoryLoading ? "..." : `EGP ${Math.round(Number(inventorySummary?.totalInventoryValue) || 0)?.toLocaleString()}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              Cost value • Selling: EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}
+              {t('costValue')} • {t('selling')}: EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {inventorySummary?.totalProducts || 0} products • {inventorySummary?.warehouseCount || 0} warehouses
+              {inventorySummary?.totalProducts || 0} {t('products')} • {inventorySummary?.warehouseCount || 0} {t('warehouses')}
             </p>
           </CardContent>
         </Card>
@@ -273,7 +273,7 @@ const DashboardNew = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">TOTAL CUSTOMERS</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalCustomers').toUpperCase()}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -281,13 +281,13 @@ const DashboardNew = () => {
               {isLoading ? "..." : dashboardData?.totalCustomers?.toLocaleString() || "0"}
             </div>
             <p className="text-xs text-muted-foreground">
-              +{dashboardData?.newCustomers || 0} new this month
+              +{dashboardData?.newCustomers || 0} {t('newThisMonth')}
             </p>
           </CardContent>
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +15% from last month
+              +15% {t('fromLastMonth')}
             </div>
           </CardFooter>
         </Card>
@@ -295,33 +295,33 @@ const DashboardNew = () => {
         <Card className="bg-[#1D3E78] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
-            <CardTitle className="text-sm font-medium text-white">TODAY SALES</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('todaySales').toUpperCase()}</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
               {isLoading ? "..." : `EGP ${dashboardData?.todaySales?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs mt-1">Daily</p>
+            <p className="text-xs mt-1">{t('daily')}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-[#3BCEAC] text-white rounded-md border-none overflow-hidden relative">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgwIiBmaWxsPSIjZmZmZmZmIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] bg-no-repeat bg-right-top bg-contain opacity-30"></div>
           <CardHeader className="pb-0 relative z-10">
-            <CardTitle className="text-sm font-medium text-white">MONTH SALES</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('monthSales').toUpperCase()}</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-4xl font-bold">
               {isLoading ? "..." : `EGP ${dashboardData?.monthSales?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs mt-1">Monthly</p>
+            <p className="text-xs mt-1">{t('monthly')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Collected Tax (This Month)
+              {t('collectedTax')} ({t('thisMonth')})
             </CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -329,12 +329,12 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isLoading ? "..." : `EGP ${((dashboardData?.monthSales || 0) * 0.14).toLocaleString()}`}
             </div>
-            <p className="text-xs text-muted-foreground">14% VAT collected from sales</p>
+            <p className="text-xs text-muted-foreground">14% {t('vatCollectedFromSales')}</p>
           </CardContent>
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +8% from last month
+              +8% {t('fromLastMonth')}
             </div>
           </CardFooter>
         </Card>
@@ -345,7 +345,7 @@ const DashboardNew = () => {
         {/* Sales Overview Chart */}
         <Card className="bg-white border rounded-lg shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">SALES OVERVIEW</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">{t('salesOverview').toUpperCase()}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -413,7 +413,7 @@ const DashboardNew = () => {
         {/* Sales Distribution Chart */}
         <Card className="bg-white border rounded-lg shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">SALES DISTRIBUTION</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">{t('salesDistribution').toUpperCase()}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -479,7 +479,7 @@ const DashboardNew = () => {
         {/* Category Performance Chart */}
         <Card className="bg-white border rounded-lg shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-3 border-b">
-            <CardTitle className="text-sm font-medium text-gray-700">CATEGORY PERFORMANCE</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-700">{t('categoryPerformance').toUpperCase()}</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -560,8 +560,8 @@ const DashboardNew = () => {
                     <Package className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-2xl font-bold">Inventory Value Breakdown</span>
-                    <p className="text-blue-100 text-sm font-normal">Real-time warehouse inventory analysis</p>
+                    <span className="text-2xl font-bold">{t('inventoryValueBreakdown')}</span>
+                    <p className="text-blue-100 text-sm font-normal">{t('realTimeWarehouseAnalysis')}</p>
                   </div>
                 </div>
                 <Button
@@ -580,7 +580,7 @@ const DashboardNew = () => {
             {isWarehouseLoading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <span className="text-lg text-gray-600">Loading warehouse breakdown...</span>
+                <span className="text-lg text-gray-600">{t('loadingWarehouseBreakdown')}...</span>
               </div>
             ) : (
               <div className="space-y-6">
@@ -588,19 +588,19 @@ const DashboardNew = () => {
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">Total Cost Value</p>
+                      <p className="text-sm text-gray-600">{t('totalCostValue')}</p>
                       <p className="text-2xl font-bold text-blue-900">EGP {Math.round(Number(inventorySummary?.totalInventoryValue) || 0)?.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">Total Selling Value</p>
+                      <p className="text-sm text-gray-600">{t('totalSellingValue')}</p>
                       <p className="text-2xl font-bold text-green-900">EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">Total Products</p>
+                      <p className="text-sm text-gray-600">{t('totalProducts')}</p>
                       <p className="text-2xl font-bold text-purple-900">{inventorySummary?.totalProducts || 0}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">Total Quantity</p>
+                      <p className="text-sm text-gray-600">{t('totalQuantity')}</p>
                       <p className="text-2xl font-bold text-orange-900">{inventorySummary?.totalQuantity || 0}</p>
                     </div>
                   </div>
@@ -613,24 +613,24 @@ const DashboardNew = () => {
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">{warehouse.location || 'Unknown Location'}</h3>
                         <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                          {warehouse.total_quantity || 0} units
+                          {warehouse.total_quantity || 0} {t('units')}
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Cost Value:</span>
+                          <span className="text-sm text-gray-600">{t('costValue')}:</span>
                           <span className="font-semibold text-blue-600">EGP {Math.round(Number(warehouse.total_cost_value) || 0)?.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Selling Value:</span>
+                          <span className="text-sm text-gray-600">{t('sellingValue')}:</span>
                           <span className="font-semibold text-green-600">EGP {Math.round(Number(warehouse.total_selling_value) || 0)?.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Total Quantity:</span>
-                          <span className="font-semibold text-gray-900">{warehouse.total_quantity || 0} units</span>
+                          <span className="text-sm text-gray-600">{t('totalQuantity')}:</span>
+                          <span className="font-semibold text-gray-900">{warehouse.total_quantity || 0} {t('units')}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Avg Unit Cost:</span>
+                          <span className="text-sm text-gray-600">{t('avgUnitCost')}:</span>
                           <span className="font-medium text-gray-700">EGP {warehouse.avg_unit_cost || '0'}</span>
                         </div>
                       </div>
