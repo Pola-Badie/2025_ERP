@@ -442,7 +442,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-purple-600 font-medium text-sm">{t('customerValue')}</p>
+                        <p className="text-purple-600 font-medium text-sm">Customer Value</p>
                         <p className="text-2xl font-bold text-purple-800">${(totalCustomerValue / 1000).toFixed(0)}K</p>
                         <p className="text-xs text-purple-600 mt-1">{t('totalPortfolio')}</p>
                       </div>
