@@ -384,8 +384,8 @@ const CustomersDemo: React.FC = () => {
   return (
     <div className={`h-full flex flex-col overflow-hidden ${isRTL ? 'RTL' : 'LTR'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex-shrink-0 mb-6 px-4 pt-6">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Customer Management</h1>
-        <p className="text-slate-600">Manage Clients</p>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">{t('customerManagement')}</h1>
+        <p className="text-slate-600">{t('manageClients')}</p>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden px-4 pb-6">
@@ -426,7 +426,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-green-600 font-medium text-sm">Active Sectors</p>
+                        <p className="text-green-600 font-medium text-sm">{t('activeSectors')}</p>
                         <p className="text-2xl font-bold text-green-800">{activeSectors}</p>
                         <p className="text-xs text-green-600 mt-1">{t('industryTypes')}</p>
                       </div>
@@ -442,7 +442,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-purple-600 font-medium text-sm">Customer Value</p>
+                        <p className="text-purple-600 font-medium text-sm">{t('customerValue')}</p>
                         <p className="text-2xl font-bold text-purple-800">${(totalCustomerValue / 1000).toFixed(0)}K</p>
                         <p className="text-xs text-purple-600 mt-1">{t('totalPortfolio')}</p>
                       </div>
@@ -477,7 +477,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-teal-600 font-medium text-sm">Top Sector</p>
+                        <p className="text-teal-600 font-medium text-sm">{t('topSector')}</p>
                         <p className="text-lg font-bold text-teal-800">{mostCommonSector}</p>
                         <p className="text-xs text-teal-600 mt-1">{topSector[mostCommonSector] || 0} {t('customers')}</p>
                       </div>
@@ -493,7 +493,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-indigo-600 font-medium text-sm">Geographic Spread</p>
+                        <p className="text-indigo-600 font-medium text-sm">{t('geographicSpread')}</p>
                         <p className="text-lg font-bold text-indigo-800">{Math.floor(totalCustomers * 0.7)} {t('cities')}</p>
                         <p className="text-xs text-indigo-600 mt-1">{t('coverageArea')}</p>
                       </div>
@@ -833,7 +833,7 @@ const CustomersDemo: React.FC = () => {
                             ].map((item) => (
                               <div key={item.region} className="flex justify-between items-center">
                                 <span className="text-sm font-medium">{item.region}</span>
-                                <span className="text-sm text-slate-600">{item.count} customers</span>
+                                <span className="text-sm text-slate-600">{item.count} {t('customers')}</span>
                               </div>
                             ))
                           }
@@ -846,7 +846,7 @@ const CustomersDemo: React.FC = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <TrendingUp className="h-5 w-5" />
-                          Monthly Growth Trend
+                          {t('monthlyGrowthTrend')}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>

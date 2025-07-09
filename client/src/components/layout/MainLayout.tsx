@@ -95,7 +95,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 alt="Morgan ERP Logo" 
                 className="w-12 h-12 object-contain"
               />
-              <h1 className="font-semibold text-gray-900 text-[20px]">{t('companyName')}</h1>
+              <h1 className="font-semibold text-gray-900 text-[20px]">Premier ERP System</h1>
             </div>
             <div className={`flex items-center ${isRTL ? 'space-x-reverse space-x-3' : 'space-x-3'}`}>
               {/* Language Selector */}
@@ -238,7 +238,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   alt="Morgan ERP Logo" 
                   className="w-8 h-8 object-contain flex-shrink-0"
                 />
-                <span className={`font-bold text-base truncate ${isRTL ? 'mr-2' : 'ml-2'}`}>{t('companyName')}</span>
+                <span className={`font-bold text-base truncate ${isRTL ? 'mr-2' : 'ml-2'}`}>Premier ERP System</span>
               </div>
             </div>
             <div className={`flex items-center space-x-1 flex-shrink-0 ${isRTL ? 'space-x-reverse' : ''}`}>
