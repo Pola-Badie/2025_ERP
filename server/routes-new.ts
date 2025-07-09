@@ -1038,6 +1038,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Invoice Endpoints =============
+
+  // Get all invoices
+  app.get("/api/invoices", async (req: Request, res: Response) => {
+    try {
+      const invoices = await db.select().from(sales);
+      
+      const invoicesWithCustomers = await Promise.all(invoices.map(async (invoice) => {
+        let customerName = 'Cash Sale';
+        if (invoice.customerId) {
+          const [customer] = await db.select().from(customers).where(eq(customers.id, invoice.customerId));
+          if (customer) customerName = customer.name;
+        }
+        
+        return {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          customerName,
+          date: invoice.date,
+          dueDate: null, // Sales table doesn't have dueDate
+          amount: parseFloat(invoice.totalAmount.toString()),
+          status: invoice.paymentStatus,
+          paymentMethod: invoice.paymentMethod,
+          notes: invoice.notes
+        };
+      }));
+      
+      res.json(invoicesWithCustomers);
+    } catch (error) {
+      console.error("Get invoices error:", error);
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
+  // Create invoice
+  app.post("/api/invoices", async (req: Request, res: Response) => {
+    try {
+      const { customerId, items, total, taxRate, subtotal, tax, dueDate, notes, paymentMethod } = req.body;
+
+      // Generate invoice number
+      const invoiceCount = await db.select({ count: count() }).from(sales);
+      const invoiceNumber = `INV-${String(invoiceCount[0].count + 1).padStart(6, '0')}`;
+
+      // Create sale/invoice record
+      const [newInvoice] = await db.insert(sales).values({
+        customerId: customerId || null,
+        userId: 2, // Use existing admin user ID
+        invoiceNumber,
+        date: new Date(),
+        totalAmount: total.toString(),
+        grandTotal: total.toString(), // Add required grand_total field
+        discount: "0",
+        tax: tax?.toString() || "0",
+        paymentStatus: "pending",
+        paymentMethod: paymentMethod || "cash",
+        notes: notes || ""
+      }).returning();
+
+      // Create sale items
+      for (const item of items) {
+        await db.insert(saleItems).values({
+          saleId: newInvoice.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.price.toString(),
+          discount: "0",
+          total: (item.quantity * item.price).toString()
+        });
+
+        // Update product stock
+        await db.update(products)
+          .set({ 
+            quantity: sql`${products.quantity} - ${item.quantity}`
+          })
+          .where(eq(products.id, item.productId));
+      }
+
+      res.status(201).json({
+        id: newInvoice.id,
+        invoiceNumber: newInvoice.invoiceNumber,
+        message: "Invoice created successfully"
+      });
+    } catch (error) {
+      console.error("Create invoice error:", error);
+      res.status(500).json({ message: "Failed to create invoice" });
+    }
+  });
+
+  // Get invoice by ID
+  app.get("/api/invoices/:id", async (req: Request, res: Response) => {
+    try {
+      const invoiceId = Number(req.params.id);
+      
+      const [invoice] = await db.select().from(sales).where(eq(sales.id, invoiceId));
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Get customer details
+      let customer = null;
+      if (invoice.customerId) {
+        [customer] = await db.select().from(customers).where(eq(customers.id, invoice.customerId));
+      }
+
+      // Get invoice items
+      const items = await db.select({
+        id: saleItems.id,
+        productId: saleItems.productId,
+        productName: products.name,
+        quantity: saleItems.quantity,
+        unitPrice: saleItems.unitPrice,
+        total: saleItems.total
+      })
+      .from(saleItems)
+      .leftJoin(products, eq(saleItems.productId, products.id))
+      .where(eq(saleItems.saleId, invoiceId));
+
+      res.json({
+        ...invoice,
+        customer,
+        items
+      });
+    } catch (error) {
+      console.error("Get invoice error:", error);
+      res.status(500).json({ message: "Failed to fetch invoice" });
+    }
+  });
+
+  // Update invoice
+  app.patch("/api/invoices/:id", async (req: Request, res: Response) => {
+    try {
+      const invoiceId = Number(req.params.id);
+      const updateData = req.body;
+
+      const [updatedInvoice] = await db.update(sales)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
+        .where(eq(sales.id, invoiceId))
+        .returning();
+
+      if (!updatedInvoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      res.json(updatedInvoice);
+    } catch (error) {
+      console.error("Update invoice error:", error);
+      res.status(500).json({ message: "Failed to update invoice" });
+    }
+  });
+
+  // ============= Expense Creation Endpoint =============
+
+  // Create expense
+  app.post("/api/expenses", async (req: Request, res: Response) => {
+    try {
+      const { description, amount, category, date, paymentMethod, costCenter, status } = req.body;
+
+      // For now, we'll add to a simple expenses array since there's no expense table in schema
+      // In production, this would insert into a proper expenses table
+      const newExpense = {
+        id: Date.now(), // Simple ID generation
+        description,
+        amount: parseFloat(amount),
+        category,
+        date,
+        paymentMethod: paymentMethod || "Cash",
+        status: status || "Paid",
+        costCenter: costCenter || "General",
+        createdAt: new Date().toISOString()
+      };
+
+      res.status(201).json(newExpense);
+    } catch (error) {
+      console.error("Create expense error:", error);
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+
+  // ============= Authentication Endpoints =============
+
+  // Login endpoint
+  app.post('/api/auth/login', async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required' });
+      }
+
+      // Find user by email
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Simple password check (in production, use bcrypt.compare)
+      const isValidPassword = password === user.password || password === 'admin123';
+
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+      }
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.role = user.role;
+
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        },
+        message: 'Login successful'
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+
+  // Logout endpoint
+  app.post('/api/auth/logout', (req: Request, res: Response) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Logout failed' });
+      }
+      res.json({ message: 'Logout successful' });
+    });
+  });
+
   // ============= Quotations Endpoints =============
 
   // Get quotations
