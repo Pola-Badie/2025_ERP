@@ -382,7 +382,7 @@ const CustomersDemo: React.FC = () => {
   };
 
   return (
-    <div className={`h-full flex flex-col overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`h-full flex flex-col overflow-hidden ${isRTL ? 'RTL' : 'LTR'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex-shrink-0 mb-6 px-4 pt-6">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('customerManagement')}</h1>
         <p className="text-slate-600">{t('managePharmaceuticalClients')}</p>
