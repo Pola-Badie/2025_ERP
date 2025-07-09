@@ -16,6 +16,7 @@ import { CSVImport } from '@/components/csv/CSVImport';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Define the API Customer type based on the response
 interface ApiCustomer {
@@ -37,6 +38,8 @@ interface ApiCustomer {
 }
 
 const CustomersDemo: React.FC = () => {
+  const { t, language, isRTL } = useLanguage();
+  
   // State for search and filters
   const [searchQuery, setSearchQuery] = useState<string>('');
   
@@ -379,10 +382,10 @@ const CustomersDemo: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className={`h-full flex flex-col overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex-shrink-0 mb-6 px-4 pt-6">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Customer Management</h1>
-        <p className="text-slate-600">Manage pharmaceutical clients and track business relationships</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('customerManagement')}</h1>
+        <p className="text-slate-600">{t('managePharmaceuticalClients')}</p>
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden px-4 pb-6">
@@ -390,11 +393,11 @@ const CustomersDemo: React.FC = () => {
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="management" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Customer Management
+              {t('customerManagement')}
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <PieChart className="h-4 w-4" />
-              Customer Reports
+              {t('customerReports')}
             </TabsTrigger>
           </TabsList>
 
@@ -407,9 +410,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-blue-600 font-medium text-sm">Total Customers</p>
+                        <p className="text-blue-600 font-medium text-sm">{t('totalCustomers')}</p>
                         <p className="text-2xl font-bold text-blue-800">{totalCustomers}</p>
-                        <p className="text-xs text-blue-600 mt-1">Active accounts</p>
+                        <p className="text-xs text-blue-600 mt-1">{t('activeAccounts')}</p>
                       </div>
                       <div className="p-3 bg-blue-200 rounded-full">
                         <Users className="h-6 w-6 text-blue-700" />
@@ -423,9 +426,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-green-600 font-medium text-sm">Active Sectors</p>
+                        <p className="text-green-600 font-medium text-sm">{t('activeSectors')}</p>
                         <p className="text-2xl font-bold text-green-800">{activeSectors}</p>
-                        <p className="text-xs text-green-600 mt-1">Industry types</p>
+                        <p className="text-xs text-green-600 mt-1">{t('industryTypes')}</p>
                       </div>
                       <div className="p-3 bg-green-200 rounded-full">
                         <Building className="h-6 w-6 text-green-700" />
@@ -439,9 +442,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-purple-600 font-medium text-sm">Customer Value</p>
+                        <p className="text-purple-600 font-medium text-sm">{t('customerValue')}</p>
                         <p className="text-2xl font-bold text-purple-800">${(totalCustomerValue / 1000).toFixed(0)}K</p>
-                        <p className="text-xs text-purple-600 mt-1">Total portfolio</p>
+                        <p className="text-xs text-purple-600 mt-1">{t('totalPortfolio')}</p>
                       </div>
                       <div className="p-3 bg-purple-200 rounded-full">
                         <DollarSign className="h-6 w-6 text-purple-700" />
@@ -455,9 +458,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-orange-600 font-medium text-sm">New This Month</p>
+                        <p className="text-orange-600 font-medium text-sm">{t('newThisMonth')}</p>
                         <p className="text-2xl font-bold text-orange-800">{newCustomersThisMonth}</p>
-                        <p className="text-xs text-orange-600 mt-1">Recent additions</p>
+                        <p className="text-xs text-orange-600 mt-1">{t('recentAdditions')}</p>
                       </div>
                       <div className="p-3 bg-orange-200 rounded-full">
                         <TrendingUp className="h-6 w-6 text-orange-700" />
@@ -474,9 +477,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-teal-600 font-medium text-sm">Top Sector</p>
+                        <p className="text-teal-600 font-medium text-sm">{t('topSector')}</p>
                         <p className="text-lg font-bold text-teal-800">{mostCommonSector}</p>
-                        <p className="text-xs text-teal-600 mt-1">{topSector[mostCommonSector] || 0} customers</p>
+                        <p className="text-xs text-teal-600 mt-1">{topSector[mostCommonSector] || 0} {t('customers')}</p>
                       </div>
                       <div className="p-2 bg-teal-200 rounded-full">
                         <Target className="h-5 w-5 text-teal-700" />
@@ -490,9 +493,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-indigo-600 font-medium text-sm">Geographic Spread</p>
-                        <p className="text-lg font-bold text-indigo-800">{Math.floor(totalCustomers * 0.7)} Cities</p>
-                        <p className="text-xs text-indigo-600 mt-1">Coverage area</p>
+                        <p className="text-indigo-600 font-medium text-sm">{t('geographicSpread')}</p>
+                        <p className="text-lg font-bold text-indigo-800">{Math.floor(totalCustomers * 0.7)} {t('cities')}</p>
+                        <p className="text-xs text-indigo-600 mt-1">{t('coverageArea')}</p>
                       </div>
                       <div className="p-2 bg-indigo-200 rounded-full">
                         <MapPin className="h-5 w-5 text-indigo-700" />
@@ -506,9 +509,9 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-rose-600 font-medium text-sm">Growth Rate</p>
+                        <p className="text-rose-600 font-medium text-sm">{t('growthRate')}</p>
                         <p className="text-lg font-bold text-rose-800">+{Math.floor(Math.random() * 15 + 5)}%</p>
-                        <p className="text-xs text-rose-600 mt-1">Monthly increase</p>
+                        <p className="text-xs text-rose-600 mt-1">{t('monthlyIncrease')}</p>
                       </div>
                       <div className="p-2 bg-rose-200 rounded-full">
                         <BarChart3 className="h-5 w-5 text-rose-700" />
@@ -523,13 +526,13 @@ const CustomersDemo: React.FC = () => {
               <Card className="flex-1 flex flex-col overflow-hidden">
                 <CardHeader className="flex-shrink-0 space-y-4">
                   <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
-                    <CardTitle>Customer Records</CardTitle>
+                    <CardTitle>{t('customerRecords')}</CardTitle>
                     
                     {/* Search Bar - Full width on mobile, fixed width on larger screens */}
                     <div className="relative w-full lg:w-auto lg:min-w-[250px]">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search customers..."
+                        placeholder={t('searchCustomers')}
                         className="w-full pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -542,7 +545,7 @@ const CustomersDemo: React.FC = () => {
                     <div className="flex flex-wrap gap-2 flex-1">
                       <CSVImport
                         onImport={handleImportCSV}
-                        buttonText="Import"
+                        buttonText={t('import')}
                         size="sm"
                         variant="outline"
                         requiredColumns={["name", "position", "company", "phone", "email"]}
@@ -550,7 +553,7 @@ const CustomersDemo: React.FC = () => {
                       <CSVExport
                         data={filteredCustomers}
                         filename="customers_export.csv"
-                        buttonText="Export"
+                        buttonText={t('export')}
                         size="sm"
                         variant="outline"
                       />
@@ -562,7 +565,7 @@ const CustomersDemo: React.FC = () => {
                       className="w-full sm:w-auto cursor-pointer"
                     >
                       <Plus className="h-4 w-4 mr-2" />
-                      Add Customer
+                      {t('addCustomer')}
                     </Button>
                   </div>
                 </CardHeader>
@@ -572,14 +575,14 @@ const CustomersDemo: React.FC = () => {
                     <div className="min-w-[800px]">
                       {/* Table header */}
                       <div className="grid grid-cols-4 md:grid-cols-8 gap-2 md:gap-4 items-center text-sm font-medium mb-2 text-slate-800 border-b pb-2 sticky top-0 bg-white z-10">
-                        <div className="hidden md:block">Code</div>
-                        <div className="col-span-2 md:col-span-1">Name</div>
-                        <div className="hidden md:block">Company</div>
-                        <div className="hidden md:block">Sector</div>
-                        <div className="hidden sm:block md:block">Phone</div>
-                        <div className="col-span-1">Email</div>
-                        <div className="hidden md:block">Address</div>
-                        <div className="text-right md:text-center">Action</div>
+                        <div className="hidden md:block">{t('code')}</div>
+                        <div className="col-span-2 md:col-span-1">{t('name')}</div>
+                        <div className="hidden md:block">{t('company')}</div>
+                        <div className="hidden md:block">{t('sector')}</div>
+                        <div className="hidden sm:block md:block">{t('phone')}</div>
+                        <div className="col-span-1">{t('email')}</div>
+                        <div className="hidden md:block">{t('address')}</div>
+                        <div className="text-right md:text-center">{t('action')}</div>
                       </div>
                       
                       {/* Customer data with scrollbars */}
@@ -587,12 +590,12 @@ const CustomersDemo: React.FC = () => {
                         {isLoading ? (
                           <div className="py-8 text-center text-slate-500">
                             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                            <p className="text-lg font-medium">Loading customers...</p>
+                            <p className="text-lg font-medium">{t('loadingCustomers')}</p>
                           </div>
                         ) : isError ? (
                           <div className="py-8 text-center text-red-500">
-                            <p className="text-lg font-medium">Error loading customers</p>
-                            <p>Please try again later</p>
+                            <p className="text-lg font-medium">{t('errorLoadingCustomers')}</p>
+                            <p>{t('pleaseTryAgainLater')}</p>
                           </div>
                         ) : filteredCustomers.length > 0 ? (
                           filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((customer: CustomerData) => (
@@ -609,11 +612,11 @@ const CustomersDemo: React.FC = () => {
                           <div className="py-8 text-center text-slate-500">
                             {searchQuery ? (
                               <>
-                                <p className="mb-2 text-lg font-medium">No matching customers found</p>
-                                <p>Try adjusting your search query or add a new customer</p>
+                                <p className="mb-2 text-lg font-medium">{t('noMatchingCustomersFound')}</p>
+                                <p>{t('tryAdjustingSearchQuery')}</p>
                               </>
                             ) : (
-                              <p className="text-lg font-medium">No customers available</p>
+                              <p className="text-lg font-medium">{t('noCustomersAvailable')}</p>
                             )}
                           </div>
                         )}
@@ -632,12 +635,12 @@ const CustomersDemo: React.FC = () => {
                         className="flex items-center gap-2"
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
+                        {t('previous')}
                       </Button>
                       
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-slate-600">
-                          Page {currentPage} of {Math.ceil(filteredCustomers.length / itemsPerPage)}
+                          {t('page')} {currentPage} {t('of')} {Math.ceil(filteredCustomers.length / itemsPerPage)}
                         </span>
                       </div>
                       
@@ -648,7 +651,7 @@ const CustomersDemo: React.FC = () => {
                         disabled={currentPage === Math.ceil(filteredCustomers.length / itemsPerPage)}
                         className="flex items-center gap-2"
                       >
-                        Next
+                        {t('next')}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
@@ -663,22 +666,22 @@ const CustomersDemo: React.FC = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">Customer Reports & Analytics</h2>
-                  <p className="text-slate-600">Comprehensive reports and insights about customer performance</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('customerReportsAnalytics')}</h2>
+                  <p className="text-slate-600">{t('comprehensiveReportsInsights')}</p>
                 </div>
                 <Button 
                   onClick={exportToPDF}
                   className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4" />
-                  Export PDF
+                  {t('exportPDF')}
                 </Button>
               </div>
 
               {reportsLoading ? (
                 <div className="flex-1 flex items-center justify-center">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  <span className="ml-2 text-slate-600">Loading reports...</span>
+                  <span className="ml-2 text-slate-600">{t('loadingReports')}</span>
                 </div>
               ) : (
                 <div className="flex-1 overflow-auto space-y-6">
@@ -688,9 +691,9 @@ const CustomersDemo: React.FC = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-blue-600 font-medium text-sm">Total Customers</p>
+                            <p className="text-blue-600 font-medium text-sm">{t('totalCustomers')}</p>
                             <p className="text-2xl font-bold text-blue-800">{customerReports?.summary?.totalCustomers || totalCustomers}</p>
-                            <p className="text-xs text-blue-600 mt-1">Active customers</p>
+                            <p className="text-xs text-blue-600 mt-1">{t('activeCustomers')}</p>
                           </div>
                           <div className="p-3 bg-blue-200 rounded-full">
                             <Users className="h-6 w-6 text-blue-700" />
@@ -703,9 +706,9 @@ const CustomersDemo: React.FC = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-green-600 font-medium text-sm">Total Revenue</p>
+                            <p className="text-green-600 font-medium text-sm">{t('totalRevenue')}</p>
                             <p className="text-2xl font-bold text-green-800">${customerReports?.summary?.totalRevenue || '2.4M'}</p>
-                            <p className="text-xs text-green-600 mt-1">Customer revenue</p>
+                            <p className="text-xs text-green-600 mt-1">{t('customerRevenue')}</p>
                           </div>
                           <div className="p-3 bg-green-200 rounded-full">
                             <DollarSign className="h-6 w-6 text-green-700" />
@@ -718,9 +721,9 @@ const CustomersDemo: React.FC = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-purple-600 font-medium text-sm">Avg Order Value</p>
+                            <p className="text-purple-600 font-medium text-sm">{t('avgOrderValue')}</p>
                             <p className="text-2xl font-bold text-purple-800">${customerReports?.summary?.averageOrderValue || '45K'}</p>
-                            <p className="text-xs text-purple-600 mt-1">Per customer</p>
+                            <p className="text-xs text-purple-600 mt-1">{t('perCustomer')}</p>
                           </div>
                           <div className="p-3 bg-purple-200 rounded-full">
                             <TrendingUp className="h-6 w-6 text-purple-700" />
@@ -733,9 +736,9 @@ const CustomersDemo: React.FC = () => {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-orange-600 font-medium text-sm">Repeat Customers</p>
+                            <p className="text-orange-600 font-medium text-sm">{t('repeatCustomers')}</p>
                             <p className="text-2xl font-bold text-orange-800">{customerReports?.summary?.repeatCustomers || '78%'}</p>
-                            <p className="text-xs text-orange-600 mt-1">Retention rate</p>
+                            <p className="text-xs text-orange-600 mt-1">{t('retentionRate')}</p>
                           </div>
                           <div className="p-3 bg-orange-200 rounded-full">
                             <Activity className="h-6 w-6 text-orange-700" />
@@ -752,7 +755,7 @@ const CustomersDemo: React.FC = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <PieChart className="h-5 w-5" />
-                          Customer Distribution by Sector
+                          {t('customerDistributionBySector')}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -761,13 +764,13 @@ const CustomersDemo: React.FC = () => {
                             Object.entries(customerReports.sectorDistribution).map(([sector, count]) => (
                               <div key={sector} className="flex justify-between items-center">
                                 <span className="text-sm font-medium">{sector}</span>
-                                <span className="text-sm text-slate-600">{count} customers</span>
+                                <span className="text-sm text-slate-600">{count} {t('customers')}</span>
                               </div>
                             )) :
                             Object.entries(topSector).map(([sector, count]) => (
                               <div key={sector} className="flex justify-between items-center">
                                 <span className="text-sm font-medium">{sector}</span>
-                                <span className="text-sm text-slate-600">{count} customers</span>
+                                <span className="text-sm text-slate-600">{count} {t('customers')}</span>
                               </div>
                             ))
                           }
@@ -780,7 +783,7 @@ const CustomersDemo: React.FC = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <DollarSign className="h-5 w-5" />
-                          Top Customers by Revenue
+                          {t('topCustomersByRevenue')}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -810,7 +813,7 @@ const CustomersDemo: React.FC = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <MapPin className="h-5 w-5" />
-                          Geographic Distribution
+                          {t('geographicDistribution')}
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
@@ -819,7 +822,7 @@ const CustomersDemo: React.FC = () => {
                             Object.entries(customerReports.geographic).map(([region, count]) => (
                               <div key={region} className="flex justify-between items-center">
                                 <span className="text-sm font-medium">{region}</span>
-                                <span className="text-sm text-slate-600">{count} customers</span>
+                                <span className="text-sm text-slate-600">{count} {t('customers')}</span>
                               </div>
                             )) :
                             [

@@ -1048,11 +1048,11 @@ const CreateInvoice = () => {
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="create" className="flex items-center space-x-2">
             <Plus className="w-4 h-4" />
-            <span>Create Invoice</span>
+            <span>{t('createInvoice')}</span>
           </TabsTrigger>
           <TabsTrigger value="drafts" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
-            <span>Draft Invoices ({savedDrafts.length})</span>
+            <span>{t('draftInvoices')} ({savedDrafts.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1060,12 +1060,12 @@ const CreateInvoice = () => {
         <TabsContent value="create" className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Create New Invoice</h2>
-              <p className="text-muted-foreground">Create a new invoice by selecting a customer and adding products</p>
+              <h2 className="text-xl font-semibold">{t('createNewInvoice')}</h2>
+              <p className="text-muted-foreground">{t('createInvoiceDescription')}</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button 
                 variant="outline" 
@@ -1085,7 +1085,7 @@ const CreateInvoice = () => {
                 disabled={isSubmitting}
               >
                 <Save className="mr-2 h-4 w-4" />
-                Save as Draft
+                {t('saveAsDraft')}
               </Button>
               <Button 
                 variant="outline" 
@@ -1093,11 +1093,11 @@ const CreateInvoice = () => {
                 disabled={isSubmitting}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                Preview Invoice
+                {t('previewInvoice')}
               </Button>
               <Button onClick={form.handleSubmit(onSubmit)} disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Invoice
+                {t('createInvoice')}
               </Button>
             </div>
           </div>
@@ -1105,7 +1105,7 @@ const CreateInvoice = () => {
       {/* Invoice Drafts Tabs */}
       <div className="border rounded-md p-4 mb-6 bg-background">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-medium">Invoices In Progress</h2>
+          <h2 className="text-lg font-medium">{t('invoicesInProgress')}</h2>
           <div className="flex space-x-2">
             <Button
               variant="outline"
@@ -1113,7 +1113,7 @@ const CreateInvoice = () => {
               onClick={resetAllInvoices}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Reset to Invoice 1
+              {t('resetToInvoice1')}
             </Button>
             {invoiceDrafts.length < 4 && (
               <Button
@@ -1122,7 +1122,7 @@ const CreateInvoice = () => {
                 onClick={addNewDraft}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                New Invoice
+                {t('newInvoice')}
               </Button>
             )}
           </div>
@@ -1156,10 +1156,10 @@ const CreateInvoice = () => {
         
         <div className="mt-2 flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            <p>Your invoice progress is automatically saved. You can work on up to 4 invoices at the same time.</p>
+            <p>{t('invoiceProgressAutoSaved')}</p>
           </div>
           <div className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200">
-            <span className="font-medium">Next Invoice #:</span> INV-{String(new Date().getMonth() + 1).padStart(2, '0')}{new Date().getFullYear().toString().slice(-2)}{String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}
+            <span className="font-medium">{t('nextInvoiceNumber')}:</span> INV-{String(new Date().getMonth() + 1).padStart(2, '0')}{new Date().getFullYear().toString().slice(-2)}{String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}
           </div>
         </div>
       </div>
@@ -1168,9 +1168,9 @@ const CreateInvoice = () => {
         {/* Customer Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Customer Information</CardTitle>
+            <CardTitle>{t('customerInformation')}</CardTitle>
             <CardDescription>
-              Select an existing customer or create a new one
+              {t('selectOrCreateCustomer')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -1178,14 +1178,14 @@ const CreateInvoice = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label>Customer</Label>
+                    <Label>{t('customer')}</Label>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setIsCreatingCustomer(true)}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Add Customer
+                      {t('addCustomer')}
                     </Button>
                   </div>
                   <div className="flex items-end gap-2">
@@ -1197,14 +1197,14 @@ const CreateInvoice = () => {
                             role="combobox"
                             className="w-full justify-between"
                           >
-                            {form.watch('customer.company') || form.watch('customer.name') || "Select customer..."}
+                            {form.watch('customer.company') || form.watch('customer.name') || t('selectCustomer')}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] p-0">
                           <Command>
                             <CommandInput 
-                              placeholder="Search customer..." 
+                              placeholder={t('searchCustomer')} 
                               value={customerSearchTerm}
                               onValueChange={setCustomerSearchTerm}
                             />
@@ -1212,7 +1212,7 @@ const CreateInvoice = () => {
                               <CommandEmpty>
                                 {customerSearchTerm.length > 0 ? (
                                   <div className="py-6 text-center text-sm">
-                                    <p>No customers found for "{customerSearchTerm}"</p>
+                                    <p>{t('noCustomersFoundFor')} "{customerSearchTerm}"</p>
                                     <Button 
                                       variant="outline" 
                                       className="mt-2"
@@ -1222,7 +1222,7 @@ const CreateInvoice = () => {
                                       }}
                                     >
                                       <Plus className="mr-2 h-4 w-4" />
-                                      Create New Customer
+                                      {t('createNewCustomer')}
                                     </Button>
                                   </div>
                                 ) : (

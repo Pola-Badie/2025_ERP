@@ -495,7 +495,41 @@ const translations = {
     signIn: 'Sign In',
     secureERPSystem: 'Secure Premier ERP system',
     enterpriseSecurity: 'Enterprise Security',
-    termsAndPrivacy: 'By signing in, you agree to our Terms of Service and Privacy Policy'
+    termsAndPrivacy: 'By signing in, you agree to our Terms of Service and Privacy Policy',
+    
+    // Customer Management
+    customerRecords: 'Customer Records',
+    allCustomers: 'All Customers',
+    activeCustomers: 'Active Customers',
+    inactiveCustomers: 'Inactive Customers',
+    viewProfile: 'View Profile',
+    viewOrders: 'View Orders',
+    editCustomer: 'Edit Customer',
+    deleteCustomer: 'Delete Customer',
+    customerDeleted: 'Customer deleted successfully',
+    importCustomers: 'Import Customers',
+    exportCustomers: 'Export Customers',
+    addCustomer: 'Add Customer',
+    searchCustomers: 'Search customers by name, email or phone',
+    filterByStatus: 'Filter by Status',
+    showingResults: 'Showing results',
+    noCustomersFound: 'No customers found',
+    tryDifferentSearch: 'Try adjusting your search criteria',
+    loadingCustomers: 'Loading customers...',
+    
+    // Customer Analytics
+    reportsAnalytics: 'Reports & Analytics',
+    totalCustomers: 'Total Customers',
+    active: 'Active',
+    newThisMonth: 'New This Month',
+    avgOrderValue: 'Avg Order Value',
+    perCustomer: 'Per customer',
+    repeatCustomers: 'Repeat Customers',
+    retentionRate: 'Retention rate',
+    customerDistributionBySector: 'Customer Distribution by Sector',
+    topCustomersByRevenue: 'Top Customers by Revenue',
+    geographicDistribution: 'Geographic Distribution',
+    customers: 'customers'
   },
   ar: {
     // Navigation
@@ -994,7 +1028,41 @@ const translations = {
     signIn: 'تسجيل الدخول',
     secureERPSystem: 'نظام Premier ERP الآمن',
     enterpriseSecurity: 'أمن المؤسسات',
-    termsAndPrivacy: 'بتسجيل الدخول، فإنك توافق على شروط الخدمة وسياسة الخصوصية'
+    termsAndPrivacy: 'بتسجيل الدخول، فإنك توافق على شروط الخدمة وسياسة الخصوصية',
+    
+    // Customer Management
+    customerRecords: 'سجلات العملاء',
+    allCustomers: 'جميع العملاء',
+    activeCustomers: 'العملاء النشطون',
+    inactiveCustomers: 'العملاء غير النشطين',
+    viewProfile: 'عرض الملف الشخصي',
+    viewOrders: 'عرض الطلبات',
+    editCustomer: 'تعديل العميل',
+    deleteCustomer: 'حذف العميل',
+    customerDeleted: 'تم حذف العميل بنجاح',
+    importCustomers: 'استيراد العملاء',
+    exportCustomers: 'تصدير العملاء',
+    addCustomer: 'إضافة عميل',
+    searchCustomers: 'البحث عن العملاء بالاسم أو البريد الإلكتروني أو الهاتف',
+    filterByStatus: 'فلتر حسب الحالة',
+    showingResults: 'عرض النتائج',
+    noCustomersFound: 'لم يتم العثور على عملاء',
+    tryDifferentSearch: 'حاول تعديل معايير البحث',
+    loadingCustomers: 'جاري تحميل العملاء...',
+    
+    // Customer Analytics
+    reportsAnalytics: 'التقارير والتحليلات',
+    totalCustomers: 'إجمالي العملاء',
+    active: 'نشط',
+    newThisMonth: 'جدد هذا الشهر',
+    avgOrderValue: 'متوسط قيمة الطلب',
+    perCustomer: 'لكل عميل',
+    repeatCustomers: 'العملاء المتكررون',
+    retentionRate: 'معدل الاحتفاظ',
+    customerDistributionBySector: 'توزيع العملاء حسب القطاع',
+    topCustomersByRevenue: 'أفضل العملاء حسب الإيرادات',
+    geographicDistribution: 'التوزيع الجغرافي',
+    customers: 'عملاء'
   }
 };
 
