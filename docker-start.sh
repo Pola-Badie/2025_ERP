@@ -1,83 +1,80 @@
 #!/bin/bash
-
-# Premier ERP System Docker Startup Script
+# Premier ERP Docker Startup Script
 
 set -e
 
-echo "🚀 Starting Premier ERP System with Docker..."
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Check if Docker is installed
+echo -e "${GREEN}Starting Premier ERP System...${NC}"
+
+# Check if .env.production exists
+if [ ! -f .env.production ]; then
+    echo -e "${YELLOW}Warning: .env.production not found!${NC}"
+    echo "Creating from .env.example..."
+    cp .env.example .env.production
+    echo -e "${RED}Please edit .env.production with your configuration before continuing.${NC}"
+    exit 1
+fi
+
+# Load environment variables
+export $(cat .env.production | grep -v '^#' | xargs)
+
+# Check Docker installation
 if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker first."
-    echo "   Visit: https://docs.docker.com/get-docker/"
+    echo -e "${RED}Docker is not installed!${NC}"
     exit 1
 fi
 
-# Check if Docker Compose is installed
 if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Compose first."
-    echo "   Visit: https://docs.docker.com/compose/install/"
+    echo -e "${RED}Docker Compose is not installed!${NC}"
     exit 1
-fi
-
-# Check Docker daemon and permissions
-echo "🔍 Checking Docker daemon..."
-if ! docker info >/dev/null 2>&1; then
-    echo "❌ Cannot connect to Docker daemon. This usually means:"
-    echo "   1. Docker daemon is not running"
-    echo "   2. Your user doesn't have permission to access Docker"
-    echo ""
-    echo "🔧 To fix this:"
-    echo "   Option 1 - Add your user to docker group (recommended):"
-    echo "   sudo usermod -aG docker $USER"
-    echo "   newgrp docker"
-    echo ""
-    echo "   Option 2 - Run with sudo (not recommended for production):"
-    echo "   sudo ./docker-start.sh"
-    echo ""
-    echo "   Option 3 - Start Docker daemon if not running:"
-    echo "   sudo systemctl start docker"
-    echo "   sudo systemctl enable docker"
-    echo ""
-    exit 1
-fi
-
-# Create .env file if it doesn't exist
-if [ ! -f .env ]; then
-    echo "📝 Creating .env file from example..."
-    cp .env.example .env
-    echo "⚠️  Please edit .env file with your configuration before continuing."
-    echo "   At minimum, set a secure POSTGRES_PASSWORD."
-    read -p "Press Enter to continue after editing .env file..."
 fi
 
 # Create necessary directories
-echo "📁 Creating directories..."
-mkdir -p uploads
-mkdir -p backups
+echo "Creating directories..."
+mkdir -p uploads logs backups attached_assets
 
-# Build and start services
-echo "🔨 Building and starting services..."
-docker-compose -f docker-compose.simple.yml up --build -d
+# Set proper permissions
+chmod 755 uploads logs backups attached_assets
 
-# Wait for services to be healthy
-echo "⏳ Waiting for services to start..."
+# Build images
+echo -e "${GREEN}Building Docker images...${NC}"
+docker-compose build --no-cache
+
+# Start services
+echo -e "${GREEN}Starting services...${NC}"
+docker-compose up -d
+
+# Wait for services to be ready
+echo "Waiting for services to start..."
 sleep 10
 
 # Check service health
-echo "🔍 Checking service health..."
+echo -e "${GREEN}Checking service health...${NC}"
 docker-compose ps
 
-# Show logs for the first few seconds
-echo "📋 Recent logs:"
-docker-compose logs --tail=20
+# Check database connection
+echo "Checking database connection..."
+docker-compose exec -T app curl -f http://localhost:5000/api/health || {
+    echo -e "${RED}Health check failed!${NC}"
+    echo "Checking logs..."
+    docker-compose logs --tail=50 app
+    exit 1
+}
 
+echo -e "${GREEN}✓ Premier ERP System is running!${NC}"
 echo ""
-echo "✅ Premier ERP System is starting up!"
-echo "🌐 Application will be available at: http://localhost:5000"
-echo "🗄️  Database is available at: localhost:5432"
+echo "Access the application at:"
+echo "  - Frontend: http://localhost:5000"
+echo "  - API: http://localhost:5000/api"
+echo "  - Health: http://localhost:5000/api/health"
 echo ""
-echo "📊 To view logs: docker-compose logs -f"
-echo "🛑 To stop: docker-compose down"
-echo "🔄 To restart: docker-compose restart"
-echo "🧹 To clean up: docker-compose down -v"
+echo "Useful commands:"
+echo "  - View logs: docker-compose logs -f"
+echo "  - Stop services: docker-compose down"
+echo "  - Restart services: docker-compose restart"
+echo "  - Backup database: ./scripts/backup/backup-database.sh"
