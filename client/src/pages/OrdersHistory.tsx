@@ -70,7 +70,7 @@ interface OrderHistoryItem {
 }
 
 const OrdersHistory: React.FC = () => {
-  const { language } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');

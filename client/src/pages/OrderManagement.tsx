@@ -78,7 +78,7 @@ import CustomerSelector from '@/components/CustomerSelector';
 
 const OrderManagement = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState<'create' | 'refining'>('create');
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);

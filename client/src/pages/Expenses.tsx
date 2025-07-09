@@ -35,6 +35,7 @@ import ExpenseForm from '@/components/expenses/ExpenseForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Plus, Download, Filter, Search, MoreHorizontal, 
   AlertCircle, Trash, Calendar, Settings, ChevronLeft, ChevronRight, FileText,
@@ -59,6 +60,7 @@ interface Category {
 }
 
 const Expenses: React.FC = () => {
+  const { t, isRTL } = useLanguage();
   const [isExpenseFormOpen, setIsExpenseFormOpen] = useState(false);
   const [isCategorySettingsOpen, setIsCategorySettingsOpen] = useState(false);
   const [isViewReceiptOpen, setIsViewReceiptOpen] = useState(false);
@@ -352,11 +354,11 @@ const Expenses: React.FC = () => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Expenses</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('expenses')}</h1>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">
           <Button onClick={() => setIsExpenseFormOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            New Expense
+            {t('addExpense')}
           </Button>
         </div>
       </div>

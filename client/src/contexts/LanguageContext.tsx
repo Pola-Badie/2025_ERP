@@ -276,7 +276,133 @@ const translations = {
     visa: 'Visa',
     cheque: 'Cheque',
     bankTransfer: 'Bank Transfer',
-    etaNumber: 'ETA Number'
+    etaNumber: 'ETA Number',
+    
+    // Dashboard
+    welcomeToPremier: 'Welcome to Premier ERP',
+    yourBusinessOverview: 'Your business overview',
+    financialSummary: 'Financial Summary',
+    operationalMetrics: 'Operational Metrics',
+    inventoryAlerts: 'Inventory Alerts',
+    salesOverview: 'Sales Overview',
+    salesDistribution: 'Sales Distribution',
+    categoryPerformance: 'Category Performance',
+    totalRevenue: 'Total Revenue',
+    totalExpenses: 'Total Expenses',
+    netProfit: 'Net Profit',
+    cashBalance: 'Cash Balance',
+    pendingOrders: 'Pending Orders',
+    outstandingAR: 'Outstanding A/R',
+    totalAccounts: 'Total Accounts',
+    trialBalance: 'Trial Balance',
+    lowStockItems: 'Low Stock Items',
+    expiringProducts: 'Expiring Products',
+    warehouseBreakdown: 'Warehouse Breakdown',
+    viewDetails: 'View Details',
+    
+    // Accounting Module
+    accountingDashboard: 'Accounting Dashboard',
+    chartOfAccounts: 'Chart of Accounts',
+    journalEntries: 'Journal Entries',
+    customerPayments: 'Customer Payments',
+    profitAndLoss: 'Profit & Loss',
+    balanceSheet: 'Balance Sheet',
+    trialBalanceReport: 'Trial Balance Report',
+    accountingPeriods: 'Accounting Periods',
+    financialIntegration: 'Financial Integration',
+    
+    // Expenses Module
+    expenseManagement: 'Expense Management',
+    addExpense: 'Add Expense',
+    expenseCategory: 'Expense Category',
+    expenseAmount: 'Amount',
+    expenseDate: 'Date',
+    expenseDescription: 'Description',
+    paymentMethodExpense: 'Payment Method',
+    costCenter: 'Cost Center',
+    receiptUpload: 'Receipt Upload',
+    expenseStatus: 'Expense Status',
+    
+    // Reports Module
+    reportsAnalytics: 'Reports & Analytics',
+    inventoryReports: 'Inventory Reports',
+    salesReports: 'Sales Reports',
+    financialReports: 'Financial Reports',
+    customerReports: 'Customer Reports',
+    supplierReports: 'Supplier Reports',
+    exportReport: 'Export Report',
+    generateReport: 'Generate Report',
+    reportPeriod: 'Report Period',
+    
+    // Procurement Module
+    procurementManagement: 'Procurement Management',
+    createPurchaseOrder: 'Create Purchase Order',
+    purchaseOrderHistory: 'Purchase Order History',
+    selectSupplier: 'Select Supplier',
+    expectedDelivery: 'Expected Delivery',
+    procurementStatus: 'Procurement Status',
+    approvalRequired: 'Approval Required',
+    
+    // Order Management
+    orderManagementSystem: 'Order Management System',
+    newOrder: 'New Order',
+    orderStatus: 'Order Status',
+    orderNumber: 'Order Number',
+    orderDate: 'Order Date',
+    deliveryDate: 'Delivery Date',
+    orderTotal: 'Order Total',
+    
+    // User Management
+    userManagementSystem: 'User Management System',
+    addUser: 'Add User',
+    userName: 'User Name',
+    userEmail: 'Email',
+    userRole: 'User Role',
+    userStatus: 'User Status',
+    userPermissions: 'User Permissions',
+    lastLogin: 'Last Login',
+    
+    // System Preferences
+    systemPreferencesTitle: 'System Preferences',
+    companySettings: 'Company Settings',
+    currencySettings: 'Currency Settings',
+    taxSettings: 'Tax Settings',
+    notificationSettings: 'Notification Settings',
+    backupSettings: 'Backup Settings',
+    securitySettings: 'Security Settings',
+    
+    // Common Actions
+    view: 'View',
+    create: 'Create',
+    update: 'Update',
+    deleteAction: 'Delete',
+    confirm: 'Confirm',
+    cancelAction: 'Cancel',
+    saveChanges: 'Save Changes',
+    discardChanges: 'Discard Changes',
+    refresh: 'Refresh',
+    print: 'Print',
+    download: 'Download',
+    upload: 'Upload',
+    
+    // Status Messages
+    successMessage: 'Operation successful',
+    errorMessage: 'An error occurred',
+    loadingMessage: 'Loading...',
+    savingMessage: 'Saving...',
+    deletingMessage: 'Deleting...',
+    noDataFound: 'No data found',
+    
+    // Time periods
+    today: 'Today',
+    yesterday: 'Yesterday',
+    thisWeek: 'This Week',
+    lastWeek: 'Last Week',
+    thisMonth: 'This Month',
+    lastMonth: 'Last Month',
+    thisYear: 'This Year',
+    lastYear: 'Last Year',
+    customRange: 'Custom Range'
   },
   ar: {
     // Navigation
@@ -556,7 +682,133 @@ const translations = {
     visa: 'فيزا',
     cheque: 'شيك',
     bankTransfer: 'تحويل بنكي',
-    etaNumber: 'رقم ETA'
+    etaNumber: 'رقم ETA',
+    
+    // Dashboard
+    welcomeToPremier: 'مرحبا بك في بريمير ERP',
+    yourBusinessOverview: 'نظرة عامة على أعمالك',
+    financialSummary: 'الملخص المالي',
+    operationalMetrics: 'المقاييس التشغيلية',
+    inventoryAlerts: 'تنبيهات المخزون',
+    salesOverview: 'نظرة عامة على المبيعات',
+    salesDistribution: 'توزيع المبيعات',
+    categoryPerformance: 'أداء الفئات',
+    totalRevenue: 'إجمالي الإيرادات',
+    totalExpenses: 'إجمالي المصروفات',
+    netProfit: 'صافي الربح',
+    cashBalance: 'الرصيد النقدي',
+    pendingOrders: 'الطلبات المعلقة',
+    outstandingAR: 'المديونيات المستحقة',
+    totalAccounts: 'إجمالي الحسابات',
+    trialBalance: 'ميزان المراجعة',
+    lowStockItems: 'عناصر المخزون المنخفض',
+    expiringProducts: 'المنتجات المنتهية الصلاحية',
+    warehouseBreakdown: 'توزيع المستودعات',
+    viewDetails: 'عرض التفاصيل',
+    
+    // Accounting Module
+    accountingDashboard: 'لوحة المحاسبة',
+    chartOfAccounts: 'دليل الحسابات',
+    journalEntries: 'القيود اليومية',
+    customerPayments: 'مدفوعات العملاء',
+    profitAndLoss: 'الأرباح والخسائر',
+    balanceSheet: 'الميزانية العمومية',
+    trialBalanceReport: 'تقرير ميزان المراجعة',
+    accountingPeriods: 'الفترات المحاسبية',
+    financialIntegration: 'التكامل المالي',
+    
+    // Expenses Module
+    expenseManagement: 'إدارة المصروفات',
+    addExpense: 'إضافة مصروف',
+    expenseCategory: 'فئة المصروف',
+    expenseAmount: 'المبلغ',
+    expenseDate: 'التاريخ',
+    expenseDescription: 'الوصف',
+    paymentMethodExpense: 'طريقة الدفع',
+    costCenter: 'مركز التكلفة',
+    receiptUpload: 'رفع الإيصال',
+    expenseStatus: 'حالة المصروف',
+    
+    // Reports Module
+    reportsAnalytics: 'التقارير والتحليلات',
+    inventoryReports: 'تقارير المخزون',
+    salesReports: 'تقارير المبيعات',
+    financialReports: 'التقارير المالية',
+    customerReports: 'تقارير العملاء',
+    supplierReports: 'تقارير الموردين',
+    exportReport: 'تصدير التقرير',
+    generateReport: 'إنشاء التقرير',
+    reportPeriod: 'فترة التقرير',
+    
+    // Procurement Module
+    procurementManagement: 'إدارة المشتريات',
+    createPurchaseOrder: 'إنشاء أمر شراء',
+    purchaseOrderHistory: 'تاريخ أوامر الشراء',
+    selectSupplier: 'اختر المورد',
+    expectedDelivery: 'التسليم المتوقع',
+    procurementStatus: 'حالة المشتريات',
+    approvalRequired: 'يتطلب الموافقة',
+    
+    // Order Management
+    orderManagementSystem: 'نظام إدارة الطلبات',
+    newOrder: 'طلب جديد',
+    orderStatus: 'حالة الطلب',
+    orderNumber: 'رقم الطلب',
+    orderDate: 'تاريخ الطلب',
+    deliveryDate: 'تاريخ التسليم',
+    orderTotal: 'إجمالي الطلب',
+    
+    // User Management
+    userManagementSystem: 'نظام إدارة المستخدمين',
+    addUser: 'إضافة مستخدم',
+    userName: 'اسم المستخدم',
+    userEmail: 'البريد الإلكتروني',
+    userRole: 'دور المستخدم',
+    userStatus: 'حالة المستخدم',
+    userPermissions: 'صلاحيات المستخدم',
+    lastLogin: 'آخر دخول',
+    
+    // System Preferences
+    systemPreferencesTitle: 'إعدادات النظام',
+    companySettings: 'إعدادات الشركة',
+    currencySettings: 'إعدادات العملة',
+    taxSettings: 'إعدادات الضرائب',
+    notificationSettings: 'إعدادات الإشعارات',
+    backupSettings: 'إعدادات النسخ الاحتياطي',
+    securitySettings: 'إعدادات الأمان',
+    
+    // Common Actions
+    view: 'عرض',
+    create: 'إنشاء',
+    update: 'تحديث',
+    deleteAction: 'حذف',
+    confirm: 'تأكيد',
+    cancelAction: 'إلغاء',
+    saveChanges: 'حفظ التغييرات',
+    discardChanges: 'تجاهل التغييرات',
+    refresh: 'تحديث',
+    print: 'طباعة',
+    download: 'تحميل',
+    upload: 'رفع',
+    
+    // Status Messages
+    successMessage: 'تمت العملية بنجاح',
+    errorMessage: 'حدث خطأ',
+    loadingMessage: 'جاري التحميل...',
+    savingMessage: 'جاري الحفظ...',
+    deletingMessage: 'جاري الحذف...',
+    noDataFound: 'لا توجد بيانات',
+    
+    // Time periods
+    today: 'اليوم',
+    yesterday: 'أمس',
+    thisWeek: 'هذا الأسبوع',
+    lastWeek: 'الأسبوع الماضي',
+    thisMonth: 'هذا الشهر',
+    lastMonth: 'الشهر الماضي',
+    thisYear: 'هذه السنة',
+    lastYear: 'السنة الماضية',
+    customRange: 'نطاق مخصص'
   }
 };
 

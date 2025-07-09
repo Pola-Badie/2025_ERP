@@ -40,6 +40,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Invoice {
   id: number;
@@ -63,6 +64,7 @@ interface Invoice {
 }
 
 const InvoiceHistory = () => {
+  const { t, isRTL } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

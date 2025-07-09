@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LowStockCard from '@/components/dashboard/LowStockCard';
 import ExpiringProductsCard from '@/components/dashboard/ExpiringProductsCard';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, 
   DollarSign, 
@@ -87,6 +88,7 @@ const salesData = [
 ];
 
 const DashboardNew = () => {
+  const { t, isRTL } = useLanguage();
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
@@ -142,15 +144,15 @@ const DashboardNew = () => {
     <div className="space-y-6 px-6 pt-2 pb-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to Premier ERP - Your business overview</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('dashboard')}</h1>
+        <p className="text-muted-foreground">{t('welcomeToPremier')} - {t('yourBusinessOverview')}</p>
       </div>
 
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">MONTHLY REVENUE</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('totalRevenue').toUpperCase()}</CardTitle>
             <DollarSign className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
@@ -163,7 +165,7 @@ const DashboardNew = () => {
 
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">NET PROFIT</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('netProfit').toUpperCase()}</CardTitle>
             <TrendingUp className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
@@ -176,7 +178,7 @@ const DashboardNew = () => {
 
         <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/invoices'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">OUTSTANDING A/R</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('outstandingAR').toUpperCase()}</CardTitle>
             <Receipt className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
@@ -189,7 +191,7 @@ const DashboardNew = () => {
 
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/orders'}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-white">PENDING ORDERS</CardTitle>
+            <CardTitle className="text-sm font-medium text-white">{t('pendingOrders').toUpperCase()}</CardTitle>
             <Package className="h-4 w-4 text-white opacity-80" />
           </CardHeader>
           <CardContent>
@@ -205,7 +207,7 @@ const DashboardNew = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/expenses'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">MONTHLY EXPENSES</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalExpenses').toUpperCase()}</CardTitle>
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -220,7 +222,7 @@ const DashboardNew = () => {
 
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = '/accounting'}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CASH BALANCE</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('cashBalance').toUpperCase()}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

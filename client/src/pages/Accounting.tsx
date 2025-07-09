@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Card, 
   CardContent, 
@@ -125,6 +126,7 @@ import AccountingPeriods from '@/components/accounting/AccountingPeriods';
 import FinancialIntegrationStatus from '@/components/accounting/FinancialIntegrationStatus';
 
 const Accounting: React.FC = () => {
+  const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
   const [, setLocation] = useLocation();

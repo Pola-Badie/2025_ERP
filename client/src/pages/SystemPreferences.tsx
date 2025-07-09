@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   UsersIcon,
   PackageIcon,
@@ -31,6 +32,7 @@ import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePr
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
 
 const SystemPreferences: React.FC = () => {
+  const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState('company');
 
   // Fetch system preferences
@@ -92,9 +94,9 @@ const SystemPreferences: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">System Preferences</h1>
+        <h1 className="text-2xl font-bold">{t('systemPreferencesTitle')}</h1>
         <p className="text-muted-foreground">
-          Configure system-wide settings and preferences for your Premier ERP
+          {t('systemPreferencesDescription') || 'Configure system-wide settings and preferences for your Premier ERP'}
         </p>
       </div>
 

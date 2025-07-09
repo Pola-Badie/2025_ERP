@@ -35,6 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Enhanced Quotation interface
 interface Quotation {
@@ -133,6 +134,7 @@ const getStatusBadge = (status: string) => {
 };
 
 const QuotationHistory = () => {
+  const { t, isRTL } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');

@@ -79,7 +79,7 @@ interface Supplier {
 }
 
 const Suppliers: React.FC = () => {
-  const { t, language } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const [search, setSearch] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
