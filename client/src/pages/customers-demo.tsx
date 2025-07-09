@@ -426,7 +426,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-green-600 font-medium text-sm">{t('activeSectors')}</p>
+                        <p className="text-green-600 font-medium text-sm">Active Sectors</p>
                         <p className="text-2xl font-bold text-green-800">{activeSectors}</p>
                         <p className="text-xs text-green-600 mt-1">{t('industryTypes')}</p>
                       </div>
@@ -477,7 +477,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-teal-600 font-medium text-sm">{t('topSector')}</p>
+                        <p className="text-teal-600 font-medium text-sm">Top Sector</p>
                         <p className="text-lg font-bold text-teal-800">{mostCommonSector}</p>
                         <p className="text-xs text-teal-600 mt-1">{topSector[mostCommonSector] || 0} {t('customers')}</p>
                       </div>
@@ -493,7 +493,7 @@ const CustomersDemo: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <p className="text-indigo-600 font-medium text-sm">{t('geographicSpread')}</p>
+                        <p className="text-indigo-600 font-medium text-sm">Geographic Spread</p>
                         <p className="text-lg font-bold text-indigo-800">{Math.floor(totalCustomers * 0.7)} {t('cities')}</p>
                         <p className="text-xs text-indigo-600 mt-1">{t('coverageArea')}</p>
                       </div>
