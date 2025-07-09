@@ -305,7 +305,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
-          <div className="p-3 sm:p-4 md:p-3 lg:p-4 max-w-full">
+          <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-full">
             <div className="mb-2 sm:mb-3">
               <PageNavigation />
             </div>

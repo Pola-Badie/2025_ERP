@@ -1226,10 +1226,10 @@ const CreateInvoice = () => {
                                     </Button>
                                   </div>
                                 ) : (
-                                  "Type to search customers..."
+                                  t('typeToSearchCustomers')
                                 )}
                               </CommandEmpty>
-                              <CommandGroup heading="Customers">
+                              <CommandGroup heading={t('customers')}>
                                 {customers.map((customer) => (
                                   <CommandItem
                                     key={customer.id}
@@ -1277,7 +1277,7 @@ const CreateInvoice = () => {
                                   className="text-blue-600"
                                 >
                                   <Plus className="mr-2 h-4 w-4" />
-                                  Create New Customer
+                                  {t('createNewCustomer')}
                                 </CommandItem>
                               </CommandGroup>
                             </CommandList>
@@ -1290,27 +1290,27 @@ const CreateInvoice = () => {
 
                 {/* Paper Invoice Number Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="paperInvoiceNumber">Paper Invoice Number</Label>
+                  <Label htmlFor="paperInvoiceNumber">{t('paperInvoiceNumber')}</Label>
                   <Input
                     id="paperInvoiceNumber"
-                    placeholder="P-2025001"
+                    placeholder={t('paperInvoiceNumberPlaceholder')}
                     {...form.register('paperInvoiceNumber')}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Physical invoice reference number for record-keeping
+                    {t('physicalInvoiceReference')}
                   </p>
                 </div>
 
                 {/* Approval Number Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="approvalNumber">Approval No.</Label>
+                  <Label htmlFor="approvalNumber">{t('approvalNumber')}</Label>
                   <Input
                     id="approvalNumber"
-                    placeholder="APP-2025001"
+                    placeholder={t('approvalNumberPlaceholder')}
                     {...form.register('approvalNumber')}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Internal approval reference number
+                    {t('internalApprovalReference')}
                   </p>
                 </div>
 
@@ -1332,12 +1332,12 @@ const CreateInvoice = () => {
                         <div className="flex flex-wrap gap-2 mt-2">
                           {form.watch('customer.id') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                              Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
+                              {t('code')}: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
                             </span>
                           )}
                           {form.watch('customer.phone') && (
                             <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                              Mobile: {form.watch('customer.phone')}
+                              {t('mobile')}: {form.watch('customer.phone')}
                             </span>
                           )}
                         </div>
@@ -1368,16 +1368,16 @@ const CreateInvoice = () => {
                     {/* Other customer details */}
                     <div className="space-y-1 pt-2 border-t">
                       {form.watch('customer.taxNumber') && (
-                        <p className="text-sm text-muted-foreground">ETA Number: {form.watch('customer.taxNumber')}</p>
+                        <p className="text-sm text-muted-foreground">{t('etaNumber')}: {form.watch('customer.taxNumber')}</p>
                       )}
                       {form.watch('customer.sector') && (
-                        <p className="text-sm text-muted-foreground">Sector: {form.watch('customer.sector')}</p>
+                        <p className="text-sm text-muted-foreground">{t('sector')}: {form.watch('customer.sector')}</p>
                       )}
                       {form.watch('customer.email') && (
-                        <p className="text-sm text-muted-foreground">Email: {form.watch('customer.email')}</p>
+                        <p className="text-sm text-muted-foreground">{t('email')}: {form.watch('customer.email')}</p>
                       )}
                       {form.watch('customer.address') && (
-                        <p className="text-sm text-muted-foreground">Address: {form.watch('customer.address')}</p>
+                        <p className="text-sm text-muted-foreground">{t('address')}: {form.watch('customer.address')}</p>
                       )}
                     </div>
                   </div>
@@ -1388,7 +1388,7 @@ const CreateInvoice = () => {
               {isCreatingCustomer && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-medium">New Customer</h3>
+                    <h3 className="font-medium">{t('newCustomer')}</h3>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -1398,18 +1398,18 @@ const CreateInvoice = () => {
                     </Button>
                   </div>
                   <div>
-                    <Label htmlFor="customerCompany">Company Name</Label>
+                    <Label htmlFor="customerCompany">{t('companyName')}</Label>
                     <Input
                       id="customerCompany"
-                      placeholder="Company name"
+                      placeholder={t('companyNamePlaceholder')}
                       {...form.register('customer.company')}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customerName">Name</Label>
+                    <Label htmlFor="customerName">{t('name')}</Label>
                     <Input
                       id="customerName"
-                      placeholder="Customer name"
+                      placeholder={t('customerNamePlaceholder')}
                       {...form.register('customer.name')}
                     />
                     {form.formState.errors.customer?.name && (
@@ -1419,38 +1419,38 @@ const CreateInvoice = () => {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="customerPosition">Position</Label>
+                    <Label htmlFor="customerPosition">{t('position')}</Label>
                     <Input
                       id="customerPosition"
-                      placeholder="Job title/Position"
+                      placeholder={t('jobTitlePositionPlaceholder')}
                       {...form.register('customer.position')}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customerPhone">Phone</Label>
+                    <Label htmlFor="customerPhone">{t('phone')}</Label>
                     <Input
                       id="customerPhone"
-                      placeholder="Phone number"
+                      placeholder={t('phoneNumberPlaceholder')}
                       {...form.register('customer.phone')}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customerSector">Sector</Label>
+                    <Label htmlFor="customerSector">{t('sector')}</Label>
                     <Input
                       id="customerSector"
-                      placeholder="Business sector"
+                      placeholder={t('businessSectorPlaceholder')}
                       {...form.register('customer.sector')}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customerTaxNumber">Tax Number (ETA Registration)</Label>
+                    <Label htmlFor="customerTaxNumber">{t('taxNumberEtaRegistration')}</Label>
                     <Input
                       id="customerTaxNumber"
-                      placeholder="Egyptian Tax Authority registration number"
+                      placeholder={t('egyptianTaxAuthorityPlaceholder')}
                       {...form.register('customer.taxNumber')}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Required for invoices to appear in customer's ETA portal
+                      {t('requiredForEtaPortal')}
                     </p>
                   </div>
                   <div>
