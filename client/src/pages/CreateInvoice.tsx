@@ -2287,19 +2287,19 @@ const CreateInvoice = () => {
 
       {/* Invoice Preview Dialog */}
       <Dialog open={showInvoicePreview} onOpenChange={setShowInvoicePreview}>
-        <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Invoice Preview</span>
-              <div className="flex items-center space-x-2">
+            <DialogTitle className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <span>{t('invoicePreview')}</span>
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handlePrint}
                   disabled={!printRef.current}
                 >
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print
+                  <Printer className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('print')}
                 </Button>
                 <Button
                   variant="outline"
@@ -2308,16 +2308,16 @@ const CreateInvoice = () => {
                   disabled={isGeneratingPDF || !printRef.current}
                 >
                   {isGeneratingPDF ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4 animate-spin`} />
                   ) : (
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
                   )}
-                  {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+                  {isGeneratingPDF ? t('generating') : t('downloadPDF')}
                 </Button>
               </div>
             </DialogTitle>
             <DialogDescription>
-              Preview your invoice before printing or downloading
+              {t('previewInvoiceBeforePrinting')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2362,7 +2362,7 @@ const CreateInvoice = () => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInvoicePreview(false)}>
-              Close Preview
+              {t('closePreview')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2370,11 +2370,11 @@ const CreateInvoice = () => {
 
       {/* Print Preview Dialog */}
       <Dialog open={showPrintPreview} onOpenChange={setShowPrintPreview}>
-        <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Print Preview</span>
-              <div className="flex items-center space-x-2">
+            <DialogTitle className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <span>{t('printPreview')}</span>
+              <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -2386,7 +2386,7 @@ const CreateInvoice = () => {
                         newWindow.document.write(`
                           <html>
                             <head>
-                              <title>Invoice Print</title>
+                              <title>${t('invoice')} ${t('print')}</title>
                               <style>
                                 body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
                                 .printable-invoice { max-width: none; margin: 0; }
@@ -2408,13 +2408,13 @@ const CreateInvoice = () => {
                     }
                   }}
                 >
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print
+                  <Printer className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('print')}
                 </Button>
               </div>
             </DialogTitle>
             <DialogDescription>
-              Preview your invoice before printing
+              {t('previewBeforePrinting')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2568,7 +2568,7 @@ const CreateInvoice = () => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPrintPreview(false)}>
-              Close Preview
+              {t('closePreview')}
             </Button>
           </DialogFooter>
         </DialogContent>
