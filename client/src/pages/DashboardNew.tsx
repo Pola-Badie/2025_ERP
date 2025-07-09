@@ -935,7 +935,7 @@ const DashboardNew = () => {
         <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span className="text-xl font-semibold">Sales Overview - Enhanced View</span>
+              <span className="text-xl font-semibold">{t('salesOverviewEnhanced')}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -990,16 +990,16 @@ const DashboardNew = () => {
               </ResponsiveContainer>
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Sales Analytics</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{t('salesAnalytics')}</h3>
               <div className="space-y-4">
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Peak Month</p>
-                      <p className="text-xl font-bold text-blue-700">December</p>
+                      <p className="text-sm text-gray-600">{t('peakMonth')}</p>
+                      <p className="text-xl font-bold text-blue-700">{t('december')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Sales</p>
+                      <p className="text-sm text-gray-600">{t('sales')}</p>
                       <p className="text-lg font-semibold">EGP 110K</p>
                     </div>
                   </div>
@@ -1008,12 +1008,12 @@ const DashboardNew = () => {
                 <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Growth Rate</p>
+                      <p className="text-sm text-gray-600">{t('growthRate')}</p>
                       <p className="text-xl font-bold text-green-700">+18.5%</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">YoY</p>
-                      <p className="text-lg font-semibold">Trending Up</p>
+                      <p className="text-sm text-gray-600">{t('yoy')}</p>
+                      <p className="text-lg font-semibold">{t('trendingUp')}</p>
                     </div>
                   </div>
                 </div>
@@ -1021,12 +1021,12 @@ const DashboardNew = () => {
                 <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Average</p>
+                      <p className="text-sm text-gray-600">{t('average')}</p>
                       <p className="text-xl font-bold text-orange-700">EGP 85K</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">Monthly</p>
-                      <p className="text-lg font-semibold">Target Met</p>
+                      <p className="text-sm text-gray-600">{t('monthly')}</p>
+                      <p className="text-lg font-semibold">{t('targetMet')}</p>
                     </div>
                   </div>
                 </div>
@@ -1034,12 +1034,12 @@ const DashboardNew = () => {
                 <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600">Total Revenue</p>
+                      <p className="text-sm text-gray-600">{t('totalRevenue')}</p>
                       <p className="text-xl font-bold text-purple-700">EGP 1.02M</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">This Year</p>
-                      <p className="text-lg font-semibold">120% Target</p>
+                      <p className="text-sm text-gray-600">{t('thisYear')}</p>
+                      <p className="text-lg font-semibold">120% {t('target')}</p>
                     </div>
                   </div>
                 </div>
@@ -1053,7 +1053,7 @@ const DashboardNew = () => {
         <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span className="text-xl font-semibold">Sales Distribution - Enhanced View</span>
+              <span className="text-xl font-semibold">{t('salesDistributionEnhanced')}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1097,7 +1097,7 @@ const DashboardNew = () => {
               </ResponsiveContainer>
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Distribution Details</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{t('distributionDetails')}</h3>
               <div className="space-y-3">
                 {salesDistributionData.map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1126,7 +1126,7 @@ const DashboardNew = () => {
         <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span className="text-xl font-semibold">Category Performance - Enhanced View</span>
+              <span className="text-xl font-semibold">{t('categoryPerformanceEnhanced')}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1170,7 +1170,7 @@ const DashboardNew = () => {
               </ResponsiveContainer>
             </div>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-800">Performance Metrics</h3>
+              <h3 className="text-lg font-semibold text-gray-800">{t('performanceMetrics')}</h3>
               <div className="space-y-3">
                 {categoryPerformanceData.map((item, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border">
@@ -1181,13 +1181,13 @@ const DashboardNew = () => {
                       ></div>
                       <div>
                         <span className="font-medium text-gray-800">{item.name}</span>
-                        <p className="text-xs text-gray-500">Category</p>
+                        <p className="text-xs text-gray-500">{t('category')}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xl font-bold text-gray-800">{item.value}%</span>
                       <p className="text-sm font-medium text-green-600">
-                        +{(Math.random() * 10 + 5).toFixed(1)}% vs last month
+                        +{(Math.random() * 10 + 5).toFixed(1)}% {t('vsLastMonth')}
                       </p>
                     </div>
                   </div>

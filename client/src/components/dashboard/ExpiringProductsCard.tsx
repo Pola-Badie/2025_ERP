@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExpiringProduct {
   id: number;
@@ -30,6 +31,7 @@ interface InventorySummary {
 const ExpiringProductsCard = () => {
   const [, setLocation] = useLocation();
   const [showAll, setShowAll] = useState(false);
+  const { t } = useLanguage();
 
   // Function to navigate to inventory with highlight
   const navigateToProduct = (productId: number, productName: string) => {
@@ -67,14 +69,14 @@ const ExpiringProductsCard = () => {
   };
 
   const formatDaysUntilExpiry = (days: number) => {
-    if (days < 0) return 'Expired';
-    if (days === 0) return 'Expires today';
-    if (days === 1) return 'Expires tomorrow';
-    return `${days} days left`;
+    if (days < 0) return t('expired');
+    if (days === 0) return t('expiresToday');
+    if (days === 1) return t('expiresTomorrow');
+    return t('daysLeft').replace('{days}', days.toString());
   };
 
   const formatExpiryDate = (dateString: string) => {
-    if (!dateString) return 'No expiry';
+    if (!dateString) return t('noExpiry');
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -89,7 +91,7 @@ const ExpiringProductsCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5" />
-            Expiring Products
+            {t('expiringProducts')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -109,11 +111,11 @@ const ExpiringProductsCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600">
             <XCircle className="h-5 w-5" />
-            Error Loading Expiry Data
+            {t('errorLoadingExpiryData')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500">Unable to load expiry information. Please try again later.</p>
+          <p className="text-sm text-gray-500">{t('unableToLoadExpiry')}</p>
         </CardContent>
       </Card>
     );
@@ -124,14 +126,14 @@ const ExpiringProductsCard = () => {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <AlertTriangle className="h-4 w-4" />
-          Expiring Products
+          {t('expiringProducts')}
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="destructive" className="text-xs">
-            {summary?.expiredCount || 0} Expired
+            {summary?.expiredCount || 0} {t('expired')}
           </Badge>
           <Badge variant="secondary" className="text-xs">
-            {summary?.expiringCount || 0} Expiring
+            {summary?.expiringCount || 0} {t('expiring')}
           </Badge>
         </div>
       </CardHeader>
@@ -139,7 +141,7 @@ const ExpiringProductsCard = () => {
         {!expiringProducts || expiringProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Calendar className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-            <p>No products expiring soon!</p>
+            <p>{t('noProductsExpiringSoon')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -169,7 +171,7 @@ const ExpiringProductsCard = () => {
                     {formatExpiryDate(product.expiryDate)}
                   </p>
                   <p className="text-xs text-gray-400">
-                    Stock: {product.currentStock} {product.unitOfMeasure}
+                    {t('stock')}: {product.currentStock} {product.unitOfMeasure}
                   </p>
                 </div>
               </div>
@@ -185,12 +187,12 @@ const ExpiringProductsCard = () => {
                 >
                   {showAll ? (
                     <>
-                      Show Less
+                      {t('showLess')}
                       <ChevronUp className="ml-2 h-4 w-4" />
                     </>
                   ) : (
                     <>
-                      Show All {expiringProducts.length} Items
+                      {t('showAllItems').replace('{count}', expiringProducts.length.toString())}
                       <ChevronDown className="ml-2 h-4 w-4" />
                     </>
                   )}

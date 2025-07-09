@@ -1038,8 +1038,8 @@ const CreateInvoice = () => {
     <div className="container mx-auto p-6 space-y-8">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Invoice Management</h1>
-          <p className="text-muted-foreground">Create new invoices and manage your drafts</p>
+          <h1 className="text-2xl font-bold">{t('invoiceManagement')}</h1>
+          <p className="text-muted-foreground">{t('createNewInvoicesAndManageDrafts')}</p>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LowStockProduct {
   id: number;
@@ -29,6 +30,7 @@ interface InventorySummary {
 const LowStockCard = () => {
   const [, setLocation] = useLocation();
   const [showAll, setShowAll] = useState(false);
+  const { t } = useLanguage();
 
   // Function to navigate to inventory with highlight
   const navigateToProduct = (productId: number, productName: string) => {
@@ -71,7 +73,7 @@ const LowStockCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Low Stock Products
+            {t('lowStockProducts')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -91,11 +93,11 @@ const LowStockCard = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-600">
             <XCircle className="h-5 w-5" />
-            Error Loading Stock Data
+            {t('errorLoadingStockData')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500">Unable to load stock information. Please try again later.</p>
+          <p className="text-sm text-gray-500">{t('unableToLoadStock')}</p>
         </CardContent>
       </Card>
     );
@@ -106,14 +108,14 @@ const LowStockCard = () => {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <Package className="h-4 w-4" />
-          Low Stock Alert
+          {t('lowStockAlert')}
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="destructive" className="text-xs">
-            {summary?.outOfStockCount || 0} Out
+            {summary?.outOfStockCount || 0} {t('outOfStock')}
           </Badge>
           <Badge variant="secondary" className="text-xs">
-            {summary?.lowStockCount || 0} Low
+            {summary?.lowStockCount || 0} {t('low')}
           </Badge>
         </div>
       </CardHeader>
@@ -121,7 +123,7 @@ const LowStockCard = () => {
         {!lowStockProducts || lowStockProducts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Package className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-            <p>All products are well stocked!</p>
+            <p>{t('allProductsWellStocked')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -146,7 +148,7 @@ const LowStockCard = () => {
                     {product.currentStock} {product.unitOfMeasure}
                   </Badge>
                   <p className="text-xs text-gray-500">
-                    Reorder: {product.reorderPoint} {product.unitOfMeasure}
+                    {t('reorder')}: {product.reorderPoint} {product.unitOfMeasure}
                   </p>
                 </div>
               </div>
@@ -162,12 +164,12 @@ const LowStockCard = () => {
                 >
                   {showAll ? (
                     <>
-                      Show Less
+                      {t('showLess')}
                       <ChevronUp className="ml-2 h-4 w-4" />
                     </>
                   ) : (
                     <>
-                      Show All {lowStockProducts.length} Items
+                      {t('showAllItems').replace('{count}', lowStockProducts.length.toString())}
                       <ChevronDown className="ml-2 h-4 w-4" />
                     </>
                   )}
