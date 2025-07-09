@@ -384,7 +384,7 @@ const CustomersDemo: React.FC = () => {
   return (
     <div className={`h-full flex flex-col overflow-hidden ${isRTL ? 'RTL' : 'LTR'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex-shrink-0 mb-6 px-4 pt-6">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">{t('customerManagement')}</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Customer Management</h1>
         <p className="text-slate-600">Manage Clients</p>
       </div>
 
