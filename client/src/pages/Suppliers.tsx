@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2, Eye, Building2 as Building, User, MapPin, FileText, Package2 as Package, Handshake } from 'lucide-react';
+import { Truck, PlusCircle, Edit, Trash2, Search, X, Loader2, Eye, Building2 as Building, User, MapPin, FileText, Package2 as Package, Handshake, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,6 +60,8 @@ const supplierFormSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   materials: z.string().optional(),
+  supplierType: z.string().min(1, "Supplier type is required"),
+  etaNumber: z.string().optional(),
 });
 
 type SupplierFormValues = z.infer<typeof supplierFormSchema>;
@@ -75,6 +77,10 @@ interface Supplier {
   state?: string;
   zipCode?: string;
   materials?: string;
+  supplierType?: string;
+  etaNumber?: string;
+  zipCode?: string;
+  materials?: string;
   createdAt: string;
 }
 
@@ -86,17 +92,14 @@ const Suppliers: React.FC = () => {
   const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
 
   // Fetch suppliers list
   const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({
     queryKey: ['/api/suppliers'], 
-    queryFn: async () => {
-      console.log("Fetching suppliers from API");
-      const res = await apiRequest('GET', '/api/suppliers');
-      const data = await res.json();
-      console.log("API response for suppliers:", data);
-      return data;
-    },
     staleTime: 30000, // 30 seconds
   });
 
@@ -122,7 +125,9 @@ const Suppliers: React.FC = () => {
       return await response.json();
     },
     onSuccess: () => {
+      // Force refetch instead of just invalidating
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/suppliers'] });
       toast({
         title: 'Success',
         description: 'Supplier created successfully',
@@ -147,7 +152,9 @@ const Suppliers: React.FC = () => {
       return await response.json();
     },
     onSuccess: () => {
+      // Force refetch instead of just invalidating
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/suppliers'] });
       toast({
         title: 'Success',
         description: 'Supplier updated successfully',
@@ -173,7 +180,9 @@ const Suppliers: React.FC = () => {
       return await response.json();
     },
     onSuccess: () => {
+      // Force refetch instead of just invalidating
       queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/suppliers'] });
       toast({
         title: 'Success',
         description: 'Supplier deleted successfully',
@@ -212,6 +221,9 @@ const Suppliers: React.FC = () => {
       city: supplier.city || '',
       state: supplier.state || '',
       zipCode: supplier.zipCode || '',
+      materials: supplier.materials || '',
+      supplierType: supplier.supplierType || '',
+      etaNumber: supplier.etaNumber || '',
     });
     setIsAddDialogOpen(true);
   };
@@ -235,10 +247,45 @@ const Suppliers: React.FC = () => {
     (supplier.phone && supplier.phone.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredSuppliers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  // Pagination handlers
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    const halfVisible = Math.floor(maxVisiblePages / 2);
+    
+    let startPage = Math.max(1, currentPage - halfVisible);
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
+
 
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 max-w-[95vw]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('suppliers')}</h1>
@@ -256,23 +303,97 @@ const Suppliers: React.FC = () => {
               address: 'Address',
               city: 'City',
               state: 'State',
-              zipCode: 'Zip Code'
+              zipCode: 'Zip Code',
+              materials: 'Materials',
+              supplierType: 'Supplier Type',
+              etaNumber: 'ETA Number',
+              businessType: 'Business Type',
+              registrationNumber: 'Registration Number',
+              establishmentDate: 'Establishment Date',
+              jobTitle: 'Job Title',
+              alternativeContact: 'Alternative Contact',
+              website: 'Website',
+              country: 'Country',
+              timeZone: 'Time Zone',
+              vatRegistration: 'VAT Registration',
+              businessLicense: 'Business License',
+              licenseExpiryDate: 'License Expiry Date',
+              taxStatus: 'Tax Status',
+              specialization: 'Specialization',
+              qualityCertifications: 'Quality Certifications',
+              leadTimeDays: 'Lead Time (Days)',
+              paymentTerms: 'Payment Terms',
+              minimumOrderValue: 'Minimum Order Value',
+              currency: 'Currency',
+              contractType: 'Contract Type',
+              creditLimit: 'Credit Limit'
             }}
             buttonText="Export Suppliers"
             size="sm"
           />
           <CSVImport
-            onImport={(data) => {
-              // Here we would normally send this data to the backend
-              // But for now just show a toast that indicates successful import
-              toast({
-                title: 'Import Functionality',
-                description: `Imported ${data.length} suppliers (API endpoint not implemented yet)`,
-              });
-              queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+            onImport={async (data) => {
+              if (!data || data.length === 0) {
+                toast({
+                  title: 'Import Error',
+                  description: 'No data to import',
+                  variant: 'destructive'
+                });
+                return;
+              }
+
+              try {
+                console.log('Suppliers to import:', data);
+                console.log('Sending JSON import request to:', '/api/bulk/import-json');
+                console.log('Data to import:', data.length, 'records');
+
+                // Send JSON data to the enhanced import endpoint
+                const response = await fetch('/api/bulk/import-json', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    type: 'suppliers',
+                    data: data
+                  })
+                });
+
+                console.log('Import response status:', response.status);
+
+                if (!response.ok) {
+                  throw new Error(`Import failed: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('Import result:', result);
+
+                if (result.success) {
+                  toast({
+                    title: 'Suppliers Imported Successfully',
+                    description: `Successfully imported ${result.imported} suppliers${result.failed > 0 ? `, ${result.failed} failed` : ''}`,
+                  });
+                  queryClient.invalidateQueries({ queryKey: ['/api/suppliers'] });
+                } else {
+                  toast({
+                    title: 'Import Error',
+                    description: result.error || 'Failed to import suppliers',
+                    variant: 'destructive'
+                  });
+                }
+              } catch (error) {
+                console.error('Import error:', error);
+                toast({
+                  title: 'Import Failed',
+                  description: error instanceof Error ? error.message : 'An unexpected error occurred',
+                  variant: 'destructive'
+                });
+              }
             }}
             buttonText="Import Suppliers"
             size="sm"
+            accept=".csv,.xls,.xlsx"
+            showWarehouseDialog={false}
           />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -335,16 +456,29 @@ const Suppliers: React.FC = () => {
                         </select>
                       </div>
                       
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-blue-700">Supplier Category</label>
-                        <select className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                          <option>Preferred Partner</option>
-                          <option>Standard Supplier</option>
-                          <option>Trial Supplier</option>
-                          <option>Local Supplier</option>
-                          <option>International Supplier</option>
-                        </select>
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="supplierType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-blue-700 font-medium">Supplier Type *</FormLabel>
+                            <FormControl>
+                              <select 
+                                {...field}
+                                className="w-full px-3 py-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="">Select supplier type</option>
+                                <option value="Local">Local Supplier</option>
+                                <option value="International">International Supplier</option>
+                              </select>
+                            </FormControl>
+                            <FormDescription className="text-blue-600">
+                              Choose whether this is a local or international supplier
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -789,7 +923,7 @@ const Suppliers: React.FC = () => {
         </div>
       </div>
 
-      <Card>
+      <Card className="w-full max-w-[90vw] mx-auto shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl">
             <div className="flex items-center">
@@ -798,7 +932,10 @@ const Suppliers: React.FC = () => {
             </div>
           </CardTitle>
           <CardDescription>
-            Your suppliers information. Total: {filteredSuppliers.length}
+            Your suppliers information. Total: {filteredSuppliers.length} 
+            {totalPages > 1 && (
+              <span className="text-muted-foreground"> • Page {currentPage} of {totalPages}</span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -813,21 +950,22 @@ const Suppliers: React.FC = () => {
                 : "No suppliers found. Add your first supplier."}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[200px]">Supplier Name</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead>Contact Info</TableHead>
-                    <TableHead>ETA Number</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Materials</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSuppliers.map((supplier) => (
+            <div className="space-y-4">
+              <div className="table-scrollbar-container overflow-auto max-h-[700px] border border-gray-200 rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[250px]">Supplier Name</TableHead>
+                      <TableHead className="w-[180px]">Contact Person</TableHead>
+                      <TableHead className="w-[220px]">Contact Info</TableHead>
+                      <TableHead className="w-[150px]">ETA Number</TableHead>
+                      <TableHead className="w-[200px]">Location</TableHead>
+                      <TableHead className="w-[280px]">Materials</TableHead>
+                      <TableHead className="text-right w-[120px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedSuppliers.map((supplier) => (
                     <TableRow key={supplier.id} className="group">
                       <TableCell className="font-medium">{supplier.name}</TableCell>
                       <TableCell>{supplier.contactPerson || '-'}</TableCell>
@@ -925,8 +1063,86 @@ const Suppliers: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls - Always visible */}
+              <div className="flex items-center justify-between border-t bg-gray-50 px-4 py-3 rounded-b-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredSuppliers.length)} of {filteredSuppliers.length} suppliers
+                    </span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm"
+                    >
+                      <option value={3}>3 per page</option>
+                      <option value={5}>5 per page</option>
+                      <option value={10}>10 per page</option>
+                      <option value={20}>20 per page</option>
+                      <option value={50}>50 per page</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(1)}
+                      disabled={currentPage === 1}
+                      className="px-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4 -ml-1" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="px-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {getPageNumbers().map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(page)}
+                        className="px-3"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="px-2"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="px-2"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4 -ml-1" />
+                    </Button>
+                  </div>
+                </div>
             </div>
           )}
         </CardContent>

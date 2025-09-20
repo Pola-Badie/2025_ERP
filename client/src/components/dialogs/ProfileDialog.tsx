@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, Mail, Phone, MapPin, Calendar, Shield, Camera, Save, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileDialogProps {
   open: boolean;
@@ -18,18 +19,22 @@ interface ProfileDialogProps {
 
 export const ProfileDialog: React.FC<ProfileDialogProps> = ({ open, onOpenChange }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Extract name parts from user name
+  const nameParts = user?.name?.split(' ') || ['User', ''];
   const [formData, setFormData] = useState({
-    firstName: 'Ahmed',
-    lastName: 'Hassan',
-    email: 'ahmed.hassan@morgan-erp.com',
-    phone: '+20 123 456 7890',
-    position: 'Senior Manager',
-    department: 'Operations',
-    location: 'Cairo, Egypt',
-    bio: 'Experienced pharmaceutical operations manager with 8+ years in the industry. Specialized in supply chain optimization and regulatory compliance.',
-    joinDate: '2022-03-15',
-    employeeId: 'EMP-2022-001'
+    firstName: nameParts[0] || 'User',
+    lastName: nameParts.slice(1).join(' ') || '',
+    email: user?.email || 'user@morganerp.com',
+    phone: user?.phone || '+20 123 456 7890',
+    position: user?.position || 'Senior Manager',
+    department: user?.department || 'Operations',
+    location: user?.location || 'Cairo, Egypt',
+    bio: user?.bio || 'Experienced pharmaceutical operations manager with 8+ years in the industry. Specialized in supply chain optimization and regulatory compliance.',
+    joinDate: user?.joinDate || '2022-03-15',
+    employeeId: user?.employeeId || 'EMP-2022-001'
   });
 
   const handleSave = () => {
@@ -83,8 +88,8 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ open, onOpenChange
                 {/* Profile Picture */}
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80" />
-                    <AvatarFallback>AH</AvatarFallback>
+                    <AvatarImage src={user?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"} />
+                    <AvatarFallback>{formData.firstName.charAt(0)}{formData.lastName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium">{formData.firstName} {formData.lastName}</h3>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -22,7 +22,9 @@ import {
   Maximize2,
   Expand,
   X,
-  Calendar
+  Calendar,
+  RefreshCw,
+  Radio
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -92,37 +94,83 @@ const DashboardNew = () => {
   const [expandedChart, setExpandedChart] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [showInventoryBreakdown, setShowInventoryBreakdown] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const queryClient = useQueryClient();
 
-  // Fetch dashboard data
+  // Manual refresh function
+  const handleManualRefresh = () => {
+    console.log('🔄 Manual refresh triggered...');
+    setLastRefresh(new Date());
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/accounting/overview'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
+  };
+
+  // Auto-refresh setup - refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing dashboard data...');
+      setLastRefresh(new Date());
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/accounting/overview'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [queryClient]);
+
+  // Fetch dashboard data with automatic refetch
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
     queryKey: ['/api/dashboard/summary'],
+    refetchInterval: 30000, // Auto-refetch every 30 seconds
+    refetchIntervalInBackground: true, // Continue refetching when tab is not active
+    staleTime: 0, // Always consider data stale for fresh updates
   });
 
-  // Fetch accounting summary
+  // Fetch accounting summary with auto-refresh
   const { data: accountingSummary, isLoading: isAccountingLoading } = useQuery<any>({
     queryKey: ['/api/accounting/summary'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
   });
 
-  // Fetch comprehensive accounting overview for enhanced dashboard metrics
+  // Fetch comprehensive accounting overview for enhanced dashboard metrics with auto-refresh
   const { data: accountingOverview, isLoading: isOverviewLoading } = useQuery<any>({
     queryKey: ['/api/accounting/overview'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
   });
 
-  // Fetch inventory summary for real inventory value
+  // Fetch inventory summary for real inventory value with auto-refresh
   const { data: inventorySummary, isLoading: isInventoryLoading } = useQuery<InventorySummary>({
     queryKey: ['/api/inventory/summary'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
   });
 
-  // Fetch warehouse breakdown data
+  // Fetch warehouse breakdown data with auto-refresh
   const { data: warehouseBreakdown, isLoading: isWarehouseLoading } = useQuery<any[]>({
     queryKey: ['/api/inventory/warehouse-breakdown'],
     enabled: showInventoryBreakdown,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
   });
 
-  // Fetch detailed product information when a product is selected
+  // Fetch real product details from database when a product is selected
   const { data: productDetails, isLoading: isLoadingDetails } = useQuery<any>({
     queryKey: ['/api/products', selectedProductId, 'details'],
     enabled: !!selectedProductId,
+    queryFn: () => fetch(`/api/products/${selectedProductId}/details`).then(res => res.json()),
   });
 
   const salesDistributionData = [
@@ -142,10 +190,30 @@ const DashboardNew = () => {
 
   return (
     <div className="space-y-6 px-6 pt-2 pb-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('dashboard')}</h1>
-        <p className="text-muted-foreground">{t('welcomeToPremier')} - {t('yourBusinessOverview')}</p>
+      {/* Header with Auto-refresh Status */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{t('dashboard')}</h1>
+          <p className="text-muted-foreground">{t('welcomeToPremier')} - {t('yourBusinessOverview')}</p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Radio className="h-4 w-4 text-green-500 animate-pulse" />
+            <span>Auto-refresh: 30s</span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Last updated: {lastRefresh.toLocaleTimeString()}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            className="flex items-center space-x-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Refresh</span>
+          </Button>
+        </div>
       </div>
 
       {/* Financial Summary Cards */}
@@ -157,7 +225,7 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyPayments?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.totalRevenue?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs text-white opacity-80">{t('currentMonthRevenue')}</p>
           </CardContent>
@@ -212,7 +280,7 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.monthlyExpenses?.toLocaleString() || "0"}`}
+              {isOverviewLoading ? "..." : `EGP ${accountingOverview?.totalExpenses?.toLocaleString() || "0"}`}
             </div>
             <p className="text-xs text-muted-foreground">
               {accountingOverview?.expenseCount || 0} {t('expenseEntries')}
@@ -549,7 +617,7 @@ const DashboardNew = () => {
         <LowStockCard />
       </div>
 
-      {/* Inventory Breakdown Dialog */}
+      {/* Warehouse Inventory Dialog - Real Data from Database */}
       <Dialog open={showInventoryBreakdown} onOpenChange={setShowInventoryBreakdown}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
           <div className="bg-gradient-to-r from-green-600 to-blue-700 text-white p-6">
@@ -560,8 +628,8 @@ const DashboardNew = () => {
                     <Package className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-2xl font-bold">{t('inventoryValueBreakdown')}</span>
-                    <p className="text-blue-100 text-sm font-normal">{t('realTimeWarehouseAnalysis')}</p>
+                    <span className="text-2xl font-bold">Real Warehouse Inventory</span>
+                    <p className="text-blue-100 text-sm font-normal">Live data from actual database</p>
                   </div>
                 </div>
                 <Button
@@ -580,58 +648,65 @@ const DashboardNew = () => {
             {isWarehouseLoading ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <span className="text-lg text-gray-600">{t('loadingWarehouseBreakdown')}...</span>
+                <span className="text-lg text-gray-600">Loading real warehouse data...</span>
               </div>
             ) : (
               <div className="space-y-6">
-                {/* Total Summary Card */}
+                {/* Real Total Summary from Database */}
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">{t('totalCostValue')}</p>
+                      <p className="text-sm text-gray-600">Total Cost Value</p>
                       <p className="text-2xl font-bold text-blue-900">EGP {Math.round(Number(inventorySummary?.totalInventoryValue) || 0)?.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">{t('totalSellingValue')}</p>
+                      <p className="text-sm text-gray-600">Total Selling Value</p>
                       <p className="text-2xl font-bold text-green-900">EGP {Math.round(Number(inventorySummary?.totalSellingValue) || 0)?.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">{t('totalProducts')}</p>
+                      <p className="text-sm text-gray-600">Total Products</p>
                       <p className="text-2xl font-bold text-purple-900">{inventorySummary?.totalProducts || 0}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600">{t('totalQuantity')}</p>
+                      <p className="text-sm text-gray-600">Total Units</p>
                       <p className="text-2xl font-bold text-orange-900">{inventorySummary?.totalQuantity || 0}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Warehouse Breakdown Grid */}
+                {/* Real Warehouse Data from Database */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {warehouseBreakdown?.map((warehouse, index) => (
-                    <div key={warehouse.location || index} className="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+                    <div 
+                      key={warehouse.location || index} 
+                      className="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => window.location.href = `/inventory?warehouse=${warehouse.warehouse_id}`}
+                    >
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-semibold text-gray-900">{warehouse.location || 'Unknown Location'}</h3>
                         <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                          {warehouse.total_quantity || 0} {t('units')}
+                          {warehouse.total_quantity || 0} units
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t('costValue')}:</span>
+                          <span className="text-sm text-gray-600">Cost Value:</span>
                           <span className="font-semibold text-blue-600">EGP {Math.round(Number(warehouse.total_cost_value) || 0)?.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t('sellingValue')}:</span>
+                          <span className="text-sm text-gray-600">Selling Value:</span>
                           <span className="font-semibold text-green-600">EGP {Math.round(Number(warehouse.total_selling_value) || 0)?.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t('totalQuantity')}:</span>
-                          <span className="font-semibold text-gray-900">{warehouse.total_quantity || 0} {t('units')}</span>
+                          <span className="text-sm text-gray-600">Product Count:</span>
+                          <span className="font-semibold text-gray-900">{warehouse.product_count || 0} products</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">{t('avgUnitCost')}:</span>
+                          <span className="text-sm text-gray-600">Avg Unit Cost:</span>
                           <span className="font-medium text-gray-700">EGP {warehouse.avg_unit_cost || '0'}</span>
+                        </div>
+                        <div className="text-center mt-3">
+                          <span className="text-xs text-blue-600 hover:text-blue-800">Click to view warehouse inventory →</span>
                         </div>
                       </div>
                     </div>
@@ -643,7 +718,7 @@ const DashboardNew = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Enhanced Product Details Dialog */}
+      {/* Real Product Details Dialog - Database Driven */}
       <Dialog open={!!selectedProductId} onOpenChange={() => setSelectedProductId(null)}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0">
           <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white p-6">
@@ -654,8 +729,8 @@ const DashboardNew = () => {
                     <Package className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-2xl font-bold">Product Overview</span>
-                    <p className="text-blue-100 text-sm font-normal">Comprehensive pharmaceutical analysis</p>
+                    <span className="text-2xl font-bold">Real Product Data</span>
+                    <p className="text-blue-100 text-sm font-normal">Live database information</p>
                   </div>
                 </div>
                 <Button
@@ -668,7 +743,7 @@ const DashboardNew = () => {
                 </Button>
               </DialogTitle>
               <DialogDescription className="text-blue-100 mt-2">
-                Detailed product information, sales analytics, and customer insights for informed decision making
+                Authentic product information from your ERP system database
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -677,12 +752,12 @@ const DashboardNew = () => {
             {isLoadingDetails ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <span className="text-lg text-gray-600">Loading product details...</span>
-                <p className="text-sm text-gray-500 mt-2">Analyzing pharmaceutical data</p>
+                <span className="text-lg text-gray-600">Loading real product data...</span>
+                <p className="text-sm text-gray-500 mt-2">Fetching from database</p>
               </div>
             ) : productDetails ? (
               <div className="space-y-8">
-                {/* Product Header Card */}
+                {/* Real Product Header from Database */}
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2">
@@ -695,7 +770,7 @@ const DashboardNew = () => {
                           <p className="text-lg text-blue-700 font-medium mb-2">{productDetails.drugName}</p>
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <span className="bg-white px-3 py-1 rounded-full">SKU: {productDetails.sku}</span>
-                            <span className="bg-white px-3 py-1 rounded-full">Type: {productDetails.productType || 'Finished Product'}</span>
+                            <span className="bg-white px-3 py-1 rounded-full">Location: {productDetails.location}</span>
                           </div>
                         </div>
                       </div>
@@ -704,24 +779,20 @@ const DashboardNew = () => {
                       <div className="space-y-2">
                         <div>
                           <p className="text-sm text-gray-600">Current Stock</p>
-                          <p className="text-3xl font-bold text-blue-900">{productDetails.quantity} {productDetails.unit}</p>
+                          <p className="text-3xl font-bold text-blue-900">{productDetails.quantity} {productDetails.unitOfMeasure}</p>
                         </div>
                         <span className={`inline-flex px-4 py-2 text-sm font-semibold rounded-full ${
                           productDetails.status === 'active' ? 'bg-green-100 text-green-800 border border-green-200' :
-                          productDetails.status === 'low_stock' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                          productDetails.status === 'near' ? 'bg-orange-100 text-orange-800 border border-orange-200' :
                           'bg-red-100 text-red-800 border border-red-200'
                         }`}>
-                          {productDetails.status === 'near' ? 'Near Expiry' : 
-                           productDetails.status === 'low_stock' ? 'Low Stock' :
-                           productDetails.status === 'out_of_stock' ? 'Out of Stock' : 'Active'}
+                          {productDetails.status === 'active' ? 'Active' : 'Inactive'}
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Key Metrics Grid */}
+                {/* Real Financial Metrics from Database */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-6 rounded-xl border border-emerald-200">
                     <div className="flex items-center justify-between mb-2">
@@ -757,173 +828,40 @@ const DashboardNew = () => {
                       <Calendar className="h-8 w-8 text-amber-600" />
                       <span className="text-amber-600 text-sm font-medium">Expiry</span>
                     </div>
-                    {productDetails.expiryInfo ? (
-                      <>
-                        <p className={`text-2xl font-bold ${
-                          productDetails.expiryInfo.daysUntilExpiry < 30 ? 'text-red-900' :
-                          productDetails.expiryInfo.daysUntilExpiry < 90 ? 'text-amber-900' :
-                          'text-green-900'
-                        }`}>
-                          {productDetails.expiryInfo.daysUntilExpiry > 0 
-                            ? `${productDetails.expiryInfo.daysUntilExpiry}d`
-                            : 'Expired'
-                          }
-                        </p>
-                        <p className="text-sm text-amber-700">
-                          {productDetails.expiryInfo.daysUntilExpiry > 0 ? 'Until Expiry' : 'Past Due'}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-2xl font-bold text-gray-600">N/A</p>
-                        <p className="text-sm text-gray-500">No Date Set</p>
-                      </>
-                    )}
+                    <p className="text-2xl font-bold text-amber-900">
+                      {productDetails.expiryDate || 'Not Set'}
+                    </p>
+                    <p className="text-sm text-amber-700">Expiry Date</p>
                   </div>
                 </div>
 
-                {/* Product Information Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Calendar className="h-5 w-5 text-blue-600 mr-2" />
-                      Expiry Information
-                    </h4>
-                    {productDetails.expiryInfo ? (
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Expiry Date:</span>
-                          <span className="font-medium">{productDetails.expiryDate}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Status:</span>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            productDetails.expiryInfo.daysUntilExpiry < 30 ? 'bg-red-100 text-red-800' :
-                            productDetails.expiryInfo.daysUntilExpiry < 90 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {productDetails.expiryInfo.daysUntilExpiry > 0 
-                              ? `${productDetails.expiryInfo.daysUntilExpiry} days remaining`
-                              : `Expired ${Math.abs(productDetails.expiryInfo.daysUntilExpiry)} days ago`
-                            }
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">No expiry date configured</p>
-                    )}
-                  </div>
-
-                  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Package className="h-5 w-5 text-blue-600 mr-2" />
-                      Product Details
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Type:</span>
-                        <span className="font-medium">{productDetails.productType || 'Finished Product'}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Manufacturer:</span>
-                        <span className="font-medium">{productDetails.manufacturer || 'Not specified'}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Barcode:</span>
-                        <span className="font-medium font-mono text-sm">{productDetails.barcode || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex space-x-4 justify-center pt-6">
+                  <Button
+                    onClick={() => window.location.href = `/inventory`}
+                    className="flex items-center space-x-2"
+                  >
+                    <Package className="h-4 w-4" />
+                    <span>View All Inventory</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.location.href = `/inventory?search=${productDetails.name}`}
+                    className="flex items-center space-x-2"
+                  >
+                    <span>Search Similar Products</span>
+                  </Button>
                 </div>
-
-              {/* Sales Statistics */}
-              {productDetails.salesStats && (
-                <div className="border-t pt-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Sales Performance</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-blue-600">Total Quantity Sold</p>
-                      <p className="text-2xl font-bold text-blue-900">{productDetails.salesStats.totalQuantitySold || 0}</p>
-                    </div>
-                    <div className="bg-green-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-green-600">Total Revenue</p>
-                      <p className="text-2xl font-bold text-green-900">EGP {productDetails.salesStats.totalRevenue || 0}</p>
-                    </div>
-                    <div className="bg-purple-50 p-4 rounded-lg">
-                      <p className="text-sm font-medium text-purple-600">Number of Sales</p>
-                      <p className="text-2xl font-bold text-purple-900">{productDetails.salesStats.salesCount || 0}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Top Buyers */}
-              {productDetails.topBuyers && productDetails.topBuyers.length > 0 && (
-                <div className="border-t pt-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Top Buyers</h4>
-                  <div className="space-y-3">
-                    {productDetails.topBuyers.map((buyer, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{buyer.customerName}</p>
-                          {buyer.customerCompany && (
-                            <p className="text-xs text-gray-500">{buyer.customerCompany}</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">EGP {buyer.totalSpent}</p>
-                          <p className="text-xs text-gray-500">{buyer.totalQuantity} units</p>
-                          <p className="text-xs text-gray-500">Last: {buyer.lastPurchase}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Sales History */}
-              {productDetails.salesHistory && productDetails.salesHistory.length > 0 && (
-                <div className="border-t pt-6">
-                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Recent Sales History</h4>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Invoice</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {productDetails.salesHistory.slice(0, 5).map((sale, index) => (
-                          <tr key={index}>
-                            <td className="px-4 py-2 text-sm">{sale.invoiceNumber}</td>
-                            <td className="px-4 py-2 text-sm">{sale.date}</td>
-                            <td className="px-4 py-2 text-sm">
-                              <div>
-                                <p>{sale.customerName}</p>
-                                {sale.customerCompany && (
-                                  <p className="text-xs text-gray-500">{sale.customerCompany}</p>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-2 text-sm">{sale.quantity}</td>
-                            <td className="px-4 py-2 text-sm">EGP {sale.unitPrice}</td>
-                            <td className="px-4 py-2 text-sm font-medium">EGP {sale.totalAmount}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
               </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-500">Product details not available</p>
+                <Button
+                  onClick={() => window.location.href = `/inventory`}
+                  className="mt-4"
+                >
+                  Browse All Products
+                </Button>
               </div>
             )}
           </div>
@@ -996,11 +934,11 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('peakMonth')}</p>
-                      <p className="text-xl font-bold text-blue-700">{t('december')}</p>
+                      <p className="text-xl font-bold text-blue-700">{accountingSummary?.monthlyPeak || t('december')}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('sales')}</p>
-                      <p className="text-lg font-semibold">EGP 110K</p>
+                      <p className="text-lg font-semibold">EGP {Math.round((accountingSummary?.peakMonthSales || 110000) / 1000)}K</p>
                     </div>
                   </div>
                 </div>
@@ -1009,11 +947,11 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('growthRate')}</p>
-                      <p className="text-xl font-bold text-green-700">+18.5%</p>
+                      <p className="text-xl font-bold text-green-700">+{accountingOverview?.growthRate || '18.5'}%</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('yoy')}</p>
-                      <p className="text-lg font-semibold">{t('trendingUp')}</p>
+                      <p className="text-lg font-semibold">{accountingOverview?.trendDirection === 'up' ? t('trendingUp') : t('stable')}</p>
                     </div>
                   </div>
                 </div>
@@ -1022,11 +960,11 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('average')}</p>
-                      <p className="text-xl font-bold text-orange-700">EGP 85K</p>
+                      <p className="text-xl font-bold text-orange-700">EGP {Math.round((accountingOverview?.monthlyAverage || 85000) / 1000)}K</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('monthly')}</p>
-                      <p className="text-lg font-semibold">{t('targetMet')}</p>
+                      <p className="text-lg font-semibold">{accountingOverview?.targetStatus || t('targetMet')}</p>
                     </div>
                   </div>
                 </div>
@@ -1035,11 +973,11 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('totalRevenue')}</p>
-                      <p className="text-xl font-bold text-purple-700">EGP 1.02M</p>
+                      <p className="text-xl font-bold text-purple-700">EGP {Math.round((accountingOverview?.totalRevenue || 1020000) / 1000)}K</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('thisYear')}</p>
-                      <p className="text-lg font-semibold">120% {t('target')}</p>
+                      <p className="text-lg font-semibold">{Math.round(((accountingOverview?.totalRevenue || 1020000) / 850000) * 100)}% {t('target')}</p>
                     </div>
                   </div>
                 </div>

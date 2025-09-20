@@ -33,7 +33,7 @@ const InvoicePreviewSettingsTab: React.FC<InvoicePreviewSettingsTabProps> = ({ p
   const [companyAddress, setCompanyAddress] = useState('123 Business District');
   const [companyCity, setCompanyCity] = useState('Cairo, Egypt 11511');
   const [companyPhone, setCompanyPhone] = useState('+20 2 1234 5678');
-  const [companyEmail, setCompanyEmail] = useState('info@morganerp.com');
+  const [companyEmail, setCompanyEmail] = useState('support@premiererp.com');
   const [taxNumber, setTaxNumber] = useState('EG-123456789');
   const [commercialRegister, setCommercialRegister] = useState('CR-987654321');
   
@@ -45,7 +45,7 @@ const InvoicePreviewSettingsTab: React.FC<InvoicePreviewSettingsTabProps> = ({ p
   
   // Footer Settings
   const [footerMessage, setFooterMessage] = useState('Thank you for your business with Morgan ERP!');
-  const [footerEmail, setFooterEmail] = useState('info@morganerp.com');
+  const [footerEmail, setFooterEmail] = useState('support@premiererp.com');
   const [footerNote, setFooterNote] = useState('Payment is due within 30 days. Late payments may incur additional charges.');
   
   // Invoice Terms

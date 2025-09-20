@@ -51,6 +51,9 @@ interface Quotation {
   transportationFees: number;
   transportationType?: string;
   transportationNotes?: string;
+  packagingFees: number;
+  packagingType?: string;
+  packagingNotes?: string;
   tax: number;
   total: number;
   amount: number;
@@ -68,6 +71,15 @@ interface Quotation {
     rawMaterials?: string[];
     processingTime?: number;
     qualityGrade?: string;
+  }[];
+  packagingItems?: {
+    id: string;
+    type: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    notes?: string;
   }[];
 }
 
@@ -151,7 +163,7 @@ const QuotationHistory = () => {
         'GET', 
         `/api/quotations?query=${encodeURIComponent(searchTerm)}&status=${statusFilter}&type=${typeFilter}&date=${dateFilter}`
       );
-      return await res.json();
+      return res; // apiRequest already parses JSON
     },
   });
 
@@ -398,11 +410,11 @@ const QuotationHistory = () => {
     } catch (error) {
       console.error('PDF generation error:', error);
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
         quotation: quotation
       });
-      alert(`Failed to generate PDF: ${error.message || 'Unknown error'}. Please try again.`);
+      alert(`Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     }
   };
 
@@ -412,7 +424,7 @@ const QuotationHistory = () => {
     const invoiceData = {
       customerId: quotation.customerId,
       customerName: quotation.customerName,
-      items: quotation.items.map(item => ({
+      items: (quotation.items || []).map(item => ({
         productName: item.productName,
         description: item.description || '',
         quantity: item.quantity,
@@ -620,7 +632,7 @@ const QuotationHistory = () => {
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     </div>
                     <p className="text-xs text-green-600 mt-1">
-                      ${filteredQuotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                      ${filteredQuotations.filter(q => q.status === 'accepted').reduce((sum, q) => sum + (q.total || q.amount || 0), 0).toLocaleString()}
                     </p>
                   </div>
                   
@@ -635,7 +647,7 @@ const QuotationHistory = () => {
                       <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                     </div>
                     <p className="text-xs text-orange-600 mt-1">
-                      ${filteredQuotations.filter(q => q.status === 'pending').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                      ${filteredQuotations.filter(q => q.status === 'pending').reduce((sum, q) => sum + (q.total || q.amount || 0), 0).toLocaleString()}
                     </p>
                   </div>
                   
@@ -650,7 +662,7 @@ const QuotationHistory = () => {
                       <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                     </div>
                     <p className="text-xs text-red-600 mt-1">
-                      ${filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                      ${filteredQuotations.filter(q => q.status === 'rejected' || q.status === 'expired').reduce((sum, q) => sum + (q.total || q.amount || 0), 0).toLocaleString()}
                     </p>
                   </div>
                   
@@ -659,7 +671,7 @@ const QuotationHistory = () => {
                       <div>
                         <p className="text-blue-600 font-medium">Total Value</p>
                         <p className="text-2xl font-bold text-blue-800">
-                          ${filteredQuotations.reduce((sum, q) => sum + (q.total || q.amount), 0).toLocaleString()}
+                          ${filteredQuotations.reduce((sum, q) => sum + (q.total || q.amount || 0), 0).toLocaleString()}
                         </p>
                       </div>
                       <DollarSign className="w-5 h-5 text-blue-500" />
@@ -758,7 +770,6 @@ const QuotationHistory = () => {
                           />
                         </TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Quotation #</TableHead>
-                        <TableHead className="font-semibold text-gray-700 px-4">ETA #</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Customer</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4">Date</TableHead>
                         <TableHead className="font-semibold text-gray-700 px-4 text-right">Amount</TableHead>
@@ -791,9 +802,6 @@ const QuotationHistory = () => {
                               {quotation.quotationNumber}
                             </button>
                           </TableCell>
-                          <TableCell className="text-gray-500 px-4">
-                            Not uploaded
-                          </TableCell>
                           <TableCell className="font-medium text-gray-900 px-4">
                             <div>
                               <div>{quotation.customerName}</div>
@@ -809,10 +817,10 @@ const QuotationHistory = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-gray-600 px-4">
-                            {format(new Date(quotation.date), 'MMM d, yyyy')}
+                            {quotation.date ? format(new Date(quotation.date), 'MMM d, yyyy') : 'N/A'}
                           </TableCell>
                           <TableCell className="text-right font-semibold px-4 text-gray-900">
-                            ${(quotation.total || quotation.amount).toLocaleString()}
+                            ${(quotation.total || quotation.amount || 0).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right px-4">
                             {quotation.status === 'accepted' && 'Net 15'}
@@ -912,8 +920,8 @@ const QuotationHistory = () => {
                   Quotation #{selectedQuotation.quotationNumber}
                 </DialogTitle>
                 <DialogDescription>
-                  Created: {format(new Date(selectedQuotation.date), 'PPPP')} • 
-                  Valid Until: {format(new Date(selectedQuotation.validUntil), 'PPPP')}
+                  Created: {selectedQuotation.date ? format(new Date(selectedQuotation.date), 'PPPP') : 'N/A'} • 
+                  Valid Until: {selectedQuotation.validUntil ? format(new Date(selectedQuotation.validUntil), 'PPPP') : 'N/A'}
                 </DialogDescription>
               </DialogHeader>
               
@@ -928,8 +936,8 @@ const QuotationHistory = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">#{selectedQuotation.quotationNumber}</p>
-                    <p className="text-gray-600">Date: {format(new Date(selectedQuotation.date), 'PP')}</p>
-                    <p className="text-gray-600">Valid Until: {format(new Date(selectedQuotation.validUntil), 'PP')}</p>
+                    <p className="text-gray-600">Date: {selectedQuotation.date ? format(new Date(selectedQuotation.date), 'PP') : 'N/A'}</p>
+                    <p className="text-gray-600">Valid Until: {selectedQuotation.validUntil ? format(new Date(selectedQuotation.validUntil), 'PP') : 'N/A'}</p>
                     <div className="mt-3 flex items-center gap-2 justify-end">
                       {getQuotationTypeBadge(selectedQuotation.type)}
                       {getStatusBadge(selectedQuotation.status)}
@@ -963,7 +971,7 @@ const QuotationHistory = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedQuotation.items.map((item, i) => (
+                      {(selectedQuotation.items || []).map((item, i) => (
                         <TableRow key={i}>
                           <TableCell>
                             <div>
@@ -979,12 +987,12 @@ const QuotationHistory = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-center">{item.uom}</TableCell>
-                          <TableCell className="text-right">{item.quantity.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{(item.quantity || 0).toLocaleString()}</TableCell>
                           <TableCell className="text-right">
-                            ${item.unitPrice.toLocaleString()}
+                            ${(item.unitPrice || 0).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            ${item.total.toLocaleString()}
+                            ${(item.total || 0).toLocaleString()}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -992,6 +1000,37 @@ const QuotationHistory = () => {
                   </Table>
                 </div>
                 
+                {/* Packaging Items Section */}
+                {selectedQuotation.packagingItems && selectedQuotation.packagingItems.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Packaging Items
+                    </h3>
+                    <div className="space-y-3">
+                      {(selectedQuotation.packagingItems || []).map((item, index) => (
+                        <div key={item.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-green-900">{item.type}</p>
+                              {item.description && (
+                                <p className="text-sm text-green-700 mt-1">{item.description}</p>
+                              )}
+                              {item.notes && (
+                                <p className="text-xs text-green-600 mt-1 italic">{item.notes}</p>
+                              )}
+                            </div>
+                            <div className="text-right ml-4">
+                              <p className="font-semibold text-green-900">EGP {item.total.toLocaleString()}</p>
+                              <p className="text-xs text-green-600">{item.quantity} × EGP {item.unitPrice.toLocaleString()}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Totals */}
                 <div className="flex justify-end mb-8">
                   <div className="w-80">
@@ -999,28 +1038,36 @@ const QuotationHistory = () => {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Subtotal:</span>
                         <span className="font-medium">
-                          ${(selectedQuotation.subtotal || selectedQuotation.amount).toLocaleString()}
+                          EGP {(selectedQuotation.subtotal || selectedQuotation.amount || 0).toLocaleString()}
                         </span>
                       </div>
                       {selectedQuotation.transportationFees > 0 && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Transportation:</span>
                           <span className="font-medium">
-                            ${selectedQuotation.transportationFees.toLocaleString()}
+                            EGP {(selectedQuotation.transportationFees || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {selectedQuotation.packagingFees > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Packaging:</span>
+                          <span className="font-medium">
+                            EGP {(selectedQuotation.packagingFees || 0).toLocaleString()}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between">
                         <span className="text-gray-600">VAT (14%):</span>
                         <span className="font-medium">
-                          ${(selectedQuotation.tax || selectedQuotation.amount * 0.14).toLocaleString()}
+                          EGP {(selectedQuotation.tax || (selectedQuotation.amount || 0) * 0.14).toLocaleString()}
                         </span>
                       </div>
                       <Separator />
                       <div className="flex justify-between text-lg font-bold">
                         <span>Total:</span>
                         <span className="text-blue-600">
-                          ${(selectedQuotation.total || selectedQuotation.amount).toLocaleString()}
+                          EGP {(selectedQuotation.total || selectedQuotation.amount || 0).toLocaleString()}
                         </span>
                       </div>
                     </div>

@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { z } from "zod";
 import { registerChemicalRoutes } from "./routes-chemical";
 import { registerETARoutes } from "./routes-eta";
@@ -8,11 +8,15 @@ import {
   users, products, productCategories, customers, suppliers, sales, 
   saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings,
   systemPreferences, rolePermissions, loginLogs, userPermissions,
+  journalEntries, journalEntryLines, accounts, expenses, expenseCategories,
+  warehouses, inventoryTransactions, auditLogs, quotations, quotationItems,
+  quotationPackagingItems,
   insertUserSchema, insertProductSchema, updateProductSchema, insertProductCategorySchema,
   insertCustomerSchema, insertSaleSchema, insertSaleItemSchema,
   insertPurchaseOrderSchema, insertSupplierSchema, updateBackupSettingsSchema,
   insertSystemPreferenceSchema, updateSystemPreferenceSchema,
-  insertRolePermissionSchema, insertLoginLogSchema
+  insertRolePermissionSchema, insertLoginLogSchema, insertQuotationSchema,
+  insertQuotationItemSchema, insertQuotationPackagingItemSchema
 } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -64,16 +68,525 @@ const cronJobs: Record<string, cron.ScheduledTask | null> = {
 import { registerAccountingRoutes } from "./routes-accounting";
 import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
 import userRoutes from "./routes-user";
+import { logger } from "./middleware/errorHandler";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
+  // CRITICAL: Register bulk import route FIRST to bypass Vite middleware issues
+  app.post('/api/bulk/import-json', async (req: Request, res: Response) => {
+    console.log('🔥 BULK IMPORT (DIRECT ROUTE) REQUEST RECEIVED!');
+    console.log('Request body type:', typeof req.body);
+    console.log('Request body preview:', JSON.stringify(req.body).substring(0, 200));
+    
+    try {
+      const { type, data, warehouse } = req.body;
+      
+      if (!type || !data || !Array.isArray(data)) {
+        console.log('❌ Invalid request format');
+        return res.status(400).json({ error: 'Type and data array required' });
+      }
+
+      console.log(`✅ Processing ${data.length} ${type} records`);
+      if (warehouse) {
+        console.log(`🏭 Target warehouse: ${warehouse}`);
+      }
+      
+      let imported = 0;
+      let failed = 0;
+      const errors: string[] = [];
+      
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        
+        try {
+          // Process product import directly here
+          if (type === 'products') {
+            // Get warehouse name from warehouse parameter
+            let warehouseLocation = 'Main Warehouse';
+            if (warehouse) {
+              try {
+                // First try to parse as number (warehouse ID)
+                const parsedId = parseInt(warehouse);
+                
+                if (!isNaN(parsedId) && parsedId > 0) {
+                  // It's a valid ID, fetch by ID
+                  const warehouseData = await db.select().from(warehouses).where(eq(warehouses.id, parsedId)).limit(1);
+                  if (warehouseData.length > 0) {
+                    warehouseLocation = warehouseData[0].name;
+                    console.log(`📍 Using warehouse location by ID ${parsedId}: ${warehouseLocation}`);
+                  } else {
+                    console.log(`⚠️ Warehouse ID ${parsedId} not found, using name directly: ${warehouse}`);
+                    warehouseLocation = warehouse;
+                  }
+                } else {
+                  // It's a warehouse name, try to find it in database
+                  const warehouseData = await db.select().from(warehouses).where(eq(warehouses.name, warehouse)).limit(1);
+                  if (warehouseData.length > 0) {
+                    warehouseLocation = warehouseData[0].name;
+                    console.log(`📍 Using warehouse location by name: ${warehouseLocation}`);
+                  } else {
+                    // Use the provided name directly
+                    warehouseLocation = warehouse;
+                    console.log(`📍 Using warehouse name directly: ${warehouseLocation}`);
+                  }
+                }
+              } catch (error) {
+                console.log(`⚠️ Failed to get warehouse location, using provided name: ${error}`);
+                warehouseLocation = warehouse;
+              }
+            }
+
+            const productData = {
+              name: row.name || row['Product Name'] || row['name'],
+              drugName: row.drugName || row['Drug Name'] || row['drug_name'] || row.name,
+              description: row.description || row['Description'],
+              sku: row.sku || row['SKU'] || row['sku'],
+              costPrice: row.costPrice || row['Cost Price'] || row['cost_price'] || '0',
+              sellingPrice: row.sellingPrice || row['Selling Price'] || row['selling_price'] || row.price || '0',
+              unitOfMeasure: row.unitOfMeasure || row['Unit of Measure'] || row['unit_of_measure'] || 'PCS',
+              location: warehouse ? warehouseLocation : (row.location || row['Location'] || row.warehouse || 'Main Warehouse'),
+              quantity: parseInt(row.quantity || row['Quantity'] || row.currentStock || '0'),
+              lowStockThreshold: parseInt(row.lowStockThreshold || row['Low Stock Threshold'] || row.minStockLevel || '10'),
+              expiryDate: row.expiryDate || row['Expiry Date'] ? (row.expiryDate || row['Expiry Date']).toString() : null,
+              grade: row.grade || row['Grade'] || row['grade'] || null,
+              status: 'active',
+              productType: 'finished'
+            };
+
+            // Use INSERT ... ON CONFLICT to handle duplicates (upsert)
+            await db.insert(products).values(productData)
+              .onConflictDoUpdate({
+                target: products.sku,
+                set: {
+                  name: productData.name,
+                  drugName: productData.drugName,
+                  description: productData.description,
+                  costPrice: productData.costPrice,
+                  sellingPrice: productData.sellingPrice,
+                  unitOfMeasure: productData.unitOfMeasure,
+                  location: productData.location,
+                  quantity: productData.quantity,
+                  lowStockThreshold: productData.lowStockThreshold,
+                  expiryDate: productData.expiryDate,
+                  grade: productData.grade,
+                  updatedAt: new Date()
+                }
+              });
+          } else if (type === 'suppliers') {
+            // Enhanced supplier data mapping
+            const supplierData = {
+              name: row.name || row['Name'] || row['Supplier Name'] || row['name'],
+              contactPerson: row.contactPerson || row['Contact Person'] || row['contact_person'] || row.contact,
+              email: row.email || row['Email'] || row['email'],
+              phone: row.phone || row['Phone'] || row['phone'],
+              address: row.address || row['Address'] || row['address'],
+              city: row.city || row['City'] || row['city'],
+              state: row.state || row['State'] || row['state'],
+              zipCode: row.zipCode || row['Zip Code'] || row['zip_code'] || row.zip,
+              materials: row.materials || row['Materials'] || row['materials'] || row.products,
+              supplierType: row.supplierType || row['Supplier Type'] || row['supplier_type'] || row.type || 'Local',
+              etaNumber: row.etaNumber || row['ETA Number'] || row['eta_number'] || row.eta || null
+            };
+
+            // Use INSERT ... ON CONFLICT to handle duplicates (upsert based on name)
+            await db.insert(suppliers).values(supplierData)
+              .onConflictDoUpdate({
+                target: suppliers.name,
+                set: {
+                  contactPerson: supplierData.contactPerson,
+                  email: supplierData.email,
+                  phone: supplierData.phone,
+                  address: supplierData.address,
+                  city: supplierData.city,
+                  state: supplierData.state,
+                  zipCode: supplierData.zipCode,
+                  materials: supplierData.materials,
+                  supplierType: supplierData.supplierType,
+                  etaNumber: supplierData.etaNumber,
+                  updatedAt: new Date()
+                }
+              });
+          }
+          imported++;
+          console.log(`✅ Imported row ${i + 1}`);
+        } catch (error) {
+          failed++;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          errors.push(`Row ${i + 1}: ${errorMessage}`);
+          console.error(`❌ Failed to import row ${i + 1}:`, error);
+        }
+      }
+      
+      const result = { success: true, imported, failed, errors };
+      console.log('🎉 Import completed:', result);
+      return res.json(result);
+      
+    } catch (error) {
+      console.error('❌ JSON import failed:', error);
+      return res.status(500).json({ error: 'Import failed', details: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // CSV BULK IMPORT ROUTE - Handle file uploads with CSV parsing
+  const csvUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (_req: any, file: any, cb: any) => {
+      const validMimeTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      const validExtensions = ['.csv', '.xls', '.xlsx'];
+      
+      if (validMimeTypes.includes(file.mimetype) || validExtensions.some(ext => file.originalname.toLowerCase().endsWith(ext))) {
+        cb(null, true);
+      } else {
+        cb(new Error("Invalid file type. Only CSV and Excel files (.csv, .xls, .xlsx) are allowed."));
+      }
+    }
+  });
+
+  app.post('/api/bulk/import', csvUpload.single('file'), async (req: Request, res: Response) => {
+    console.log('🔥 BULK ROUTE HIT: POST /import');
+    console.log('🔥 Request URL:', req.url);
+    console.log('🔥 Original URL:', req.originalUrl);
+    
+    try {
+      const { type, warehouse } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      if (!type) {
+        return res.status(400).json({ error: 'Import type is required' });
+      }
+
+      console.log(`📁 Processing CSV file: ${file.originalname} (${file.size} bytes)`);
+      console.log(`📋 Import type: ${type}`);
+      if (warehouse) {
+        console.log(`🏭 Target warehouse: ${warehouse}`);
+      }
+
+      // Parse CSV data
+      const csvData = file.buffer.toString();
+      const lines = csvData.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        return res.status(400).json({ error: 'CSV file must have header and at least one data row' });
+      }
+
+      // Parse CSV headers and data
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        return row;
+      });
+
+      console.log(`✅ Parsed CSV: ${rows.length} rows, ${headers.length} columns`);
+      console.log(`📋 Headers: ${headers.join(', ')}`);
+
+      if (type === 'products') {
+        // Get warehouse name from warehouse parameter
+        let warehouseLocation = 'Main Warehouse';
+        if (warehouse) {
+          try {
+            // First try to parse as number (warehouse ID)
+            const parsedId = parseInt(warehouse);
+            
+            if (!isNaN(parsedId) && parsedId > 0) {
+              // It's a valid ID, fetch by ID
+              const warehouseData = await db.select().from(warehouses).where(eq(warehouses.id, parsedId)).limit(1);
+              if (warehouseData.length > 0) {
+                warehouseLocation = warehouseData[0].name;
+                console.log(`📍 Using warehouse location by ID ${parsedId}: ${warehouseLocation}`);
+              } else {
+                console.log(`⚠️ Warehouse ID ${parsedId} not found, using name directly: ${warehouse}`);
+                warehouseLocation = warehouse;
+              }
+            } else {
+              // It's a warehouse name, try to find it in database
+              const warehouseData = await db.select().from(warehouses).where(eq(warehouses.name, warehouse)).limit(1);
+              if (warehouseData.length > 0) {
+                warehouseLocation = warehouseData[0].name;
+                console.log(`📍 Using warehouse location by name: ${warehouseLocation}`);
+              } else {
+                // Use the provided name directly
+                warehouseLocation = warehouse;
+                console.log(`📍 Using warehouse name directly: ${warehouseLocation}`);
+              }
+            }
+          } catch (error) {
+            console.log(`⚠️ Failed to get warehouse location, using provided name: ${error}`);
+            warehouseLocation = warehouse;
+          }
+        }
+
+        let imported = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          try {
+            const productData = {
+              name: row.name || row['Product Name'] || row['name'],
+              drugName: row.drugName || row['Drug Name'] || row['drug_name'] || row.name,
+              description: row.description || row['Description'],
+              sku: row.sku || row['SKU'] || row['sku'],
+              costPrice: row.costPrice || row['Cost Price'] || row['cost_price'] || '0',
+              sellingPrice: row.sellingPrice || row['Selling Price'] || row['selling_price'] || row.price || '0',
+              unitOfMeasure: row.unitOfMeasure || row['Unit of Measure'] || row['unit_of_measure'] || 'PCS',
+              location: warehouse ? warehouseLocation : (row.location || row['Location'] || row.warehouse || 'Main Warehouse'),
+              quantity: parseInt(row.quantity || row['Quantity'] || row.currentStock || '0'),
+              lowStockThreshold: parseInt(row.lowStockThreshold || row['Low Stock Threshold'] || row.minStockLevel || '10'),
+              status: row.status || row['Status'] || 'active',
+              categoryId: parseInt(row.categoryId || row['Category ID'] || '1'),
+              productType: row.productType || row['Product Type'] || 'finished',
+              expiryDate: row.expiryDate || row['Expiry Date'] || null
+            };
+
+            // Upsert (insert or update if SKU exists)
+            if (productData.sku) {
+              await db.insert(products).values({
+                name: productData.name,
+                drugName: productData.drugName,
+                description: productData.description || undefined,
+                sku: productData.sku,
+                costPrice: productData.costPrice,
+                sellingPrice: productData.sellingPrice,
+                unitOfMeasure: productData.unitOfMeasure,
+                location: productData.location,
+                quantity: productData.quantity,
+                lowStockThreshold: productData.lowStockThreshold,
+                status: productData.status as 'active' | 'inactive',
+                categoryId: productData.categoryId,
+                productType: productData.productType as 'finished' | 'raw' | 'packaging',
+                expiryDate: productData.expiryDate ? new Date(productData.expiryDate) : null,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              }).onConflictDoUpdate({
+                target: products.sku,
+                set: {
+                  name: productData.name,
+                  drugName: productData.drugName,
+                  description: productData.description || undefined,
+                  costPrice: productData.costPrice,
+                  sellingPrice: productData.sellingPrice,
+                  unitOfMeasure: productData.unitOfMeasure,
+                  location: productData.location,
+                  quantity: productData.quantity,
+                  lowStockThreshold: productData.lowStockThreshold,
+                  status: productData.status as 'active' | 'inactive',
+                  categoryId: productData.categoryId,
+                  productType: productData.productType as 'finished' | 'raw' | 'packaging',
+                  expiryDate: productData.expiryDate ? new Date(productData.expiryDate) : null,
+                  updatedAt: new Date()
+                }
+              });
+            }
+            imported++;
+            console.log(`✅ Imported row ${i + 1}`);
+          } catch (error) {
+            failed++;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            errors.push(`Row ${i + 1}: ${errorMessage}`);
+            console.error(`❌ Failed to import row ${i + 1}:`, error);
+          }
+        }
+
+        const result = { success: true, imported, failed, errors };
+        console.log('🎉 CSV Import completed:', result);
+        return res.json(result);
+      } else if (type === 'suppliers') {
+        let imported = 0;
+        let failed = 0;
+        const errors: string[] = [];
+
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          try {
+            const supplierData = {
+              name: row.name || row['Name'] || row['Supplier Name'] || row['name'],
+              contactPerson: row.contactPerson || row['Contact Person'] || row['contact_person'] || row.contact,
+              email: row.email || row['Email'] || row['email'],
+              phone: row.phone || row['Phone'] || row['phone'],
+              address: row.address || row['Address'] || row['address'],
+              city: row.city || row['City'] || row['city'],
+              state: row.state || row['State'] || row['state'],
+              zipCode: row.zipCode || row['Zip Code'] || row['zip_code'] || row.zip,
+              materials: row.materials || row['Materials'] || row['materials'] || row.products,
+              supplierType: row.supplierType || row['Supplier Type'] || row['supplier_type'] || row.type || 'Local',
+              etaNumber: row.etaNumber || row['ETA Number'] || row['eta_number'] || row.eta || null
+            };
+
+            // Upsert (insert or update if name exists)
+            await db.insert(suppliers).values({
+              name: supplierData.name,
+              contactPerson: supplierData.contactPerson || undefined,
+              email: supplierData.email || undefined,
+              phone: supplierData.phone || undefined,
+              address: supplierData.address || undefined,
+              city: supplierData.city || undefined,
+              state: supplierData.state || undefined,
+              zipCode: supplierData.zipCode || undefined,
+              materials: supplierData.materials || undefined,
+              supplierType: supplierData.supplierType,
+              etaNumber: supplierData.etaNumber || undefined,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }).onConflictDoUpdate({
+              target: suppliers.name,
+              set: {
+                contactPerson: supplierData.contactPerson || undefined,
+                email: supplierData.email || undefined,
+                phone: supplierData.phone || undefined,
+                address: supplierData.address || undefined,
+                city: supplierData.city || undefined,
+                state: supplierData.state || undefined,
+                zipCode: supplierData.zipCode || undefined,
+                materials: supplierData.materials || undefined,
+                supplierType: supplierData.supplierType,
+                etaNumber: supplierData.etaNumber || undefined,
+                updatedAt: new Date()
+              }
+            });
+            
+            imported++;
+            console.log(`✅ Imported supplier row ${i + 1}: ${supplierData.name}`);
+          } catch (error) {
+            failed++;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            errors.push(`Row ${i + 1}: ${errorMessage}`);
+            console.error(`❌ Failed to import supplier row ${i + 1}:`, error);
+          }
+        }
+
+        const result = { success: true, imported, failed, errors };
+        console.log('🎉 Supplier CSV Import completed:', result);
+        return res.json(result);
+      }
+
+      return res.status(400).json({ error: 'Unsupported import type' });
+      
+    } catch (error) {
+      console.error('❌ CSV import failed:', error);
+      return res.status(500).json({ error: 'Import failed', details: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
   // Register chemical-specific routes
   registerChemicalRoutes(app);
 
   // Register ETA routes for Egyptian Tax Authority integration
   registerETARoutes(app);
 
+  // Register financial reports routes
+  const { registerFinancialReportsRoutes } = await import("./routes-financial-reports.js");
+  registerFinancialReportsRoutes(app);
+
+  // Register financial integration routes for automatic accounting synchronization
+  const { registerFinancialIntegrationRoutes } = await import("./routes-financial-integration.js");
+  registerFinancialIntegrationRoutes(app);
+
   // Register user and permissions routes
   app.use("/api", userRoutes);
+
+  // User Permission Management API routes
+  // Get user permissions
+  app.get("/api/users/:userId/permissions", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const permissions = await db
+        .select()
+        .from(userPermissions)
+        .where(eq(userPermissions.userId, userId));
+
+      return res.status(200).json(permissions);
+    } catch (error) {
+      console.error("Error fetching user permissions:", error);
+      return res.status(500).json({ message: "Failed to fetch user permissions" });
+    }
+  });
+
+  // Add user permission
+  app.post("/api/users/:userId/permissions", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const { moduleName, accessGranted } = req.body;
+      if (!moduleName || typeof accessGranted !== 'boolean') {
+        return res.status(400).json({ message: "Invalid permission data" });
+      }
+
+      // Check if permission already exists
+      const existingPermission = await db
+        .select()
+        .from(userPermissions)
+        .where(and(
+          eq(userPermissions.userId, userId),
+          eq(userPermissions.moduleName, moduleName)
+        ));
+
+      if (existingPermission.length > 0) {
+        // Update existing permission
+        await db
+          .update(userPermissions)
+          .set({ accessGranted, updatedAt: new Date() })
+          .where(and(
+            eq(userPermissions.userId, userId),
+            eq(userPermissions.moduleName, moduleName)
+          ));
+      } else {
+        // Create new permission
+        await db.insert(userPermissions).values({
+          userId,
+          moduleName,
+          accessGranted,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
+      return res.status(200).json({ message: "Permission updated successfully" });
+    } catch (error) {
+      console.error("Error updating user permission:", error);
+      return res.status(500).json({ message: "Failed to update user permission" });
+    }
+  });
+
+  // Delete user permission
+  app.delete("/api/users/:userId/permissions/:moduleName", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { moduleName } = req.params;
+
+      if (isNaN(userId) || !moduleName) {
+        return res.status(400).json({ message: "Invalid user ID or module name" });
+      }
+
+      await db
+        .delete(userPermissions)
+        .where(and(
+          eq(userPermissions.userId, userId),
+          eq(userPermissions.moduleName, moduleName)
+        ));
+
+      return res.status(200).json({ message: "Permission removed successfully" });
+    } catch (error) {
+      console.error("Error removing user permission:", error);
+      return res.status(500).json({ message: "Failed to remove user permission" });
+    }
+  });
+
   // Get all suppliers
   app.get("/api/suppliers", async (_req: Request, res: Response) => {
     try {
@@ -82,6 +595,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching suppliers:", error);
       return res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
+
+  // Create new supplier
+  app.post("/api/suppliers", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertSupplierSchema.parse(req.body);
+      const [newSupplier] = await db.insert(suppliers).values(validatedData).returning();
+      res.status(201).json(newSupplier);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid supplier data", errors: error.errors });
+      }
+      console.error("Error creating supplier:", error);
+      res.status(500).json({ message: "Failed to create supplier" });
+    }
+  });
+
+  // Get customer profile with real data
+  app.get("/api/customers/:id/profile", async (req: Request, res: Response) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      
+      // Get customer basic info
+      const [customer] = await db.select()
+        .from(customers)
+        .where(eq(customers.id, customerId))
+        .limit(1);
+      
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      // Get customer's sales/invoices - simplified query
+      const customerSales = await db.select()
+        .from(sales)
+        .where(eq(sales.customerId, customerId))
+        .orderBy(desc(sales.date))
+        .limit(10);
+
+      // Get item counts for each sale
+      const salesWithItemCount = await Promise.all(
+        customerSales.map(async (sale) => {
+          const [itemCountResult] = await db.select({
+            count: count(saleItems.id)
+          })
+          .from(saleItems)
+          .where(eq(saleItems.saleId, sale.id));
+          
+          return {
+            id: sale.id,
+            date: sale.date,
+            totalAmount: sale.totalAmount,
+            paymentStatus: sale.paymentStatus,
+            itemCount: Number(itemCountResult?.count) || 0,
+            etaInvoiceNumber: sale.etaInvoiceNumber
+          };
+        })
+      );
+
+      // Calculate customer statistics
+      const stats = await db.select({
+        totalPurchases: sum(sales.totalAmount),
+        totalOrders: count(sales.id),
+        lastOrderDate: max(sales.date)
+      })
+      .from(sales)
+      .where(eq(sales.customerId, customerId));
+
+      // Get paid and pending invoice counts
+      const invoiceStats = await db.select({
+        status: sales.paymentStatus,
+        count: count(sales.id)
+      })
+      .from(sales)
+      .where(eq(sales.customerId, customerId))
+      .groupBy(sales.paymentStatus);
+
+      const paidInvoices = invoiceStats.find(s => s.status === 'paid')?.count || 0;
+      const pendingInvoices = invoiceStats.find(s => s.status === 'pending')?.count || 0;
+
+      // Calculate average order value
+      const avgOrderValue = stats[0].totalPurchases && stats[0].totalOrders 
+        ? Number(stats[0].totalPurchases) / Number(stats[0].totalOrders)
+        : 0;
+
+      // Calculate payment score (percentage of invoices paid on time)
+      const paymentScore = paidInvoices && (paidInvoices + pendingInvoices) > 0
+        ? (Number(paidInvoices) / (Number(paidInvoices) + Number(pendingInvoices))) * 100
+        : 0;
+
+      // Prepare response
+      const profileData = {
+        customer,
+        invoices: salesWithItemCount,
+        statistics: {
+          totalPurchases: Number(stats[0].totalPurchases) || 0,
+          totalOrders: Number(stats[0].totalOrders) || 0,
+          openInvoices: Number(pendingInvoices),
+          lastOrderDate: stats[0].lastOrderDate,
+          averageOrderValue: avgOrderValue,
+          paymentScore: paymentScore.toFixed(1),
+          customerSince: customer.createdAt
+        }
+      };
+
+      return res.status(200).json(profileData);
+    } catch (error) {
+      console.error("Error fetching customer profile:", error);
+      return res.status(500).json({ message: "Failed to fetch customer profile" });
     }
   });
   // Generate sample invoices for demo purposes
@@ -243,22 +866,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= User Management Endpoints =============
 
+  // Helper function to get default permissions by role
+  function getDefaultPermissionsByRole(role: string) {
+    const allModules = [
+      'dashboard', 'inventory', 'expenses', 'accounting', 'createInvoice', 
+      'invoiceHistory', 'createQuotation', 'quotationHistory', 'suppliers', 
+      'procurement', 'customers', 'orderManagement', 'ordersHistory', 
+      'reports', 'userManagement', 'systemPreferences', 'label'
+    ];
+
+    switch (role) {
+      case 'admin':
+        return allModules.map(module => ({ module, access: true }));
+      
+      case 'manager':
+        return allModules
+          .filter(module => module !== 'systemPreferences')
+          .map(module => ({ module, access: true }));
+      
+      case 'accountant':
+        return ['dashboard', 'accounting', 'createInvoice', 'invoiceHistory', 
+                'expenses', 'reports', 'customers']
+          .map(module => ({ module, access: true }));
+      
+      case 'inventory_manager':
+        return ['dashboard', 'inventory', 'suppliers', 'procurement', 
+                'reports', 'label']
+          .map(module => ({ module, access: true }));
+      
+      case 'sales_rep':
+        return ['dashboard', 'customers', 'createInvoice', 'invoiceHistory',
+                'createQuotation', 'quotationHistory', 'orderManagement', 'ordersHistory']
+          .map(module => ({ module, access: true }));
+      
+      default: // staff
+        return ['dashboard'].map(module => ({ module, access: true }));
+    }
+  }
+
+
+
+  // Update user status (activate/deactivate)
+  app.patch("/api/users/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+
+      if (!['active', 'inactive', 'suspended'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, id));
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update user status
+      const [updatedUser] = await db.update(users)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning({
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          status: users.status
+        });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Update user status error:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Update user role
+  app.patch("/api/users/:id/role", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { role } = req.body;
+
+      const validRoles = ['admin', 'manager', 'staff', 'accountant', 'inventory_manager', 'sales_rep'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, id));
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update user role
+      const [updatedUser] = await db.update(users)
+        .set({ role, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning({
+          id: users.id,
+          username: users.username,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          status: users.status
+        });
+
+      // Update permissions based on new role
+      await db.delete(userPermissions).where(eq(userPermissions.userId, id));
+      
+      const defaultPermissions = getDefaultPermissionsByRole(role);
+      for (const permission of defaultPermissions) {
+        await db.insert(userPermissions).values({
+          userId: id,
+          moduleName: permission.module,
+          accessGranted: permission.access
+        });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Update user role error:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
   // Get all users
   app.get("/api/users", async (req: Request, res: Response) => {
     try {
-      const result = await db.execute(sql`SELECT id, username, password, name, email, role, status, avatar, created_at, updated_at FROM users ORDER BY id`);
-      const allUsers = result.rows.map(row => ({
-        id: row.id,
-        username: row.username,
-        password: row.password,
-        name: row.name,
-        email: row.email,
-        role: row.role,
-        status: row.status,
-        avatar: row.avatar,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        status: users.status,
+        avatar: users.avatar,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      }).from(users).orderBy(users.id);
 
       res.json(allUsers);
     } catch (error) {
@@ -308,16 +1054,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      // Insert user
-      const [newUser] = await db.insert(users).values(validatedData).returning({
+      // Check if email already exists
+      if (validatedData.email) {
+        const existingEmail = await db.select()
+          .from(users)
+          .where(eq(users.email, validatedData.email))
+          .limit(1);
+
+        if (existingEmail.length > 0) {
+          return res.status(400).json({ message: "Email already exists" });
+        }
+      }
+
+      // Hash password using simple bcrypt-like approach
+      const bcrypt = require('bcryptjs');
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
+
+      // Insert user with hashed password
+      const [newUser] = await db.insert(users).values({
+        ...validatedData,
+        password: hashedPassword,
+        status: validatedData.status || 'active'
+      }).returning({
         id: users.id,
         username: users.username,
         name: users.name,
         email: users.email,
         role: users.role,
+        status: users.status,
         avatar: users.avatar,
         createdAt: users.createdAt
       });
+
+      // Create default permissions based on role
+      const defaultPermissions = getDefaultPermissionsByRole(validatedData.role);
+      for (const permission of defaultPermissions) {
+        await db.insert(userPermissions).values({
+          userId: newUser.id,
+          moduleName: permission.module,
+          accessGranted: permission.access
+        });
+      }
 
       res.status(201).json(newUser);
     } catch (error) {
@@ -348,13 +1126,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: z.string().optional(),
         avatar: z.string().optional(),
         password: z.string().optional(),
+        status: z.enum(['active', 'inactive', 'suspended']).optional(),
       });
 
       const validatedData = updateUserSchema.parse(req.body);
 
+      // Hash password if provided
+      if (validatedData.password) {
+        const bcrypt = require('bcryptjs');
+        validatedData.password = await bcrypt.hash(validatedData.password, 10);
+      }
+
       // Update user
       const [updatedUser] = await db.update(users)
-        .set(validatedData)
+        .set({ ...validatedData, updatedAt: new Date() })
         .where(eq(users.id, id))
         .returning({
           id: users.id,
@@ -362,8 +1147,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: users.name,
           email: users.email,
           role: users.role,
+          status: users.status,
           avatar: users.avatar,
-          createdAt: users.createdAt
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt
         });
 
       res.json(updatedUser);
@@ -572,87 +1359,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Dashboard Endpoints =============
 
-  // API endpoint for dashboard summary data
+  // REAL Dashboard Summary API - Using actual database data
   app.get("/api/dashboard/summary", async (_req: Request, res: Response) => {
     try {
-      // Get total customers count
-      const [customersResult] = await db.select({ 
-        count: count() 
-      }).from(customers);
-
-      // Get customers added in last 30 days
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const [newCustomersResult] = await db.select({ 
-        count: count() 
-      }).from(customers).where(gte(customers.createdAt, thirtyDaysAgo));
-
-      // Get today's sales
+      console.log('🔥 Fetching REAL dashboard data from database...');
+      
+      // Get REAL customer count
+      const allCustomers = await db.select().from(customers);
+      const totalCustomers = allCustomers.length;
+      
+      // Calculate new customers this month
+      const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const newCustomers = allCustomers.filter(c => new Date(c.createdAt) >= oneMonthAgo).length;
+      
+      // Get REAL sales data  
+      const allSales = await db.select().from(sales);
+      const totalRevenue = allSales.reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Calculate today's sales
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const todaySales = allSales
+        .filter(sale => new Date(sale.date) >= todayStart)
+        .reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Calculate this month's sales
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      const monthSales = allSales
+        .filter(sale => new Date(sale.date) >= monthStart)
+        .reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Get REAL expenses data
+      const allExpenses = await db.select().from(expenses);
+      const totalExpenses = allExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0);
+      
+      // Calculate real profit and margin
+      const netProfit = totalRevenue - totalExpenses;
+      const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+      
+      // Calculate REAL outstanding invoices
+      const outstandingInvoices = allSales
+        .filter(sale => sale.paymentStatus === 'pending')
+        .reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Get REAL low stock products
+      const allProducts = await db.select().from(products);
+      const lowStockProducts = allProducts
+        .filter(p => parseInt(p.quantity || '0') <= parseInt(p.lowStockThreshold || '10'))
+        .slice(0, 5)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          drugName: p.drugName,
+          quantity: p.quantity,
+          status: "low_stock"
+        }));
+      
+      // Get REAL expiring products
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+      const expiringProducts = allProducts
+        .filter(p => {
+          if (!p.expiryDate) return false;
+          const expiryDate = new Date(p.expiryDate);
+          return expiryDate >= now && expiryDate <= thirtyDaysFromNow;
+        })
+        .slice(0, 5)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          drugName: p.drugName,
+          expiryDate: p.expiryDate,
+          status: p.status
+        }));
 
-      const [todaySalesResult] = await db.select({ 
-        total: sum(sales.totalAmount) 
-      }).from(sales).where(gte(sales.date, today));
-
-      // Get current month sales
-      const firstDayOfMonth = new Date();
-      firstDayOfMonth.setDate(1);
-      firstDayOfMonth.setHours(0, 0, 0, 0);
-
-      const [monthSalesResult] = await db.select({ 
-        total: sum(sales.totalAmount) 
-      }).from(sales).where(gte(sales.date, firstDayOfMonth));
-
-      // Get low stock products (exclude expired products from low stock alerts)
-      const lowStockProducts = await db.select({
-        id: products.id,
-        name: products.name,
-        drugName: products.drugName,
-        quantity: products.quantity,
-        status: products.status
-      })
-      .from(products)
-      .where(
-        sql`(${products.quantity} <= ${products.lowStockThreshold} OR ${products.status} = 'out_of_stock') AND ${products.status} != 'expired'`
-      )
-      .limit(5);
-
-      // Get expiring products
-      const expiryLimit = new Date();
-      expiryLimit.setDate(expiryLimit.getDate() + 90); // next 90 days
-
-      const expiringProducts = await db.select({
-        id: products.id,
-        name: products.name,
-        drugName: products.drugName,
-        expiryDate: products.expiryDate,
-        status: products.status
-      })
-      .from(products)
-      .where(
-        sql`${products.expiryDate} IS NOT NULL AND ${products.expiryDate} <= ${expiryLimit}`
-      )
-      .orderBy(products.expiryDate)
-      .limit(5);
-
-      // Format the response
-      const totalCustomers = Number(customersResult.count) || 0;
-      const newCustomers = Number(newCustomersResult.count) || 0;
-      const todaySales = Number(todaySalesResult.total) || 0;
-      const monthSales = Number(monthSalesResult.total) || 0;
-
-      res.json({
+      const dashboardData = {
         totalCustomers,
         newCustomers,
-        todaySales,
-        monthSales,
+        todaySales: Math.round(todaySales * 100) / 100,
+        monthSales: Math.round(monthSales * 100) / 100,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        totalExpenses: Math.round(totalExpenses * 100) / 100,
+        netProfit: Math.round(netProfit * 100) / 100,
+        profitMargin: Math.round(profitMargin * 100) / 100,
+        outstandingInvoices: Math.round(outstandingInvoices * 100) / 100,
         lowStockProducts,
         expiringProducts
-      });
+      };
+
+      console.log(`✅ REAL Dashboard Data: ${totalCustomers} customers, EGP ${totalRevenue.toFixed(2)} revenue, ${lowStockProducts.length} low stock, ${expiringProducts.length} expiring`);
+      res.json(dashboardData);
     } catch (error) {
-      console.error("Dashboard summary error:", error);
+      console.error("❌ Dashboard summary error:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });
     }
   });
@@ -746,10 +1544,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all products
+  // Get all products with optional warehouse filtering
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
-      const { categoryId, status } = req.query;
+      const { categoryId, status, warehouse } = req.query;
+      const warehouseId = warehouse as string;
 
       let whereConditions = [];
       if (categoryId) {
@@ -759,11 +1558,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         whereConditions.push(eq(products.status, status as string));
       }
 
-      const result = await db
+      let allProducts = await db
         .select()
         .from(products)
-        .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
-      res.json(result);
+        .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+        .orderBy(products.name);
+      
+      // Join with categories to get category names
+      let productsWithCategories = await Promise.all(
+        allProducts.map(async (product) => {
+          const category = await db.select().from(productCategories).where(eq(productCategories.id, product.categoryId));
+          return {
+            ...product,
+            category: category[0]?.name || 'Uncategorized'
+          };
+        })
+      );
+      
+      // Filter by warehouse if specified - USE REAL DATABASE LOCATIONS
+      if (warehouseId && warehouseId !== '0' && warehouseId !== '') {
+        const warehouseNumber = parseInt(warehouseId);
+        
+        // Get warehouse from database instead of hardcoded mapping
+        const [warehouseRecord] = await db.select()
+          .from(warehouses)
+          .where(eq(warehouses.id, warehouseNumber));
+        
+        if (!warehouseRecord) {
+          console.log(`🔥 WAREHOUSE NOT FOUND: Warehouse ${warehouseNumber} does not exist`);
+          return res.json([]);
+        }
+        
+        // Filter products by matching the warehouse address/location with product location
+        // Products can be stored by warehouse name OR warehouse address
+        productsWithCategories = productsWithCategories.filter(product => 
+          product.location === warehouseRecord.name || 
+          product.location === warehouseRecord.address ||
+          product.location === warehouseRecord.code
+        );
+        
+        console.log(`🔥 WAREHOUSE FILTER: Warehouse ${warehouseNumber} (${warehouseRecord.name}) has ${productsWithCategories.length} products`);
+      } else {
+        // When no warehouse is specified or warehouse is '0', show ALL products from ALL warehouses
+        console.log(`🔥 ALL STOCK: Returning ${productsWithCategories.length} products from all warehouses`);
+      }
+      
+      res.json(productsWithCategories);
     } catch (error) {
       console.error("Products error:", error);
       res.status(500).json({ message: "Failed to fetch products" });
@@ -814,6 +1654,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Create product error:", error);
       res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  // Update product - MISSING CRITICAL ENDPOINT!
+  app.patch("/api/products/:id", upload.single("image"), async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+
+      console.log('🔥 PRODUCT UPDATE - Raw request body:', JSON.stringify(req.body, null, 2));
+
+      // Validate and transform request body
+      const validatedData = updateProductSchema.parse({
+        ...req.body,
+        categoryId: typeof req.body.categoryId === 'string' ? Number(req.body.categoryId) : req.body.categoryId,
+        costPrice: typeof req.body.costPrice === 'string' ? Number(req.body.costPrice) : req.body.costPrice,
+        sellingPrice: typeof req.body.sellingPrice === 'string' ? Number(req.body.sellingPrice) : req.body.sellingPrice,
+        quantity: typeof req.body.quantity === 'string' ? Number(req.body.quantity) : req.body.quantity,
+        lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
+        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
+      });
+
+      console.log('🔥 PRODUCT UPDATE - Validated data:', JSON.stringify(validatedData, null, 2));
+
+      // Add image path if uploaded
+      if (req.file) {
+        validatedData.imagePath = req.file.path;
+      }
+
+      // Update product in database
+      const [updatedProduct] = await db.update(products)
+        .set({ ...validatedData, updatedAt: new Date() })
+        .where(eq(products.id, id))
+        .returning();
+
+      console.log('🔥 PRODUCT UPDATE - Updated product result:', JSON.stringify(updatedProduct, null, 2));
+
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error('🔥 PRODUCT UPDATE - Error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update product" });
     }
   });
 
@@ -1043,7 +1930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all invoices
   app.get("/api/invoices", async (req: Request, res: Response) => {
     try {
-      const invoices = await db.select().from(sales);
+      const invoices = await db.select().from(sales).orderBy(desc(sales.date));
       
       const invoicesWithCustomers = await Promise.all(invoices.map(async (invoice) => {
         let customerName = 'Cash Sale';
@@ -1075,50 +1962,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create invoice
   app.post("/api/invoices", async (req: Request, res: Response) => {
     try {
-      const { customerId, items, total, taxRate, subtotal, tax, dueDate, notes, paymentMethod } = req.body;
+      const invoiceData = req.body;
+      
+      // Validate required fields
+      if (!invoiceData.items || !Array.isArray(invoiceData.items) || invoiceData.items.length === 0) {
+        return res.status(400).json({ message: "Invoice must have at least one item" });
+      }
+
+      // Calculate totals from items to ensure accuracy
+      let calculatedSubtotal = 0;
+      for (const item of invoiceData.items) {
+        const itemSubtotal = parseFloat(item.subtotal) || (parseFloat(item.quantity) * parseFloat(item.unitPrice));
+        calculatedSubtotal += itemSubtotal;
+      }
+      
+      // Use provided values or calculate them
+      const subtotal = parseFloat(invoiceData.subtotal) || calculatedSubtotal;
+      const taxAmount = parseFloat(invoiceData.taxAmount) || (subtotal * 0.14); // 14% VAT default
+      const totalAmount = parseFloat(invoiceData.totalAmount) || (subtotal + taxAmount);
 
       // Generate invoice number
       const invoiceCount = await db.select({ count: count() }).from(sales);
       const invoiceNumber = `INV-${String(invoiceCount[0].count + 1).padStart(6, '0')}`;
 
       // Create sale/invoice record
+      // Extract customer ID from the customer object or use direct customerId
+      const customerId = invoiceData.customer?.id || invoiceData.customerId || null;
+      
       const [newInvoice] = await db.insert(sales).values({
-        customerId: customerId || null,
-        userId: 2, // Use existing admin user ID
+        customerId: customerId,
+        userId: 1, // Use existing admin user ID
         invoiceNumber,
         date: new Date(),
-        totalAmount: total.toString(),
-        grandTotal: total.toString(), // Add required grand_total field
-        discount: "0",
-        tax: tax?.toString() || "0",
-        paymentStatus: "pending",
-        paymentMethod: paymentMethod || "cash",
-        notes: notes || ""
+        subtotal: (parseFloat(invoiceData.subtotal) || subtotal).toFixed(2),
+        totalAmount: totalAmount.toFixed(2),
+        grandTotal: (parseFloat(invoiceData.grandTotal) || totalAmount).toFixed(2),
+        discount: (parseFloat(invoiceData.discountValue) || 0).toFixed(2),
+        discountAmount: (parseFloat(invoiceData.discountAmount) || 0).toFixed(2),
+        tax: taxAmount.toFixed(2), // Keep for backward compatibility
+        taxRate: (parseFloat(invoiceData.taxRate) || 14).toFixed(2),
+        taxAmount: (parseFloat(invoiceData.taxAmount) || 0).toFixed(2),
+        vatRate: (parseFloat(invoiceData.vatRate) || 14).toFixed(2),
+        vatAmount: (parseFloat(invoiceData.vatAmount) || 0).toFixed(2),
+        paymentStatus: invoiceData.paymentStatus || "pending",
+        paymentMethod: invoiceData.paymentMethod || "cash",
+        paymentTerms: invoiceData.paymentTerms || "0",
+        amountPaid: (parseFloat(invoiceData.amountPaid) || 0).toFixed(2),
+        notes: invoiceData.notes || ""
       }).returning();
 
-      // Create sale items
-      for (const item of items) {
+      // Create sale items and update inventory
+      for (const item of invoiceData.items) {
+        const quantity = parseFloat(item.quantity) || 0;
+        const unitPrice = parseFloat(item.unitPrice) || 0;
+        const itemTotal = quantity * unitPrice;
+        
         await db.insert(saleItems).values({
           saleId: newInvoice.id,
           productId: item.productId,
-          quantity: item.quantity,
-          unitPrice: item.price.toString(),
+          quantity: quantity,
+          unitPrice: unitPrice.toFixed(2),
           discount: "0",
-          total: (item.quantity * item.price).toString()
+          total: itemTotal.toFixed(2)
         });
 
         // Update product stock
         await db.update(products)
           .set({ 
-            quantity: sql`${products.quantity} - ${item.quantity}`
+            quantity: sql`${products.quantity} - ${quantity}`
           })
           .where(eq(products.id, item.productId));
       }
 
+      // Create accounting entries for the invoice
+      const currentDate = new Date();
+      
+      // Generate journal entry number
+      const journalCount = await db.select({ count: count() }).from(journalEntries);
+      const entryNumber = `JE-${String(journalCount[0].count + 1).padStart(6, '0')}`;
+      
+      // 1. Debit Accounts Receivable
+      await db.insert(journalEntries).values({
+        entryNumber: entryNumber,
+        date: currentDate,
+        description: `Invoice ${invoiceNumber} - ${invoiceData.customerName || 'Customer'}`,
+        reference: invoiceNumber,
+        type: 'invoice',
+        status: 'posted',
+        createdBy: 1,
+        totalDebit: totalAmount.toFixed(2),
+        totalCredit: totalAmount.toFixed(2),
+        sourceType: 'invoice',
+        sourceId: newInvoice.id
+      });
+      
+      const [journalEntry] = await db.select().from(journalEntries).orderBy(desc(journalEntries.id)).limit(1);
+      
+      // Create journal entry lines
+      // Debit A/R (using Bank Account as placeholder for Accounts Receivable)
+      await db.insert(journalEntryLines).values({
+        journalEntryId: journalEntry.id,
+        accountId: 2, // Bank Account (closest to Accounts Receivable)
+        debit: totalAmount.toFixed(2),
+        credit: "0",
+        description: `Invoice ${invoiceNumber}`
+      });
+      
+      // Credit Sales Revenue
+      await db.insert(journalEntryLines).values({
+        journalEntryId: journalEntry.id,
+        accountId: 5, // Sales Revenue
+        debit: "0",
+        credit: totalAmount.toFixed(2),
+        description: `Sales - Invoice ${invoiceNumber}`
+      });
+
       res.status(201).json({
         id: newInvoice.id,
         invoiceNumber: newInvoice.invoiceNumber,
-        message: "Invoice created successfully"
+        message: "Invoice created successfully with accounting entries",
+        totalAmount: totalAmount.toFixed(2)
       });
     } catch (error) {
       console.error("Create invoice error:", error);
@@ -1155,10 +2118,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .leftJoin(products, eq(saleItems.productId, products.id))
       .where(eq(saleItems.saleId, invoiceId));
 
+      // Calculate payment information based on status
+      const totalAmount = parseFloat(invoice.grandTotal || invoice.totalAmount || "0");
+      let amountPaid = 0;
+      
+      if (invoice.paymentStatus === 'paid') {
+        amountPaid = totalAmount;
+      } else if (invoice.paymentStatus === 'partial') {
+        // For partial payments, assume 60% is paid (this could be enhanced with actual payment tracking)
+        amountPaid = totalAmount * 0.6;
+      }
+
       res.json({
         ...invoice,
         customer,
-        items
+        items,
+        subtotal: parseFloat(invoice.subtotal || invoice.totalAmount || "0"),
+        tax: parseFloat(invoice.tax || "0"),
+        taxRate: parseFloat(invoice.taxRate || "14"),
+        taxAmount: parseFloat(invoice.taxAmount || "0"),
+        vatRate: parseFloat(invoice.vatRate || "14"),
+        vatAmount: parseFloat(invoice.vatAmount || "0"),
+        discount: parseFloat(invoice.discount || "0"),
+        discountAmount: parseFloat(invoice.discountAmount || "0"),
+        total: totalAmount,
+        amountPaid: parseFloat(invoice.amountPaid || amountPaid.toString()),
+        paymentTerms: invoice.paymentTerms || "0",
+        balanceDue: totalAmount - parseFloat(invoice.amountPaid || amountPaid.toString())
       });
     } catch (error) {
       console.error("Get invoice error:", error);
@@ -1192,34 +2178,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============= Expense Creation Endpoint =============
-
-  // Create expense
-  app.post("/api/expenses", async (req: Request, res: Response) => {
-    try {
-      const { description, amount, category, date, paymentMethod, costCenter, status } = req.body;
-
-      // For now, we'll add to a simple expenses array since there's no expense table in schema
-      // In production, this would insert into a proper expenses table
-      const newExpense = {
-        id: Date.now(), // Simple ID generation
-        description,
-        amount: parseFloat(amount),
-        category,
-        date,
-        paymentMethod: paymentMethod || "Cash",
-        status: status || "Paid",
-        costCenter: costCenter || "General",
-        createdAt: new Date().toISOString()
-      };
-
-      res.status(201).json(newExpense);
-    } catch (error) {
-      console.error("Create expense error:", error);
-      res.status(500).json({ message: "Failed to create expense" });
-    }
-  });
+  // NOTE: Expense creation with automatic accounting synchronization is now handled 
+  // by the financial integration routes which create proper journal entries
 
   // ============= Authentication Endpoints =============
+
+  // Test endpoint for password debugging
+  app.post('/api/test-password', async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Find user by email
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      
+      if (!user) {
+        return res.json({ error: 'User not found' });
+      }
+      
+      const bcrypt = require('bcryptjs');
+      
+      // Test the exact password comparison
+      const syncResult = bcrypt.compareSync(password, user.password);
+      const asyncResult = await bcrypt.compare(password, user.password);
+      
+      const result = {
+        userFound: true,
+        username: user.username,
+        passwordReceived: password,
+        storedHash: user.password,
+        passwordFormat: user.password.startsWith('$2b$') ? 'hashed' : 'plain',
+        hashLength: user.password.length,
+        syncTest: syncResult,
+        asyncTest: asyncResult,
+        bothMatch: syncResult === asyncResult,
+        passwordTrimmed: password.trim(),
+        hashTrimmed: user.password.trim(),
+        passwordLength: password.length
+      };
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   // Login endpoint
   app.post('/api/auth/login', async (req: Request, res: Response) => {
@@ -1237,8 +2238,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      // Simple password check (in production, use bcrypt.compare)
-      const isValidPassword = password === user.password || password === 'admin123';
+      // Check if password is hashed or plain text
+      let isValidPassword = false;
+      
+      if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
+        // Use bcrypt for hashed passwords
+        const bcrypt = require('bcryptjs');
+        try {
+          isValidPassword = bcrypt.compareSync(password, user.password);
+        } catch (error) {
+          console.error('Bcrypt error:', error);
+          return res.status(500).json({ error: 'Authentication error' });
+        }
+      } else {
+        // Plain text comparison (temporary for immediate login)
+        isValidPassword = password === user.password;
+      }
 
       if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid email or password' });
@@ -1255,8 +2270,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username: user.username,
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          status: user.status,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at
         },
+        token: 'session-token', // Session-based auth, token not needed but expected by client
         message: 'Login successful'
       });
     } catch (error) {
@@ -1280,270 +2299,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
+      logger.info("Fetching quotations from database...");
+      
+      // Get quotations from database
+      const dbQuotations = await db.select().from(quotations).orderBy(desc(quotations.createdAt));
+      logger.info(`Found ${dbQuotations.length} quotations in database`);
+
+      // Transform database quotations to frontend format
+      const transformedQuotations = await Promise.all(
+        dbQuotations.map(async (quotation) => {
+          // Get customer name
+          let customerName = "Unknown Customer";
+          if (quotation.customerId) {
+            try {
+              const [customer] = await db.select()
+                .from(customers)
+                .where(eq(customers.id, quotation.customerId))
+                .limit(1);
+              customerName = customer?.name || "Unknown Customer";
+            } catch (error) {
+              logger.error("Error fetching customer:", error);
+            }
+          }
+
+          // Get quotation items
+          let items = [];
+          try {
+            const quotationItemsData = await db.select()
+              .from(quotationItems)
+              .where(eq(quotationItems.quotationId, quotation.id))
+              .orderBy(quotationItems.id);
+
+            items = await Promise.all(
+              quotationItemsData.map(async (item) => {
+                // Get product details
+                let productName = "Unknown Product";
+                try {
+                  const [product] = await db.select()
+                    .from(products)
+                    .where(eq(products.id, item.productId))
+                    .limit(1);
+                  productName = product?.name || "Unknown Product";
+                } catch (error) {
+                  logger.error("Error fetching product:", error);
+                }
+
+                return {
+                  id: item.id.toString(),
+                  type: "finished", // Default type
+                  productName: productName,
+                  description: productName,
+                  quantity: parseInt(item.quantity.toString()),
+                  uom: "piece",
+                  unitPrice: parseFloat(item.unitPrice.toString()),
+                  total: parseFloat(item.total.toString()),
+                  specifications: "",
+                  rawMaterials: [],
+                  processingTime: 0,
+                  qualityGrade: "pharmaceutical"
+                };
+              })
+            );
+          } catch (error) {
+            logger.error("Error fetching quotation items:", error);
+          }
+
+          // Get packaging items
+          let packagingItems = [];
+          try {
+            // Query packaging items from the database using Drizzle ORM
+            const dbPackagingItems = await db.select()
+              .from(quotationPackagingItems)
+              .where(eq(quotationPackagingItems.quotationId, quotation.id))
+              .orderBy(quotationPackagingItems.id);
+
+            packagingItems = dbPackagingItems.map(item => ({
+              id: item.id.toString(),
+              type: item.type || 'container',
+              description: item.description || '',
+              quantity: parseInt(item.quantity?.toString() || '1'),
+              unitPrice: parseFloat(item.unitPrice?.toString() || '0'),
+              total: parseFloat(item.total?.toString() || '0'),
+              notes: item.notes || ''
+            }));
+          } catch (error) {
+            logger.error("Error fetching packaging items:", error);
+          }
+
+          return {
+            id: quotation.id,
+            quotationNumber: quotation.quotationNumber,
+            type: "finished", // Default type for now
+            customerName: customerName,
+            customerId: quotation.customerId || 0,
+            date: quotation.issueDate ? new Date(quotation.issueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            validUntil: quotation.validUntil ? new Date(quotation.validUntil).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            notes: quotation.notes || "",
+            subtotal: parseFloat(quotation.subtotal?.toString() || '0'),
+            transportationFees: 0,
+            transportationType: "pickup",
+            transportationNotes: "",
+            tax: parseFloat(quotation.taxAmount?.toString() || '0'),
+            total: parseFloat(quotation.grandTotal?.toString() || '0'),
+            amount: parseFloat(quotation.grandTotal?.toString() || '0'),
+            status: quotation.status || 'pending',
+            items: items,
+            packagingItems: packagingItems
+          };
+        })
+      );
+
+      // Apply query filters from frontend
       const { query, status, type, date } = req.query;
+      let filteredQuotations = [...transformedQuotations];
 
-      // Generate realistic pharmaceutical quotations based on your business operations
-      const quotations = [
-        // Manufacturing Quotations
-        {
-          id: 1,
-          quotationNumber: "MFG-2025-001",
-          type: "manufacturing",
-          customerName: "Cairo Medical Center",
-          customerId: 1,
-          date: "2025-01-15",
-          validUntil: "2025-02-14",
-          status: "accepted",
-          subtotal: 45000,
-          transportationFees: 2500,
-          transportationType: "air-freight",
-          tax: 6650,
-          total: 54150,
-          amount: 54150,
-          notes: "Custom manufacturing of Ibuprofen tablets 400mg. GMP compliance required.",
-          items: [
-            {
-              productName: "Ibuprofen Tablets 400mg",
-              description: "Custom manufacturing with client's specifications",
-              specifications: "USP grade, film-coated, 10x10 blister packs",
-              quantity: 100000,
-              uom: "tablets",
-              unitPrice: 0.45,
-              total: 45000
-            }
-          ]
-        },
-        {
-          id: 2,
-          quotationNumber: "MFG-2025-003",
-          type: "manufacturing",
-          customerName: "Alexandria Pharmacy Chain",
-          customerId: 2,
-          date: "2025-01-20",
-          validUntil: "2025-02-19",
-          status: "pending",
-          subtotal: 32000,
-          transportationFees: 1800,
-          transportationType: "ground-express",
-          tax: 4732,
-          total: 38532,
-          amount: 38532,
-          notes: "Manufacturing paracetamol suspension for pediatric use.",
-          items: [
-            {
-              productName: "Paracetamol Suspension 120mg/5ml",
-              description: "Pediatric formulation with orange flavor",
-              specifications: "Sugar-free, 100ml bottles with child-resistant caps",
-              quantity: 5000,
-              uom: "bottles",
-              unitPrice: 6.40,
-              total: 32000
-            }
-          ]
-        },
-
-        // Refining Quotations
-        {
-          id: 3,
-          quotationNumber: "REF-2025-005",
-          type: "refining",
-          customerName: "Global Pharma Solutions",
-          customerId: 3,
-          date: "2025-01-10",
-          validUntil: "2025-02-09",
-          status: "accepted",
-          subtotal: 78000,
-          transportationFees: 3200,
-          transportationType: "sea-freight",
-          tax: 11368,
-          total: 92568,
-          amount: 92568,
-          notes: "API purification and crystallization services for Amoxicillin trihydrate.",
-          items: [
-            {
-              productName: "Amoxicillin Trihydrate API",
-              description: "Purification and recrystallization from crude material",
-              specifications: "99.5% purity, USP/EP compliant, micronized grade",
-              quantity: 500,
-              uom: "kg",
-              unitPrice: 156.00,
-              total: 78000
-            }
-          ]
-        },
-        {
-          id: 4,
-          quotationNumber: "REF-2025-007",
-          type: "refining",
-          customerName: "Luxor Pharmaceuticals",
-          customerId: 4,
-          date: "2025-01-22",
-          validUntil: "2025-02-21",
-          status: "sent",
-          subtotal: 65000,
-          transportationFees: 2800,
-          transportationType: "air-freight",
-          tax: 9492,
-          total: 77292,
-          amount: 77292,
-          notes: "Refining services for Ciprofloxacin HCl with impurity removal.",
-          items: [
-            {
-              productName: "Ciprofloxacin HCl API",
-              description: "Impurity removal and grade enhancement",
-              specifications: "Pharmaceutical grade, <0.1% impurities, white crystalline powder",
-              quantity: 250,
-              uom: "kg",
-              unitPrice: 260.00,
-              total: 65000
-            }
-          ]
-        },
-
-        // Finished Products Quotations
-        {
-          id: 5,
-          quotationNumber: "FIN-2025-002",
-          type: "finished",
-          customerName: "Giza Hospital Network",
-          customerId: 5,
-          date: "2025-01-18",
-          validUntil: "2025-02-17",
-          status: "pending",
-          subtotal: 28500,
-          transportationFees: 1200,
-          transportationType: "ground-standard",
-          tax: 4158,
-          total: 33858,
-          amount: 33858,
-          notes: "Emergency supply of antibiotics for hospital network.",
-          items: [
-            {
-              productName: "Amoxicillin Capsules 500mg",
-              description: "Ready-to-dispense finished product",
-              specifications: "Hard gelatin capsules, 10x10 blister packs",
-              quantity: 50000,
-              uom: "capsules",
-              unitPrice: 0.57,
-              total: 28500
-            }
-          ]
-        },
-        {
-          id: 6,
-          quotationNumber: "FIN-2025-004",
-          type: "finished",
-          customerName: "Aswan Medical Supplies",
-          customerId: 6,
-          date: "2025-01-25",
-          validUntil: "2025-02-24",
-          status: "draft",
-          subtotal: 18900,
-          transportationFees: 950,
-          transportationType: "ground-express",
-          tax: 2759.50,
-          total: 22609.50,
-          amount: 22609.50,
-          notes: "Cardiovascular medications for regional distribution.",
-          items: [
-            {
-              productName: "Amlodipine Tablets 5mg",
-              description: "Cardiovascular medication for hypertension",
-              specifications: "Film-coated tablets, 3x10 blister packs",
-              quantity: 30000,
-              uom: "tablets",
-              unitPrice: 0.63,
-              total: 18900
-            }
-          ]
-        },
-        {
-          id: 7,
-          quotationNumber: "FIN-2025-006",
-          type: "finished",
-          customerName: "Red Sea Pharmacy",
-          customerId: 7,
-          date: "2025-01-12",
-          validUntil: "2025-02-11",
-          status: "rejected",
-          subtotal: 12400,
-          transportationFees: 680,
-          transportationType: "ground-standard",
-          tax: 1811.20,
-          total: 14891.20,
-          amount: 14891.20,
-          notes: "Pain management medications for pharmacy chain.",
-          items: [
-            {
-              productName: "Diclofenac Sodium Tablets 50mg",
-              description: "Non-steroidal anti-inflammatory drug",
-              specifications: "Enteric-coated tablets, 2x10 blister packs",
-              quantity: 20000,
-              uom: "tablets",
-              unitPrice: 0.62,
-              total: 12400
-            }
-          ]
-        },
-        {
-          id: 8,
-          quotationNumber: "MFG-2025-008",
-          type: "manufacturing",
-          customerName: "Sinai Medical Center",
-          customerId: 8,
-          date: "2025-01-28",
-          validUntil: "2025-02-27",
-          status: "expired",
-          subtotal: 55000,
-          transportationFees: 2200,
-          transportationType: "air-freight",
-          tax: 8008,
-          total: 65208,
-          amount: 65208,
-          notes: "Custom formulation for diabetic patients.",
-          items: [
-            {
-              productName: "Metformin XR Tablets 1000mg",
-              description: "Extended-release formulation for diabetes management",
-              specifications: "Sustained-release matrix tablets, 3x10 blister packs",
-              quantity: 75000,
-              uom: "tablets",
-              unitPrice: 0.73,
-              total: 55000
-            }
-          ]
-        }
-      ];
-
-      // Apply filters
-      let filteredQuotations = quotations;
-
+      // Filter by search query
       if (query && query !== '') {
         const searchTerm = (query as string).toLowerCase();
-        filteredQuotations = filteredQuotations.filter(q => 
-          q.quotationNumber.toLowerCase().includes(searchTerm) ||
-          q.customerName.toLowerCase().includes(searchTerm)
+        filteredQuotations = filteredQuotations.filter(quotation =>
+          quotation.quotationNumber.toLowerCase().includes(searchTerm) ||
+          quotation.customerName.toLowerCase().includes(searchTerm) ||
+          quotation.items.some(item => 
+            item.productName.toLowerCase().includes(searchTerm)
+          )
         );
       }
 
+      // Filter by status
       if (status && status !== 'all') {
-        filteredQuotations = filteredQuotations.filter(q => q.status === status);
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.status === status);
       }
 
+      // Filter by type
       if (type && type !== 'all') {
-        filteredQuotations = filteredQuotations.filter(q => q.type === type);
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.type === type);
       }
 
+      // Filter by date
+      if (date !== 'all') {
+        const now = new Date();
+        filteredQuotations = filteredQuotations.filter(q => {
+          const quotationDate = new Date(q.date);
+          switch (date) {
+            case 'today':
+              return quotationDate.toDateString() === now.toDateString();
+            case 'week':
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return quotationDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+              return quotationDate >= monthAgo;
+            case 'year':
+              const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+              return quotationDate >= yearAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      logger.info(`🗃️ QUOTATIONS: Returning ${filteredQuotations.length} from DB (no static fallback)`);
       res.json(filteredQuotations);
     } catch (error) {
-      console.error("Quotations error:", error);
+      logger.error("Error fetching quotations:", error);
       res.status(500).json({ message: "Failed to fetch quotations" });
     }
   });
 
+
   // Create new quotation
   app.post("/api/quotations", async (req: Request, res: Response) => {
     try {
+      // Structured logging to debug payload shape
+      logger.info("POST /api/quotations body keys:", { keys: Object.keys(req.body) });
+      logger.info("packagingItems type:", { type: typeof req.body.packagingItems, length: req.body.packagingItems?.length });
+
+      // Normalize packaging items to handle different field names/formats
+      const rawPackagingItems = req.body.packagingItems ?? req.body.packaging_items ?? req.body.packaging;
+      let packagingItems = [];
+      
+      if (rawPackagingItems) {
+        if (Array.isArray(rawPackagingItems)) {
+          packagingItems = rawPackagingItems;
+        } else if (typeof rawPackagingItems === 'string') {
+          try {
+            packagingItems = JSON.parse(rawPackagingItems);
+          } catch (parseError) {
+            logger.error("Failed to parse packagingItems string:", parseError);
+            packagingItems = [];
+          }
+        } else if (typeof rawPackagingItems === 'object') {
+          packagingItems = [rawPackagingItems];
+        }
+      }
+
       const {
         quotationNumber,
         type,
@@ -1562,41 +2511,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
         date
       } = req.body;
 
-      // Generate quotation number if not provided
-      const finalQuotationNumber = quotationNumber || `QUOTE-${type.toUpperCase().substring(0,3)}-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+      logger.info("Creating quotation with data:", { 
+        quotationNumber, 
+        customerId, 
+        items: items?.length || 0, 
+        packagingItems: packagingItems?.length || 0 
+      });
 
-      // Create quotation object
-      const newQuotation = {
-        id: Date.now(),
+      // Generate quotation number if not provided
+      const finalQuotationNumber = quotationNumber || `QUO-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+
+      // Prepare quotation data
+      const quotationData = {
         quotationNumber: finalQuotationNumber,
-        type,
-        customerId,
-        customerName,
-        date: date || new Date().toISOString(),
-        validUntil,
-        status: status || 'sent',
-        subtotal,
-        transportationFees: transportationFees || 0,
-        transportationType: transportationType || 'standard',
-        transportationNotes: transportationNotes || '',
-        tax,
-        total,
-        amount: total,
-        notes: notes || '',
-        items: items || []
+        customerId: customerId || null,
+        userId: 1, // TODO: Get from authenticated user session
+        issueDate: date ? new Date(date) : new Date(),
+        validUntil: validUntil ? new Date(validUntil) : null,
+        subtotal: parseFloat(subtotal?.toString() || '0').toString(),
+        taxRate: tax && subtotal ? (Number(tax) / Number(subtotal) * 100).toString() : "0",
+        taxAmount: parseFloat(tax?.toString() || '0').toString(),
+        totalAmount: parseFloat(total?.toString() || '0').toString(),
+        grandTotal: parseFloat(total?.toString() || '0').toString(),
+        status: status || 'pending',
+        notes: notes || null,
       };
 
-      // Here you would typically save to database
-      // For now, we'll return the created quotation
+      // Create quotation
+      const [newQuotation] = await db.insert(quotations).values(quotationData).returning();
+      logger.info("Created quotation:", { id: newQuotation.id });
+
+      // Save quotation items if provided
+      if (items && items.length > 0) {
+        logger.info("Saving quotation items", { count: items.length });
+        for (const item of items) {
+          let productId = item.productId;
+          
+          // If no productId provided, look up by product name
+          if (!productId && item.productName) {
+            const [existingProduct] = await db
+              .select({ id: products.id })
+              .from(products)
+              .where(eq(products.name, item.productName))
+              .limit(1);
+            
+            if (existingProduct) {
+              productId = existingProduct.id;
+              logger.info(`Found product ID ${productId} for product name "${item.productName}"`);
+            } else {
+              logger.error(`Product not found for name "${item.productName}"`);
+              throw new Error(`Product "${item.productName}" not found in database`);
+            }
+          }
+          
+          if (!productId) {
+            throw new Error('Product ID is required for quotation items');
+          }
+
+          const itemData = {
+            quotationId: newQuotation.id,
+            productId: productId,
+            quantity: Number(item.quantity) || 1,
+            unitPrice: parseFloat(item.unitPrice?.toString() || '0').toString(),
+            discount: parseFloat(item.discount?.toString() || '0').toString(),
+            total: parseFloat(item.total?.toString() || '0').toString(),
+          };
+          await db.insert(quotationItems).values(itemData);
+        }
+      }
+
+      // Save packaging items if provided with validation
+      if (packagingItems && packagingItems.length > 0) {
+        logger.info("Processing packaging items", { count: packagingItems.length });
+        
+        for (let i = 0; i < packagingItems.length; i++) {
+          const packagingItem = packagingItems[i];
+          logger.info(`Processing packaging item ${i + 1}:`, packagingItem);
+
+          try {
+            // Prepare raw data for validation
+            const rawPackagingItemData = {
+              quotationId: newQuotation.id,
+              type: packagingItem.type || 'container',
+              description: packagingItem.description || '',
+              quantity: Number(packagingItem.quantity) || 1,
+              unitPrice: parseFloat(packagingItem.unitPrice?.toString() || '0').toString(),
+              total: parseFloat(packagingItem.total?.toString() || '0').toString(),
+              notes: packagingItem.notes || null
+            };
+
+            logger.info(`Raw packaging item data ${i + 1}:`, rawPackagingItemData);
+
+            // Validate using Zod schema
+            const validatedPackagingItemData = insertQuotationPackagingItemSchema.parse(rawPackagingItemData);
+            logger.info(`Validated packaging item data ${i + 1}:`, validatedPackagingItemData);
+
+            // Insert using validated data
+            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData);
+            logger.info(`Successfully saved packaging item ${i + 1}:`, insertResult);
+
+          } catch (validationError) {
+            logger.error(`Validation error for packaging item ${i + 1}:`, validationError);
+            if (validationError instanceof z.ZodError) {
+              logger.error("Zod validation details:", validationError.errors);
+            }
+            throw validationError; // Re-throw to trigger the outer catch
+          }
+        }
+      }
 
       res.status(201).json({
         success: true,
         quotation: newQuotation,
-        message: `Quotation ${status === 'draft' ? 'saved as draft' : 'sent to customer'} successfully`
+        message: `Quotation ${status === 'draft' ? 'saved as draft' : 'created'} successfully`
       });
 
     } catch (error) {
-      console.error("Create quotation error:", error);
+      logger.error("Create quotation error:", error);
+      
+      // Enhanced error logging for packaging items
+      if (error instanceof z.ZodError) {
+        logger.error("Zod validation failed:", error.errors);
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid packaging item data",
+          errors: error.errors 
+        });
+      }
+
       res.status(500).json({ 
         success: false,
         message: "Failed to create quotation",
@@ -1610,223 +2652,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get expenses
   app.get("/api/expenses", async (_req: Request, res: Response) => {
     try {
-      // Generate realistic pharmaceutical company expenses
-      const currentDate = new Date();
-      const expenses = [
-        // Utilities
-        {
-          id: 1,
-          description: "Monthly Electricity Bill - Manufacturing Plant",
-          amount: 8500.00,
-          category: "Utilities",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Manufacturing"
-        },
-        {
-          id: 2,
-          description: "Water & Sewage - Production Facility",
-          amount: 2300.00,
-          category: "Utilities",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 8).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Manufacturing"
-        },
-        {
-          id: 3,
-          description: "Natural Gas - Heating & Equipment",
-          amount: 4200.00,
-          category: "Utilities",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 10).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Facilities"
-        },
-        // Rent & Facilities
-        {
-          id: 4,
-          description: "Monthly Rent - Main Manufacturing Facility",
-          amount: 25000.00,
-          category: "Rent",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Facilities"
-        },
-        {
-          id: 5,
-          description: "Office Space Rent - Administrative Building",
-          amount: 12000.00,
-          category: "Rent",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Administration"
-        },
-        // Insurance
-        {
-          id: 6,
-          description: "Pharmaceutical Liability Insurance",
-          amount: 15000.00,
-          category: "Insurance",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Legal"
-        },
-        {
-          id: 7,
-          description: "Equipment Insurance - Manufacturing Machinery",
-          amount: 8000.00,
-          category: "Insurance",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Manufacturing"
-        },
-        // Maintenance
-        {
-          id: 8,
-          description: "HVAC System Maintenance - Clean Room",
-          amount: 3500.00,
-          category: "Maintenance",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 20).toISOString().split('T')[0],
-          paymentMethod: "Cash",
-          status: "Paid",
-          costCenter: "Manufacturing"
-        },
-        {
-          id: 9,
-          description: "Laboratory Equipment Calibration",
-          amount: 2800.00,
-          category: "Maintenance",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 22).toISOString().split('T')[0],
-          paymentMethod: "Cheque",
-          status: "Paid",
-          costCenter: "Quality Control"
-        },
-        // Professional Services
-        {
-          id: 10,
-          description: "Legal Consultation - Regulatory Compliance",
-          amount: 5500.00,
-          category: "Professional Services",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 18).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Legal"
-        },
-        {
-          id: 11,
-          description: "Accounting & Audit Services",
-          amount: 7200.00,
-          category: "Professional Services",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 25).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Pending",
-          costCenter: "Finance"
-        },
-        // IT & Communications
-        {
-          id: 12,
-          description: "Internet & Telecommunications",
-          amount: 1800.00,
-          category: "IT & Communications",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 12).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "IT"
-        },
-        {
-          id: 13,
-          description: "Software Licenses - ERP System",
-          amount: 4500.00,
-          category: "IT & Communications",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 14).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "IT"
-        },
-        // Security & Safety
-        {
-          id: 14,
-          description: "Security Services - 24/7 Monitoring",
-          amount: 3200.00,
-          category: "Security",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 16).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Security"
-        },
-        {
-          id: 15,
-          description: "Fire Safety System Inspection",
-          amount: 1500.00,
-          category: "Safety",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 28).toISOString().split('T')[0],
-          paymentMethod: "Cash",
-          status: "Pending",
-          costCenter: "Safety"
-        },
-        // Transportation
-        {
-          id: 16,
-          description: "Fleet Fuel Costs - Delivery Vehicles",
-          amount: 2100.00,
-          category: "Transportation",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 30).toISOString().split('T')[0],
-          paymentMethod: "Credit Card",
-          status: "Paid",
-          costCenter: "Logistics"
-        },
-        {
-          id: 17,
-          description: "Vehicle Maintenance - Delivery Fleet",
-          amount: 1800.00,
-          category: "Transportation",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 26).toISOString().split('T')[0],
-          paymentMethod: "Cash",
-          status: "Paid",
-          costCenter: "Logistics"
-        },
-        // Training & Development
-        {
-          id: 18,
-          description: "GMP Training Program - Manufacturing Staff",
-          amount: 4200.00,
-          category: "Training",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 19).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "HR"
-        },
-        // Marketing & Sales
-        {
-          id: 19,
-          description: "Trade Show Participation - PharmaTech Expo",
-          amount: 12000.00,
-          category: "Marketing",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 24).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Pending",
-          costCenter: "Sales"
-        },
-        // Regulatory & Compliance
-        {
-          id: 20,
-          description: "FDA Inspection Preparation Consulting",
-          amount: 8500.00,
-          category: "Regulatory",
-          date: new Date(currentDate.getFullYear(), currentDate.getMonth(), 21).toISOString().split('T')[0],
-          paymentMethod: "Bank Transfer",
-          status: "Paid",
-          costCenter: "Regulatory"
-        }
-      ];
+      // Fetch real expense data from database
+      const expensesData = await db.select({
+        id: expenses.id,
+        description: expenses.description,
+        amount: expenses.amount,
+        category: expenses.category,
+        date: expenses.date,
+        paymentMethod: expenses.paymentMethod,
+        status: expenses.status,
+        costCenter: expenses.costCenter,
+        notes: expenses.notes,
+        createdAt: expenses.createdAt,
+        updatedAt: expenses.updatedAt
+      }).from(expenses).orderBy(desc(expenses.date));
 
-      res.json(expenses);
+      res.json(expensesData);
     } catch (error) {
       console.error("Get expenses error:", error);
       res.status(500).json({ message: "Failed to fetch expenses" });
@@ -1852,7 +2693,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all system preferences
   app.get("/api/system-preferences", isAdmin, async (req: Request, res: Response) => {
     try {
-      const preferences = await db.select().from(systemPreferences);
+      const preferences = await db.select({
+        id: systemPreferences.id,
+        key: systemPreferences.key,
+        value: systemPreferences.value,
+        createdAt: systemPreferences.createdAt,
+        updatedAt: systemPreferences.updatedAt
+      }).from(systemPreferences);
       res.json(preferences);
     } catch (error) {
       console.error("System preferences error:", error);
@@ -1860,13 +2707,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get system preferences by category
+  // Continue with other system preferences endpoints...
+
+  // Get system preferences by key pattern (since no category column exists)
   app.get("/api/system-preferences/category/:category", isAdmin, async (req: Request, res: Response) => {
     try {
       const category = req.params.category;
-      const preferences = await db.select().from(systemPreferences)
-        .where(eq(systemPreferences.category, category));
-      res.json(preferences);
+      // Filter preferences by key pattern since no category column exists
+      const preferences = await db.select({
+        id: systemPreferences.id,
+        key: systemPreferences.key,
+        value: systemPreferences.value,
+        createdAt: systemPreferences.createdAt,
+        updatedAt: systemPreferences.updatedAt
+      }).from(systemPreferences);
+      const filteredPreferences = preferences.filter(pref => 
+        pref.key.toLowerCase().includes(category.toLowerCase())
+      );
+      res.json(filteredPreferences);
     } catch (error) {
       console.error("System preferences category error:", error);
       res.status(500).json({ message: "Failed to fetch system preferences" });
@@ -2105,66 +2963,383 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Inventory Summary for Dashboard
   app.get('/api/inventory/summary', async (req: Request, res: Response) => {
     try {
-      // Get summary for ALL products in warehouses, not just 'active' status
-      const summary = await db.select({
-        totalProducts: count(),
-        lowStockCount: sum(sql`
-          CASE WHEN ${products.quantity} <= ${products.lowStockThreshold} THEN 1 ELSE 0 END
-        `),
-        outOfStockCount: sum(sql`
-          CASE WHEN ${products.quantity} = 0 THEN 1 ELSE 0 END
-        `),
-        expiringCount: sum(sql`
-          CASE WHEN ${products.expiryDate} <= CURRENT_DATE + INTERVAL '30 days' AND ${products.expiryDate} IS NOT NULL THEN 1 ELSE 0 END
-        `),
-        expiredCount: sum(sql`
-          CASE WHEN ${products.expiryDate} < CURRENT_DATE AND ${products.expiryDate} IS NOT NULL THEN 1 ELSE 0 END
-        `),
-        totalInventoryValue: sum(sql`
-          ${products.quantity} * COALESCE(${products.costPrice}, 0)
-        `),
-        totalSellingValue: sum(sql`
-          ${products.quantity} * COALESCE(${products.sellingPrice}, 0)
-        `),
-        totalQuantity: sum(products.quantity),
-        activeProducts: sum(sql`
-          CASE WHEN ${products.status} = 'active' THEN 1 ELSE 0 END
-        `),
-        warehouseCount: sql`COUNT(DISTINCT ${products.location})`
-      })
-      .from(products);
+      // Get all products to calculate real counts
+      const allProducts = await db.select().from(products);
+      
+      // Calculate real counts from actual data
+      const totalProducts = allProducts.length;
+      
+      const lowStockCount = allProducts.filter(p => {
+        const quantity = parseInt(p.quantity || '0');
+        const threshold = parseInt(p.lowStockThreshold || '10');
+        return quantity <= threshold;
+      }).length;
+      
+      const outOfStockCount = allProducts.filter(p => {
+        const quantity = parseInt(p.quantity || '0');
+        return quantity <= 0;
+      }).length;
+      
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+      
+      const expiredCount = allProducts.filter(p => {
+        if (!p.expiryDate) return false;
+        const expiryDate = new Date(p.expiryDate);
+        return expiryDate < now;
+      }).length;
+      
+      const expiringCount = allProducts.filter(p => {
+        if (!p.expiryDate) return false;
+        const expiryDate = new Date(p.expiryDate);
+        return expiryDate >= now && expiryDate <= thirtyDaysFromNow;
+      }).length;
+      
+      const totalInventoryValue = allProducts.reduce((sum, p) => {
+        const quantity = parseInt(p.quantity || '0');
+        const cost = parseFloat(p.costPrice || '0');
+        return sum + (quantity * cost);
+      }, 0);
+      
+      const totalSellingValue = allProducts.reduce((sum, p) => {
+        const quantity = parseInt(p.quantity || '0');
+        const price = parseFloat(p.sellingPrice || '0');
+        return sum + (quantity * price);
+      }, 0);
+      
+      const totalQuantity = allProducts.reduce((sum, p) => {
+        return sum + parseInt(p.quantity || '0');
+      }, 0);
+      
+      const activeProducts = allProducts.filter(p => p.status === 'active').length;
+      
+      const warehouseCount = new Set(allProducts.map(p => p.location).filter(Boolean)).size;
 
-      res.json(summary[0]);
+      const summary = {
+        totalProducts,
+        lowStockCount,
+        outOfStockCount,
+        expiringCount,
+        expiredCount,
+        totalInventoryValue,
+        totalSellingValue,
+        totalQuantity,
+        activeProducts,
+        warehouseCount
+      };
+
+      res.json(summary);
     } catch (error) {
       console.error('Inventory summary error:', error);
       res.status(500).json({ error: 'Failed to fetch inventory summary' });
     }
   });
 
-  // Warehouse Breakdown API for inventory popup
+  // Fixed Warehouse Breakdown API - Using grouped location data
   app.get('/api/inventory/warehouse-breakdown', async (req: Request, res: Response) => {
     try {
-      // Use raw SQL for better compatibility
-      const warehouseBreakdown = await db.execute(sql`
-        SELECT 
-          location,
-          COUNT(*) as product_count,
-          SUM(quantity) as total_quantity,
-          SUM(quantity * COALESCE(cost_price, 0)) as total_cost_value,
-          SUM(quantity * COALESCE(selling_price, 0)) as total_selling_value,
-          ROUND(
-            SUM(quantity * COALESCE(cost_price, 0)) / NULLIF(SUM(quantity), 0), 2
-          ) as avg_unit_cost
-        FROM products 
-        WHERE quantity > 0 
-        GROUP BY location 
-        ORDER BY SUM(quantity * COALESCE(cost_price, 0)) DESC
-      `);
+      // Get warehouses from products grouped by location with simplified query
+      const warehouseBreakdown = await db.select({
+        location: products.location,
+        warehouse_id: sql`ROW_NUMBER() OVER (ORDER BY ${products.location})`,
+        product_count: sql`COUNT(*)`,
+        total_quantity: sql`SUM(CAST(${products.quantity} AS INTEGER))`,
+        total_cost_value: sql`SUM(CAST(${products.quantity} AS INTEGER) * CAST(${products.costPrice} AS DECIMAL))`,
+        total_selling_value: sql`SUM(CAST(${products.quantity} AS INTEGER) * CAST(${products.sellingPrice} AS DECIMAL))`
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.status, 'active'),
+          sql`${products.location} IS NOT NULL AND ${products.location} != ''`
+        )
+      )
+      .groupBy(products.location)
+      .orderBy(products.location);
 
-      res.json(warehouseBreakdown.rows);
+      console.log(`✅ WAREHOUSE API SUCCESS: Returning ${warehouseBreakdown.length} warehouses with live inventory calculations`);
+      res.json(warehouseBreakdown);
     } catch (error) {
-      console.error('Warehouse breakdown error:', error);
+      console.error('❌ Warehouse API error:', error);
       res.status(500).json({ error: 'Failed to fetch warehouse breakdown' });
+    }
+  });
+
+  // Real Product Details API - Database Driven (replaces hardcoded dialog content)
+  app.get('/api/products/:id/details', async (req: Request, res: Response) => {
+    try {
+      const productId = Number(req.params.id);
+      
+      // Get product with warehouse information
+      const [productResult] = await db.select({
+        id: products.id,
+        name: products.name,
+        drugName: products.drugName,
+        sku: products.sku,
+        costPrice: products.costPrice,
+        sellingPrice: products.sellingPrice,
+        quantity: products.quantity,
+        unitOfMeasure: products.unitOfMeasure,
+        location: products.location,
+        expiryDate: products.expiryDate,
+        status: products.status,
+        manufacturer: products.manufacturer,
+        barcode: products.barcode
+      })
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1);
+
+      if (!productResult) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      console.log(`✅ Returning REAL product details for ID ${productId}: ${productResult.name}`);
+      res.json(productResult);
+    } catch (error) {
+      console.error('❌ Product details API error:', error);
+      res.status(500).json({ error: 'Failed to fetch product details' });
+    }
+  });
+
+  // Real Product Activity Timeline API - Using existing inventory_transactions table  
+  app.get('/api/products/:id/activity', async (req: Request, res: Response) => {
+    try {
+      const productId = Number(req.params.id);
+      
+      // Get product info and transactions in one query
+      const result = await db.execute(sql`
+        SELECT 
+          p.id as product_id, 
+          p.name as product_name, 
+          p.unit_of_measure, 
+          p.quantity as current_quantity,
+          p.created_at as product_created_at,
+          it.id as transaction_id,
+          it.type, 
+          it.quantity as transaction_quantity, 
+          it.unit_price, 
+          it.reference_type, 
+          it.reference_id, 
+          it.notes, 
+          it.created_at as transaction_date
+        FROM products p
+        LEFT JOIN inventory_transactions it ON it.product_id = p.id
+        WHERE p.id = ${productId}
+        ORDER BY it.created_at DESC 
+        LIMIT 10
+      `);
+      
+      if (!result.rows || result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      const firstRow = result.rows[0];
+      const product = {
+        id: firstRow.product_id,
+        name: firstRow.product_name,
+        unit_of_measure: firstRow.unit_of_measure,
+        quantity: firstRow.current_quantity,
+        created_at: firstRow.product_created_at
+      };
+
+      const activities = [];
+
+      // Process transactions from the joined query
+      for (const row of result.rows) {
+        // Skip rows without transaction data (LEFT JOIN might return product-only rows)
+        if (!row.transaction_id) continue;
+        
+        let activityType, title, description, icon;
+        
+        switch (row.type) {
+          case 'purchase':
+            activityType = 'purchase';
+            title = 'Stock Received';
+            description = `Received ${Math.abs(row.transaction_quantity)} ${product.unit_of_measure}`;
+            icon = 'package';
+            break;
+          case 'sale':
+            activityType = 'sale';
+            title = 'Stock Sold';
+            description = `Sold ${Math.abs(row.transaction_quantity)} ${product.unit_of_measure}`;
+            icon = 'shopping-cart';
+            break;
+          case 'adjustment':
+            activityType = 'adjustment';
+            title = 'Inventory Adjustment';
+            description = `${row.transaction_quantity > 0 ? 'Added' : 'Removed'} ${Math.abs(row.transaction_quantity)} ${product.unit_of_measure}`;
+            icon = 'settings';
+            break;
+          default:
+            activityType = 'update';
+            title = 'Inventory Update';
+            description = `Updated ${Math.abs(row.transaction_quantity)} ${product.unit_of_measure}`;
+            icon = 'edit';
+        }
+
+        activities.push({
+          type: activityType,
+          title: title,
+          description: description,
+          date: row.transaction_date,
+          user: 'System Administrator',
+          icon: icon,
+          reference: row.reference_type ? `${row.reference_type.toUpperCase()}-${row.reference_id || 'N/A'}` : null,
+          notes: row.notes
+        });
+      }
+
+      // Add product creation entry if we have few activities
+      if (activities.length < 2) {
+        activities.push({
+          type: 'create',
+          title: 'Product Added to Inventory',
+          description: `Initial stock: ${product.quantity} ${product.unit_of_measure}`,
+          date: product.created_at,
+          user: 'System Administrator',
+          icon: 'plus'
+        });
+      }
+
+      // Sort by date (most recent first)
+      activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      console.log(`✅ Returning ${activities.length} REAL activity entries for product ID ${productId}: ${product.name}`);
+      res.json(activities);
+
+    } catch (error) {
+      console.error('❌ Product activity API error:', error);
+      res.status(500).json({ error: 'Failed to fetch product activity' });
+    }
+  });
+
+  // ============= WAREHOUSES APIs =============
+
+  // Get all warehouses
+  app.get('/api/warehouses', async (req: Request, res: Response) => {
+    try {
+      const warehousesResult = await db.select().from(warehouses).orderBy(warehouses.id);
+      res.json(warehousesResult);
+    } catch (error) {
+      console.error('Error fetching warehouses:', error);
+      res.status(500).json({ error: 'Failed to fetch warehouses' });
+    }
+  });
+
+  // Get single warehouse
+  app.get('/api/warehouses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const [warehouse] = await db.select()
+        .from(warehouses)
+        .where(eq(warehouses.id, id));
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'Warehouse not found' });
+      }
+      
+      res.json(warehouse);
+    } catch (error) {
+      console.error('Error fetching warehouse:', error);
+      res.status(500).json({ error: 'Failed to fetch warehouse' });
+    }
+  });
+
+  // Create new warehouse
+  app.post('/api/warehouses', async (req: Request, res: Response) => {
+    try {
+      const { name, code, address } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: 'Warehouse name is required' });
+      }
+      
+      const warehouseData = {
+        name: name.trim(),
+        code: code?.trim() || `WH${Date.now()}`,
+        address: address?.trim() || '',
+        managerId: null,
+        isActive: true
+      };
+      
+      const [newWarehouse] = await db.insert(warehouses)
+        .values(warehouseData)
+        .returning();
+      
+      console.log(`✅ NEW WAREHOUSE CREATED: ${newWarehouse.name} (ID: ${newWarehouse.id})`);
+      res.status(201).json(newWarehouse);
+    } catch (error) {
+      console.error('Error creating warehouse:', error);
+      res.status(500).json({ error: 'Failed to create warehouse' });
+    }
+  });
+
+  // Update warehouse
+  app.put('/api/warehouses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { name, code, address, isActive } = req.body;
+      
+      const [warehouse] = await db.select()
+        .from(warehouses)
+        .where(eq(warehouses.id, id));
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'Warehouse not found' });
+      }
+      
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name.trim();
+      if (code !== undefined) updateData.code = code.trim();
+      if (address !== undefined) updateData.address = address.trim();
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      const [updatedWarehouse] = await db.update(warehouses)
+        .set(updateData)
+        .where(eq(warehouses.id, id))
+        .returning();
+      
+      console.log(`✅ WAREHOUSE UPDATED: ${updatedWarehouse.name} (ID: ${id})`);
+      res.json(updatedWarehouse);
+    } catch (error) {
+      console.error('Error updating warehouse:', error);
+      res.status(500).json({ error: 'Failed to update warehouse' });
+    }
+  });
+
+  // Delete warehouse
+  app.delete('/api/warehouses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Check if warehouse exists
+      const [warehouse] = await db.select()
+        .from(warehouses)
+        .where(eq(warehouses.id, id));
+      
+      if (!warehouse) {
+        return res.status(404).json({ error: 'Warehouse not found' });
+      }
+      
+      // Check if warehouse has any products
+      const [productCount] = await db.select({ count: sql`COUNT(*)` })
+        .from(products)
+        .where(eq(products.location, warehouse.address));
+      
+      if (Number(productCount.count) > 0) {
+        return res.status(400).json({ 
+          error: 'Cannot delete warehouse that contains products. Please move the products first.' 
+        });
+      }
+      
+      await db.delete(warehouses).where(eq(warehouses.id, id));
+      
+      console.log(`✅ WAREHOUSE DELETED: ${warehouse.name} (ID: ${id})`);
+      res.json({ message: 'Warehouse deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting warehouse:', error);
+      res.status(500).json({ error: 'Failed to delete warehouse' });
     }
   });
 
@@ -2188,25 +3363,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Accounting Overview API for comprehensive dashboard metrics
   app.get('/api/accounting/overview', async (req: Request, res: Response) => {
     try {
-      // Get invoice statistics from sales table
-      const invoices = await db.select().from(sales);
+      // Get REAL sales data from sales table
+      const salesData = await db.select().from(sales);
+      
+      // Calculate total revenue from sales
+      const totalRevenue = salesData.reduce((sum, sale) => {
+        const amount = parseFloat(sale.grandTotal || '0');
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
 
-      const outstandingInvoices = invoices
-        .filter(invoice => invoice.status !== 'paid')
-        .reduce((sum, invoice) => sum + (Number(invoice.totalAmount) || 0), 0);
+      // Calculate outstanding invoices (pending payment status)
+      const outstandingInvoices = salesData
+        .filter(sale => sale.paymentStatus === 'pending')
+        .reduce((sum, sale) => {
+          const amount = parseFloat(sale.grandTotal || '0');
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
 
-      const pendingInvoiceCount = invoices.filter(invoice => invoice.status !== 'paid').length;
+      const pendingInvoiceCount = salesData.filter(sale => sale.paymentStatus === 'pending').length;
+
+      // Get REAL expenses data from expenses table
+      const expensesData = await db.select().from(expenses);
+      
+      // Calculate total expenses
+      const totalExpenses = expensesData.reduce((sum, expense) => {
+        const amount = parseFloat(expense.amount?.toString() || '0');
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
 
       // Calculate monthly revenue for current month
       const currentMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
 
-      const monthlyRevenue = invoices
-        .filter(invoice => {
-          const invoiceDate = new Date(invoice.saleDate);
-          return invoiceDate.getMonth() + 1 === currentMonth && invoiceDate.getFullYear() === currentYear;
+      const monthlyRevenue = salesData
+        .filter(sale => {
+          const saleDate = new Date(sale.date);
+          return saleDate.getMonth() + 1 === currentMonth && saleDate.getFullYear() === currentYear;
         })
-        .reduce((sum, invoice) => sum + (Number(invoice.totalAmount) || 0), 0);
+        .reduce((sum, sale) => {
+          const amount = parseFloat(sale.grandTotal || '0');
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+
+      // Calculate monthly expenses for current month
+      const monthlyExpenses = expensesData
+        .filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate.getMonth() + 1 === currentMonth && expenseDate.getFullYear() === currentYear;
+        })
+        .reduce((sum, expense) => {
+          const amount = parseFloat(expense.amount?.toString() || '0');
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
 
       // Get purchase orders for pending orders calculation
       const purchaseOrdersList = await db.select().from(purchaseOrders);
@@ -2216,22 +3424,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const orderCount = purchaseOrdersList.filter(order => order.status === 'pending').length;
 
-      // Calculate realistic financial metrics
-      const netProfit = monthlyRevenue * 0.25; // 25% profit margin
-      const monthlyExpenses = monthlyRevenue * 0.6; // 60% expense ratio
-      const cashBalance = Math.max(monthlyRevenue * 0.15, 0); // 15% cash balance
+      // Calculate REAL net profit
+      const netProfit = totalRevenue - totalExpenses;
+      const monthlyNetProfit = monthlyRevenue - monthlyExpenses;
+
+      // Calculate cash balance (approximation based on paid invoices)
+      const paidInvoices = salesData
+        .filter(sale => sale.paymentStatus === 'paid')
+        .reduce((sum, sale) => {
+          const amount = parseFloat(sale.grandTotal || '0');
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+
+      const cashBalance = paidInvoices - totalExpenses;
 
       res.json({
-        outstandingInvoices: outstandingInvoices || 0,
-        pendingInvoiceCount: pendingInvoiceCount || 0,
-        monthlyPayments: monthlyRevenue || 0,
-        paymentCount: invoices.filter(invoice => invoice.status === 'paid').length || 0,
-        monthlyExpenses: monthlyExpenses || 0,
-        expenseCount: 15, // Sample count from expenses
-        pendingOrders: pendingOrders || 0,
-        orderCount: orderCount || 0,
-        netProfit: netProfit || 0,
-        cashBalance: cashBalance
+        outstandingInvoices: Math.round(outstandingInvoices * 100) / 100,
+        pendingInvoiceCount: pendingInvoiceCount,
+        monthlyPayments: Math.round(monthlyRevenue * 100) / 100,
+        paymentCount: salesData.filter(sale => sale.paymentStatus === 'paid').length,
+        monthlyExpenses: Math.round(monthlyExpenses * 100) / 100,
+        expenseCount: expensesData.length,
+        pendingOrders: Math.round(pendingOrders * 100) / 100,
+        orderCount: orderCount,
+        netProfit: Math.round(netProfit * 100) / 100,
+        monthlyNetProfit: Math.round(monthlyNetProfit * 100) / 100,
+        cashBalance: Math.round(cashBalance * 100) / 100,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        totalExpenses: Math.round(totalExpenses * 100) / 100,
+        profitMargin: totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100 * 100) / 100 : 0
       });
     } catch (error) {
       console.error('Accounting overview error:', error);
@@ -2297,31 +3518,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // SIMPLE JOURNAL ENTRIES API
+  // JOURNAL ENTRIES API - Returns real database data
   app.get('/api/accounting/journal-entries', async (req: Request, res: Response) => {
     try {
-      const journalEntries = [
-        {
-          id: 1,
-          entryNumber: 'JE-001',
-          entryDate: '2025-01-01',
-          description: 'Opening Balance',
-          totalDebit: 50000,
-          totalCredit: 50000,
-          status: 'posted'
-        },
-        {
-          id: 2,
-          entryNumber: 'JE-002',
-          entryDate: '2025-01-02',
-          description: 'Sales Invoice INV-001',
-          totalDebit: 15000,
-          totalCredit: 15000,
-          status: 'posted'
-        }
-      ];
+      const { startDate, endDate } = req.query;
 
-      res.json(journalEntries);
+      // Use direct SQL query to get journal entries
+      const query = `
+        SELECT id, entry_number, date, memo, reference, status, 
+               total_debit, total_credit, source_type, source_id, 
+               created_at, updated_at
+        FROM journal_entries
+        ORDER BY date DESC, id DESC
+      `;
+      
+      const client = await pool.connect();
+      try {
+        const result = await client.query(query);
+        
+        // Return formatted entries
+        res.json(result.rows.map((entry: any) => ({
+          id: entry.id,
+          entryNumber: entry.entry_number || `JE-${String(entry.id).padStart(3, '0')}`,
+          entryDate: entry.date,
+          description: entry.memo || 'No description',
+          totalDebit: Number(entry.total_debit) || 0,
+          totalCredit: Number(entry.total_credit) || 0,
+          status: entry.status || 'posted',
+          sourceType: entry.source_type,
+          sourceId: entry.source_id,
+          reference: entry.reference
+        })));
+      } finally {
+        client.release();
+      }
     } catch (error) {
       console.error('Journal entries error:', error);
       res.status(500).json({ error: 'Failed to fetch journal entries' });
@@ -2400,54 +3630,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       switch (reportType) {
         case 'trial-balance':
-          // Simple hardcoded trial balance data with filtering
-          const allAccounts = [
-            { code: "1000", name: "Cash", type: "Asset", debit: 50000, credit: 0 },
-            { code: "1100", name: "Accounts Receivable", type: "Asset", debit: 125000, credit: 0 },
-            { code: "1200", name: "Inventory - Raw Materials", type: "Asset", debit: 85000, credit: 0 },
-            { code: "1300", name: "Equipment", type: "Asset", debit: 200000, credit: 0 },
-            { code: "2000", name: "Accounts Payable", type: "Liability", debit: 0, credit: 45000 },
-            { code: "2100", name: "Accrued Expenses", type: "Liability", debit: 0, credit: 15000 },
-            { code: "3000", name: "Owner's Equity", type: "Equity", debit: 0, credit: 300000 },
-            { code: "3100", name: "Retained Earnings", type: "Equity", debit: 0, credit: 70000 },
-            { code: "4000", name: "Sales Revenue", type: "Revenue", debit: 0, credit: 180000 },
-            { code: "5000", name: "Cost of Goods Sold", type: "Expense", debit: 90000, credit: 0 },
-            { code: "5100", name: "Utilities Expense", type: "Expense", debit: 12000, credit: 0 },
-            { code: "5200", name: "Marketing Expense", type: "Expense", debit: 8000, credit: 0 },
-            { code: "5300", name: "Laboratory Testing", type: "Expense", debit: 15000, credit: 0 },
-            { code: "5400", name: "Administrative Expense", type: "Expense", debit: 25000, credit: 0 }
-          ];
-
-          // Simple filter logic
-          let filteredAccounts = allAccounts;
-          if (filter && filter !== 'all') {
-            const filterType = filter.toLowerCase().replace(' only', '').replace('s', '');
-            filteredAccounts = allAccounts.filter(acc => 
-              acc.type.toLowerCase() === filterType || 
-              acc.type.toLowerCase() === filterType + 's'
-            );
-          }
-
-          const totalDebits = filteredAccounts.reduce((sum, acc) => sum + acc.debit, 0);
-          const totalCredits = filteredAccounts.reduce((sum, acc) => sum + acc.credit, 0);
-
-          reportData = {
-            title: `Trial Balance Report${filter && filter !== 'all' ? ` - ${filter}` : ''}`,
-            headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
-            rows: filteredAccounts.map(account => [
-              account.code,
-              account.name,
-              account.debit > 0 ? `$${account.debit.toLocaleString()}.00` : "-",
-              account.credit > 0 ? `$${account.credit.toLocaleString()}.00` : "-"
-            ]),
-            totals: ["Total", "", `$${totalDebits.toLocaleString()}.00`, `$${totalCredits.toLocaleString()}.00`],
-            summary: {
-              isBalanced: totalDebits === totalCredits,
-              accountsShown: filteredAccounts.length,
-              filter: filter || 'all'
-            }
-          };
-          break;
+          // DISABLED: Using real implementation from routes-financial-reports.ts instead
+          return res.status(404).json({ error: 'This endpoint is disabled. Use /api/reports/trial-balance instead.' });
 
         case 'profit-loss':
           const plResponse = await fetch(`${req.protocol}://${req.get('host')}/api/accounting/profit-loss`);
@@ -2561,7 +3745,196 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  return httpServer;
+  // ============= Procurement/Purchase Orders Endpoints =============
+
+  // Get all purchase orders with supplier and item details
+  app.get("/api/procurement/purchase-orders", async (req: Request, res: Response) => {
+    try {
+      const purchaseOrdersData = await db
+        .select({
+          id: purchaseOrders.id,
+          poNumber: purchaseOrders.poNumber,
+          supplierId: purchaseOrders.supplierId,
+          supplierName: suppliers.name,
+          orderDate: purchaseOrders.orderDate,
+          expectedDeliveryDate: purchaseOrders.expectedDeliveryDate,
+          status: purchaseOrders.status,
+          totalAmount: purchaseOrders.totalAmount,
+          notes: purchaseOrders.notes,
+          createdAt: purchaseOrders.createdAt,
+          updatedAt: purchaseOrders.updatedAt
+        })
+        .from(purchaseOrders)
+        .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id))
+        .orderBy(desc(purchaseOrders.orderDate));
+
+      // Get items for each purchase order
+      const ordersWithItems = await Promise.all(
+        purchaseOrdersData.map(async (order) => {
+          const items = await db
+            .select({
+              id: purchaseOrderItems.id,
+              productId: purchaseOrderItems.productId,
+              productName: products.name,
+              quantity: purchaseOrderItems.quantity,
+              unitPrice: purchaseOrderItems.unitPrice,
+              total: purchaseOrderItems.total,
+              receivedQuantity: purchaseOrderItems.receivedQuantity
+            })
+            .from(purchaseOrderItems)
+            .leftJoin(products, eq(purchaseOrderItems.productId, products.id))
+            .where(eq(purchaseOrderItems.purchaseOrderId, order.id));
+
+          return {
+            ...order,
+            supplier: order.supplierName,
+            date: order.orderDate.toISOString().split('T')[0], // For frontend compatibility
+            orderDate: order.orderDate, // For accounting API compatibility  
+            items,
+            materials: items.map(item => ({
+              name: item.productName || 'Unknown Product',
+              quantity: item.quantity,
+              unit: 'units'
+            }))
+          };
+        })
+      );
+
+      res.json(ordersWithItems);
+    } catch (error) {
+      console.error("Purchase orders fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch purchase orders" });
+    }
+  });
+
+  // Create new purchase order
+  app.post("/api/procurement/purchase-orders", async (req: Request, res: Response) => {
+    try {
+      const { 
+        supplier, 
+        items, 
+        notes, 
+        expectedDeliveryDate, 
+        totalAmount,
+        transportationType,
+        transportationCost,
+        transportationNotes
+      } = req.body;
+
+      // Find supplier by name
+      const [supplierRecord] = await db
+        .select()
+        .from(suppliers)
+        .where(eq(suppliers.name, supplier));
+
+      if (!supplierRecord) {
+        return res.status(400).json({ error: "Supplier not found" });
+      }
+
+      // Use the total amount calculated by frontend (includes VAT and discounts)
+      // If not provided, fallback to simple calculation
+      const finalTotalAmount = totalAmount || items.reduce((sum: number, item: any) => sum + (item.quantity * item.unitPrice), 0);
+
+      // Generate PO number
+      const [lastPO] = await db
+        .select({ poNumber: purchaseOrders.poNumber })
+        .from(purchaseOrders)
+        .orderBy(desc(purchaseOrders.id))
+        .limit(1);
+
+      let poNumber = 'PO-2025-001';
+      if (lastPO) {
+        const lastNumber = parseInt(lastPO.poNumber.split('-')[2]) || 0;
+        poNumber = `PO-2025-${(lastNumber + 1).toString().padStart(3, '0')}`;
+      }
+
+      // Insert purchase order
+      const [newOrder] = await db
+        .insert(purchaseOrders)
+        .values({
+          poNumber,
+          supplierId: supplierRecord.id,
+          userId: 1, // Default user ID
+          orderDate: new Date(),
+          expectedDeliveryDate: expectedDeliveryDate ? new Date(expectedDeliveryDate) : null,
+          status: 'sent',
+          totalAmount: finalTotalAmount.toString(),
+          notes,
+          transportationType: transportationType || 'standard',
+          transportationCost: transportationCost?.toString() || '0',
+          transportationNotes: transportationNotes || ""
+        })
+        .returning();
+
+      // Insert purchase order items
+      for (const item of items) {
+        await db.insert(purchaseOrderItems).values({
+          purchaseOrderId: newOrder.id,
+          productId: item.productId || 1, // Default product if not specified
+          quantity: item.quantity,
+          unitPrice: item.unitPrice.toString(),
+          total: item.total ? item.total.toString() : (item.quantity * item.unitPrice).toString(),
+          receivedQuantity: 0
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: "Purchase order created successfully",
+        poNumber: newOrder.poNumber,
+        id: newOrder.id
+      });
+    } catch (error) {
+      console.error("Purchase order creation error:", error);
+      res.status(500).json({ error: "Failed to create purchase order" });
+    }
+  });
+
+  // Get purchase order items by ID
+  app.get("/api/procurement/purchase-orders/:id/items", async (req: Request, res: Response) => {
+    try {
+      const orderId = parseInt(req.params.id);
+      
+      const items = await db
+        .select({
+          id: purchaseOrderItems.id,
+          productId: purchaseOrderItems.productId,
+          productName: products.name,
+          quantity: purchaseOrderItems.quantity,
+          unitPrice: purchaseOrderItems.unitPrice,
+          total: purchaseOrderItems.total,
+          receivedQuantity: purchaseOrderItems.receivedQuantity
+        })
+        .from(purchaseOrderItems)
+        .leftJoin(products, eq(purchaseOrderItems.productId, products.id))
+        .where(eq(purchaseOrderItems.purchaseOrderId, orderId));
+
+      res.json(items);
+    } catch (error) {
+      console.error("Purchase order items fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch purchase order items" });
+    }
+  });
+
+  // Update purchase order status
+  app.patch("/api/procurement/purchase-orders/:id", async (req: Request, res: Response) => {
+    try {
+      const orderId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      await db
+        .update(purchaseOrders)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(purchaseOrders.id, orderId));
+
+      res.json({ success: true, message: "Purchase order updated successfully" });
+    } catch (error) {
+      console.error("Purchase order update error:", error);
+      res.status(500).json({ error: "Failed to update purchase order" });
+    }
+  });
+
+  console.log('✅ All routes registered successfully in registerRoutes function');
 }
 
 // Function to setup automatic backups

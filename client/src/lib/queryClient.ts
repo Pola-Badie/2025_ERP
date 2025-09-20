@@ -24,13 +24,25 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   console.log(`API ${method} request to ${url}:`, data);
   
   try {
+    // Get auth token from localStorage and include in headers
+    const authToken = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {};
+    
+    if (data) {
+      headers["Content-Type"] = "application/json";
+    }
+    
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+    
     const res = await fetch(url, {
       method,
-      headers: data ? { "Content-Type": "application/json" } : {},
+      headers,
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
     });
@@ -46,6 +58,14 @@ export async function apiRequest(
     }
 
     await throwIfResNotOk(res);
+    
+    // Parse JSON response
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await res.json();
+    }
+    
+    // For non-JSON responses, return the response object
     return res;
   } catch (error) {
     console.error(`API request to ${url} failed:`, error);
@@ -76,9 +96,10 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: true, // Enable refetch on window focus
+      refetchOnMount: true, // Always refetch when component mounts
+      staleTime: 0, // Always fetch fresh data
+      cacheTime: 5 * 60 * 1000, // 5 minutes cache
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors
         if (error?.message?.startsWith('4')) return false;

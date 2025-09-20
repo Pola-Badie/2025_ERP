@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Download, FileText, ChevronDown, Calendar, DollarSign, Package, Eye } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -34,12 +35,15 @@ interface OrderData {
   paymentMethod: string;
 }
 
-const generateMockOrders = (customerId: number): OrderData[] => {
-  const products = [
-    'Aspirin 500mg', 'Paracetamol 250mg', 'Ibuprofen 400mg', 
-    'Vitamin C 1000mg', 'Calcium Tablets', 'Iron Supplements',
-    'Antibiotics Pack', 'Cough Syrup', 'Blood Pressure Medication'
-  ];
+const generateMockOrders = (customerId: number, realProducts: any[] = []): OrderData[] => {
+  // Use real products from database if available, otherwise fallback to basic list
+  const products = realProducts.length > 0 
+    ? realProducts.map(p => p.name).slice(0, 9) // Use up to 9 real product names
+    : [
+        'Generic Pharmaceutical Product', 'Medical Supplement', 'Healthcare Item',
+        'Therapeutic Product', 'Clinical Supply', 'Medical Equipment',
+        'Healthcare Solution', 'Pharmaceutical Supply', 'Medical Device'
+      ];
   
   const statuses: OrderData['status'][] = ['paid', 'pending', 'overdue', 'draft'];
   const paymentMethods = ['Cash', 'Credit Card', 'Bank Transfer', 'Check'];
@@ -87,9 +91,15 @@ const CustomerOrdersDialog: React.FC<CustomerOrdersDialogProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
 
+  // Fetch real products from database
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
+    select: (data: any[]) => data.filter(p => p.productType === 'finished').slice(0, 10)
+  });
+
   if (!customer) return null;
 
-  const orders = generateMockOrders(customer.id);
+  const orders = generateMockOrders(customer.id, products);
 
   // Format date for display
   const formatDate = (dateString: string) => {

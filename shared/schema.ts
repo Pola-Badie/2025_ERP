@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric, primaryKey, unique, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -54,6 +54,7 @@ export const products = pgTable("products", {
   manufacturer: text("manufacturer"),
   location: text("location"),
   shelf: text("shelf"),
+  grade: text("grade").default("P").notNull(), // 'P' (Pharmaceutical), 'F' (Food), 'T' (Technical)
   imagePath: text("image_path"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -86,12 +87,27 @@ export const sales = pgTable("sales", {
   userId: integer("user_id").references(() => users.id).notNull(),
   date: timestamp("date").defaultNow().notNull(),
   totalAmount: numeric("total_amount").notNull(),
+  subtotal: numeric("subtotal").default("0"),
   discount: numeric("discount").default("0"),
+  discountAmount: numeric("discount_amount").default("0"),
   tax: numeric("tax").default("0"),
+  taxRate: numeric("tax_rate").default("14"),
+  taxAmount: numeric("tax_amount").default("0"),
+  vatRate: numeric("vat_rate").default("14"),
+  vatAmount: numeric("vat_amount").default("0"),
   grandTotal: numeric("grand_total").notNull(),
   paymentMethod: text("payment_method").notNull(),
-  paymentStatus: text("payment_status").default("completed").notNull(), // 'pending', 'completed', 'failed'
+  paymentStatus: text("payment_status").default("completed").notNull(), // 'pending', 'completed', 'partial', 'failed'
+  amountPaid: numeric("amount_paid").default("0"),
+  paymentTerms: text("payment_terms").default("0"), // Number of days
   notes: text("notes"),
+  // ETA (Egyptian Tax Authority) Integration Fields
+  etaStatus: text("eta_status").default("not_sent").notNull(), // 'not_sent', 'pending', 'uploaded', 'failed'
+  etaReference: text("eta_reference"), // ETA system reference number
+  etaUuid: text("eta_uuid"), // ETA unique identifier
+  etaSubmissionDate: timestamp("eta_submission_date"), // When submitted to ETA
+  etaResponse: jsonb("eta_response"), // Full ETA API response
+  etaErrorMessage: text("eta_error_message"), // Error details if failed
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -117,6 +133,8 @@ export const suppliers = pgTable("suppliers", {
   state: text("state"),
   zipCode: text("zip_code"),
   materials: text("materials"),
+  supplierType: text("supplier_type"), // 'Local' or 'International'
+  etaNumber: text("eta_number"), // Egyptian Tax Authority number
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -132,6 +150,9 @@ export const purchaseOrders = pgTable("purchase_orders", {
   status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled'
   totalAmount: numeric("total_amount").notNull(),
   notes: text("notes"),
+  transportationType: text("transportation_type").default("standard"),
+  transportationCost: numeric("transportation_cost").default("0"),
+  transportationNotes: text("transportation_notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -178,9 +199,13 @@ export const quotations = pgTable("quotations", {
   quotationNumber: text("quotation_number").notNull().unique(),
   customerId: integer("customer_id").references(() => customers.id),
   userId: integer("user_id").references(() => users.id).notNull(),
+  date: timestamp("date").defaultNow().notNull(),
   issueDate: timestamp("issue_date").defaultNow().notNull(),
   validUntil: date("valid_until").notNull(),
-  subtotal: numeric("subtotal").notNull(),
+  totalAmount: numeric("total_amount").notNull(),
+  discount: numeric("discount"),
+  tax: numeric("tax"),
+  subtotal: numeric("subtotal"),
   taxRate: numeric("tax_rate").default("0"),
   taxAmount: numeric("tax_amount").default("0"),
   grandTotal: numeric("grand_total").notNull(),
@@ -197,6 +222,18 @@ export const quotationItems = pgTable("quotation_items", {
   quantity: integer("quantity").notNull(),
   unitPrice: numeric("unit_price").notNull(),
   total: numeric("total").notNull(),
+});
+
+export const quotationPackagingItems = pgTable("quotation_packaging_items", {
+  id: serial("id").primaryKey(),
+  quotationId: integer("quotation_id").references(() => quotations.id).notNull(),
+  type: text("type").notNull(),
+  description: text("description"),
+  quantity: integer("quantity").notNull().default(1),
+  unitPrice: numeric("unit_price").notNull().default("0"),
+  total: numeric("total").notNull().default("0"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // System preferences
@@ -233,18 +270,28 @@ export const loginLogs = pgTable("login_logs", {
 });
 
 // Expenses
+// Expense Categories
+export const expenseCategories = pgTable("expense_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const expenses = pgTable("expenses", {
   id: serial("id").primaryKey(),
   description: text("description").notNull(),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
-  category: text("category").notNull(),
-  date: text("date").notNull(), // ISO date string
+  categoryId: integer("category_id").references(() => expenseCategories.id),
+  category: text("category"), // Account type (e.g., "Operating Expenses", "Office Supplies")
+  date: date("date").notNull(), // Date field (not text)
   paymentMethod: text("payment_method").notNull(),
-  status: text("status").notNull().default("Paid"), // Paid, Pending, Cancelled
-  costCenter: text("cost_center"),
-  notes: text("notes"),
-  userId: integer("user_id").references(() => users.id),
+  costCenter: text("cost_center"), // Cost center assignment
+  vendor: text("vendor"),
   receiptPath: text("receipt_path"), // File path for receipt
+  notes: text("notes"),
+  status: text("status").default("pending").notNull(), // pending, approved, rejected
+  userId: integer("user_id").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -324,6 +371,16 @@ export const journalLines = pgTable("journal_lines", {
   debit: numeric("debit").default("0"),
   credit: numeric("credit").default("0"),
   position: integer("position").notNull(), // For ordering
+});
+
+// Journal Entry Lines (alternative table name for compatibility)
+export const journalEntryLines = pgTable("journal_entry_lines", {
+  id: serial("id").primaryKey(),
+  journalEntryId: integer("journal_entry_id").references(() => journalEntries.id).notNull(),
+  accountId: integer("account_id").references(() => accounts.id).notNull(),
+  description: text("description"),
+  debit: numeric("debit").default("0"),
+  credit: numeric("credit").default("0"),
 });
 
 // Financial Periods
@@ -408,6 +465,22 @@ export const accountsPayable = pgTable("accounts_payable", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Refunds table
+export const refunds = pgTable("refunds", {
+  id: serial("id").primaryKey(),
+  invoiceId: integer("invoice_id").references(() => sales.id).notNull(),
+  invoiceNumber: text("invoice_number").notNull(),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  customerName: text("customer_name").notNull(),
+  originalAmount: numeric("original_amount").notNull(),
+  refundAmount: numeric("refund_amount").notNull(),
+  reason: text("reason").notNull(),
+  date: date("date").notNull(),
+  status: text("status").default("processed").notNull(), // processed, pending, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // The parent-child relationship for accounts is already handled by the column reference
 // We don't need to explicitly define the foreign key with Drizzle this way
 
@@ -455,6 +528,10 @@ export const insertCustomerSchema = createInsertSchema(customers).pick({
   city: true,
   state: true,
   zipCode: true,
+  company: true,
+  position: true,
+  sector: true,
+  taxNumber: true,
 });
 
 export const insertSaleSchema = createInsertSchema(sales).pick({
@@ -489,6 +566,8 @@ export const insertSupplierSchema = createInsertSchema(suppliers).pick({
   state: true,
   zipCode: true,
   materials: true,
+  supplierType: true,
+  etaNumber: true,
 });
 
 export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).pick({
@@ -529,6 +608,16 @@ export const insertQuotationItemSchema = createInsertSchema(quotationItems).pick
   quantity: true,
   unitPrice: true,
   total: true,
+});
+
+export const insertQuotationPackagingItemSchema = createInsertSchema(quotationPackagingItems).pick({
+  quotationId: true,
+  type: true,
+  description: true,
+  quantity: true,
+  unitPrice: true,
+  total: true,
+  notes: true,
 });
 
 export const insertBackupSchema = createInsertSchema(backups).pick({
@@ -574,6 +663,7 @@ export const insertRolePermissionSchema = createInsertSchema(rolePermissions).pi
   resource: true,
   action: true,
 });
+
 
 export const insertLoginLogSchema = createInsertSchema(loginLogs).pick({
   userId: true,
@@ -629,6 +719,9 @@ export type Quotation = typeof quotations.$inferSelect;
 export type InsertQuotationItem = z.infer<typeof insertQuotationItemSchema>;
 export type QuotationItem = typeof quotationItems.$inferSelect;
 
+export type InsertQuotationPackagingItem = z.infer<typeof insertQuotationPackagingItemSchema>;
+export type QuotationPackagingItem = typeof quotationPackagingItems.$inferSelect;
+
 export type InsertBackup = z.infer<typeof insertBackupSchema>;
 export type Backup = typeof backups.$inferSelect;
 
@@ -650,6 +743,7 @@ export const updateProductSchema = z.object({
   sellingPrice: z.union([z.string(), z.number()]).optional(),
   quantity: z.union([z.string(), z.number()]).optional(),
   unitOfMeasure: z.string().optional(),
+  grade: z.string().optional(),
   lowStockThreshold: z.number().optional(),
   expiryDate: z.date().optional(),
   manufacturer: z.string().optional(),
@@ -671,6 +765,7 @@ export type UpdateSystemPreference = z.infer<typeof updateSystemPreferenceSchema
 
 export type InsertRolePermission = z.infer<typeof insertRolePermissionSchema>;
 export type RolePermission = typeof rolePermissions.$inferSelect;
+
 
 export type InsertLoginLog = z.infer<typeof insertLoginLogSchema>;
 export type LoginLog = typeof loginLogs.$inferSelect;
@@ -765,6 +860,18 @@ export const insertAccountsPayableSchema = createInsertSchema(accountsPayable).p
   status: true,
 });
 
+export const insertRefundSchema = createInsertSchema(refunds).pick({
+  invoiceId: true,
+  invoiceNumber: true,
+  customerId: true,
+  customerName: true,
+  originalAmount: true,
+  refundAmount: true,
+  reason: true,
+  date: true,
+  status: true,
+});
+
 // Accounting module types
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
 export type Account = typeof accounts.$inferSelect;
@@ -796,6 +903,9 @@ export type CustomerPayment = typeof customerPayments.$inferSelect;
 export type InsertPaymentAllocation = z.infer<typeof insertPaymentAllocationSchema>;
 export type PaymentAllocation = typeof paymentAllocations.$inferSelect;
 
+export type InsertRefund = z.infer<typeof insertRefundSchema>;
+export type Refund = typeof refunds.$inferSelect;
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
@@ -813,10 +923,13 @@ export const orders = pgTable("orders", {
   totalMaterialCost: numeric("total_material_cost").default("0").notNull(),
   totalAdditionalFees: numeric("total_additional_fees").default("0").notNull(),
   totalCost: numeric("total_cost").default("0").notNull(),
+  profitMarginPercentage: numeric("profit_margin_percentage").default("20").notNull(), // Configurable profit margin percentage
   status: text("status").default("pending").notNull(), // 'pending', 'in_progress', 'completed', 'cancelled'
   targetProductId: integer("target_product_id").references(() => products.id), // For refining orders
   expectedOutputQuantity: numeric("expected_output_quantity"), // For refining orders
   refiningSteps: text("refining_steps"), // Optional steps for refining
+  rawMaterials: jsonb("raw_materials"), // Store raw materials as JSON
+  packagingMaterials: jsonb("packaging_materials"), // Store packaging materials as JSON
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -847,6 +960,7 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   totalMaterialCost: true,
   totalAdditionalFees: true,
   totalCost: true,
+  profitMarginPercentage: true,
   status: true,
   targetProductId: true,
   expectedOutputQuantity: true,
@@ -1215,6 +1329,119 @@ export const auditLogs = pgTable("audit_logs", {
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
 });
+
+// Enhanced authorization system - Feature-level permissions
+export const featurePermissions = pgTable("feature_permissions", {
+  id: serial("id").primaryKey(),
+  scope: text("scope").notNull(), // 'user', 'role', 'global'
+  targetId: integer("target_id").references(() => users.id), // FK to users when scope='user', null for role/global
+  targetRole: text("target_role"), // Role name when scope='role', null otherwise
+  module: text("module").notNull(), // 'inventory', 'orders', 'accounting', etc.
+  feature: text("feature").notNull(), // 'view_prices', 'edit_costs', 'export_data', etc.
+  effect: text("effect").notNull().default("allow"), // 'allow', 'deny'
+  priority: integer("priority").notNull().default(100), // Lower number = higher priority
+  conditions: jsonb("conditions"), // Structured conditions { timeRange?: {start: string, end: string}, customerTier?: string[] }
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Basic unique constraint for now - we'll add advanced constraints later
+  uniquePermission: unique("unique_feature_permission").on(table.scope, table.targetId, table.targetRole, table.module, table.feature),
+  // Basic indexes for performance
+  moduleFeatureIdx: index("feature_module_idx").on(table.module, table.feature),
+  targetIdx: index("feature_target_idx").on(table.targetId),
+  roleIdx: index("feature_role_idx").on(table.targetRole),
+  priorityIdx: index("feature_priority_idx").on(table.priority),
+}));
+
+// Field-level visibility and edit permissions
+export const fieldPermissions = pgTable("field_permissions", {
+  id: serial("id").primaryKey(),
+  scope: text("scope").notNull(), // 'user', 'role', 'global'
+  targetId: integer("target_id").references(() => users.id), // FK to users when scope='user', null for role/global
+  targetRole: text("target_role"), // Role name when scope='role', null otherwise
+  module: text("module").notNull(), // 'inventory', 'orders', 'customers', etc.
+  entityType: text("entity_type").notNull(), // 'product', 'order', 'customer', etc.
+  fieldName: text("field_name").notNull(), // 'costPrice', 'sellingPrice', 'totalCost', etc.
+  canView: boolean("can_view").notNull().default(true),
+  canEdit: boolean("can_edit").notNull().default(false),
+  isRequired: boolean("is_required").notNull().default(false),
+  effect: text("effect").notNull().default("allow"), // 'allow', 'deny'
+  priority: integer("priority").notNull().default(100), // Lower number = higher priority
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Basic unique constraint for now - we'll add advanced constraints later
+  uniqueFieldPermission: unique("unique_field_permission").on(table.scope, table.targetId, table.targetRole, table.module, table.entityType, table.fieldName),
+  // Basic indexes for performance
+  moduleEntityFieldIdx: index("field_module_entity_idx").on(table.module, table.entityType, table.fieldName),
+  targetIdx: index("field_target_idx").on(table.targetId),
+  roleIdx: index("field_role_idx").on(table.targetRole),
+  priorityIdx: index("field_priority_idx").on(table.priority),
+}));
+
+// Authorization configurations - Store reusable authorization rules
+export const authorizationConfigs = pgTable("authorization_configs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // 'inventory_basic_user', 'financial_readonly', etc.
+  description: text("description"),
+  type: text("type").notNull(), // 'feature', 'field', 'module'
+  rules: jsonb("rules").notNull(), // Complete authorization rule set with proper schema
+  isActive: boolean("is_active").default(true).notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Ensure unique names for configs
+  uniqueName: unique().on(table.name),
+  // Index for performance
+  typeIdx: index().on(table.type),
+  activeIdx: index().on(table.isActive),
+}));
+
+// Authorization config assignments - Link configs to users/roles
+export const authorizationConfigAssignments = pgTable("authorization_config_assignments", {
+  id: serial("id").primaryKey(),
+  scope: text("scope").notNull(), // 'user', 'role'
+  targetId: integer("target_id").references(() => users.id), // FK to users when scope='user', null for role
+  targetRole: text("target_role"), // Role name when scope='role', null otherwise  
+  configId: integer("config_id").references(() => authorizationConfigs.id).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint ensuring no duplicate assignments
+  uniqueAssignment: unique().on(table.scope, table.targetId, table.targetRole, table.configId),
+  // Indexes for performance
+  targetIdx: index().on(table.targetId),
+  roleIdx: index().on(table.targetRole),
+  configIdx: index().on(table.configId),
+}));
+
+// Authorization access logs - Track all authorization decisions
+export const authorizationLogs = pgTable("authorization_logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  module: text("module").notNull(),
+  feature: text("feature"),
+  fieldName: text("field_name"),
+  action: text("action").notNull(), // 'view', 'edit', 'create', 'delete'
+  granted: boolean("granted").notNull(),
+  reason: text("reason").notNull(), // Reason for grant/deny
+  matchedRuleId: integer("matched_rule_id"), // ID of the permission rule that matched
+  configId: integer("config_id").references(() => authorizationConfigs.id), // Config that provided the rule
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  responseTime: integer("response_time"), // Time taken to check permission in ms
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  // Indexes for performance and queries
+  userModuleIdx: index().on(table.userId, table.module),
+  moduleFeatureIdx: index().on(table.module, table.feature),
+  fieldIdx: index().on(table.module, table.fieldName),
+  actionIdx: index().on(table.action),
+  createdAtIdx: index().on(table.createdAt),
+  grantedIdx: index().on(table.granted),
+}));
 
 // Notifications System
 export const notificationTemplates = pgTable("notification_templates", {
@@ -1722,3 +1949,171 @@ export const updateExpenseStatusSchema = z.object({
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
 export type UpdateExpenseStatus = z.infer<typeof updateExpenseStatusSchema>;
+
+// Enhanced authorization schema validations and types
+export const insertFeaturePermissionSchema = z.discriminatedUnion("scope", [
+  // User scope - requires targetId, forbids targetRole
+  z.object({
+    scope: z.literal("user"),
+    targetId: z.number().int().positive(),
+    targetRole: z.undefined().optional(),
+    module: z.string().min(1),
+    feature: z.string().min(1),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+    conditions: z.object({
+      timeRange: z.object({
+        start: z.string(),
+        end: z.string()
+      }).optional(),
+      customerTier: z.array(z.string()).optional(),
+      location: z.array(z.string()).optional(),
+    }).optional(),
+  }),
+  // Role scope - requires targetRole, forbids targetId
+  z.object({
+    scope: z.literal("role"),
+    targetId: z.undefined().optional(),
+    targetRole: z.string().min(1),
+    module: z.string().min(1),
+    feature: z.string().min(1),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+    conditions: z.object({
+      timeRange: z.object({
+        start: z.string(),
+        end: z.string()
+      }).optional(),
+      customerTier: z.array(z.string()).optional(),
+      location: z.array(z.string()).optional(),
+    }).optional(),
+  }),
+  // Global scope - forbids both targetId and targetRole
+  z.object({
+    scope: z.literal("global"),
+    targetId: z.undefined().optional(),
+    targetRole: z.undefined().optional(),
+    module: z.string().min(1),
+    feature: z.string().min(1),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+    conditions: z.object({
+      timeRange: z.object({
+        start: z.string(),
+        end: z.string()
+      }).optional(),
+      customerTier: z.array(z.string()).optional(),
+      location: z.array(z.string()).optional(),
+    }).optional(),
+  }),
+]);
+
+export const insertFieldPermissionSchema = z.discriminatedUnion("scope", [
+  // User scope - requires targetId, forbids targetRole
+  z.object({
+    scope: z.literal("user"),
+    targetId: z.number().int().positive(),
+    targetRole: z.undefined().optional(),
+    module: z.string().min(1),
+    entityType: z.string().min(1),
+    fieldName: z.string().min(1),
+    canView: z.boolean().default(true),
+    canEdit: z.boolean().default(false),
+    isRequired: z.boolean().default(false),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+  }),
+  // Role scope - requires targetRole, forbids targetId
+  z.object({
+    scope: z.literal("role"),
+    targetId: z.undefined().optional(),
+    targetRole: z.string().min(1),
+    module: z.string().min(1),
+    entityType: z.string().min(1),
+    fieldName: z.string().min(1),
+    canView: z.boolean().default(true),
+    canEdit: z.boolean().default(false),
+    isRequired: z.boolean().default(false),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+  }),
+  // Global scope - forbids both targetId and targetRole
+  z.object({
+    scope: z.literal("global"),
+    targetId: z.undefined().optional(),
+    targetRole: z.undefined().optional(),
+    module: z.string().min(1),
+    entityType: z.string().min(1),
+    fieldName: z.string().min(1),
+    canView: z.boolean().default(true),
+    canEdit: z.boolean().default(false),
+    isRequired: z.boolean().default(false),
+    effect: z.enum(["allow", "deny"]).default("allow"),
+    priority: z.number().int().min(0).max(10000).default(100),
+  }),
+]);
+
+export const insertAuthorizationConfigSchema = createInsertSchema(authorizationConfigs).pick({
+  name: true,
+  description: true,
+  type: true,
+  rules: true,
+  isActive: true,
+  createdBy: true,
+}).extend({
+  rules: z.object({
+    features: z.array(z.object({
+      module: z.string(),
+      feature: z.string(),
+      effect: z.enum(["allow", "deny"]),
+      priority: z.number().optional(),
+    })).optional(),
+    fields: z.array(z.object({
+      module: z.string(),
+      entityType: z.string(),
+      fieldName: z.string(),
+      canView: z.boolean(),
+      canEdit: z.boolean(),
+      isRequired: z.boolean().optional(),
+    })).optional(),
+  }),
+});
+
+export const insertAuthorizationConfigAssignmentSchema = createInsertSchema(authorizationConfigAssignments).pick({
+  scope: true,
+  targetId: true,
+  targetRole: true,
+  configId: true,
+  isActive: true,
+});
+
+export const insertAuthorizationLogSchema = createInsertSchema(authorizationLogs).pick({
+  userId: true,
+  module: true,
+  feature: true,
+  fieldName: true,
+  action: true,
+  granted: true,
+  reason: true,
+  matchedRuleId: true,
+  configId: true,
+  ipAddress: true,
+  userAgent: true,
+  responseTime: true,
+});
+
+// Enhanced authorization types
+export type InsertFeaturePermission = z.infer<typeof insertFeaturePermissionSchema>;
+export type FeaturePermission = typeof featurePermissions.$inferSelect;
+
+export type InsertFieldPermission = z.infer<typeof insertFieldPermissionSchema>;
+export type FieldPermission = typeof fieldPermissions.$inferSelect;
+
+export type InsertAuthorizationConfig = z.infer<typeof insertAuthorizationConfigSchema>;
+export type AuthorizationConfig = typeof authorizationConfigs.$inferSelect;
+
+export type InsertAuthorizationConfigAssignment = z.infer<typeof insertAuthorizationConfigAssignmentSchema>;
+export type AuthorizationConfigAssignment = typeof authorizationConfigAssignments.$inferSelect;
+
+export type InsertAuthorizationLog = z.infer<typeof insertAuthorizationLogSchema>;
+export type AuthorizationLog = typeof authorizationLogs.$inferSelect;

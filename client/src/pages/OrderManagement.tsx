@@ -73,6 +73,16 @@ import {
 import { queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+
+// Utility function to format currency
+const formatCurrency = (amount: number | string) => {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat('en-EG', {
+    style: 'currency',
+    currency: 'EGP',
+    minimumFractionDigits: 2,
+  }).format(numAmount || 0);
+};
 import { useQuery } from '@tanstack/react-query';
 import CustomerSelector from '@/components/CustomerSelector';
 
@@ -83,6 +93,11 @@ const OrderManagement = () => {
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [customerPopoverOpen, setCustomerPopoverOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  
+  // Separate states for refining customer selection
+  const [refiningCustomerSearchTerm, setRefiningCustomerSearchTerm] = useState('');
+  const [refiningCustomerPopoverOpen, setRefiningCustomerPopoverOpen] = useState(false);
+  const [refiningSelectedCustomer, setRefiningSelectedCustomer] = useState<any>(null);
   const [batchNumber, setBatchNumber] = useState('');
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -95,15 +110,33 @@ const OrderManagement = () => {
   // Production order states
   const [rawMaterials, setRawMaterials] = useState<any[]>([]);
   const [materialToAdd, setMaterialToAdd] = useState<any>(null);
-  const [materialQuantity, setMaterialQuantity] = useState<number>(0);
-  const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('0.00');
+  const [materialQuantity, setMaterialQuantity] = useState<number | ''>('');
+  const [materialUnitPrice, setMaterialUnitPrice] = useState<string>('');
   const [finalProductDescription, setFinalProductDescription] = useState('');
+  
+  // Search states for dropdowns
+  const [materialSearchTerm, setMaterialSearchTerm] = useState('');
+  const [packagingSearchTerm, setPackagingSearchTerm] = useState('');
+  const [materialPopoverOpen, setMaterialPopoverOpen] = useState(false);
+  const [packagingPopoverOpen, setPackagingPopoverOpen] = useState(false);
+  
+  // Refining section search states
+  const [refiningMaterialSearchTerm, setRefiningMaterialSearchTerm] = useState('');
+  const [refiningPackagingSearchTerm, setRefiningPackagingSearchTerm] = useState('');
+  const [refiningMaterialPopoverOpen, setRefiningMaterialPopoverOpen] = useState(false);
+  const [refiningPackagingPopoverOpen, setRefiningPackagingPopoverOpen] = useState(false);
+  const [stockItemSearchTerm, setStockItemSearchTerm] = useState('');
+  const [stockItemPopoverOpen, setStockItemPopoverOpen] = useState(false);
+  const [selectedStockItem, setSelectedStockItem] = useState<any>(null);
+  const [productionOrderSearchTerm, setProductionOrderSearchTerm] = useState('');
+  const [productionOrderPopoverOpen, setProductionOrderPopoverOpen] = useState(false);
+  const [selectedProductionOrder, setSelectedProductionOrder] = useState<any>(null);
 
   // Packaging states
   const [packagingItems, setPackagingItems] = useState<any[]>([]);
   const [packagingToAdd, setPackagingToAdd] = useState<any>(null);
-  const [packagingQuantity, setPackagingQuantity] = useState<number>(0);
-  const [packagingUnitPrice, setPackagingUnitPrice] = useState<string>('0.00');
+  const [packagingQuantity, setPackagingQuantity] = useState<number | ''>('');
+  const [packagingUnitPrice, setPackagingUnitPrice] = useState<string>('');
   const [taxPercentage, setTaxPercentage] = useState<number>(14);
   const [subtotalPrice, setSubtotalPrice] = useState<string>('0.00');
   const [totalPrice, setTotalPrice] = useState<string>('0.00');
@@ -140,19 +173,21 @@ const OrderManagement = () => {
   // Refining raw materials states
   const [refiningRawMaterials, setRefiningRawMaterials] = useState<any[]>([]);
   const [refiningMaterialToAdd, setRefiningMaterialToAdd] = useState<any>(null);
-  const [refiningMaterialQuantity, setRefiningMaterialQuantity] = useState<number>(0);
-  const [refiningMaterialUnitPrice, setRefiningMaterialUnitPrice] = useState<string>('0.00');
+  const [refiningMaterialQuantity, setRefiningMaterialQuantity] = useState<number | ''>('');
+  const [refiningMaterialUnitPrice, setRefiningMaterialUnitPrice] = useState<string>('');
 
   // Calculate subtotal and total price (with tax) when raw materials, packaging items, tax percentage, or transportation cost change
   useEffect(() => {
     // Calculate materials cost
     const materialsCost = rawMaterials.reduce((sum, material) => {
-      return sum + (material.quantity * parseFloat(material.unitPrice));
+      const cost = material.quantity * parseFloat(material.unitPrice || '0');
+      return sum + (isNaN(cost) ? 0 : cost);
     }, 0);
 
     // Calculate packaging cost
     const packagingCost = packagingItems.reduce((sum, item) => {
-      return sum + (item.quantity * parseFloat(item.unitPrice));
+      const cost = item.quantity * parseFloat(item.unitPrice || '0');
+      return sum + (isNaN(cost) ? 0 : cost);
     }, 0);
 
     // Add all additional costs
@@ -164,6 +199,9 @@ const OrderManagement = () => {
 
     // Calculate the total subtotal
     const subtotal = materialsCost + packagingCost + transportCost + labor + equipment + qualityControl + storage;
+    
+
+    
     setSubtotalPrice(subtotal.toFixed(2));
 
     // Calculate total with tax
@@ -195,26 +233,44 @@ const OrderManagement = () => {
     setRefiningCost(total.toFixed(2));
   }, [refiningSubtotal, refiningTransportationCost, refiningLaborCost, refiningEquipmentCost, refiningQualityControlCost, refiningStorageCost, refiningProcessingCost, refiningTaxPercentage, refiningRawMaterials]);
 
-  // Fetch all orders
-  const { data: allOrders, isLoading: isLoadingOrders, refetch: refetchOrders } = useQuery({
-    queryKey: ['/api/orders'],
+  // Fetch production orders from dedicated endpoint
+  const { data: productionOrders = [], isLoading: isLoadingProductionOrders, refetch: refetchProductionOrders } = useQuery({
+    queryKey: ['/api/orders/production-history'],
     queryFn: async () => {
-      const response = await fetch('/api/orders');
+      console.log('🔥 FRONTEND: Fetching production orders from dedicated endpoint');
+      const response = await fetch('/api/orders/production-history');
       if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+        throw new Error('Failed to fetch production orders');
       }
-      return response.json();
-    }
+      const data = await response.json();
+      console.log(`🔥 FRONTEND: Received ${data.length} production orders from dedicated endpoint`);
+      return data;
+    },
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
-  // Filter orders based on active tab
-  const productionOrders = React.useMemo(() => {
-    return allOrders?.filter((order: any) => order.orderType === 'production') || [];
-  }, [allOrders]);
+  // Fetch refining orders from dedicated endpoint
+  const { data: refiningOrders = [], isLoading: isLoadingRefiningOrders, refetch: refetchRefiningOrders } = useQuery({
+    queryKey: ['/api/orders/refining-history'],
+    queryFn: async () => {
+      console.log('🔥 FRONTEND: Fetching refining orders from dedicated endpoint');
+      const response = await fetch('/api/orders/refining-history');
+      if (!response.ok) {
+        throw new Error('Failed to fetch refining orders');
+      }
+      const data = await response.json();
+      console.log(`🔥 FRONTEND: Received ${data.length} refining orders from dedicated endpoint`);
+      return data;
+    },
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
+  });
 
-  const refiningOrders = React.useMemo(() => {
-    return allOrders?.filter((order: any) => order.orderType === 'refining') || [];
-  }, [allOrders]);
+  // Combined loading state for compatibility
+  const isLoadingOrders = isLoadingProductionOrders || isLoadingRefiningOrders;
 
   // Fetch customers
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
@@ -252,25 +308,28 @@ const OrderManagement = () => {
     }
   });
 
-  // Fetch packaging materials
-  const { data: packagingMaterials, isLoading: isLoadingPackaging } = useQuery({
+  // Fetch all inventory items for stock selection
+  const { data: inventoryItems, isLoading: isLoadingInventory } = useQuery({
     queryKey: ['/api/products'],
     queryFn: async () => {
-      // Fetch products and filter for packaging items on the client-side
       const response = await fetch('/api/products');
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        throw new Error('Failed to fetch inventory items');
       }
-      const products = await response.json();
-      // Filter for packaging items or return all products if no specific filter available
-      return products.filter((p: any) => 
-        p.name?.toLowerCase().includes('package') || 
-        p.name?.toLowerCase().includes('box') || 
-        p.name?.toLowerCase().includes('container') ||
-        p.name?.toLowerCase().includes('bottle') ||
-        p.name?.toLowerCase().includes('bag') ||
-        p.productType === 'packaging'
-      ) || products.slice(0, 10);
+      return response.json();
+    }
+  });
+
+  // Fetch packaging materials - ONLY items with category ID 1 (Packaging)
+  const { data: packagingMaterials, isLoading: isLoadingPackaging } = useQuery({
+    queryKey: ['/api/products/packaging'],
+    queryFn: async () => {
+      // Fetch products filtered by packaging category ID
+      const response = await fetch('/api/products?categoryId=1');
+      if (!response.ok) {
+        throw new Error('Failed to fetch packaging materials');
+      }
+      return await response.json();
     }
   });
 
@@ -297,7 +356,8 @@ const OrderManagement = () => {
             const data = await response.json();
             console.log('Sample orders generated successfully:', data);
             setHasGeneratedInitialOrders(true);
-            refetchOrders();
+            refetchProductionOrders();
+            refetchRefiningOrders();
           } else {
             console.error('Failed to generate sample orders');
           }
@@ -310,7 +370,7 @@ const OrderManagement = () => {
     // Small delay to ensure all components are loaded
     const timer = setTimeout(generateInitialOrders, 1000);
     return () => clearTimeout(timer);
-  }, [hasGeneratedInitialOrders, refetchOrders]);
+  }, [hasGeneratedInitialOrders, refetchProductionOrders, refetchRefiningOrders]);
 
   // Filter customers based on search term and enrich with order history
   const filteredCustomers = React.useMemo(() => {
@@ -324,11 +384,12 @@ const OrderManagement = () => {
         customer.sector?.toLowerCase().includes(term)
       );
     }).map((customer: any) => {
-      // Find recent orders for this customer
-      const customerOrders = allOrders?.filter((order: any) => 
+      // Find recent orders for this customer from both production and refining orders
+      const allCustomerOrders = [...(productionOrders || []), ...(refiningOrders || [])];
+      const customerOrders = allCustomerOrders.filter((order: any) => 
         order.customerName === customer.name || 
         order.customerId === customer.id
-      ) || [];
+      );
       
       // Get the most recent order
       const recentOrder = customerOrders.sort((a: any, b: any) => 
@@ -343,7 +404,7 @@ const OrderManagement = () => {
         lastOrderValue: recentOrder?.totalCost || recentOrder?.totalAmount
       };
     });
-  }, [customers, customerSearchTerm, allOrders]);
+  }, [customers, customerSearchTerm, productionOrders, refiningOrders]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as 'create' | 'refining');
@@ -389,19 +450,19 @@ const OrderManagement = () => {
   };
 
   const handleAddMaterial = () => {
-    if (materialToAdd && materialQuantity > 0) {
+    if (materialToAdd && Number(materialQuantity) > 0) {
       const newMaterial = {
         id: materialToAdd.id,
         name: materialToAdd.name,
         quantity: materialQuantity,
         unitOfMeasure: materialToAdd.unitOfMeasure || 'kg',
-        unitPrice: materialUnitPrice
+        unitPrice: materialUnitPrice || '0.00'
       };
 
       setRawMaterials([...rawMaterials, newMaterial]);
       setMaterialToAdd(null);
-      setMaterialQuantity(0);
-      setMaterialUnitPrice('0.00');
+      setMaterialQuantity('');
+      setMaterialUnitPrice('');
     }
   };
 
@@ -411,19 +472,19 @@ const OrderManagement = () => {
   };
 
   const handleAddPackaging = () => {
-    if (packagingToAdd && packagingQuantity > 0) {
+    if (packagingToAdd && Number(packagingQuantity) > 0) {
       const newPackagingItem = {
         id: packagingToAdd.id,
         name: packagingToAdd.name,
         quantity: packagingQuantity,
         unitOfMeasure: packagingToAdd.unitOfMeasure || 'units',
-        unitPrice: packagingUnitPrice
+        unitPrice: packagingUnitPrice || '0.00'
       };
 
       setPackagingItems([...packagingItems, newPackagingItem]);
       setPackagingToAdd(null);
-      setPackagingQuantity(0);
-      setPackagingUnitPrice('0.00');
+      setPackagingQuantity('');
+      setPackagingUnitPrice('');
     }
   };
 
@@ -445,7 +506,7 @@ const OrderManagement = () => {
   };
 
   const handleAddRefiningMaterial = () => {
-    if (refiningMaterialToAdd && refiningMaterialQuantity > 0) {
+    if (refiningMaterialToAdd && Number(refiningMaterialQuantity) > 0) {
       const newMaterial = {
         id: refiningMaterialToAdd.id,
         name: refiningMaterialToAdd.name,
@@ -456,7 +517,7 @@ const OrderManagement = () => {
 
       setRefiningRawMaterials([...refiningRawMaterials, newMaterial]);
       setRefiningMaterialToAdd(null);
-      setRefiningMaterialQuantity(0);
+      setRefiningMaterialQuantity('');
       setRefiningMaterialUnitPrice('0.00');
     }
   };
@@ -486,6 +547,8 @@ const OrderManagement = () => {
         finalProduct: finalProductDescription,
         materials: JSON.stringify(rawMaterials),
         packaging: JSON.stringify(packagingItems),
+        rawMaterials: JSON.stringify(rawMaterials),
+        packagingMaterials: JSON.stringify(packagingItems),
         subtotal: subtotalPrice,
         taxPercentage: taxPercentage,
         taxAmount: (parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2),
@@ -496,6 +559,7 @@ const OrderManagement = () => {
         createdAt: new Date().toISOString()
       };
 
+      console.log('🔥 CREATING ORDER with data:', orderData);
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -503,9 +567,12 @@ const OrderManagement = () => {
         },
         body: JSON.stringify(orderData),
       });
+      console.log('🔥 ORDER RESPONSE:', response.status, response.statusText);
 
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        const errorText = await response.text();
+        console.error('Order creation failed:', response.status, errorText);
+        throw new Error(`Failed to create order: ${response.status} ${errorText}`);
       }
 
       toast({
@@ -522,8 +589,8 @@ const OrderManagement = () => {
       setTransportationNotes('');
       generateBatchNumber('production');
 
-      // Refetch orders
-      refetchOrders();
+      // Refetch production orders
+      refetchProductionOrders();
 
     } catch (error) {
       console.error('Error creating order:', error);
@@ -539,7 +606,7 @@ const OrderManagement = () => {
 
   const handleCreateRefiningOrder = async () => {
     try {
-      if (!selectedCustomer) {
+      if (!refiningSelectedCustomer) {
         toast({
           title: "Error",
           description: "Please select a customer",
@@ -548,26 +615,56 @@ const OrderManagement = () => {
         return;
       }
 
+      // Calculate comprehensive subtotal including all components using same format as production orders
+      const rawMaterialsCost = refiningRawMaterials.reduce((sum, material) => 
+        sum + (material.quantity * parseFloat(material.unitPrice || '0')), 0);
+      
+      const packagingCost = packagingItems.reduce((sum, item) => 
+        sum + ((item.quantity || 0) * parseFloat(item.unitPrice || '0')), 0);
+      
+      const additionalCosts = (parseFloat(refiningLaborCost) || 0) + 
+        (parseFloat(refiningEquipmentCost) || 0) + 
+        (parseFloat(refiningQualityControlCost) || 0) + 
+        (parseFloat(refiningStorageCost) || 0) + 
+        (parseFloat(refiningProcessingCost) || 0);
+
+      const comprehensiveSubtotal = rawMaterialsCost + packagingCost + additionalCosts;
+
+      // Calculate tax amount based on subtotal
+      const taxAmount = comprehensiveSubtotal * (refiningTaxPercentage / 100);
+      const finalTotalCost = comprehensiveSubtotal + taxAmount + (parseFloat(refiningTransportationCost) || 0);
+
+      // Use same data structure as production orders for consistency
       const refiningOrderData = {
-        customerId: selectedCustomer.id,
-        customerName: selectedCustomer.name,
+        customerId: refiningSelectedCustomer.id,
+        customerName: refiningSelectedCustomer.name,
         batchNumber: refiningBatchNumber,
         orderType: 'refining',
-        sourceType: sourceType,
-        sourceId: sourceType === 'production' ? sourceProductionOrder : sourceStockItem,
-        refiningSteps: JSON.stringify(refiningSteps),
-        expectedOutput: expectedOutput,
+        finalProduct: expectedOutput, // Use same field name as production orders
         materials: JSON.stringify(refiningRawMaterials),
-        subtotal: refiningSubtotal,
+        packaging: JSON.stringify(packagingItems),
+        rawMaterials: JSON.stringify(refiningRawMaterials),
+        packagingMaterials: JSON.stringify(packagingItems),
+        subtotal: comprehensiveSubtotal.toFixed(2),
         taxPercentage: refiningTaxPercentage,
-        taxAmount: (parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2),
-        totalCost: refiningCost,
-        transportationCost: refiningTransportationCost,
+        taxAmount: taxAmount.toFixed(2),
+        totalCost: finalTotalCost.toFixed(2),
+        transportationCost: refiningTransportationCost || '0.00',
         transportationNotes: refiningTransportationNotes,
         status: 'pending',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        // Refining-specific fields
+        refiningSteps: JSON.stringify(refiningSteps),
+        sourceType: sourceType,
+        sourceId: sourceType === 'production' ? sourceProductionOrder : sourceStockItem,
+        laborCost: refiningLaborCost || '0.00',
+        equipmentCost: refiningEquipmentCost || '0.00',
+        qualityControlCost: refiningQualityControlCost || '0.00',
+        storageCost: refiningStorageCost || '0.00',
+        processingCost: refiningProcessingCost || '0.00'
       };
 
+      console.log('🔥 CREATING REFINING ORDER with data:', refiningOrderData);
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
@@ -575,9 +672,12 @@ const OrderManagement = () => {
         },
         body: JSON.stringify(refiningOrderData),
       });
+      console.log('🔥 REFINING ORDER RESPONSE:', response.status, response.statusText);
 
       if (!response.ok) {
-        throw new Error('Failed to create refining order');
+        const errorText = await response.text();
+        console.error('Refining order creation failed:', response.status, errorText);
+        throw new Error(`Failed to create refining order: ${response.status} ${errorText}`);
       }
 
       toast({
@@ -586,17 +686,23 @@ const OrderManagement = () => {
       });
 
       // Reset form
-      setSelectedCustomer(null);
+      setRefiningSelectedCustomer(null);
       setRefiningSteps([]);
       setRefiningRawMaterials([]);
+      setPackagingItems([]);
       setExpectedOutput('');
-      setRefiningSubtotal('0.00');
-      setRefiningTransportationCost('0.00');
+      setRefiningSubtotal('');
+      setRefiningLaborCost('');
+      setRefiningEquipmentCost('');
+      setRefiningQualityControlCost('');
+      setRefiningStorageCost('');
+      setRefiningProcessingCost('');
+      setRefiningTransportationCost('');
       setRefiningTransportationNotes('');
       generateBatchNumber('refining');
 
-      // Refetch orders
-      refetchOrders();
+      // Refetch refining orders
+      refetchRefiningOrders();
 
     } catch (error) {
       console.error('Error creating refining order:', error);
@@ -630,7 +736,8 @@ const OrderManagement = () => {
           title: "Sample Orders Generated",
           description: "5 sample pharmaceutical orders have been created successfully.",
         });
-        refetchOrders();
+        refetchProductionOrders();
+        refetchRefiningOrders();
       } else {
         throw new Error('Failed to generate sample orders');
       }
@@ -669,7 +776,8 @@ const OrderManagement = () => {
 
       setIsDeleteDialogOpen(false);
       setOrderToDelete(null);
-      refetchOrders();
+      refetchProductionOrders();
+      refetchRefiningOrders();
 
     } catch (error) {
       console.error('Error deleting order:', error);
@@ -850,12 +958,12 @@ const OrderManagement = () => {
 
   return (
     <div className="container py-6">
-      <h1 className="text-3xl font-bold mb-6">Order Management</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('orderManagement')}</h1>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="create">Production Orders</TabsTrigger>
-          <TabsTrigger value="refining">Refining Orders</TabsTrigger>
+          <TabsTrigger value="create">{t('productionOrders')}</TabsTrigger>
+          <TabsTrigger value="refining">{t('refiningOrders')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="create" className="space-y-6">
@@ -864,12 +972,12 @@ const OrderManagement = () => {
             <div className="lg:col-span-2">
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Create Production Order</h2>
+                  <h2 className="text-xl font-semibold mb-4">{t('createProductionOrder')}</h2>
 
                   {/* Customer Selection */}
                   <div className="space-y-4">
                     <div>
-                      <Label>Customer</Label>
+                      <Label>{t('customer')}</Label>
                       <Popover open={customerPopoverOpen} onOpenChange={setCustomerPopoverOpen}>
                         <PopoverTrigger asChild>
                           <Button
@@ -878,19 +986,19 @@ const OrderManagement = () => {
                             aria-expanded={customerPopoverOpen}
                             className="w-full justify-between"
                           >
-                            {selectedCustomer ? selectedCustomer.name : "Select customer..."}
+                            {selectedCustomer ? selectedCustomer.name : t('selectCustomer')}
                             <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-full p-0">
                           <Command>
                             <CommandInput 
-                              placeholder="Search customers..." 
+                              placeholder={t('searchCustomers')} 
                               value={customerSearchTerm}
                               onValueChange={setCustomerSearchTerm}
                             />
                             <CommandList>
-                              <CommandEmpty>No customer found.</CommandEmpty>
+                              <CommandEmpty>{t('noCustomerFound')}</CommandEmpty>
                               <CommandGroup>
                                 {filteredCustomers.map((customer: any) => (
                                   <CommandItem
@@ -926,58 +1034,106 @@ const OrderManagement = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Batch Number</Label>
+                        <Label>{t('batchNumber')}</Label>
                         <Input 
                           value={batchNumber} 
                           onChange={(e) => setBatchNumber(e.target.value)}
-                          placeholder="Auto-generated"
+                          placeholder={t('autoGenerated')}
                         />
                       </div>
                       <div>
-                        <Label>Final Product</Label>
+                        <Label>{t('finalProduct')}</Label>
                         <Input 
                           value={finalProductDescription}
                           onChange={(e) => setFinalProductDescription(e.target.value)}
-                          placeholder="Describe the final product"
+                          placeholder={t('describeFinalProduct')}
                         />
                       </div>
                     </div>
 
                     {/* Raw Materials Section */}
                     <div>
-                      <Label className="text-base font-semibold">Raw Materials</Label>
+                      <Label className="text-base font-semibold">{t('rawMaterials')}</Label>
 
                       {/* Add Material Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        <Select value={materialToAdd?.id?.toString()} onValueChange={(value) => {
-                          const material = rawMaterialsData?.find((m: any) => m.id.toString() === value);
-                          setMaterialToAdd(material);
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select material" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rawMaterialsData?.map((material: any) => (
-                              <SelectItem key={material.id} value={material.id.toString()}>
-                                {material.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={materialPopoverOpen} onOpenChange={setMaterialPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={materialPopoverOpen}
+                              className="justify-between"
+                            >
+                              {materialToAdd ? materialToAdd.name : t('selectMaterial')}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder={`${t('searchMaterials')}...`} 
+                                value={materialSearchTerm}
+                                onValueChange={setMaterialSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>{t('noMaterialsFound')}</CommandEmpty>
+                                <CommandGroup>
+                                  {rawMaterialsData
+                                    ?.filter((material: any) =>
+                                      (material.name.toLowerCase().includes(materialSearchTerm.toLowerCase()) ||
+                                      (material.drugName && material.drugName.toLowerCase().includes(materialSearchTerm.toLowerCase())) ||
+                                      (material.sku && material.sku.toLowerCase().includes(materialSearchTerm.toLowerCase()))) &&
+                                      material.currentStock > 0
+                                    )
+                                    ?.map((material: any) => (
+                                      <CommandItem
+                                        key={material.id}
+                                        value={material.name}
+                                        onSelect={() => {
+                                          setMaterialToAdd(material);
+                                          setMaterialPopoverOpen(false);
+                                          setMaterialSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{material.name}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {material.drugName && `${material.drugName} • `}
+                                            {material.sku && `SKU: ${material.sku} • `}
+                                            {material.currentStock > 0 && `Stock: ${material.currentStock} ${material.unitOfMeasure}`}
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
 
-                        <Input 
-                          type="number" 
-                          placeholder="Qty"
-                          value={materialQuantity}
-                          onChange={(e) => setMaterialQuantity(parseInt(e.target.value) || 0)}
-                        />
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            placeholder={t('quantity')}
+                            min="1"
+                            value={materialQuantity === '0' ? '' : materialQuantity}
+                            onChange={(e) => setMaterialQuantity(e.target.value === '' || e.target.value === '0' ? '' : Math.max(1, parseInt(e.target.value) || 1).toString())}
+                          />
+                          {materialToAdd && (
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                              {materialToAdd.unitOfMeasure || 'units'}
+                            </span>
+                          )}
+                        </div>
 
                         <Input 
                           type="number" 
                           step="0.01"
-                          placeholder="Unit Price"
-                          value={materialUnitPrice}
-                          onChange={(e) => setMaterialUnitPrice(e.target.value)}
+                          placeholder={t('unitPrice')}
+                          min="0.01"
+                          value={materialUnitPrice === '0' || materialUnitPrice === '0.00' ? '' : materialUnitPrice}
+                          onChange={(e) => setMaterialUnitPrice(e.target.value === '' || e.target.value === '0' || e.target.value === '0.00' ? '' : e.target.value)}
                         />
 
                         <Button onClick={handleAddMaterial} size="sm">
@@ -992,7 +1148,7 @@ const OrderManagement = () => {
                             <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
                               <span className="font-medium">{material.name}</span>
                               <span className="text-sm text-muted-foreground">
-                                {material.quantity} {material.unitOfMeasure} × ${material.unitPrice}
+                                {material.quantity} {material.unitOfMeasure} × {formatCurrency(material.unitPrice)}
                               </span>
                               <Button 
                                 variant="ghost" 
@@ -1013,35 +1169,82 @@ const OrderManagement = () => {
 
                       {/* Add Packaging Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        <Select value={packagingToAdd?.id?.toString()} onValueChange={(value) => {
-                          const item = packagingMaterials?.find((p: any) => p.id.toString() === value);
-                          setPackagingToAdd(item);
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select packaging" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {packagingMaterials?.map((item: any) => (
-                              <SelectItem key={item.id} value={item.id.toString()}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={packagingPopoverOpen} onOpenChange={setPackagingPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={packagingPopoverOpen}
+                              className="justify-between"
+                            >
+                              {packagingToAdd ? packagingToAdd.name : 'Select packaging'}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search packaging..." 
+                                value={packagingSearchTerm}
+                                onValueChange={setPackagingSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No packaging found.</CommandEmpty>
+                                <CommandGroup>
+                                  {packagingMaterials
+                                    ?.filter((item: any) =>
+                                      item.name.toLowerCase().includes(packagingSearchTerm.toLowerCase()) ||
+                                      (item.drugName && item.drugName.toLowerCase().includes(packagingSearchTerm.toLowerCase())) ||
+                                      (item.sku && item.sku.toLowerCase().includes(packagingSearchTerm.toLowerCase()))
+                                    )
+                                    ?.map((item: any) => (
+                                      <CommandItem
+                                        key={item.id}
+                                        value={item.name}
+                                        onSelect={() => {
+                                          setPackagingToAdd(item);
+                                          setPackagingPopoverOpen(false);
+                                          setPackagingSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{item.name}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {item.drugName && `${item.drugName} • `}
+                                            {item.sku && `SKU: ${item.sku} • `}
+                                            {item.quantity > 0 && `Stock: ${item.quantity} ${item.unitOfMeasure || 'units'}`}
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
 
-                        <Input 
-                          type="number" 
-                          placeholder="Qty"
-                          value={packagingQuantity}
-                          onChange={(e) => setPackagingQuantity(parseInt(e.target.value) || 0)}
-                        />
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            placeholder="Qty"
+                            min="1"
+                            value={packagingQuantity === '0' ? '' : packagingQuantity}
+                            onChange={(e) => setPackagingQuantity(e.target.value === '' || e.target.value === '0' ? '' : Math.max(1, parseInt(e.target.value) || 1).toString())}
+                          />
+                          {packagingToAdd && (
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                              {packagingToAdd.unitOfMeasure || 'units'}
+                            </span>
+                          )}
+                        </div>
 
                         <Input 
                           type="number" 
                           step="0.01"
                           placeholder="Unit Price"
-                          value={packagingUnitPrice}
-                          onChange={(e) => setPackagingUnitPrice(e.target.value)}
+                          min="0.01"
+                          value={packagingUnitPrice === '0' || packagingUnitPrice === '0.00' ? '' : packagingUnitPrice}
+                          onChange={(e) => setPackagingUnitPrice(e.target.value === '' || e.target.value === '0' || e.target.value === '0.00' ? '' : e.target.value)}
                         />
 
                         <Button onClick={handleAddPackaging} size="sm">
@@ -1073,11 +1276,11 @@ const OrderManagement = () => {
 
                     {/* Additional Costs */}
                     <div>
-                      <Label className="text-base font-semibold">Additional Costs</Label>
+                      <Label className="text-base font-semibold">{t('additionalCosts')}</Label>
 
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         <div>
-                          <Label>Transportation Cost</Label>
+                          <Label>{t('transportationCost')}</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -1087,7 +1290,7 @@ const OrderManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label>Labor Cost</Label>
+                          <Label>{t('laborCost')}</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -1097,7 +1300,7 @@ const OrderManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label>Equipment Cost</Label>
+                          <Label>{t('equipmentCost')}</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -1107,7 +1310,7 @@ const OrderManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label>Quality Control Cost</Label>
+                          <Label>{t('overheadCost')}</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -1117,7 +1320,7 @@ const OrderManagement = () => {
                           />
                         </div>
                         <div>
-                          <Label>Storage Cost</Label>
+                          <Label>{t('overheadCost')}</Label>
                           <Input 
                             type="number" 
                             step="0.01"
@@ -1155,7 +1358,7 @@ const OrderManagement = () => {
   disabled={!selectedCustomer || isLoading}
 >
   <Save className="mr-2 h-4 w-4" />
-  {isLoading ? 'Creating...' : 'Create Production Order'}
+  {isLoading ? 'Creating...' : t('createProductionOrder')}
 </Button>
 
                   </div>
@@ -1172,15 +1375,19 @@ const OrderManagement = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>${subtotalPrice}</span>
+                      <span>{formatCurrency(subtotalPrice)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Transportation Cost:</span>
+                      <span>{formatCurrency(transportationCost)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax ({taxPercentage}%):</span>
-                      <span>${(parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2)}</span>
+                      <span>{formatCurrency((parseFloat(subtotalPrice) * (taxPercentage / 100)).toFixed(2))}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
-                      <span>${totalPrice}</span>
+                      <span>{formatCurrency(totalPrice)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1252,12 +1459,17 @@ const OrderManagement = () => {
                           <TableCell>{order.finalProduct || 'N/A'}</TableCell>
                           <TableCell>${order.totalCost}</TableCell>
                           <TableCell>
-                            <Badge variant={
-                              order.status === 'completed' ? 'default' :
-                              order.status === 'pending' ? 'secondary' :
-                              order.status === 'cancelled' ? 'destructive' : 'outline'
-                            }>
-                              {order.status}
+                            <Badge 
+                              variant="outline" 
+                              className={`inline-flex items-center whitespace-nowrap font-medium text-xs px-2 py-1 rounded-full border ${
+                                order.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                order.status === 'in-progress' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                                order.status === 'failed' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-100 text-gray-800 border-gray-300'
+                              }`}
+                            >
+                              {order.status?.charAt(0).toUpperCase() + order.status?.slice(1).replace('-', ' ') || 'Unknown'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -1310,15 +1522,15 @@ const OrderManagement = () => {
                     {/* Customer Selection */}
                     <div>
                       <Label>Customer</Label>
-                      <Popover open={customerPopoverOpen} onOpenChange={setCustomerPopoverOpen}>
+                      <Popover open={refiningCustomerPopoverOpen} onOpenChange={setRefiningCustomerPopoverOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
-                            aria-expanded={customerPopoverOpen}
+                            aria-expanded={refiningCustomerPopoverOpen}
                             className="w-full justify-between"
                           >
-                            {selectedCustomer ? selectedCustomer.name : "Select customer..."}
+                            {refiningSelectedCustomer ? refiningSelectedCustomer.name : "Select customer..."}
                             <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
@@ -1326,40 +1538,50 @@ const OrderManagement = () => {
                           <Command>
                             <CommandInput 
                               placeholder="Search customers..." 
-                              value={customerSearchTerm}
-                              onValueChange={setCustomerSearchTerm}
+                              value={refiningCustomerSearchTerm}
+                              onValueChange={setRefiningCustomerSearchTerm}
                             />
                             <CommandList>
                               <CommandEmpty>No customer found.</CommandEmpty>
                               <CommandGroup>
-                                {filteredCustomers.map((customer: any) => (
-                                  <CommandItem
-                                    key={customer.id}
-                                    value={customer.name}
-                                    onSelect={() => {
-                                      setSelectedCustomer(customer);
-                                      setCustomerPopoverOpen(false);
-                                    }}
-                                  >
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">{customer.name}</span>
-                                      <span className="text-sm text-muted-foreground">
-                                        {customer.company} • {customer.sector}
-                                      </span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
+                                {customers
+                                  ?.filter((customer: any) => {
+                                    const term = refiningCustomerSearchTerm.toLowerCase();
+                                    return (
+                                      customer.name?.toLowerCase().includes(term) ||
+                                      customer.company?.toLowerCase().includes(term) ||
+                                      customer.sector?.toLowerCase().includes(term)
+                                    );
+                                  })
+                                  ?.map((customer: any) => (
+                                    <CommandItem
+                                      key={customer.id}
+                                      value={customer.name}
+                                      onSelect={() => {
+                                        setRefiningSelectedCustomer(customer);
+                                        setRefiningCustomerPopoverOpen(false);
+                                        setRefiningCustomerSearchTerm('');
+                                      }}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{customer.name}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                          {customer.company} • {customer.sector}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
                               </CommandGroup>
                             </CommandList>
                           </Command>
                         </PopoverContent>
                       </Popover>
 
-                      {selectedCustomer && (
+                      {refiningSelectedCustomer && (
                         <div className="mt-2 p-3 bg-muted rounded-md">
-                          <p className="font-medium">{selectedCustomer.name}</p>
-                          <p className="text-sm text-muted-foreground">{selectedCustomer.company}</p>
-                          <p className="text-sm text-muted-foreground">{selectedCustomer.sector}</p>
+                          <p className="font-medium">{refiningSelectedCustomer.name}</p>
+                          <p className="text-sm text-muted-foreground">{refiningSelectedCustomer.company}</p>
+                          <p className="text-sm text-muted-foreground">{refiningSelectedCustomer.sector}</p>
                         </div>
                       )}
                     </div>
@@ -1391,31 +1613,114 @@ const OrderManagement = () => {
 
                       <div className="mt-3">
                       {sourceType === 'production' ? (
-                        <Select value={sourceProductionOrder} onValueChange={setSourceProductionOrder}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select production order" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {productionOrders.map((order: any) => (
-                              <SelectItem key={order.id} value={order.id.toString()}>
-                                {order.batchNumber} - {order.finalProduct}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={productionOrderPopoverOpen} onOpenChange={setProductionOrderPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={productionOrderPopoverOpen}
+                              className="w-full justify-between"
+                            >
+                              {selectedProductionOrder ? `${selectedProductionOrder.batchNumber} - ${selectedProductionOrder.finalProduct}` : "Select production order..."}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search production orders..." 
+                                value={productionOrderSearchTerm}
+                                onValueChange={setProductionOrderSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No production order found.</CommandEmpty>
+                                <CommandGroup>
+                                  {productionOrders
+                                    ?.filter((order: any) =>
+                                      order.batchNumber.toLowerCase().includes(productionOrderSearchTerm.toLowerCase()) ||
+                                      order.finalProduct.toLowerCase().includes(productionOrderSearchTerm.toLowerCase()) ||
+                                      order.customerName.toLowerCase().includes(productionOrderSearchTerm.toLowerCase()) ||
+                                      order.orderNumber.toLowerCase().includes(productionOrderSearchTerm.toLowerCase())
+                                    )
+                                    ?.map((order: any) => (
+                                      <CommandItem
+                                        key={order.id}
+                                        value={order.batchNumber}
+                                        onSelect={() => {
+                                          setSelectedProductionOrder(order);
+                                          setSourceProductionOrder(order.id.toString());
+                                          setProductionOrderPopoverOpen(false);
+                                          setProductionOrderSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{order.batchNumber} - {order.finalProduct}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            Customer: {order.customerName} • Status: {order.status} • Cost: {order.totalCost} EGP
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       ) : (
-                        <Select value={sourceStockItem} onValueChange={setSourceStockItem}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select stock item" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {semiFinishedProducts?.map((product: any) => (
-                              <SelectItem key={product.id} value={product.id.toString()}>
-                                {product.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={stockItemPopoverOpen} onOpenChange={setStockItemPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={stockItemPopoverOpen}
+                              className="w-full justify-between"
+                            >
+                              {selectedStockItem ? selectedStockItem.name : "Select stock item..."}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search inventory..." 
+                                value={stockItemSearchTerm}
+                                onValueChange={setStockItemSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No inventory item found.</CommandEmpty>
+                                <CommandGroup>
+                                  {inventoryItems
+                                    ?.filter((item: any) =>
+                                      item.name.toLowerCase().includes(stockItemSearchTerm.toLowerCase()) ||
+                                      (item.drugName && item.drugName.toLowerCase().includes(stockItemSearchTerm.toLowerCase())) ||
+                                      (item.sku && item.sku.toLowerCase().includes(stockItemSearchTerm.toLowerCase()))
+                                    )
+                                    ?.map((item: any) => (
+                                      <CommandItem
+                                        key={item.id}
+                                        value={item.name}
+                                        onSelect={() => {
+                                          setSelectedStockItem(item);
+                                          setSourceStockItem(item.id.toString());
+                                          setStockItemPopoverOpen(false);
+                                          setStockItemSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{item.name}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {item.drugName && `${item.drugName} • `}
+                                            {item.sku && `SKU: ${item.sku} • `}
+                                            Stock: {item.currentStock || 0} {item.unitOfMeasure || 'units'}
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                       )}
                       </div>
                     </div>
@@ -1426,35 +1731,76 @@ const OrderManagement = () => {
 
                       {/* Add Material Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        <Select value={refiningMaterialToAdd?.id?.toString()} onValueChange={(value) => {
-                          const material = rawMaterialsData?.find((m: any) => m.id.toString() === value);
-                          setRefiningMaterialToAdd(material);
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select material" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rawMaterialsData?.map((material: any) => (
-                              <SelectItem key={material.id} value={material.id.toString()}>
-                                {material.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={refiningMaterialPopoverOpen} onOpenChange={setRefiningMaterialPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={refiningMaterialPopoverOpen}
+                              className="justify-between"
+                            >
+                              {refiningMaterialToAdd ? refiningMaterialToAdd.name : 'Select material'}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search materials..." 
+                                value={refiningMaterialSearchTerm}
+                                onValueChange={setRefiningMaterialSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No material found.</CommandEmpty>
+                                <CommandGroup>
+                                  {rawMaterialsData
+                                    ?.filter((material: any) =>
+                                      (material.name.toLowerCase().includes(refiningMaterialSearchTerm.toLowerCase()) ||
+                                      (material.drugName && material.drugName.toLowerCase().includes(refiningMaterialSearchTerm.toLowerCase())) ||
+                                      (material.sku && material.sku.toLowerCase().includes(refiningMaterialSearchTerm.toLowerCase()))) &&
+                                      material.currentStock > 0
+                                    )
+                                    ?.map((material: any) => (
+                                      <CommandItem
+                                        key={material.id}
+                                        value={material.name}
+                                        onSelect={() => {
+                                          setRefiningMaterialToAdd(material);
+                                          setRefiningMaterialPopoverOpen(false);
+                                          setRefiningMaterialSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{material.name}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {material.drugName && `${material.drugName} • `}
+                                            {material.sku && `SKU: ${material.sku} • `}
+                                            {material.currentStock > 0 && `Stock: ${material.currentStock} ${material.unitOfMeasure}`}
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
 
                         <Input 
                           type="number" 
                           placeholder="Qty"
-                          value={refiningMaterialQuantity}
-                          onChange={(e) => setRefiningMaterialQuantity(parseInt(e.target.value) || 0)}
+                          min="1"
+                          value={refiningMaterialQuantity === '0' ? '' : refiningMaterialQuantity}
+                          onChange={(e) => setRefiningMaterialQuantity(e.target.value === '' || e.target.value === '0' ? '' : Math.max(1, parseInt(e.target.value) || 1).toString())}
                         />
 
                         <Input 
                           type="number" 
                           step="0.01"
                           placeholder="Unit Price"
-                          value={refiningMaterialUnitPrice}
-                          onChange={(e) => setRefiningMaterialUnitPrice(e.target.value)}
+                          min="0.01"
+                          value={refiningMaterialUnitPrice === '0' || refiningMaterialUnitPrice === '0.00' ? '' : refiningMaterialUnitPrice}
+                          onChange={(e) => setRefiningMaterialUnitPrice(e.target.value === '' || e.target.value === '0' || e.target.value === '0.00' ? '' : e.target.value)}
                         />
 
                         <Button onClick={handleAddRefiningMaterial} size="sm">
@@ -1463,9 +1809,11 @@ const OrderManagement = () => {
                       </div>
 
                       {/* Materials List */}
-                      {refiningRawMaterials.length > 0 && (
+                      {refiningRawMaterials.filter(material => material.quantity > 0 && parseFloat(material.unitPrice || '0') > 0).length > 0 && (
                         <div className="grid grid-cols-2 gap-2">
-                          {refiningRawMaterials.map((material, index) => (
+                          {refiningRawMaterials
+                            .filter(material => material.quantity > 0 && parseFloat(material.unitPrice || '0') > 0)
+                            .map((material, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
                               <div className="flex-1">
                                 <span className="font-medium text-sm">{material.name}</span>
@@ -1492,35 +1840,83 @@ const OrderManagement = () => {
 
                       {/* Add Packaging Form */}
                       <div className="grid grid-cols-4 gap-2 mb-3">
-                        <Select value={packagingToAdd?.id?.toString()} onValueChange={(value) => {
-                          const item = packagingMaterials?.find((p: any) => p.id.toString() === value);
-                          setPackagingToAdd(item);
-                        }}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select packaging" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {packagingMaterials?.map((item: any) => (
-                              <SelectItem key={item.id} value={item.id.toString()}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={refiningPackagingPopoverOpen} onOpenChange={setRefiningPackagingPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={refiningPackagingPopoverOpen}
+                              className="justify-between"
+                            >
+                              {packagingToAdd ? packagingToAdd.name : 'Select packaging'}
+                              <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0">
+                            <Command>
+                              <CommandInput 
+                                placeholder="Search packaging..." 
+                                value={refiningPackagingSearchTerm}
+                                onValueChange={setRefiningPackagingSearchTerm}
+                              />
+                              <CommandList>
+                                <CommandEmpty>No packaging found.</CommandEmpty>
+                                <CommandGroup>
+                                  {inventoryItems
+                                    ?.filter((item: any) =>
+                                      (item.name.toLowerCase().includes(refiningPackagingSearchTerm.toLowerCase()) ||
+                                      (item.drugName && item.drugName.toLowerCase().includes(refiningPackagingSearchTerm.toLowerCase())) ||
+                                      (item.sku && item.sku.toLowerCase().includes(refiningPackagingSearchTerm.toLowerCase()))) &&
+                                      (item.quantity > 0)
+                                    )
+                                    ?.map((item: any) => (
+                                      <CommandItem
+                                        key={item.id}
+                                        value={item.name}
+                                        onSelect={() => {
+                                          setPackagingToAdd(item);
+                                          setRefiningPackagingPopoverOpen(false);
+                                          setRefiningPackagingSearchTerm('');
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{item.name}</span>
+                                          <div className="text-xs text-muted-foreground">
+                                            {item.drugName && `${item.drugName} • `}
+                                            {item.sku && `SKU: ${item.sku} • `}
+                                            {item.quantity > 0 && `Stock: ${item.quantity} ${item.unitOfMeasure || 'units'}`}
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
 
-                        <Input 
-                          type="number" 
-                          placeholder="Qty"
-                          value={packagingQuantity}
-                          onChange={(e) => setPackagingQuantity(parseInt(e.target.value) || 0)}
-                        />
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            placeholder="Qty"
+                            min="1"
+                            value={packagingQuantity === '0' ? '' : packagingQuantity}
+                            onChange={(e) => setPackagingQuantity(e.target.value === '' || e.target.value === '0' ? '' : Math.max(1, parseInt(e.target.value) || 1).toString())}
+                          />
+                          {packagingToAdd && (
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                              {packagingToAdd.unitOfMeasure || 'units'}
+                            </span>
+                          )}
+                        </div>
 
                         <Input 
                           type="number" 
                           step="0.01"
                           placeholder="Unit Price"
-                          value={packagingUnitPrice}
-                          onChange={(e) => setPackagingUnitPrice(e.target.value)}
+                          min="0.01"
+                          value={packagingUnitPrice === '0' || packagingUnitPrice === '0.00' ? '' : packagingUnitPrice}
+                          onChange={(e) => setPackagingUnitPrice(e.target.value === '' || e.target.value === '0' || e.target.value === '0.00' ? '' : e.target.value)}
                         />
 
                         <Button onClick={handleAddPackaging} size="sm">
@@ -1529,9 +1925,11 @@ const OrderManagement = () => {
                       </div>
 
                       {/* Packaging List */}
-                      {packagingItems.length > 0 && (
+                      {packagingItems.filter(item => (item.quantity || 0) > 0 && parseFloat(item.unitPrice || '0') > 0).length > 0 && (
                         <div className="space-y-2">
-                          {packagingItems.map((item, index) => (
+                          {packagingItems
+                            .filter(item => (item.quantity || 0) > 0 && parseFloat(item.unitPrice || '0') > 0)
+                            .map((item, index) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
                               <span className="font-medium">{item.name}</span>
                               <span className="text-sm text-muted-foreground">
@@ -1707,19 +2105,38 @@ const OrderManagement = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span>Subtotal:</span>
-                      <span>${refiningSubtotal}</span>
+                      <span>{formatCurrency((
+                        refiningRawMaterials.reduce((sum, material) => sum + (material.quantity * parseFloat(material.unitPrice || '0')), 0) +
+                        packagingItems.reduce((sum, item) => sum + ((item.quantity || 0) * parseFloat(item.unitPrice || '0')), 0) +
+                        (parseFloat(refiningSubtotal) || 0) +
+                        (parseFloat(refiningLaborCost) || 0) +
+                        (parseFloat(refiningEquipmentCost) || 0) +
+                        (parseFloat(refiningQualityControlCost) || 0) +
+                        (parseFloat(refiningStorageCost) || 0) +
+                        (parseFloat(refiningProcessingCost) || 0)
+                      ).toFixed(2))}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Transportation:</span>
-                      <span>${refiningTransportationCost}</span>
+                      <span>Transportation Cost:</span>
+                      <span>{formatCurrency(refiningTransportationCost)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Tax ({refiningTaxPercentage}%):</span>
-                      <span>${(parseFloat(refiningSubtotal) * (refiningTaxPercentage / 100)).toFixed(2)}</span>
+                      <span>{formatCurrency(((
+                        refiningRawMaterials.reduce((sum, material) => sum + (material.quantity * parseFloat(material.unitPrice || '0')), 0) +
+                        packagingItems.reduce((sum, item) => sum + ((item.quantity || 0) * parseFloat(item.unitPrice || '0')), 0) +
+                        (parseFloat(refiningSubtotal) || 0) +
+                        (parseFloat(refiningTransportationCost) || 0) +
+                        (parseFloat(refiningLaborCost) || 0) +
+                        (parseFloat(refiningEquipmentCost) || 0) +
+                        (parseFloat(refiningQualityControlCost) || 0) +
+                        (parseFloat(refiningStorageCost) || 0) +
+                        (parseFloat(refiningProcessingCost) || 0)
+                      ) * (refiningTaxPercentage / 100)).toFixed(2))}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
-                      <span>${refiningCost}</span>
+                      <span>{formatCurrency(refiningCost)}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1789,12 +2206,17 @@ const OrderManagement = () => {
                           <TableCell className="capitalize">{order.sourceType || 'N/A'}</TableCell>
                           <TableCell>${order.totalCost}</TableCell>
                           <TableCell>
-                            <Badge variant={
-                              order.status === 'completed' ? 'default' :
-                              order.status === 'pending' ? 'secondary' :
-                              order.status === 'cancelled' ? 'destructive' : 'outline'
-                            }>
-                              {order.status}
+                            <Badge 
+                              variant="outline" 
+                              className={`inline-flex items-center whitespace-nowrap font-medium text-xs px-2 py-1 rounded-full border ${
+                                order.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                order.status === 'in-progress' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                order.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                                order.status === 'failed' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-100 text-gray-800 border-gray-300'
+                              }`}
+                            >
+                              {order.status?.charAt(0).toUpperCase() + order.status?.slice(1).replace('-', ' ') || 'Unknown'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -1856,12 +2278,17 @@ const OrderManagement = () => {
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Status</h3>
-                <Badge variant={
-                  selectedOrder?.status === 'completed' ? 'default' :
-                  selectedOrder?.status === 'pending' ? 'secondary' :
-                  selectedOrder?.status === 'cancelled' ? 'destructive' : 'outline'
-                }>
-                  {selectedOrder?.status || 'Pending'}
+                <Badge 
+                  variant="outline" 
+                  className={`inline-flex items-center whitespace-nowrap font-medium text-xs px-2 py-1 rounded-full border ${
+                    selectedOrder?.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                    selectedOrder?.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                    selectedOrder?.status === 'in-progress' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                    selectedOrder?.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                    selectedOrder?.status === 'failed' ? 'bg-red-100 text-red-800 border-red-300' : 'bg-gray-100 text-gray-800 border-gray-300'
+                  }`}
+                >
+                  {selectedOrder?.status?.charAt(0).toUpperCase() + selectedOrder?.status?.slice(1).replace('-', ' ') || 'Pending'}
                 </Badge>
               </div>
             </div>
@@ -1892,7 +2319,7 @@ const OrderManagement = () => {
 
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-1">Raw Materials</h3>
-                  {selectedOrder?.materials ? (
+                  {selectedOrder?.rawMaterials && selectedOrder.rawMaterials.length > 0 ? (
                     <div className="rounded-md border overflow-hidden">
                       <Table>
                         <TableHeader>
@@ -1904,28 +2331,28 @@ const OrderManagement = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {(typeof selectedOrder.materials === 'string' 
-                            ? JSON.parse(selectedOrder.materials)
-                            : selectedOrder.materials
+                          {(typeof selectedOrder.rawMaterials === 'string' 
+                            ? JSON.parse(selectedOrder.rawMaterials)
+                            : selectedOrder.rawMaterials
                           ).map((material: any, index: number) => (
                             <TableRow key={index}>
                               <TableCell>{material.name}</TableCell>
                               <TableCell>{material.quantity} {material.unitOfMeasure}</TableCell>
-                              <TableCell>${material.unitPrice}</TableCell>
-                              <TableCell>${(material.quantity * parseFloat(material.unitPrice)).toFixed(2)}</TableCell>
+                              <TableCell>EGP {material.unitPrice}</TableCell>
+                              <TableCell>EGP {(parseFloat(material.quantity) * parseFloat(material.unitPrice)).toFixed(2)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
                       </Table>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No materials specified</p>
+                    <p className="text-sm text-muted-foreground">No raw materials specified</p>
                   )}
                 </div>
 
-                {selectedOrder?.packaging && (
+                {selectedOrder?.packagingMaterials && selectedOrder.packagingMaterials.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Packaging</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Packaging Materials</h3>
                     <div className="rounded-md border overflow-hidden">
                       <Table>
                         <TableHeader>
@@ -1937,15 +2364,15 @@ const OrderManagement = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {(typeof selectedOrder.packaging === 'string' 
-                            ? JSON.parse(selectedOrder.packaging)
-                            : selectedOrder.packaging
+                          {(typeof selectedOrder.packagingMaterials === 'string' 
+                            ? JSON.parse(selectedOrder.packagingMaterials)
+                            : selectedOrder.packagingMaterials
                           ).map((item: any, index: number) => (
                             <TableRow key={index}>
                               <TableCell>{item.name}</TableCell>
                               <TableCell>{item.quantity} {item.unitOfMeasure}</TableCell>
-                              <TableCell>${item.unitPrice}</TableCell>
-                              <TableCell>${(item.quantity * parseFloat(item.unitPrice)).toFixed(2)}</TableCell>
+                              <TableCell>EGP {item.unitPrice}</TableCell>
+                              <TableCell>EGP {(parseFloat(item.quantity) * parseFloat(item.unitPrice)).toFixed(2)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>

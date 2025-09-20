@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { CustomerData } from './CustomerCard';
@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { CalendarIcon, Mail, MapPin, Phone, Building, FileText, Download, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { CalendarIcon, Mail, MapPin, Phone, Building, FileText, Download, ChevronDown, FileSpreadsheet, Loader2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useQuery } from '@tanstack/react-query';
 
 interface CustomerProfileDialogProps {
   open: boolean;
@@ -18,21 +19,30 @@ interface CustomerProfileDialogProps {
   customer: CustomerData | null;
 }
 
-// Sample invoice data for the demo
+// Invoice data structure
 interface InvoiceData {
   id: number;
   date: string;
-  amount: number;
-  status: 'paid' | 'pending' | 'overdue';
-  items: number;
+  totalAmount: number;
+  paymentStatus: 'paid' | 'pending' | 'overdue';
+  itemCount: number;
+  etaInvoiceNumber?: string;
 }
 
-const mockInvoices: InvoiceData[] = [
-  { id: 1001, date: '2025-03-15', amount: 2500, status: 'paid', items: 3 },
-  { id: 1002, date: '2025-04-01', amount: 1200, status: 'paid', items: 2 },
-  { id: 1003, date: '2025-04-20', amount: 3800, status: 'pending', items: 5 },
-  { id: 1004, date: '2025-04-28', amount: 950, status: 'pending', items: 1 },
-];
+// Customer profile data structure
+interface CustomerProfileData {
+  customer: CustomerData;
+  invoices: InvoiceData[];
+  statistics: {
+    totalPurchases: number;
+    totalOrders: number;
+    openInvoices: number;
+    lastOrderDate: string | null;
+    averageOrderValue: number;
+    paymentScore: string;
+    customerSince: string;
+  };
+}
 
 const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
   open,
@@ -40,6 +50,12 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
   customer
 }) => {
   const [isExporting, setIsExporting] = useState(false);
+
+  // Fetch real customer profile data
+  const { data: profileData, isLoading } = useQuery<CustomerProfileData>({
+    queryKey: [`/api/customers/${customer?.id}/profile`],
+    enabled: !!customer?.id && open
+  });
 
   if (!customer) return null;
 
@@ -102,7 +118,7 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
       });
       
       // Invoice history section
-      if (mockInvoices.length > 0) {
+      if (profileData?.invoices && profileData.invoices.length > 0) {
         yPos += 10;
         doc.setFontSize(16);
         doc.setTextColor(0, 0, 0);
@@ -130,7 +146,7 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
         
         // Table rows
         doc.setTextColor(0, 0, 0);
-        mockInvoices.forEach((invoice, index) => {
+        profileData.invoices.forEach((invoice: any, index: number) => {
           if (index % 2 === 0) {
             doc.setFillColor(245, 245, 245);
             doc.rect(20, yPos, 170, 8, 'F');
@@ -138,9 +154,9 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
           
           doc.text(`INV-${invoice.id}`, 25, yPos + 6);
           doc.text(formatDate(invoice.date), 60, yPos + 6);
-          doc.text(`EGP ${invoice.amount.toLocaleString()}`, 95, yPos + 6);
-          doc.text(invoice.status.toUpperCase(), 130, yPos + 6);
-          doc.text(invoice.items.toString(), 165, yPos + 6);
+          doc.text(`EGP ${invoice.totalAmount.toLocaleString()}`, 95, yPos + 6);
+          doc.text(invoice.paymentStatus.toUpperCase(), 130, yPos + 6);
+          doc.text(invoice.itemCount.toString(), 165, yPos + 6);
           
           yPos += 8;
         });
@@ -209,26 +225,26 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
       XLSX.utils.book_append_sheet(workbook, customerSheet, 'Customer Info');
       
       // Invoice history sheet
-      if (mockInvoices.length > 0) {
+      if (profileData?.invoices && profileData.invoices.length > 0) {
         const invoiceData = [
           ['Invoice History'],
           ['Generated on:', new Date().toLocaleString()],
           [''],
           ['Invoice #', 'Date', 'Amount (EGP)', 'Status', 'Items Count', 'Payment Status'],
-          ...mockInvoices.map(invoice => [
+          ...profileData.invoices.map((invoice: any) => [
             `INV-${invoice.id}`,
             formatDate(invoice.date),
-            invoice.amount,
-            invoice.status.toUpperCase(),
-            invoice.items,
-            invoice.status === 'paid' ? 'COMPLETED' : 'PENDING'
+            invoice.totalAmount,
+            invoice.paymentStatus.toUpperCase(),
+            invoice.itemCount,
+            invoice.paymentStatus === 'paid' ? 'COMPLETED' : 'PENDING'
           ]),
           [''],
           ['Summary'],
-          ['Total Invoices:', mockInvoices.length],
-          ['Total Amount:', `EGP ${mockInvoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString()}`],
-          ['Paid Invoices:', mockInvoices.filter(inv => inv.status === 'paid').length],
-          ['Pending Invoices:', mockInvoices.filter(inv => inv.status !== 'paid').length]
+          ['Total Invoices:', profileData.invoices.length],
+          ['Total Amount:', `EGP ${profileData.invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0).toLocaleString()}`],
+          ['Paid Invoices:', profileData.invoices.filter((inv: any) => inv.paymentStatus === 'paid').length],
+          ['Pending Invoices:', profileData.invoices.filter((inv: any) => inv.paymentStatus !== 'paid').length]
         ];
         
         const invoiceSheet = XLSX.utils.aoa_to_sheet(invoiceData);
@@ -247,7 +263,7 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
         invoiceSheet['!merges'] = [
           { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
           { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } },
-          { s: { r: mockInvoices.length + 4, c: 0 }, e: { r: mockInvoices.length + 4, c: 5 } }
+          { s: { r: profileData.invoices.length + 4, c: 0 }, e: { r: profileData.invoices.length + 4, c: 5 } }
         ];
         
         XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'Invoice History');
@@ -299,15 +315,15 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-blue-700">Position/Title</label>
                 <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
-                  {customer.position || 'Director'}
+                  {customer.position || 'N/A'}
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-blue-700">Customer Status</label>
                 <div className="bg-white p-3 rounded border border-blue-200">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    ✓ Active Customer
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    N/A
                   </span>
                 </div>
               </div>
@@ -324,7 +340,9 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-blue-700">Customer Since</label>
                 <div className="text-sm text-blue-800 bg-white p-3 rounded border border-blue-200">
-                  January 15, 2024
+                  {profileData?.statistics.customerSince ? 
+                    formatDate(profileData.statistics.customerSince) : 
+                    'N/A'}
                 </div>
               </div>
             </div>
@@ -359,21 +377,21 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-green-700">Business Type</label>
                 <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
-                  Pharmaceutical Manufacturer
+                  {customer.sector || 'N/A'}
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-green-700">Company Size</label>
                 <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200">
-                  Large Enterprise (500+ employees)
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-green-700">Registration Number</label>
                 <div className="text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-mono">
-                  REG-{customer.id}2024
+                  N/A
                 </div>
               </div>
             </div>
@@ -410,14 +428,14 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-purple-700">Alternative Contact</label>
                 <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
-                  +20 2 1234 5678 (Emergency)
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-purple-700">Preferred Contact Method</label>
                 <div className="text-sm text-purple-800 bg-white p-3 rounded border border-purple-200">
-                  Email (Business Hours)
+                  N/A
                 </div>
               </div>
             </div>
@@ -441,9 +459,7 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-orange-700">Billing Address</label>
                 <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200 min-h-[80px]">
-                  Same as business address
-                  <br />
-                  <span className="text-xs text-orange-600">Finance Department, 3rd Floor</span>
+                  {customer.address || 'N/A'}
                 </div>
               </div>
             </div>
@@ -452,21 +468,21 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-orange-700">Country</label>
                 <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
-                  Egypt
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-orange-700">Time Zone</label>
                 <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
-                  EET (UTC+2)
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-orange-700">Service Region</label>
                 <div className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
-                  Middle East & North Africa
+                  N/A
                 </div>
               </div>
             </div>
@@ -494,15 +510,15 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-yellow-700">VAT Status</label>
                 <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
-                  VAT Registered - 14%
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-yellow-700">Tax Classification</label>
                 <div className="bg-white p-3 rounded border border-yellow-200">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    ✓ Compliant
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    N/A
                   </span>
                 </div>
               </div>
@@ -512,14 +528,14 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-yellow-700">Commercial Registration</label>
                 <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200 font-mono">
-                  CR-{customer.id}2024-EGY
+                  N/A
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-yellow-700">License Expiry</label>
                 <div className="text-sm text-yellow-800 bg-white p-3 rounded border border-yellow-200">
-                  December 31, 2025
+                  N/A
                 </div>
               </div>
             </div>
@@ -532,56 +548,76 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
               Account Summary & Performance
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <div className="text-sm font-medium text-gray-700">Total Purchases</div>
-                <div className="text-2xl font-bold text-green-600">8,450 EGP</div>
-                <div className="text-xs text-gray-500">Lifetime value</div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
               </div>
-              
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <div className="text-sm font-medium text-gray-700">Open Invoices</div>
-                <div className="text-2xl font-bold text-orange-600">2</div>
-                <div className="text-xs text-gray-500">Pending payment</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <div className="text-sm font-medium text-gray-700">Total Orders</div>
-                <div className="text-2xl font-bold text-blue-600">47</div>
-                <div className="text-xs text-gray-500">Since registration</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded border border-gray-200">
-                <div className="text-sm font-medium text-gray-700">Payment Score</div>
-                <div className="text-2xl font-bold text-green-600">96.5%</div>
-                <div className="text-xs text-gray-500">On-time payments</div>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-white p-4 rounded border border-gray-200">
+                    <div className="text-sm font-medium text-gray-700">Total Purchases</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {profileData?.statistics?.totalPurchases?.toLocaleString() || 0} EGP
+                    </div>
+                    <div className="text-xs text-gray-500">Lifetime value</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded border border-gray-200">
+                    <div className="text-sm font-medium text-gray-700">Open Invoices</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {profileData?.statistics.openInvoices || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">Pending payment</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded border border-gray-200">
+                    <div className="text-sm font-medium text-gray-700">Total Orders</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {profileData?.statistics.totalOrders || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">Since registration</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded border border-gray-200">
+                    <div className="text-sm font-medium text-gray-700">Payment Score</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {profileData?.statistics.paymentScore || 0}%
+                    </div>
+                    <div className="text-xs text-gray-500">On-time payments</div>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Last Order Date</label>
-                <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
-                  April 28, 2025
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Last Order Date</label>
+                    <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                      {profileData?.statistics.lastOrderDate ? 
+                        formatDate(profileData.statistics.lastOrderDate) : 
+                        'No orders yet'}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Average Order Value</label>
+                    <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
+                      {profileData?.statistics?.averageOrderValue?.toLocaleString() || 0} EGP
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Customer Tier</label>
+                    <div className="bg-white p-3 rounded border border-gray-200">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {(profileData?.statistics.totalPurchases || 0) > 50000 ? 'Gold Customer' : 
+                         (profileData?.statistics.totalPurchases || 0) > 10000 ? 'Silver Customer' : 
+                         'Bronze Customer'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Average Order Value</label>
-                <div className="text-sm text-gray-800 bg-white p-3 rounded border border-gray-200">
-                  1,875 EGP
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Customer Tier</label>
-                <div className="bg-white p-3 rounded border border-gray-200">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gold-100 text-gold-800">
-                    Gold Customer
-                  </span>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Invoice History Section */}
@@ -604,48 +640,68 @@ const CustomerProfileDialog: React.FC<CustomerProfileDialogProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockInvoices.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">#{invoice.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <CalendarIcon className="mr-2 h-4 w-4 text-slate-500" />
-                          {formatDate(invoice.date)}
-                        </div>
-                      </TableCell>
-                      <TableCell>{invoice.items}</TableCell>
-                      <TableCell className="text-right font-medium">{invoice.amount.toLocaleString()} EGP</TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            invoice.status === 'paid'
-                              ? 'bg-green-500'
-                              : invoice.status === 'pending'
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
-                          }
-                        >
-                          {invoice.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-blue-600 font-mono text-xs">
-                          ETA-{invoice.id}2025
-                        </span>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-gray-400" />
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : profileData?.invoices.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        No invoices found for this customer
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    profileData?.invoices.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">#{invoice.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <CalendarIcon className="mr-2 h-4 w-4 text-slate-500" />
+                            {formatDate(invoice.date)}
+                          </div>
+                        </TableCell>
+                        <TableCell>{invoice.itemCount}</TableCell>
+                        <TableCell className="text-right font-medium">{invoice.totalAmount.toLocaleString()} EGP</TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              invoice.paymentStatus === 'paid'
+                                ? 'bg-green-500'
+                                : invoice.paymentStatus === 'pending'
+                                ? 'bg-yellow-500'
+                                : 'bg-red-500'
+                            }
+                          >
+                            {invoice.paymentStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-blue-600 font-mono text-xs">
+                            {invoice.etaInvoiceNumber || 'N/A'}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
               
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex justify-between items-center">
                   <div>
-                    <span className="text-sm text-gray-500">Total Invoices: 4 | Average Payment Time: 18 days</span>
+                    <span className="text-sm text-gray-500">
+                      Total Invoices: {profileData?.invoices.length || 0} | 
+                      Customer Since: {profileData?.statistics.customerSince ? 
+                        formatDate(profileData.statistics.customerSince) : 'Today'}
+                    </span>
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-gray-500">Total Amount</div>
-                    <div className="text-xl font-bold text-green-600">8,450 EGP</div>
+                    <div className="text-xl font-bold text-green-600">
+                      {profileData?.statistics?.totalPurchases?.toLocaleString() || 0} EGP
+                    </div>
                   </div>
                 </div>
               </div>

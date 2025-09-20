@@ -5,6 +5,7 @@ import PageNavigation from "@/components/PageNavigation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePagination } from "@/contexts/PaginationContext";
 import { useSidebarContext } from "@/contexts/SidebarContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ChevronLeft, ChevronRight, Settings, User, LogOut, Moon, Sun, Bell } from "lucide-react";
 import EnhancedNotifications from "@/components/EnhancedNotifications";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -31,6 +32,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { language, isRTL, t } = useLanguage();
   const { currentPage, setCurrentPage, getTotalPages } = usePagination();
   const { isCollapsed } = useSidebarContext();
+  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
@@ -114,8 +116,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     <div className="relative">
                       <img
                         className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-md group-hover:ring-blue-300 transition-all duration-200"
-                        src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
-                        alt="Ahmed Hassan"
+                        src={user?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"}
+                        alt={user?.name || "User"}
                       />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
                     </div>
@@ -127,18 +129,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       <div className="relative">
                         <img
                           className="w-16 h-16 rounded-full object-cover ring-4 ring-white shadow-lg"
-                          src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
-                          alt="Ahmed Hassan"
+                          src={user?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"}
+                          alt={user?.name || "User"}
                         />
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-3 border-white rounded-full"></div>
                       </div>
                       <div className="space-y-1">
-                        <p className="text-lg font-semibold text-gray-900">Ahmed Hassan</p>
+                        <p className="text-lg font-semibold text-gray-900">{user?.name || "User"}</p>
                         <p className="text-sm text-gray-600">
-                          ahmed.hassan@morgan-erp.com
+                          {user?.email || "user@morganerp.com"}
                         </p>
                         <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-3 py-1">
-                          Administrator
+                          {user?.role || "Administrator"}
                         </Badge>
                       </div>
                     </div>
@@ -254,8 +256,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
                     <img
                       className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm"
-                      src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
-                      alt="Profile"
+                      src={user?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"}
+                      alt={user?.name || "User"}
                     />
                   </Button>
                 </DropdownMenuTrigger>
@@ -265,13 +267,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       <div className="flex items-center space-x-3">
                         <img
                           className="w-10 h-10 rounded-full object-cover"
-                          src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"
-                          alt="Profile"
+                          src={user?.avatar || "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80"}
+                          alt={user?.name || "User"}
                         />
                         <div className="flex flex-col min-w-0">
-                          <p className="text-sm font-medium leading-none truncate">Ahmed Hassan</p>
+                          <p className="text-sm font-medium leading-none truncate">{user?.name || "User"}</p>
                           <p className="text-xs leading-none text-muted-foreground mt-1 truncate">
-                            ahmed.hassan@morgan-erp.com
+                            {user?.email || "user@morganerp.com"}
                           </p>
                         </div>
                       </div>

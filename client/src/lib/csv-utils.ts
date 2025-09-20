@@ -1,6 +1,7 @@
 /**
  * Utility functions for CSV import and export
  */
+import * as XLSX from 'xlsx';
 
 /**
  * Converts data array to CSV string
@@ -158,4 +159,134 @@ export const readFileAsText = (file: File): Promise<string> => {
     reader.onerror = () => reject(new Error('Error reading file'));
     reader.readAsText(file);
   });
+};
+
+/**
+ * Reads an Excel file and converts it to JSON
+ * @param file Excel file to read
+ * @param sheetIndex Optional sheet index (defaults to first sheet)
+ * @returns Promise that resolves with array of objects
+ */
+export const readExcelFile = (file: File, sheetIndex: number = 0): Promise<Record<string, string>[]> => {
+  console.log('🔥 READ EXCEL FILE CALLED FOR:', file.name, 'size:', file.size);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      console.log('🔥 EXCEL FILE READER ONLOAD TRIGGERED');
+      try {
+        if (!event.target?.result) {
+          reject(new Error('Failed to read file'));
+          return;
+        }
+
+        // Parse the Excel file with date handling enabled
+        const data = new Uint8Array(event.target.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { 
+          type: 'array',
+          cellDates: true, // Enable proper date parsing
+          dateNF: 'yyyy-mm-dd'
+        });
+        
+        // Get the first sheet or specified sheet
+        const sheetName = workbook.SheetNames[sheetIndex] || workbook.SheetNames[0];
+        if (!sheetName) {
+          reject(new Error('No sheets found in Excel file'));
+          return;
+        }
+        
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert sheet to JSON with header row and proper date formatting
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+          header: 1,
+          defval: '',
+          raw: false // Ensures dates are formatted as strings
+        }) as any[][];
+        
+        if (jsonData.length === 0) {
+          resolve([]);
+          return;
+        }
+        
+        // Get headers from first row
+        const headers = jsonData[0] as string[];
+        
+        // Convert remaining rows to objects with proper date handling
+        const result = jsonData.slice(1)
+          .filter(row => row.some(cell => cell !== '')) // Filter out empty rows
+          .map(row => {
+            const obj: Record<string, string> = {};
+            headers.forEach((header, index) => {
+              let value = row[index] !== undefined ? row[index] : '';
+              
+              // Handle Excel date fields specifically
+              if (header && (
+                header.toLowerCase().includes('date') || 
+                header.toLowerCase().includes('expiry') ||
+                header.toLowerCase().includes('expire')
+              )) {
+                // If it's still a number (Excel serial date), convert it
+                if (typeof value === 'number' && value > 0) {
+                  // Excel serial date to JavaScript Date
+                  // Excel epoch starts at 1900-01-01, but has a leap year bug (day 60)
+                  const excelEpoch = new Date(1900, 0, 1);
+                  const jsDate = new Date(excelEpoch.getTime() + (value - 2) * 24 * 60 * 60 * 1000);
+                  value = jsDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                } else if (value instanceof Date) {
+                  // Already a Date object, format it
+                  value = value.toISOString().split('T')[0];
+                }
+              }
+              
+              // Convert all values to strings and handle warehouse locations like "1A"
+              obj[String(header)] = String(value);
+            });
+            return obj;
+          });
+        
+        console.log('🔥 EXCEL PROCESSING COMPLETE:', result.length, 'rows extracted');
+        console.log('🔥 FIRST FEW EXCEL ROWS:', result.slice(0, 3));
+        resolve(result);
+      } catch (error) {
+        console.log('🔥 EXCEL PROCESSING ERROR:', error);
+        reject(new Error(`Failed to parse Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+/**
+ * Checks if a file is an Excel file
+ * @param file File to check
+ * @returns Boolean indicating if file is Excel format
+ */
+export const isExcelFile = (file: File): boolean => {
+  const excelMimeTypes = [
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel.sheet.macroEnabled.12'
+  ];
+  
+  const excelExtensions = ['.xls', '.xlsx', '.xlsm'];
+  
+  return excelMimeTypes.includes(file.type) || 
+         excelExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+};
+
+/**
+ * Reads a file (CSV or Excel) and converts it to JSON
+ * @param file File to read
+ * @param hasHeader Whether the file has a header row (for CSV)
+ * @returns Promise that resolves with array of objects
+ */
+export const readDataFile = async (file: File, hasHeader: boolean = true): Promise<Record<string, string>[]> => {
+  if (isExcelFile(file)) {
+    return readExcelFile(file);
+  } else {
+    const csvText = await readFileAsText(file);
+    return parseCSV(csvText, hasHeader);
+  }
 };

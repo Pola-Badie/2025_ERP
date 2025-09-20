@@ -15,7 +15,8 @@ import {
   SettingsIcon,
   ReceiptIcon,
   FileDownIcon,
-  Building2Icon
+  Building2Icon,
+  TagIcon
 } from 'lucide-react';
 
 // Import tab components
@@ -30,6 +31,7 @@ import ETAIntegrationTab from '@/components/system-preferences/ETAIntegrationTab
 import QuotationPreviewSettingsTab from '@/components/system-preferences/QuotationPreviewSettingsTab';
 import InvoicePreviewSettingsTab from '@/components/system-preferences/InvoicePreviewSettingsTab';
 import ModuleConfigurationTab from '@/components/system-preferences/ModuleConfigurationTab';
+import OrderStatusTab from '@/components/system-preferences/OrderStatusTab';
 
 const SystemPreferences: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -67,6 +69,8 @@ const SystemPreferences: React.FC = () => {
         return <ReceiptIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       case 'modules':
         return <SettingsIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
+      case 'order-status':
+        return <TagIcon className={`h-5 w-5 mr-2 ${activeClass}`} />;
       default:
         return null;
     }
@@ -108,7 +112,7 @@ const SystemPreferences: React.FC = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-11 border-b rounded-none h-auto gap-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 border-b rounded-none h-auto gap-1">
               <TabsTrigger 
                 value="company" 
                 className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
@@ -186,6 +190,13 @@ const SystemPreferences: React.FC = () => {
                 {renderTabIcon('modules')}
                 <span className="hidden lg:inline ml-1 truncate">Modules</span>
               </TabsTrigger>
+              <TabsTrigger 
+                value="order-status" 
+                className="flex items-center justify-center py-3 px-1 text-xs lg:text-sm data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none min-w-0"
+              >
+                {renderTabIcon('order-status')}
+                <span className="hidden lg:inline ml-1 truncate">Status</span>
+              </TabsTrigger>
             </TabsList>
             
             <div className="p-6">
@@ -231,6 +242,10 @@ const SystemPreferences: React.FC = () => {
               
               <TabsContent value="modules" className="mt-0">
                 <ModuleConfigurationTab preferences={preferences} refetch={refetch} />
+              </TabsContent>
+              
+              <TabsContent value="order-status" className="mt-0">
+                <OrderStatusTab preferences={preferences} refetch={refetch} />
               </TabsContent>
             </div>
           </Tabs>

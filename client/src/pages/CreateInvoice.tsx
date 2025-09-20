@@ -91,6 +91,8 @@ const invoiceFormSchema = z.object({
   discountAmount: z.number().min(0).default(0),
   taxRate: z.number().min(0).max(100),
   taxAmount: z.number(),
+  vatRate: z.number().min(0).max(100),
+  vatAmount: z.number(),
   grandTotal: z.number(),
   paymentStatus: z.enum(['paid', 'unpaid', 'partial']),
   paymentMethod: z.enum(['cash', 'visa', 'cheque', 'bank_transfer']).optional(),
@@ -142,8 +144,10 @@ const defaultFormValues: InvoiceFormValues = {
   discountType: 'none',
   discountValue: 0,
   discountAmount: 0,
-  taxRate: 0,
+  taxRate: 14, // Standard VAT rate 14%
   taxAmount: 0,
+  vatRate: 14, // Standard VAT rate 14%
+  vatAmount: 0,
   grandTotal: 0,
   paymentStatus: 'unpaid',
   paymentMethod: undefined,
@@ -168,6 +172,7 @@ const CreateInvoice = () => {
   const [showOrderSelector, setShowOrderSelector] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+
   
   // Multi-invoice state
   // Store last active invoice ID in localStorage too
@@ -277,25 +282,29 @@ const CreateInvoice = () => {
   const watchPaymentStatus = form.watch('paymentStatus');
 
   // Fetch all customers data
-  const { data: allCustomers = [] } = useQuery<any[]>({
+  const { data: allCustomers = [], isLoading: isLoadingCustomers, error: customersError } = useQuery<any[]>({
     queryKey: ['/api/customers'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/customers');
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+        console.log('🔥 INVOICE: Fetching customers from API...');
+        const response = await fetch(`${window.location.origin}/api/customers`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const text = await res.text();
-        if (!text) return [];
-        return JSON.parse(text);
+        
+        const data = await response.json();
+        console.log(`🔥 INVOICE: Fetched ${Array.isArray(data) ? data.length : 0} customers:`, data);
+        return Array.isArray(data) ? data : [];
       } catch (error) {
-        console.error('Error fetching customers:', error);
+        console.error('🔥 INVOICE ERROR: Failed to fetch customers:', error);
         return [];
       }
     },
-    staleTime: 60000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
-    retry: 1,
+    retry: 3,
+    refetchOnMount: true, // Always fetch on mount
   });
 
   // Filter customers based on search term
@@ -307,18 +316,37 @@ const CreateInvoice = () => {
     customer.email?.toLowerCase().includes(customerSearchTerm.toLowerCase())
   );
 
-  // Fetch all products from inventory
+  // Debug logging for customers
+  useEffect(() => {
+    console.log('🔥 INVOICE: Customer state changed:', {
+      allCustomersCount: allCustomers.length,
+      filteredCustomersCount: customers.length,
+      isLoadingCustomers,
+      customersError,
+      customerSearchTerm
+    });
+  }, [allCustomers, customers, isLoadingCustomers, customersError, customerSearchTerm]);
+
+  // Fetch all products directly from inventory (no warehouse filtering)
   const { data: allProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/products'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/products');
+        console.log('🔥 API ENDPOINT: Fetching from /api/products (all stock)');
+        const res = await fetch('/api/products', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const text = await res.text();
-        if (!text) return [];
-        return JSON.parse(text);
+        
+        const data = await res.json();
+        console.log(`🔥 FRONTEND: Fetched ${data.length} products from all stock`);
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching products:', error);
         return [];
@@ -334,13 +362,19 @@ const CreateInvoice = () => {
     queryKey: ['/api/categories'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/categories');
+        const res = await fetch('/api/categories', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const text = await res.text();
-        if (!text) return [];
-        return JSON.parse(text);
+        
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching categories:', error);
         return [];
@@ -356,13 +390,21 @@ const CreateInvoice = () => {
     queryKey: ['/api/quotations', '', 'all', 'all', 'all'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/quotations?query=&status=all&type=all&date=all');
+        console.log('API GET request to /api/quotations?query=&status=all&type=all&date=all:', null);
+        const res = await fetch('/api/quotations?query=&status=all&type=all&date=all', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const text = await res.text();
-        if (!text) return [];
-        return JSON.parse(text);
+        
+        const data = await res.json();
+        console.log('✅ QUOTATIONS SUCCESS: Received', data.length, 'quotations:', data);
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching quotations:', error);
         return [];
@@ -378,13 +420,21 @@ const CreateInvoice = () => {
     queryKey: ['/api/orders/production-history'],
     queryFn: async () => {
       try {
-        const res = await apiRequest('GET', '/api/orders/production-history');
+        console.log('API GET request to /api/orders/production-history:', null);
+        const res = await fetch('/api/orders/production-history', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const text = await res.text();
-        if (!text) return [];
-        return JSON.parse(text);
+        
+        const data = await res.json();
+        console.log('✅ ORDERS SUCCESS: Received', data.length, 'orders:', data);
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching order history:', error);
         return [];
@@ -395,7 +445,7 @@ const CreateInvoice = () => {
     retry: 1,
   });
 
-  // Filter products based on search term
+  // Filter products based on search term only
   const products = productSearchTerm.length > 0 
     ? allProducts.filter(product => 
         product.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -403,6 +453,9 @@ const CreateInvoice = () => {
         product.category?.toLowerCase().includes(productSearchTerm.toLowerCase())
       )
     : allProducts;
+  
+  // Debug logging
+  console.log(`🔥 FRONTEND: Product filtering - ${allProducts.length} total products, ${products.length} filtered products`);
 
   // Calculate totals automatically when form values change
   useEffect(() => {
@@ -454,8 +507,16 @@ const CreateInvoice = () => {
           hasChanges = true;
         }
 
-        // Calculate grand total
-        const grandTotal = Number((taxableAmount + taxAmount).toFixed(2));
+        // Calculate VAT amount
+        const vatAmount = value.vatRate ? Number(((taxableAmount * value.vatRate) / 100).toFixed(2)) : 0;
+        
+        if (Math.abs(vatAmount - (value.vatAmount || 0)) > 0.01) {
+          updates.vatAmount = vatAmount;
+          hasChanges = true;
+        }
+
+        // Calculate grand total (including both tax and VAT)
+        const grandTotal = Number((taxableAmount + taxAmount + vatAmount).toFixed(2));
         
         if (Math.abs(grandTotal - (value.grandTotal || 0)) > 0.01) {
           updates.grandTotal = grandTotal;
@@ -518,64 +579,13 @@ const CreateInvoice = () => {
     },
   });
 
-  // Mutation for creating an invoice
-  const createInvoiceMutation = useMutation({
-    mutationFn: async (invoiceData: any) => {
-      try {
-        const response = await apiRequest('POST', '/api/invoices', invoiceData);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const text = await response.text();
-        if (!text) throw new Error('Empty response');
-        return JSON.parse(text);
-      } catch (error) {
-        console.error('Error creating invoice:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      toast({
-        title: 'Invoice created',
-        description: `Successfully created invoice #${data.invoiceNumber}`,
-      });
-      
-      // Remove this draft after successful creation
-      setInvoiceDrafts(prev => {
-        const updated = prev.filter(draft => draft.id !== activeInvoiceId);
-        
-        // If no more drafts, create a new empty one
-        if (updated.length === 0) {
-          updated.push({
-            id: 'draft-1',
-            name: 'Invoice 1',
-            data: defaultFormValues,
-            lastUpdated: new Date().toISOString()
-          });
-        }
-        
-        saveDrafts(updated);
-        
-        // Set active invoice to the first one
-        updateActiveInvoiceId(updated[0].id);
-        
-        return updated;
-      });
-      
-      setIsSubmitting(false);
-      setShowInvoicePreview(true);
-      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
-    },
-    onError: (error) => {
-      console.error('Invoice creation error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create invoice. Please try again.',
-        variant: 'destructive',
-      });
-      setIsSubmitting(false);
-    },
-  });
+  // Create invoice function with direct fetch call (same approach as procurement)
+  const createInvoice = async () => {
+    // Clear any previous invoice data
+    setCreatedInvoiceData(null);
+    const formData = form.getValues();
+    await onSubmit(formData);
+  };
 
   // Update form when active invoice changes
   useEffect(() => {
@@ -852,9 +862,53 @@ const CreateInvoice = () => {
     });
   };
 
-  // Handle form submission
-  const onSubmit = (data: InvoiceFormValues) => {
+  // Handle form submission using direct fetch (same approach as procurement)
+  const onSubmit = async (data: InvoiceFormValues) => {
+    console.log('Form submission started', data);
     setIsSubmitting(true);
+    
+    // Validate required fields
+    if (!data.customer.id && !data.customer.name) {
+      toast({
+        title: 'Error',
+        description: 'Please select or create a customer',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (!data.items || data.items.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please add at least one item to the invoice',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    // Validate items
+    for (const item of data.items) {
+      if (!item.productId || item.productId === 0) {
+        toast({
+          title: 'Error',
+          description: 'Please select a product for all items',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      if (!item.quantity || item.quantity <= 0) {
+        toast({
+          title: 'Error',
+          description: 'Please enter a valid quantity for all items',
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
     
     const invoiceData = {
       customer: data.customer.id 
@@ -867,6 +921,7 @@ const CreateInvoice = () => {
             phone: data.customer.phone,
             sector: data.customer.sector,
             address: data.customer.address,
+            taxNumber: data.customer.taxNumber,
           },
       items: data.items.map(item => ({
         productId: item.productId,
@@ -884,7 +939,108 @@ const CreateInvoice = () => {
       notes: data.notes,
     };
     
-    createInvoiceMutation.mutate(invoiceData);
+    console.log('Submitting invoice data:', invoiceData);
+    
+    try {
+      // Create invoice via direct API call (same pattern as procurement)
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(invoiceData)
+      });
+      
+      if (response.ok) {
+        const newInvoice = await response.json();
+        console.log('Invoice created successfully:', newInvoice);
+        
+        // Store the created invoice data including form data for preview
+        const completeInvoiceData = {
+          ...newInvoice,
+          customer: data.customer,
+          items: data.items.map(item => {
+            const product = allProducts.find(p => p.id === item.productId);
+            return {
+              ...item,
+              productName: product?.name || item.productName,
+              category: product?.category || item.category,
+              batchNo: product?.batchNo || item.batchNo,
+            };
+          }),
+          subtotal: data.subtotal,
+          taxRate: data.taxRate,
+          taxAmount: data.taxAmount,
+          discountAmount: data.discountAmount,
+          grandTotal: data.grandTotal,
+          paymentStatus: data.paymentStatus,
+          paymentMethod: data.paymentMethod,
+          paymentTerms: data.paymentTerms,
+          amountPaid: data.amountPaid,
+          notes: data.notes,
+          paperInvoiceNumber: form.watch('paperInvoiceNumber'),
+          approvalNumber: form.watch('approvalNumber'),
+          date: new Date(),
+        };
+        
+        setCreatedInvoiceData(completeInvoiceData);
+        
+        toast({
+          title: 'Success',
+          description: `Invoice #${newInvoice.invoiceNumber} created successfully`,
+        });
+        
+        // Remove this draft after successful creation
+        setInvoiceDrafts(prev => {
+          const updated = prev.filter(draft => draft.id !== activeInvoiceId);
+          
+          // If no more drafts, create a new empty one
+          if (updated.length === 0) {
+            updated.push({
+              id: 'draft-1',
+              name: 'Invoice 1',
+              data: defaultFormValues,
+              lastUpdated: new Date().toISOString()
+            });
+          }
+          
+          saveDrafts(updated);
+          
+          // Set active invoice to the first one
+          updateActiveInvoiceId(updated[0].id);
+          
+          return updated;
+        });
+        
+        // Reset form
+        form.reset(defaultFormValues);
+        setShowInvoicePreview(true);
+        
+        // Trigger global cache invalidation
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/accounting'] });
+        
+      } else {
+        const errorText = await response.text();
+        console.error('Invoice creation failed:', errorText);
+        toast({
+          title: 'Error',
+          description: `Failed to create invoice: ${errorText}`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Invoice creation error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create invoice. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const [mainTab, setMainTab] = useState("create");
@@ -894,6 +1050,7 @@ const CreateInvoice = () => {
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [createdInvoiceData, setCreatedInvoiceData] = useState<any>(null);
   const printRef = React.useRef<HTMLDivElement>(null);
 
   // Load saved drafts from localStorage
@@ -1042,7 +1199,6 @@ const CreateInvoice = () => {
           <p className="text-muted-foreground">{t('createNewInvoicesAndManageDrafts')}</p>
         </div>
       </div>
-
       {/* Main Tab Navigation */}
       <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
@@ -1078,8 +1234,8 @@ const CreateInvoice = () => {
                     status: 'draft'
                   }));
                   toast({
-                    title: "Draft Saved",
-                    description: "Invoice has been saved as draft successfully",
+                    title: t('draftSaved'),
+                    description: t('invoiceSavedAsDraft'),
                   });
                 }}
                 disabled={isSubmitting}
@@ -1159,7 +1315,7 @@ const CreateInvoice = () => {
             <p>{t('invoiceProgressAutoSaved')}</p>
           </div>
           <div className="text-sm bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200">
-            <span className="font-medium">{t('nextInvoiceNumber')}:</span> INV-{String(new Date().getMonth() + 1).padStart(2, '0')}{new Date().getFullYear().toString().slice(-2)}{String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}
+            <span className="font-medium">{t('nextInvoiceNumber')}:</span> Auto-generated
           </div>
         </div>
       </div>
@@ -1209,77 +1365,91 @@ const CreateInvoice = () => {
                               onValueChange={setCustomerSearchTerm}
                             />
                             <CommandList>
-                              <CommandEmpty>
-                                {customerSearchTerm.length > 0 ? (
-                                  <div className="py-6 text-center text-sm">
-                                    <p>{t('noCustomersFoundFor')} "{customerSearchTerm}"</p>
-                                    <Button 
-                                      variant="outline" 
-                                      className="mt-2"
-                                      onClick={() => {
+                              {isLoadingCustomers ? (
+                                <div className="py-6 text-center text-sm">
+                                  <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+                                  <p>{t('loadingCustomers') || 'Loading customers...'}</p>
+                                </div>
+                              ) : (
+                                <>
+                                  <CommandEmpty>
+                                    {customerSearchTerm.length > 0 ? (
+                                      <div className="py-6 text-center text-sm">
+                                        <p>{t('noCustomersFoundFor')} "{customerSearchTerm}"</p>
+                                        <Button 
+                                          variant="outline" 
+                                          className="mt-2"
+                                          onClick={() => {
+                                            setIsCreatingCustomer(true);
+                                            setCustomerDropdownOpen(false);
+                                          }}
+                                        >
+                                          <Plus className="mr-2 h-4 w-4" />
+                                          {t('createNewCustomer')}
+                                        </Button>
+                                      </div>
+                                    ) : (
+                                      <div className="py-6 text-center text-sm">
+                                        <p>{t('typeToSearchCustomers')}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          {allCustomers.length} {t('customersAvailable') || 'customers available'}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </CommandEmpty>
+                                  <CommandGroup heading={`${t('customers')} (${customers.length})`}>
+                                    {customers.map((customer) => (
+                                      <CommandItem
+                                        key={customer.id}
+                                        value={customer.name}
+                                        onSelect={() => handleCustomerSelection(customer)}
+                                        className="flex items-center justify-between py-3"
+                                      >
+                                        <div className="flex items-center flex-1">
+                                          <Check
+                                            className={cn(
+                                              "mr-2 h-4 w-4",
+                                              selectedCustomerId === customer.id
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            )}
+                                          />
+                                          <div className="flex flex-col flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <span className="font-medium">{customer.company || customer.name}</span>
+                                              {customer.company && customer.name && (
+                                                <span className="text-xs text-muted-foreground">• {customer.name}</span>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                              {customer.phone && (
+                                                <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                                                  {customer.phone}
+                                                </span>
+                                              )}
+                                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                                                CUST-{String(customer.id).padStart(4, '0')}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                  <CommandGroup>
+                                    <CommandItem
+                                      onSelect={() => {
                                         setIsCreatingCustomer(true);
                                         setCustomerDropdownOpen(false);
                                       }}
+                                      className="text-blue-600"
                                     >
                                       <Plus className="mr-2 h-4 w-4" />
                                       {t('createNewCustomer')}
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  t('typeToSearchCustomers')
-                                )}
-                              </CommandEmpty>
-                              <CommandGroup heading={t('customers')}>
-                                {customers.map((customer) => (
-                                  <CommandItem
-                                    key={customer.id}
-                                    value={customer.name}
-                                    onSelect={() => handleCustomerSelection(customer)}
-                                    className="flex items-center justify-between py-3"
-                                  >
-                                    <div className="flex items-center flex-1">
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          selectedCustomerId === customer.id
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        )}
-                                      />
-                                      <div className="flex flex-col flex-1">
-                                        <div className="flex items-center gap-2">
-                                          <span className="font-medium">{customer.company || customer.name}</span>
-                                          {customer.company && customer.name && (
-                                            <span className="text-xs text-muted-foreground">• {customer.name}</span>
-                                          )}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          {customer.phone && (
-                                            <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                                              {customer.phone}
-                                            </span>
-                                          )}
-                                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                                            CUST-{String(customer.id).padStart(4, '0')}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                              <CommandGroup>
-                                <CommandItem
-                                  onSelect={() => {
-                                    setIsCreatingCustomer(true);
-                                    setCustomerDropdownOpen(false);
-                                  }}
-                                  className="text-blue-600"
-                                >
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  {t('createNewCustomer')}
-                                </CommandItem>
-                              </CommandGroup>
+                                    </CommandItem>
+                                  </CommandGroup>
+                                </>
+                              )}
                             </CommandList>
                           </Command>
                         </PopoverContent>
@@ -1454,11 +1624,11 @@ const CreateInvoice = () => {
                     </p>
                   </div>
                   <div>
-                    <Label htmlFor="customerEmail">Email</Label>
+                    <Label htmlFor="customerEmail">{t('email')}</Label>
                     <Input
                       id="customerEmail"
                       type="email"
-                      placeholder="customer@example.com"
+                      placeholder={t('emailPlaceholder')}
                       {...form.register('customer.email')}
                     />
                     {form.formState.errors.customer?.email && (
@@ -1468,10 +1638,10 @@ const CreateInvoice = () => {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="customerAddress">Address</Label>
+                    <Label htmlFor="customerAddress">{t('address')}</Label>
                     <Textarea
                       id="customerAddress"
-                      placeholder="Customer address"
+                      placeholder={t('addressPlaceholder')}
                       {...form.register('customer.address')}
                     />
                   </div>
@@ -1483,7 +1653,7 @@ const CreateInvoice = () => {
                     {createCustomerMutation.isPending && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Save Customer
+{t('saveCustomer')}
                   </Button>
                 </div>
               )}
@@ -1494,63 +1664,63 @@ const CreateInvoice = () => {
         {/* Invoice Items Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Invoice Items</CardTitle>
+            <CardTitle>{t('invoiceItems')}</CardTitle>
             <CardDescription>
-              Add products to this invoice
+              {t('addProductsToInvoice')}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex justify-between mb-4">
-              <div className="space-x-2">
+            <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} justify-between items-center mb-4`}>
+              <div className={`flex ${isRTL ? 'flex-row-reverse space-x-reverse' : ''} gap-3`}>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={addProductRow}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Item
+                  <Plus className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('addItem')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowQuotationSelector(true)}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Select from Quotations
+                  <FileText className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('selectFromQuotations')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowOrderSelector(true)}
                 >
-                  <Package className="mr-2 h-4 w-4" />
-                  Select from Order History
+                  <Package className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('selectFromOrderHistory')}
                 </Button>
               </div>
-              <div className="space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPrintPreview(true)}
-                >
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print Preview
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowPrintPreview(true)}
+              >
+                <Printer className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                {t('printPreview')}
+              </Button>
             </div>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[200px]">Product</TableHead>
-                    <TableHead className="w-[120px]">Category</TableHead>
-                    <TableHead className="w-[100px]">Batch No.</TableHead>
-                    <TableHead className="w-[120px]">GS1 Code</TableHead>
-                    <TableHead className="w-[80px]">Type</TableHead>
-                    <TableHead className="w-[100px] text-right">Quantity</TableHead>
-                    <TableHead className="w-[120px] text-right">Unit Price</TableHead>
-                    <TableHead className="w-[120px] text-right">Total</TableHead>
-                    <TableHead className="w-[60px]">Action</TableHead>
+                    <TableHead className="w-[200px]">{t('product')}</TableHead>
+                    <TableHead className="w-[120px]">{t('category')}</TableHead>
+                    <TableHead className="w-[100px]">{t('batchNo')}</TableHead>
+                    <TableHead className="w-[120px]">{t('gs1Code')}</TableHead>
+                    <TableHead className="w-[80px]">{t('type')}</TableHead>
+                    <TableHead className="w-[120px]">{t('grade')}</TableHead>
+                    <TableHead className={`w-[100px] ${isRTL ? 'text-left' : 'text-right'}`}>{t('quantity')}</TableHead>
+                    <TableHead className="w-[80px] text-center">UoM</TableHead>
+                    <TableHead className={`w-[120px] ${isRTL ? 'text-left' : 'text-right'}`}>{t('unitPrice')}</TableHead>
+                    <TableHead className={`w-[120px] ${isRTL ? 'text-left' : 'text-right'}`}>{t('total')}</TableHead>
+                    <TableHead className="w-[60px]">{t('action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1574,27 +1744,27 @@ const CreateInvoice = () => {
                             <Button
                               variant="outline"
                               role="combobox"
-                              className="w-full justify-between text-left"
+                              className={`w-full justify-between ${isRTL ? 'text-right' : 'text-left'}`}
                             >
                               <span className="truncate">
-                                {form.watch(`items.${index}.productName`) || "Select a product..."}
+                                {form.watch(`items.${index}.productName`) || t('selectProduct')}
                               </span>
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              <ChevronsUpDown className={`${isRTL ? 'mr-2' : 'ml-2'} h-4 w-4 shrink-0 opacity-50`} />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-[400px] p-0">
                             <Command>
                               <CommandInput 
-                                placeholder="Search products..." 
+                                placeholder={t('searchProducts')} 
                                 value={productSearchTerm}
                                 onValueChange={setProductSearchTerm}
                                 className="h-9" 
                               />
                               <CommandList>
                                 <CommandEmpty>
-                                  <p className="py-3 text-center text-sm">No products found</p>
+                                  <p className="py-3 text-center text-sm">{t('noProductsFound')}</p>
                                 </CommandEmpty>
-                                <CommandGroup heading="Products">
+                                <CommandGroup heading={t('products')}>
                                   {products.map((product) => (
                                     <CommandItem
                                       key={product.id}
@@ -1605,7 +1775,7 @@ const CreateInvoice = () => {
                                         <div className="flex-1">
                                           <div className="font-medium">{product.name}</div>
                                           <div className="text-xs text-muted-foreground">
-                                            {categories.find(c => c.id === product.categoryId)?.name || 'No Category'} • {product.sku || 'No SKU'} • {product.barcode || 'No Barcode'}
+                                            {categories.find(c => c.id === product.categoryId)?.name || t('noCategory')} • {product.sku || t('noSku')} • {product.barcode || t('noBarcode')}
                                           </div>
                                         </div>
                                         <div className="text-right">
@@ -1645,6 +1815,17 @@ const CreateInvoice = () => {
                       <TableCell>
                         <span className="text-sm">{form.watch(`items.${index}.type`) || '-'}</span>
                       </TableCell>
+                      <TableCell>
+                        <select
+                          value={form.watch(`items.${index}.grade`) || 'P'}
+                          onChange={(e) => form.setValue(`items.${index}.grade`, e.target.value)}
+                          className="w-16 h-8 px-2 text-sm font-bold text-center border border-gray-300 rounded bg-white hover:border-blue-400 focus:border-blue-500 focus:outline-none cursor-pointer"
+                        >
+                          <option value="P">(P)</option>
+                          <option value="F">(F)</option>
+                          <option value="T">(T)</option>
+                        </select>
+                      </TableCell>
                       <TableCell className="text-right">
                         <Input
                           type="number"
@@ -1658,6 +1839,11 @@ const CreateInvoice = () => {
                             }
                           })}
                         />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-sm font-medium text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                          {form.watch(`items.${index}.unitOfMeasure`) || form.watch(`items.${index}.uom`) || 'Pcs'}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <Input
@@ -1683,10 +1869,33 @@ const CreateInvoice = () => {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          disabled={fields.length === 1}
-                          onClick={() => {
+                          disabled={false}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log(`🗑️ DELETE: Attempting to remove item at index ${index}, current fields length: ${fields.length}`);
                             if (fields.length > 1) {
                               remove(index);
+                              console.log(`🗑️ DELETE SUCCESS: Removed item at index ${index}`);
+                              toast({
+                                title: "Item removed",
+                                description: "Product item has been removed from the invoice.",
+                              });
+                            } else {
+                              // If only one item, reset it instead of removing
+                              form.setValue(`items.${index}.productId`, 0);
+                              form.setValue(`items.${index}.productName`, '');
+                              form.setValue(`items.${index}.category`, '');
+                              form.setValue(`items.${index}.batchNo`, '');
+                              form.setValue(`items.${index}.gs1Code`, '');
+                              form.setValue(`items.${index}.type`, '');
+                              form.setValue(`items.${index}.quantity`, 1);
+                              form.setValue(`items.${index}.unitPrice`, 0);
+                              form.setValue(`items.${index}.total`, 0);
+                              console.log(`🗑️ RESET: Reset the last remaining item at index ${index}`);
+                              toast({
+                                title: "Item cleared",
+                                description: "The last item has been cleared. At least one item row is required.",
+                              });
                             }
                           }}
                         >
@@ -1697,8 +1906,8 @@ const CreateInvoice = () => {
                   ))}
                   {fields.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-4">
-                        No items added. Click "Add Item" to add products to this invoice.
+                      <TableCell colSpan={10} className="text-center py-4">
+                        {t('noItemsAdded')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -1713,8 +1922,8 @@ const CreateInvoice = () => {
                   onClick={addProductRow}
                   className="mt-4"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Another Item
+                  <Plus className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('addAnotherItem')}
                 </Button>
               )}
             </div>
@@ -1724,39 +1933,39 @@ const CreateInvoice = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Payment Details */}
               <div className="space-y-4">
-                <h3 className="font-medium">Payment Details</h3>
+                <h3 className="font-medium">{t('paymentDetails')}</h3>
                 <div>
-                  <Label htmlFor="paymentStatus">Payment Status</Label>
+                  <Label htmlFor="paymentStatus">{t('paymentStatus')}</Label>
                   <Select
                     value={form.watch('paymentStatus')}
                     onValueChange={(value) => form.setValue('paymentStatus', value as 'paid' | 'unpaid' | 'partial')}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select payment status" />
+                      <SelectValue placeholder={t('selectPaymentStatus')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="unpaid">Unpaid</SelectItem>
-                      <SelectItem value="partial">Partial Payment</SelectItem>
+                      <SelectItem value="paid">{t('paid')}</SelectItem>
+                      <SelectItem value="unpaid">{t('unpaid')}</SelectItem>
+                      <SelectItem value="partial">{t('partialPayment')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {form.watch('paymentStatus') !== 'unpaid' && (
                   <div>
-                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <Label htmlFor="paymentMethod">{t('paymentMethod')}</Label>
                     <Select
                       value={form.watch('paymentMethod') || ''}
                       onValueChange={(value) => form.setValue('paymentMethod', value as any)}
                     >
                       <SelectTrigger id="paymentMethod">
-                        <SelectValue placeholder="Select payment method" />
+                        <SelectValue placeholder={t('selectPaymentMethod')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="visa">Visa</SelectItem>
-                        <SelectItem value="cheque">Cheque</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="cash">{t('cash')}</SelectItem>
+                        <SelectItem value="visa">{t('visa')}</SelectItem>
+                        <SelectItem value="cheque">{t('cheque')}</SelectItem>
+                        <SelectItem value="bank_transfer">{t('bankTransfer')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1764,7 +1973,9 @@ const CreateInvoice = () => {
                 
                 {(form.watch('paymentMethod') === 'cheque' || form.watch('paymentMethod') === 'bank_transfer') && (
                   <div>
-                    <Label htmlFor="paymentProof">Upload {form.watch('paymentMethod') === 'cheque' ? 'Cheque' : 'Transfer'} Document</Label>
+                    <Label htmlFor="paymentProof">
+                      {t('uploadDocument').replace('{type}', form.watch('paymentMethod') === 'cheque' ? t('cheque') : t('bankTransfer'))}
+                    </Label>
                     <Input
                       id="paymentProof"
                       type="file"
@@ -1780,27 +1991,27 @@ const CreateInvoice = () => {
                 )}
                 
                 <div>
-                  <Label htmlFor="paymentTerms">Payment Terms (Days)</Label>
+                  <Label htmlFor="paymentTerms">{t('paymentTermsDays')}</Label>
                   <Select
                     value={form.watch('paymentTerms')}
                     onValueChange={(value) => form.setValue('paymentTerms', value)}
                   >
                     <SelectTrigger id="paymentTerms">
-                      <SelectValue placeholder="Select payment terms" />
+                      <SelectValue placeholder={t('selectPaymentTerms')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="0">Due Immediately (0 days)</SelectItem>
-                      <SelectItem value="7">Net 7 (7 days)</SelectItem>
-                      <SelectItem value="15">Net 15 (15 days)</SelectItem>
-                      <SelectItem value="30">Net 30 (30 days)</SelectItem>
-                      <SelectItem value="60">Net 60 (60 days)</SelectItem>
+                      <SelectItem value="0">{t('dueImmediately')}</SelectItem>
+                      <SelectItem value="7">{t('net7')}</SelectItem>
+                      <SelectItem value="15">{t('net15')}</SelectItem>
+                      <SelectItem value="30">{t('net30')}</SelectItem>
+                      <SelectItem value="60">{t('net60')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 {form.watch('paymentStatus') === 'partial' && (
                   <div>
-                    <Label htmlFor="amountPaid">Amount Paid</Label>
+                    <Label htmlFor="amountPaid">{t('amountPaid')}</Label>
                     <Input
                       id="amountPaid"
                       type="number"
@@ -1814,11 +2025,11 @@ const CreateInvoice = () => {
               
               {/* Order Summary */}
               <div>
-                <h3 className="font-medium mb-4">Order Summary</h3>
+                <h3 className="font-medium mb-4">{t('orderSummary')}</h3>
                 <div className="space-y-3 bg-muted/50 rounded-lg p-4">
                   <div className="grid grid-cols-2 text-sm py-2">
-                    <span>Subtotal</span>
-                    <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
+                    <span>{t('subtotal')}</span>
+                    <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: 'USD'
                     }).format(form.watch('subtotal') || 0)}</span>
@@ -1826,19 +2037,19 @@ const CreateInvoice = () => {
                   
                   {/* Discount Section */}
                   <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
-                    <Label htmlFor="discountType" className="text-sm">Discount</Label>
-                    <div className="flex justify-end space-x-2">
+                    <Label htmlFor="discountType" className="text-sm">{t('discount')}</Label>
+                    <div className={`flex ${isRTL ? 'justify-start space-x-reverse' : 'justify-end'} space-x-2`}>
                       <Select
                         value={form.watch('discountType')}
                         onValueChange={(value) => form.setValue('discountType', value as 'none' | 'percentage' | 'amount')}
                       >
                         <SelectTrigger className="w-24">
-                          <SelectValue placeholder="Type" />
+                          <SelectValue placeholder={t('type')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="percentage">Percentage</SelectItem>
-                          <SelectItem value="amount">Amount</SelectItem>
+                          <SelectItem value="none">{t('none')}</SelectItem>
+                          <SelectItem value="percentage">{t('percentage')}</SelectItem>
+                          <SelectItem value="amount">{t('amount')}</SelectItem>
                         </SelectContent>
                       </Select>
                       
@@ -1864,9 +2075,9 @@ const CreateInvoice = () => {
                   
                   {form.watch('discountType') !== 'none' && form.watch('discountAmount') > 0 && (
                     <div className="grid grid-cols-2 text-sm py-2">
-                      <span>Discount {form.watch('discountType') === 'percentage' ? 
-                        `(${form.watch('discountValue')}%)` : 'Amount'}</span>
-                      <span className="text-right font-medium text-green-600">-{new Intl.NumberFormat('en-US', {
+                      <span>{t('discount')} {form.watch('discountType') === 'percentage' ? 
+                        `(${form.watch('discountValue')}%)` : t('amount')}</span>
+                      <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-green-600`}>-{new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: 'USD'
                       }).format(form.watch('discountAmount') || 0)}</span>
@@ -1876,8 +2087,8 @@ const CreateInvoice = () => {
                   {/* Subtotal after discount shown only if discount applied */}
                   {form.watch('discountType') !== 'none' && form.watch('discountAmount') > 0 && (
                     <div className="grid grid-cols-2 text-sm py-2 border-b pb-2">
-                      <span>Subtotal after discount</span>
-                      <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
+                      <span>{t('subtotalAfterDiscount')}</span>
+                      <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                         style: 'currency',
                         currency: 'USD'
                       }).format((form.watch('subtotal') || 0) - (form.watch('discountAmount') || 0))}</span>
@@ -1885,33 +2096,58 @@ const CreateInvoice = () => {
                   )}
                   
                   <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
-                    <Label htmlFor="taxRate" className="text-sm">Tax Rate (%)</Label>
-                    <div className="flex justify-end">
+                    <Label htmlFor="taxRate" className="text-sm">{t('taxRate')}</Label>
+                    <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
                       <Input
                         id="taxRate"
                         type="number"
                         min="0"
                         max="100"
                         step="0.01"
-                        className="w-20 text-right"
+                        className={`w-20 ${isRTL ? 'text-left' : 'text-right'}`}
                         {...form.register('taxRate', { valueAsNumber: true })}
                       />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-2 text-sm py-2">
-                    <span>Tax Amount</span>
-                    <span className="text-right font-medium">{new Intl.NumberFormat('en-US', {
+                    <span>{t('taxAmount')}</span>
+                    <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: 'USD'
                     }).format(form.watch('taxAmount') || 0)}</span>
+                  </div>
+
+                  {/* VAT Rate Input */}
+                  <div className="grid grid-cols-2 gap-2 items-center border-b pb-2">
+                    <Label htmlFor="vatRate" className="text-sm">{t('vatRate')}</Label>
+                    <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
+                      <Input
+                        id="vatRate"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className={`w-20 ${isRTL ? 'text-left' : 'text-right'}`}
+                        {...form.register('vatRate', { valueAsNumber: true })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* VAT Amount Display */}
+                  <div className="grid grid-cols-2 text-sm py-2">
+                    <span>{t('vatAmount')}</span>
+                    <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-blue-600`}>{new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: 'USD'
+                    }).format(form.watch('vatAmount') || 0)}</span>
                   </div>
                   
                   <Separator />
                   
                   <div className="grid grid-cols-2 py-2">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-right font-bold text-lg">{new Intl.NumberFormat('en-US', {
+                    <span className="font-semibold">{t('total')}</span>
+                    <span className={`${isRTL ? 'text-left' : 'text-right'} font-bold text-lg`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
                       currency: 'USD'
                     }).format(form.watch('grandTotal') || 0)}</span>
@@ -1920,16 +2156,16 @@ const CreateInvoice = () => {
                   {form.watch('paymentStatus') === 'partial' && (
                     <>
                       <div className="grid grid-cols-2 text-sm py-2">
-                        <span>Amount Paid</span>
-                        <span className="text-right font-medium text-green-600">{new Intl.NumberFormat('en-US', {
+                        <span>{t('amountPaid')}</span>
+                        <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-green-600`}>{new Intl.NumberFormat('en-US', {
                           style: 'currency',
                           currency: 'USD'
                         }).format(form.watch('amountPaid') || 0)}</span>
                       </div>
                       
                       <div className="grid grid-cols-2 text-sm py-2">
-                        <span>Balance Due</span>
-                        <span className="text-right font-medium text-red-600">{new Intl.NumberFormat('en-US', {
+                        <span>{t('balanceDue')}</span>
+                        <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-red-600`}>{new Intl.NumberFormat('en-US', {
                           style: 'currency',
                           currency: 'USD'
                         }).format((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0))}</span>
@@ -1942,22 +2178,31 @@ const CreateInvoice = () => {
             
             {/* Notes */}
             <div className="mt-6">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t('notes')}</Label>
               <Textarea
                 id="notes"
-                placeholder="Add any additional notes or terms..."
+                placeholder={t('additionalNotes')}
                 className="min-h-[100px]"
                 {...form.register('notes')}
               />
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter className={`flex ${isRTL ? 'flex-row-reverse' : ''} justify-between`}>
             <Button variant="outline" onClick={() => window.history.back()} disabled={isSubmitting}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Invoice
+              {isSubmitting && <Loader2 className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4 animate-spin`} />}
+              {t('createInvoiceButton')}
+            </Button>
+            <Button 
+              type="button" 
+              onClick={createInvoice} 
+              disabled={isSubmitting}
+              className="ml-2"
+            >
+              {isSubmitting && <Loader2 className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4 animate-spin`} />}
+              {t('createInvoiceButton')} (Direct)
             </Button>
           </CardFooter>
         </Card>
@@ -1967,23 +2212,23 @@ const CreateInvoice = () => {
       <Dialog open={showInvoicePreview} onOpenChange={setShowInvoicePreview}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Invoice Created</DialogTitle>
+            <DialogTitle>{t('invoiceCreated')}</DialogTitle>
             <DialogDescription>
-              Your invoice has been created successfully.
+              {t('invoiceCreatedSuccessfully')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <p>What would you like to do next?</p>
+            <p>{t('whatWouldYouLikeToDoNext')}</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => window.location.href = "/invoices"}>
-              View All Invoices
+              {t('viewAllInvoices')}
             </Button>
             <Button onClick={() => {
               setShowInvoicePreview(false);
               form.reset(defaultFormValues);
             }}>
-              Create Another Invoice
+              {t('createAnotherInvoice')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1992,10 +2237,10 @@ const CreateInvoice = () => {
 
         {/* Draft Invoices Tab */}
         <TabsContent value="drafts" className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} justify-between items-center`}>
             <div>
-              <h2 className="text-xl font-semibold">Draft Invoices</h2>
-              <p className="text-muted-foreground">Manage your saved invoice drafts</p>
+              <h2 className="text-xl font-semibold">{t('draftInvoices')}</h2>
+              <p className="text-muted-foreground">{t('manageYourSavedInvoiceDrafts')}</p>
             </div>
             <Button 
               variant="outline" 
@@ -2011,14 +2256,14 @@ const CreateInvoice = () => {
                 keysToRemove.forEach(key => localStorage.removeItem(key));
                 setSavedDrafts([]);
                 toast({
-                  title: "All Drafts Cleared",
-                  description: "All invoice drafts have been deleted",
+                  title: t('allDraftsCleared'),
+                  description: t('allInvoiceDraftsHaveBeenDeleted'),
                 });
               }}
               disabled={savedDrafts.length === 0}
             >
-              <Trash className="mr-2 h-4 w-4" />
-              Clear All Drafts
+              <Trash className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+              {t('clearAllDrafts')}
             </Button>
           </div>
 
@@ -2026,13 +2271,13 @@ const CreateInvoice = () => {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Draft Invoices</h3>
+                <h3 className="text-lg font-medium mb-2">{t('noDraftInvoices')}</h3>
                 <p className="text-muted-foreground text-center mb-4">
-                  You haven't saved any invoice drafts yet. Create an invoice and use "Save as Draft" to see them here.
+                  {t('youHaventSavedAnyInvoiceDrafts')}
                 </p>
                 <Button onClick={() => setMainTab("create")} variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create New Invoice
+                  <Plus className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                  {t('createNewInvoice')}
                 </Button>
               </CardContent>
             </Card>
@@ -2043,35 +2288,35 @@ const CreateInvoice = () => {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
+                        <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2 mb-2`}>
                           <FileText className="w-5 h-5 text-blue-600" />
                           <h3 className="font-medium">
-                            {draft.customer?.name ? `Invoice for ${draft.customer.name}` : 'Untitled Invoice Draft'}
+                            {draft.customer?.name ? `${t('invoiceFor')} ${draft.customer.name}` : t('untitledInvoiceDraft')}
                           </h3>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Draft
+                            {t('draft')}
                           </span>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-2">
+                          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                             <User className="w-4 h-4" />
-                            <span>{draft.customer?.company || draft.customer?.name || 'No customer selected'}</span>
+                            <span>{draft.customer?.company || draft.customer?.name || t('noCustomerSelected')}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                             <Calendar className="w-4 h-4" />
-                            <span>Saved {new Date(draft.savedAt).toLocaleDateString()}</span>
+                            <span>{t('saved')} {new Date(draft.savedAt).toLocaleDateString()}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
                             <FileText className="w-4 h-4" />
-                            <span>{draft.items?.length || 0} items</span>
+                            <span>{draft.items?.length || 0} {t('items')}</span>
                           </div>
                         </div>
                         
                         {draft.items && draft.items.length > 0 && (
                           <div className="mt-3">
                             <p className="text-sm font-medium text-green-600">
-                              Total: {new Intl.NumberFormat('en-US', {
+                              {t('total')}: {new Intl.NumberFormat('en-US', {
                                 style: 'currency',
                                 currency: 'USD'
                               }).format(draft.grandTotal || 0)}
@@ -2080,14 +2325,14 @@ const CreateInvoice = () => {
                         )}
                       </div>
                       
-                      <div className="flex items-center space-x-2 ml-4">
+                      <div className={`flex items-center ${isRTL ? 'space-x-reverse mr-4' : 'space-x-2 ml-4'}`}>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => loadDraft(draft.key)}
                         >
-                          <Printer className="mr-2 h-4 w-4" />
-                          Load Draft
+                          <Printer className={`${isRTL ? 'ml-2' : 'mr-2'} h-4 w-4`} />
+                          {t('loadDraft')}
                         </Button>
                         <Button
                           variant="outline"
@@ -2106,14 +2351,13 @@ const CreateInvoice = () => {
           )}
         </TabsContent>
       </Tabs>
-
       {/* Quotation Selector Dialog */}
       <Dialog open={showQuotationSelector} onOpenChange={setShowQuotationSelector}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Select from Quotations</DialogTitle>
+            <DialogTitle>{t('selectFromQuotations')}</DialogTitle>
             <DialogDescription>
-              Choose a quotation to import its items and customer information into this invoice
+              {t('chooseQuotationToImport')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2121,9 +2365,9 @@ const CreateInvoice = () => {
             {quotations.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Quotations Found</h3>
+                <h3 className="text-lg font-medium mb-2">{t('noQuotationsFound')}</h3>
                 <p className="text-muted-foreground">
-                  There are no quotations available to import from.
+                  {t('noQuotationsAvailable')}
                 </p>
               </div>
             ) : (
@@ -2141,7 +2385,7 @@ const CreateInvoice = () => {
                               quotation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {quotation.status}
+                              {t(quotation.status)}
                             </span>
                           </div>
                           
@@ -2149,7 +2393,7 @@ const CreateInvoice = () => {
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center space-x-2">
                                 <User className="w-4 h-4" />
-                                <span>{quotation.customerName || 'No Customer'}</span>
+                                <span>{quotation.customerName || t('noCustomer')}</span>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Calendar className="w-4 h-4" />
@@ -2157,7 +2401,7 @@ const CreateInvoice = () => {
                               </div>
                               <div className="flex items-center space-x-2">
                                 <FileText className="w-4 h-4" />
-                                <span>{quotation.items?.length || 0} items</span>
+                                <span>{quotation.items?.length || 0} {t('items')}</span>
                               </div>
                             </div>
                           </div>
@@ -2165,7 +2409,7 @@ const CreateInvoice = () => {
                           {quotation.items && quotation.items.length > 0 && (
                             <div className="mt-3">
                               <p className="text-sm font-medium text-blue-600">
-                                Total: {new Intl.NumberFormat('en-US', {
+                                {t('total')}: {new Intl.NumberFormat('en-US', {
                                   style: 'currency',
                                   currency: 'USD'
                                 }).format(quotation.total || quotation.amount || 0)}
@@ -2175,7 +2419,7 @@ const CreateInvoice = () => {
                         </div>
                         
                         <Button variant="outline" size="sm">
-                          Import
+                          {t('import')}
                         </Button>
                       </div>
                     </CardContent>
@@ -2187,19 +2431,18 @@ const CreateInvoice = () => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowQuotationSelector(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Order Selector Dialog */}
       <Dialog open={showOrderSelector} onOpenChange={setShowOrderSelector}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Select from Order History</DialogTitle>
+            <DialogTitle>{t('selectFromOrderHistory')}</DialogTitle>
             <DialogDescription>
-              Choose a completed order to import its details into this invoice
+              {t('chooseCompletedOrder')}
             </DialogDescription>
           </DialogHeader>
           
@@ -2207,9 +2450,9 @@ const CreateInvoice = () => {
             {orders.length === 0 ? (
               <div className="text-center py-8">
                 <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Orders Found</h3>
+                <h3 className="text-lg font-medium mb-2">{t('noOrdersFound')}</h3>
                 <p className="text-muted-foreground">
-                  There are no completed orders available to import from.
+                  {t('noCompletedOrdersAvailable')}
                 </p>
               </div>
             ) : (
@@ -2234,7 +2477,7 @@ const CreateInvoice = () => {
                                 order.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
                                 'bg-gray-100 text-gray-700'
                               }`}>
-                                {order.status}
+                                {t(order.status)}
                               </div>
                             </div>
                           </div>
@@ -2251,14 +2494,14 @@ const CreateInvoice = () => {
                               </div>
                               <div className="flex items-center space-x-2">
                                 <FileText className="w-4 h-4" />
-                                <span>Batch: {order.batchNumber}</span>
+                                <span>{t('batch')}: {order.batchNumber}</span>
                               </div>
                             </div>
                           </div>
                           
                           <div className="mt-3">
                             <p className="text-sm font-medium text-green-600">
-                              Revenue: {new Intl.NumberFormat('en-US', {
+                              {t('revenue')}: {new Intl.NumberFormat('en-US', {
                                 style: 'currency',
                                 currency: 'USD'
                               }).format(order.revenue || order.totalCost || 0)}
@@ -2267,7 +2510,7 @@ const CreateInvoice = () => {
                         </div>
                         
                         <Button variant="outline" size="sm">
-                          Import
+                          {t('import')}
                         </Button>
                       </div>
                     </CardContent>
@@ -2279,12 +2522,11 @@ const CreateInvoice = () => {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowOrderSelector(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Invoice Preview Dialog */}
       <Dialog open={showInvoicePreview} onOpenChange={setShowInvoicePreview}>
         <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -2321,53 +2563,221 @@ const CreateInvoice = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto border rounded-md bg-gray-50 p-4">
-            <div ref={printRef}>
-              <PrintableInvoice
-                invoiceNumber={`INV-${String(new Date().getMonth() + 1).padStart(2, '0')}${new Date().getFullYear().toString().slice(-2)}${String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}`}
-                paperInvoiceNumber={form.watch('paperInvoiceNumber') || ''}
-                approvalNumber={form.watch('approvalNumber') || ''}
-                date={new Date()}
-                customer={{
-                  id: form.watch('customer.id'),
-                  name: form.watch('customer.name') || '',
-                  company: form.watch('customer.company') || '',
-                  position: form.watch('customer.position') || '',
-                  email: form.watch('customer.email') || '',
-                  phone: form.watch('customer.phone') || '',
-                  address: form.watch('customer.address') || '',
-                  sector: form.watch('customer.sector') || '',
-                  taxNumber: form.watch('customer.taxNumber') || '',
-                }}
-                items={form.watch('items').map(item => ({
-                  productName: item.productName || '',
-                  category: item.category || '',
-                  batchNo: item.batchNo || '',
-                  quantity: item.quantity || 0,
-                  unitPrice: item.unitPrice || 0,
-                  total: item.total || 0,
-                }))}
-                subtotal={form.watch('subtotal') || 0}
-                discountAmount={form.watch('discountAmount') || 0}
-                taxRate={form.watch('taxRate') || 0}
-                taxAmount={form.watch('taxAmount') || 0}
-                grandTotal={form.watch('grandTotal') || 0}
-                paymentTerms={form.watch('paymentTerms') || '0'}
-                notes={form.watch('notes') || ''}
-                amountPaid={form.watch('amountPaid') || 0}
-                paymentStatus={form.watch('paymentStatus') || 'unpaid'}
-              />
+          <div className="flex-1 overflow-auto bg-white">
+            <div ref={printRef} className="p-6">
+              <div className="max-w-4xl mx-auto bg-white shadow-sm border rounded-lg overflow-hidden">
+                {/* Professional Header matching the provided design */}
+                <div className="bg-white border-b p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-start space-x-4">
+                      {/* Company Logo/Icon */}
+                      <div className="flex-shrink-0">
+                        <img 
+                          src="/attached_assets/P_1749320448134.png" 
+                          alt="Premier ERP Logo" 
+                          className="w-16 h-16 object-contain rounded-lg"
+                        />
+                      </div>
+                      {/* Company Info */}
+                      <div>
+                        <h1 className="text-2xl font-bold text-blue-600 mb-1">Morgan Chemical</h1>
+                        <p className="text-gray-600 text-sm mb-2">Enterprise Resource Planning System</p>
+                        <div className="text-sm text-gray-600 space-y-0.5">
+                          <p>123 Business District</p>
+                          <p>Cairo, Egypt 11511</p>
+                          <p>Phone: +20 2 1234 5678</p>
+                          <p>Email: info@premieregypt.com</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Invoice Details */}
+                    <div className="text-right">
+                      <h2 className="text-3xl font-bold text-gray-800 mb-2">INVOICE</h2>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>
+                          <span className="font-semibold text-gray-800">Invoice Number: </span>
+                          <span>{createdInvoiceData?.invoiceNumber || `INV-${String(new Date().getMonth() + 1).padStart(2, '0')}${new Date().getFullYear().toString().slice(-2)}${String(getCurrentDraft()?.name?.replace('draft-', '') || activeInvoiceId.replace('draft-', '') || '01').padStart(2, '0')}`}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-800">Paper Invoice Number: </span>
+                          <span>{form.watch('paperInvoiceNumber') || '23423'}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-800">Approval No.: </span>
+                          <span>{form.watch('approvalNumber') || '12312312'}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-800">Date: </span>
+                          <span>{new Date().toLocaleDateString('en-GB')}</span>
+                        </div>
+                        
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  {/* Bill To Section - Professional Card Design */}
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-gray-900 mb-3">Bill To:</h3>
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div>
+                        <h4 className="text-base font-semibold text-gray-900 mb-2">
+                          {createdInvoiceData?.customer?.name || form.watch('customer.name') || 'Cairo Medical Center'}
+                        </h4>
+                        
+                        <div className="flex space-x-2 mb-3">
+                          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                            Code: CUST-{String(createdInvoiceData?.customer?.id || form.watch('customer.id') || '0001').padStart(4, '0')}
+                          </div>
+                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                            Mobile: {createdInvoiceData?.customer?.phone || form.watch('customer.phone') || '+20 2 2222 3333'}
+                          </div>
+                        </div>
+
+                        {(createdInvoiceData?.customer?.company || form.watch('customer.company')) && (
+                          <p className="text-gray-600 text-sm mb-2">
+                            {createdInvoiceData?.customer?.company || form.watch('customer.company')}
+                          </p>
+                        )}
+                        {(createdInvoiceData?.customer?.address || form.watch('customer.address')) && (
+                          <p className="text-gray-600 text-sm">
+                            {createdInvoiceData?.customer?.address || form.watch('customer.address')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Invoice Details */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Invoice Date:</span>
+                        <p className="text-gray-900">{new Date().toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Due Date:</span>
+                        <p className="text-gray-900">{new Date(Date.now() + (parseInt(form.watch('paymentTerms') || '0') * 24 * 60 * 60 * 1000)).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Payment Terms:</span>
+                        <p className="text-gray-900">{(createdInvoiceData?.paymentTerms || form.watch('paymentTerms')) === '0' ? 'Due Immediately' : `Net ${createdInvoiceData?.paymentTerms || form.watch('paymentTerms')} Days`}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Items Table */}
+                  <div className="overflow-x-auto border border-gray-300 rounded-lg">
+                    <table className="w-full border-collapse">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '30%'}}>Item Description</th>
+                          <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '12%'}}>Category</th>
+                          <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '10%'}}>Batch No.</th>
+                          <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black" style={{width: '8%'}}>Grade</th>
+                          <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black" style={{width: '8%'}}>Qty</th>
+                          <th className="border border-gray-300 px-3 py-2 text-right text-sm font-bold text-black" style={{width: '16%'}}>Unit Price</th>
+                          <th className="border border-gray-300 px-3 py-2 text-right text-sm font-bold text-black" style={{width: '16%'}}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(createdInvoiceData?.items || form.watch('items')).map((item: any, index: number) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="border border-gray-300 px-3 py-2">
+                              <p className="font-medium text-gray-900 text-sm break-words" style={{wordWrap: 'break-word', hyphens: 'auto'}}>{item.productName || item.name || 'No Product Name'}</p>
+                            </td>
+                            <td className="border border-gray-300 px-3 py-2 text-gray-900 text-sm">{item.category || 'Category null'}</td>
+                            <td className="border border-gray-300 px-3 py-2 text-gray-900 text-sm">{item.batchNo || '-'}</td>
+                            <td className="border border-gray-300 px-3 py-2 text-center text-gray-900 text-sm font-bold">({item.grade || 'P'})</td>
+                            <td className="border border-gray-300 px-3 py-2 text-center text-gray-900 text-sm">{item.quantity || 0}</td>
+                            <td className="border border-gray-300 px-3 py-2 text-right text-gray-900 text-sm">EGP {(item.unitPrice || 0).toFixed(2)}</td>
+                            <td className="border border-gray-300 px-3 py-2 text-right font-medium text-gray-900 text-sm">EGP {(item.total || 0).toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Totals Section */}
+                  <div className="flex justify-end">
+                    <div className="w-80">
+                      <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                          <span className="font-medium">Subtotal:</span>
+                          <span className="font-medium">EGP {(createdInvoiceData?.subtotal || form.watch('subtotal') || 0).toFixed(2)}</span>
+                        </div>
+                        
+                        {(createdInvoiceData?.discountAmount || form.watch('discountAmount')) > 0 && (
+                          <div className="flex justify-between text-green-600 border-b border-gray-200 pb-2">
+                            <span className="font-medium">Discount:</span>
+                            <span className="font-medium">-EGP {(createdInvoiceData?.discountAmount || form.watch('discountAmount') || 0).toFixed(2)}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                          <span className="font-medium">Tax ({createdInvoiceData?.taxRate || form.watch('taxRate') || 14}%):</span>
+                          <span className="font-medium">EGP {(createdInvoiceData?.taxAmount || form.watch('taxAmount') || 0).toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                          <span className="font-medium">VAT ({createdInvoiceData?.vatRate || form.watch('vatRate') || 14}%):</span>
+                          <span className="font-medium">EGP {(createdInvoiceData?.vatAmount || form.watch('vatAmount') || 0).toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="bg-blue-600 text-white rounded p-3 -m-1">
+                          <div className="flex justify-between text-lg font-bold">
+                            <span>Total Amount:</span>
+                            <span>EGP {(createdInvoiceData?.grandTotal || form.watch('grandTotal') || 0).toFixed(2)}</span>
+                          </div>
+                        </div>
+
+                        {(createdInvoiceData?.paymentStatus || form.watch('paymentStatus')) === 'partial' && (
+                          <div className="border-t border-gray-200 pt-3 space-y-2">
+                            <div className="flex justify-between text-green-600">
+                              <span className="font-medium">Amount Paid:</span>
+                              <span className="font-medium">EGP {(createdInvoiceData?.amountPaid || form.watch('amountPaid') || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-red-600 font-semibold">
+                              <span>Balance Due:</span>
+                              <span>EGP {((createdInvoiceData?.grandTotal || form.watch('grandTotal') || 0) - (createdInvoiceData?.amountPaid || form.watch('amountPaid') || 0)).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  {(createdInvoiceData?.notes || form.watch('notes')) && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-2">Notes:</h4>
+                      <p className="text-sm text-gray-700">{createdInvoiceData?.notes || form.watch('notes')}</p>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="text-center text-sm text-gray-500 border-t pt-4 mt-8 space-y-2">
+                    <p className="font-medium">Thank you for your business!</p>
+                    <p>This invoice was generated on {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString('en-GB', { hour12: false })}</p>
+                    <p>For any questions regarding this invoice, please contact us at info@morganerp.com</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowInvoicePreview(false)}>
+            <Button variant="outline" onClick={() => {
+              setShowInvoicePreview(false);
+              setCreatedInvoiceData(null);
+            }}>
               {t('closePreview')}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Print Preview Dialog */}
       <Dialog open={showPrintPreview} onOpenChange={setShowPrintPreview}>
         <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -2421,61 +2831,83 @@ const CreateInvoice = () => {
           <div className="flex-1 overflow-auto border rounded-md bg-gray-50 p-4">
             <div id="print-content">
               <div className="printable-invoice bg-white p-8 max-w-4xl mx-auto text-black">
-                {/* Header */}
+                {/* Header - Professional Design Matching Image */}
                 <div className="flex justify-between items-start mb-8 border-b pb-6">
-                  <div className="company-info">
-                    <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
-                    <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
-                    <div className="mt-4 text-sm text-gray-600">
-                      <p>123 Business District</p>
-                      <p>Cairo, Egypt 11511</p>
-                      <p>Phone: +20 2 1234 5678</p>
-                      <p>Email: info@morganerp.com</p>
+                  <div className="flex items-start space-x-4">
+                    {/* Company Logo/Icon */}
+                    <div className="flex-shrink-0">
+                      <img 
+                        src="/attached_assets/P_1749320448134.png" 
+                        alt="Premier ERP Logo" 
+                        className="w-16 h-16 object-contain rounded-lg"
+                      />
+                    </div>
+                    {/* Company Info */}
+                    <div className="company-info">
+                      <h1 className="text-2xl font-bold text-blue-600 mb-1">Premier ERP</h1>
+                      <p className="text-gray-600 text-sm mb-2">Enterprise Resource Planning System</p>
+                      <div className="text-sm text-gray-600 space-y-0.5">
+                        <p>123 Business District</p>
+                        <p>Cairo, Egypt 11511</p>
+                        <p>Phone: +20 2 1234 5678</p>
+                        <p>Email: info@premieregypt.com</p>
+                      </div>
                     </div>
                   </div>
                   
                   <div className="invoice-header text-right">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">INVOICE</h2>
-                    <div className="text-sm">
-                      <p><span className="font-semibold">Invoice #:</span> INV-{getCurrentDraft()?.name || activeInvoiceId}-{new Date().getFullYear()}</p>
-                      <p><span className="font-semibold">Date:</span> {new Date().toLocaleDateString()}</p>
-                      <p><span className="font-semibold">Due Date:</span> {new Date(Date.now() + (parseInt(form.watch('paymentTerms') || '0') * 24 * 60 * 60 * 1000)).toLocaleDateString()}</p>
-                      {form.watch('paperInvoiceNumber') && (
-                        <p><span className="font-semibold">Paper Invoice #:</span> {form.watch('paperInvoiceNumber')}</p>
-                      )}
-                      {form.watch('approvalNumber') && (
-                        <p><span className="font-semibold">Approval No.:</span> {form.watch('approvalNumber')}</p>
-                      )}
+                    <h2 className="text-3xl font-bold text-gray-800 mb-2">INVOICE</h2>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div>
+                        <span className="font-semibold text-gray-800">Invoice Number: </span>
+                        <span>INV-{getCurrentDraft()?.name || activeInvoiceId}-{new Date().getFullYear()}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-800">Paper Invoice Number: </span>
+                        <span>{form.watch('paperInvoiceNumber') || '23423'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-800">Approval No.: </span>
+                        <span>{form.watch('approvalNumber') || '12312312'}</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-gray-800">Date: </span>
+                        <span>{new Date().toLocaleDateString('en-GB')}</span>
+                      </div>
+                      
                     </div>
                   </div>
                 </div>
 
-                {/* Customer Information */}
+                {/* Customer Information - Professional Card Design */}
                 <div className="customer-info mb-8">
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Bill To:</h3>
-                  <div className="bg-gray-50 p-4 rounded border">
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="font-semibold text-lg">{form.watch('customer.name') || 'No customer selected'}</p>
-                      <div className="text-right">
-                        {form.watch('customer.id') && (
-                          <p className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded mb-1">
-                            Code: CUST-{String(form.watch('customer.id')).padStart(4, '0')}
-                          </p>
-                        )}
-                        {form.watch('customer.phone') && (
-                          <p className="text-sm font-medium text-gray-800 bg-gray-100 px-2 py-1 rounded">
-                            Mobile: {form.watch('customer.phone')}
-                          </p>
-                        )}
+                  <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-2">
+                        {form.watch('customer.name') || 'Cairo Medical Center'}
+                      </h4>
+                      
+                      <div className="flex space-x-2 mb-3">
+                        <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                          Code: CUST-{String(form.watch('customer.id') || '0001').padStart(4, '0')}
+                        </div>
+                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                          Mobile: {form.watch('customer.phone') || '+20 2 2222 3333'}
+                        </div>
                       </div>
+
+                      {form.watch('customer.company') && (
+                        <p className="text-gray-600 text-sm mb-2">
+                          {form.watch('customer.company')}
+                        </p>
+                      )}
+                      {form.watch('customer.address') && (
+                        <p className="text-gray-600 text-sm">
+                          {form.watch('customer.address')}
+                        </p>
+                      )}
                     </div>
-                    {form.watch('customer.company') && <p className="text-gray-600">{form.watch('customer.company')}</p>}
-                    {form.watch('customer.address') && <p className="text-gray-600 mt-2">{form.watch('customer.address')}</p>}
-                    {form.watch('customer.email') && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        <span className="font-medium">Email:</span> {form.watch('customer.email')}
-                      </p>
-                    )}
                   </div>
                 </div>
 
@@ -2484,23 +2916,25 @@ const CreateInvoice = () => {
                   <table className="w-full border-collapse border border-gray-300">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Item Description</th>
-                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Category</th>
-                        <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Batch No.</th>
-                        <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Qty</th>
-                        <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Unit Price</th>
-                        <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Total</th>
+                        <th className="border border-gray-300 px-3 py-2 text-left font-bold text-black" style={{width: '30%'}}>Item Description</th>
+                        <th className="border border-gray-300 px-3 py-2 text-left font-bold text-black" style={{width: '12%'}}>Category</th>
+                        <th className="border border-gray-300 px-3 py-2 text-left font-bold text-black" style={{width: '10%'}}>Batch No.</th>
+                        <th className="border border-gray-300 px-3 py-2 text-center font-bold text-black" style={{width: '8%'}}>Grade</th>
+                        <th className="border border-gray-300 px-3 py-2 text-center font-bold text-black" style={{width: '8%'}}>Qty</th>
+                        <th className="border border-gray-300 px-3 py-2 text-right font-bold text-black" style={{width: '16%'}}>Unit Price</th>
+                        <th className="border border-gray-300 px-3 py-2 text-right font-bold text-black" style={{width: '16%'}}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {form.watch('items').map((item, index) => (
+                      {form.watch('items').map((item: any, index: number) => (
                         <tr key={index}>
-                          <td className="border border-gray-300 px-4 py-2">{item.productName || ''}</td>
-                          <td className="border border-gray-300 px-4 py-2">{item.category || ''}</td>
-                          <td className="border border-gray-300 px-4 py-2">{item.batchNo || ''}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">{item.quantity || 0}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">${(item.unitPrice || 0).toFixed(2)}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">${(item.total || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-sm break-words" style={{wordWrap: 'break-word', maxWidth: '0'}}>{item.productName || item.name || 'No Product Name'}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-sm">{item.category || 'Category null'}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-sm">{item.batchNo || ''}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-center text-sm font-bold">({item.grade || 'P'})</td>
+                          <td className="border border-gray-300 px-3 py-2 text-center text-sm">{item.quantity || 0}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-right text-sm">EGP {(item.unitPrice || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 px-3 py-2 text-right text-sm">EGP {(item.total || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -2510,38 +2944,43 @@ const CreateInvoice = () => {
                 {/* Summary */}
                 <div className="summary flex justify-end mb-8">
                   <div className="w-80">
-                    <div className="bg-gray-50 p-4 rounded border">
-                      <div className="flex justify-between py-2">
-                        <span>Subtotal:</span>
-                        <span>${(form.watch('subtotal') || 0).toFixed(2)}</span>
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                        <span className="font-medium">Subtotal:</span>
+                        <span className="font-medium">EGP {(form.watch('subtotal') || 0).toFixed(2)}</span>
                       </div>
                       {form.watch('discountAmount') > 0 && (
-                        <div className="flex justify-between py-2 text-green-600">
-                          <span>Discount:</span>
-                          <span>-${(form.watch('discountAmount') || 0).toFixed(2)}</span>
+                        <div className="flex justify-between text-green-600 border-b border-gray-200 pb-2">
+                          <span className="font-medium">Discount:</span>
+                          <span className="font-medium">-EGP {(form.watch('discountAmount') || 0).toFixed(2)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between py-2">
-                        <span>Tax ({form.watch('taxRate') || 0}%):</span>
-                        <span>${(form.watch('taxAmount') || 0).toFixed(2)}</span>
+                      <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                        <span className="font-medium">Tax ({form.watch('taxRate') || 14}%):</span>
+                        <span className="font-medium">EGP {(form.watch('taxAmount') || 0).toFixed(2)}</span>
                       </div>
-                      <div className="border-t pt-2 mt-2">
-                        <div className="flex justify-between py-2 font-bold text-lg">
-                          <span>Total:</span>
-                          <span>${(form.watch('grandTotal') || 0).toFixed(2)}</span>
+                      
+                      <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                        <span className="font-medium">VAT ({form.watch('vatRate') || 14}%):</span>
+                        <span className="font-medium">EGP {(form.watch('vatAmount') || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="bg-blue-600 text-white rounded p-3 -m-1">
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>Total Amount:</span>
+                          <span>EGP {(form.watch('grandTotal') || 0).toFixed(2)}</span>
                         </div>
                       </div>
                       {form.watch('paymentStatus') === 'partial' && (
-                        <>
-                          <div className="flex justify-between py-2 text-green-600">
-                            <span>Amount Paid:</span>
-                            <span>${(form.watch('amountPaid') || 0).toFixed(2)}</span>
+                        <div className="border-t border-gray-200 pt-3 space-y-2">
+                          <div className="flex justify-between text-green-600">
+                            <span className="font-medium">Amount Paid:</span>
+                            <span className="font-medium">EGP {(form.watch('amountPaid') || 0).toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between py-2 text-red-600 font-semibold">
+                          <div className="flex justify-between text-red-600 font-semibold">
                             <span>Balance Due:</span>
-                            <span>${((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0)).toFixed(2)}</span>
+                            <span>EGP {((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0)).toFixed(2)}</span>
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -2558,9 +2997,11 @@ const CreateInvoice = () => {
                 )}
 
                 {/* Footer */}
-                <div className="footer text-center text-sm text-gray-600 border-t pt-4">
-                  <p>Thank you for your business!</p>
-                  <p>Payment Terms: {form.watch('paymentTerms') === '0' ? 'Due Immediately' : `Net ${form.watch('paymentTerms')} Days`}</p>
+                <div className="footer text-center text-sm text-gray-600 border-t pt-4 space-y-2">
+                  <p className="font-medium">Thank you for your business!</p>
+                  <p>This invoice was generated on {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString('en-GB', { hour12: false })}</p>
+                  <p>For any questions regarding this invoice, please contact us at info@morganerp.com</p>
+                  <p className="mt-3">Payment Terms: {form.watch('paymentTerms') === '0' ? 'Due Immediately' : `Net ${form.watch('paymentTerms')} Days`}</p>
                 </div>
               </div>
             </div>

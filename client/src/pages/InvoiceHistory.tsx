@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,12 +35,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Download, Eye, Search, Calendar, Filter, Upload, Image as ImageIcon, MessageCircle, Mail, MoreHorizontal, CreditCard, Trash2, Check, ChevronDown, RotateCcw, ChevronLeft, ChevronRight, Send, CheckCircle, Clock, XCircle, AlertCircle, Printer } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface Invoice {
   id: number;
@@ -48,18 +50,35 @@ interface Invoice {
   customerName: string;
   date: string;
   dueDate?: string;
-  amount: number;
-  amountPaid?: number;
+  amount?: number;
+  grandTotal?: string;
+  totalAmount?: string;
+  amountPaid?: string;
   paymentMethod?: string;
-  status: 'paid' | 'unpaid' | 'partial' | 'overdue' | 'refunded';
-  etaUploaded?: boolean;
+  paymentStatus?: 'paid' | 'unpaid' | 'partial' | 'overdue' | 'refunded';
+  status?: 'paid' | 'unpaid' | 'partial' | 'overdue' | 'refunded';
+  etaStatus?: 'not_sent' | 'pending' | 'uploaded' | 'failed';
   etaReference?: string;
-  items: {
+  etaUuid?: string;
+  etaSubmissionDate?: string;
+  etaErrorMessage?: string;
+  customer?: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    address?: string;
+    company?: string;
+  };
+  items?: {
+    id?: number;
     productName: string;
+    productSku?: string;
     quantity: number;
-    unitPrice: number;
-    total: number;
+    unitPrice: string | number;
+    total: string | number;
     unitOfMeasure?: string;
+    categoryName?: string;
   }[];
 }
 
@@ -73,788 +92,601 @@ const InvoiceHistory = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [detailedInvoice, setDetailedInvoice] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [invoiceToUpdate, setInvoiceToUpdate] = useState<Invoice | null>(null);
   
-  // Refund state
-  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false);
-  const [refundInvoice, setRefundInvoice] = useState<Invoice | null>(null);
-  const [refundAmount, setRefundAmount] = useState('');
-  const [refundReason, setRefundReason] = useState('');
-  
-  // Multi-select state
-  const [selectedInvoices, setSelectedInvoices] = useState<number[]>([]);
-  const [selectAll, setSelectAll] = useState(false);
+  // ETA state
+  const [sendingToETA, setSendingToETA] = useState<number | null>(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
-  // Recycle bin state
-  const [showRecycleBin, setShowRecycleBin] = useState(false);
-  const [deletedInvoices, setDeletedInvoices] = useState<(Invoice & { deletedAt: string })[]>([
-    {
-      id: 9001,
-      invoiceNumber: 'INV-2024-9001',
-      customerName: 'GlobalHealth Solutions',
-      date: '2024-01-15',
-      dueDate: '2024-02-15',
-      amount: 4500.00,
-      amountPaid: 0,
-      paymentMethod: 'bank_transfer',
-      status: 'unpaid' as const,
-      etaUploaded: false,
-      deletedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-      items: [
-        { productName: 'Paracetamol 500mg', quantity: 100, unitPrice: 25.00, total: 2500.00 },
-        { productName: 'Ibuprofen 400mg', quantity: 80, unitPrice: 25.00, total: 2000.00 }
-      ]
+
+  // Fetch real invoice data from unified API (same approach as procurement in accounting)
+  const { data: apiInvoices, isLoading, refetch, error } = useQuery({
+    queryKey: ['/api/unified/invoices'],
+    queryFn: () => {
+      console.log('Invoice History - Fetching invoices from unified API for complete synchronization');
+      return fetch('/api/unified/invoices').then(res => res.json());
     },
-    {
-      id: 9002,
-      invoiceNumber: 'INV-2024-9002',
-      customerName: 'MediCare Pharmacy',
-      date: '2024-01-10',
-      dueDate: '2024-02-10',
-      amount: 2800.75,
-      amountPaid: 1000.00,
-      paymentMethod: 'visa',
-      status: 'partial' as const,
-      etaUploaded: true,
-      etaReference: 'ETA-9002-2024',
-      deletedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(), // 25 days ago (5 days remaining)
-      items: [
-        { productName: 'Amoxicillin 250mg', quantity: 50, unitPrice: 30.00, total: 1500.00 },
-        { productName: 'Azithromycin 500mg', quantity: 25, unitPrice: 52.03, total: 1300.75 }
-      ]
-    },
-    {
-      id: 9003,
-      invoiceNumber: 'INV-2024-9003',
-      customerName: 'City General Hospital',
-      date: '2024-01-08',
-      dueDate: '2024-02-08',
-      amount: 15750.00,
-      amountPaid: 15750.00,
-      paymentMethod: 'cheque',
-      status: 'paid' as const,
-      etaUploaded: true,
-      etaReference: 'ETA-9003-2024',
-      deletedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago (28 days remaining)
-      items: [
-        { productName: 'Insulin Glargine 100 IU/ml', quantity: 30, unitPrice: 125.00, total: 3750.00 },
-        { productName: 'Metformin 850mg', quantity: 200, unitPrice: 15.00, total: 3000.00 },
-        { productName: 'Lisinopril 10mg', quantity: 150, unitPrice: 60.00, total: 9000.00 }
-      ]
-    }
-  ]);
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchInterval: 5000 // Refresh every 5 seconds for near real-time updates (same as procurement)
+  });
 
-  // Use hardcoded sample data for demonstration
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Sample invoices with payment method and outstanding balance
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  
-  React.useEffect(() => {
-    // Simulate loading
-    setIsLoading(true);
-    
-    // Create sample data
-    const sampleInvoices: Invoice[] = [
-      {
-        id: 1001,
-        invoiceNumber: "INV-002501",
-        customerName: "Ahmed Hassan",
-        date: "2025-05-01T10:30:00Z",
-        dueDate: "2025-05-16T10:30:00Z",
-        amount: 1250.75,
-        amountPaid: 1250.75,
-        paymentMethod: "credit_card",
-        status: "paid",
-        items: [
-          {
-            productName: "Pharmaceutical Grade Acetone",
-            quantity: 25,
-            unitPrice: 42.50,
-            total: 1062.50,
-            unitOfMeasure: "L"
-          },
-          {
-            productName: "Laboratory Glassware Set",
-            quantity: 2,
-            unitPrice: 94.12,
-            total: 188.24,
-            unitOfMeasure: "set"
-          }
-        ]
-      },
-      {
-        id: 1002,
-        invoiceNumber: "INV-002502",
-        customerName: "Cairo Medical Supplies Ltd.",
-        date: "2025-05-05T14:20:00Z",
-        dueDate: "2025-05-20T14:20:00Z",
-        amount: 3245.00,
-        amountPaid: 2000.00,
-        paymentMethod: "bank_transfer",
-        status: "partial",
-        items: [
-          {
-            productName: "Sodium Hydroxide (Technical Grade)",
-            quantity: 100,
-            unitPrice: 18.45,
-            total: 1845.00,
-            unitOfMeasure: "kg"
-          },
-          {
-            productName: "Hydrochloric Acid Solution",
-            quantity: 50,
-            unitPrice: 28.00,
-            total: 1400.00,
-            unitOfMeasure: "L"
-          }
-        ]
-      },
-      {
-        id: 1003,
-        invoiceNumber: "INV-002503",
-        customerName: "Alexandria Pharma Co.",
-        date: "2025-05-08T09:15:00Z",
-        dueDate: "2025-05-23T09:15:00Z",
-        amount: 875.50,
-        amountPaid: 0,
-        paymentMethod: "cheque",
-        status: "unpaid",
-        items: [
-          {
-            productName: "Industrial Ethanol",
-            quantity: 35,
-            unitPrice: 25.00,
-            total: 875.50,
-            unitOfMeasure: "L"
-          }
-        ]
-      },
-      {
-        id: 1004,
-        invoiceNumber: "INV-002504",
-        customerName: "Modern Laboratories Inc.",
-        date: "2025-04-20T16:45:00Z",
-        dueDate: "2025-05-05T16:45:00Z",
-        amount: 4520.75,
-        amountPaid: 0,
-        paymentMethod: "",
-        status: "overdue",
-        items: [
-          {
-            productName: "Pharmaceutical Grade Glycerin",
-            quantity: 75,
-            unitPrice: 32.25,
-            total: 2418.75,
-            unitOfMeasure: "L"
-          },
-          {
-            productName: "Purified Water USP",
-            quantity: 200,
-            unitPrice: 8.76,
-            total: 1752.00,
-            unitOfMeasure: "L"
-          },
-          {
-            productName: "Citric Acid Anhydrous",
-            quantity: 50,
-            unitPrice: 7.00,
-            total: 350.00,
-            unitOfMeasure: "kg"
-          }
-        ]
-      },
-      {
-        id: 1005,
-        invoiceNumber: "INV-002505",
-        customerName: "Giza Chemical Solutions",
-        date: "2025-05-12T11:10:00Z",
-        dueDate: "2025-05-27T11:10:00Z",
-        amount: 1865.25,
-        amountPaid: 1865.25,
-        paymentMethod: "cash",
-        status: "paid",
-        items: [
-          {
-            productName: "Magnesium Sulfate",
-            quantity: 125,
-            unitPrice: 6.50,
-            total: 812.50,
-            unitOfMeasure: "kg"
-          },
-          {
-            productName: "Sodium Bicarbonate",
-            quantity: 150,
-            unitPrice: 7.02,
-            total: 1052.75,
-            unitOfMeasure: "kg"
-          }
-        ]
-      }
-    ];
-    
-    setInvoices(sampleInvoices);
-    setIsLoading(false);
-  }, []);
+  // Debug logging
+  console.log('Invoice History - API Response:', { 
+    loading: isLoading, 
+    error: error, 
+    dataLength: Array.isArray(apiInvoices) ? apiInvoices.length : 0,
+    latestInvoice: Array.isArray(apiInvoices) && apiInvoices.length > 0 ? apiInvoices[apiInvoices.length - 1] : null
+  });
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newFiles = Array.from(files).filter(file => {
-        const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        return validTypes.includes(file.type) && file.size <= maxSize;
-      });
-      setUploadedFiles(prev => [...prev, ...newFiles]);
-    }
+  const invoices: Invoice[] = Array.isArray(apiInvoices) ? apiInvoices : [];
+
+  // Add refresh functionality
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Refreshed",
+      description: "Invoice data has been updated",
+    });
   };
 
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const removeUploadedFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const downloadInvoicePDF = () => {
-    if (!selectedInvoice) return;
-    
-    // Create a temporary link to download the invoice as PDF
-    const invoiceContent = `
-INVOICE - ${selectedInvoice.invoiceNumber}
-Premier Ltd.
-123 Pharma Street, Lagos
-
-Bill To: ${selectedInvoice.customerName}
-Date: ${format(new Date(selectedInvoice.date), 'PP')}
-Due Date: ${selectedInvoice.dueDate ? format(new Date(selectedInvoice.dueDate), 'PP') : 'N/A'}
-Status: ${selectedInvoice.status}
-
-ITEMS:
-${selectedInvoice.items.map(item => 
-  `${item.productName} - Qty: ${item.quantity} - Price: $${item.unitPrice} - Total: $${item.total}`
-).join('\n')}
-
-FINANCIAL SUMMARY:
-Subtotal: $${selectedInvoice.items.reduce((sum, item) => sum + item.total, 0).toFixed(2)}
-Discount (5%): -$${(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.05).toFixed(2)}
-Tax (14%): $${(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.95 * 0.14).toFixed(2)}
-Shipping: $25.00
-GRAND TOTAL: $${selectedInvoice.amount.toFixed(2)}
-
-Payment Method: ${selectedInvoice.paymentMethod?.replace('_', ' ') || 'Not specified'}
-Amount Paid: $${(selectedInvoice.amountPaid || 0).toFixed(2)}
-Outstanding: $${((selectedInvoice.amount || 0) - (selectedInvoice.amountPaid || 0)).toFixed(2)}
-`;
-
-    const blob = new Blob([invoiceContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Invoice_${selectedInvoice.invoiceNumber}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
-
-  const downloadDocument = (fileName: string, fileType: string = 'pdf') => {
-    // Create a sample document content for download
-    const content = `
-DOCUMENT: ${fileName}
-Generated by Premier ERP System
-Date: ${new Date().toLocaleDateString()}
-
-This is a sample document from the Premier ERP system.
-In a real implementation, this would download the actual file from the server.
-
-Document Type: ${fileType.toUpperCase()}
-Invoice Reference: ${selectedInvoice?.invoiceNumber || 'N/A'}
-Customer: ${selectedInvoice?.customerName || 'N/A'}
-    `;
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
-
-  const uploadToETA = async (invoiceId: number) => {
+  // Handle PDF download - matches invoice preview dialog layout exactly
+  const downloadInvoicePDF = async (invoice: Invoice) => {
     try {
-      // Simulate ETA upload process
-      console.log(`Uploading invoice ${invoiceId} to Egyptian Tax Authority...`);
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we generate your invoice PDF...",
+      });
+
+      // Fetch detailed invoice data first
+      let detailedData = null;
+      try {
+        const response = await fetch(`/api/sales/${invoice.id}`);
+        if (response.ok) {
+          detailedData = await response.json();
+        }
+      } catch (error) {
+        console.log('Could not fetch detailed data, using basic invoice info');
+      }
+
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.width;
+      const pageHeight = pdf.internal.pageSize.height;
       
-      // In real implementation, you would call the ETA API here
-      // const response = await apiRequest('POST', '/api/eta/upload', { invoiceId });
+      // Company Header - matches Premier ERP branding
+      pdf.setFontSize(28);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(37, 99, 235); // Blue-600
+      pdf.text('Premier ERP', 20, 25);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(107, 114, 128); // Gray-500
+      pdf.text('Enterprise Resource Planning System', 20, 33);
       
-      // Generate realistic ETA reference number (format: ETA-YYYYMMDD-XXXXX)
-      const date = new Date();
-      const dateStr = date.getFullYear().toString() + 
-                     (date.getMonth() + 1).toString().padStart(2, '0') + 
-                     date.getDate().toString().padStart(2, '0');
-      const randomSuffix = Math.random().toString(36).substr(2, 5).toUpperCase();
-      const etaReference = `ETA-${dateStr}-${randomSuffix}`;
+      // Company Details
+      pdf.setFontSize(9);
+      pdf.text('123 Business District', 20, 45);
+      pdf.text('Cairo, Egypt 11511', 20, 52);
+      pdf.text('Phone: +20 2 1234 5678', 20, 59);
+      pdf.text('Email: info@premieregypt.com', 20, 66);
+
+      // Invoice Title (Right Side)
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(55, 65, 81); // Gray-700
+      pdf.text('INVOICE', pageWidth - 55, 25);
+
+      // Header border
+      pdf.setLineWidth(0.5);
+      pdf.setDrawColor(229, 231, 235);
+      pdf.line(20, 75, pageWidth - 20, 75);
+
+      // Invoice Information Section (matches dialog layout)
+      pdf.setFillColor(249, 250, 251); // Gray-50 background
+      pdf.rect(20, 85, (pageWidth - 45) / 2, 45, 'F');
+      pdf.setDrawColor(229, 231, 235);
+      pdf.rect(20, 85, (pageWidth - 45) / 2, 45);
       
-      // Update invoice status locally (in real app, this would be done on the server)
-      setInvoices(prev => prev.map(invoice => 
-        invoice.id === invoiceId 
-          ? { ...invoice, etaUploaded: true, etaReference: etaReference }
-          : invoice
-      ));
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(17, 24, 39); // Gray-900
+      pdf.text('Invoice Information', 25, 97);
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99); // Gray-600
+      pdf.text('Invoice Number:', 25, 107);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(invoice.invoiceNumber, 65, 107);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Date:', 25, 115);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(format(new Date(invoice.date), 'PPP'), 65, 115);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Payment Method:', 25, 123);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(invoice.paymentMethod?.replace('_', ' ') || 'Not specified', 65, 123);
+
+      // Customer Details Section (Right side)
+      pdf.setFillColor(249, 250, 251);
+      pdf.rect((pageWidth / 2) + 2.5, 85, (pageWidth - 45) / 2, 45, 'F');
+      pdf.rect((pageWidth / 2) + 2.5, 85, (pageWidth - 45) / 2, 45);
+      
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(17, 24, 39);
+      pdf.text('Customer Details', (pageWidth / 2) + 7.5, 97);
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Name:', (pageWidth / 2) + 7.5, 107);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(detailedData?.customer?.name || invoice.customerName, (pageWidth / 2) + 25, 107);
+      
+      if (detailedData?.customer?.email) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(75, 85, 99);
+        pdf.text('Email:', (pageWidth / 2) + 7.5, 115);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(detailedData.customer.email, (pageWidth / 2) + 25, 115);
+      }
+      
+      if (detailedData?.customer?.phone) {
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(75, 85, 99);
+        pdf.text('Phone:', (pageWidth / 2) + 7.5, 123);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(detailedData.customer.phone, (pageWidth / 2) + 25, 123);
+      }
+
+      // Invoice Items Table (matches dialog table exactly)
+      let tableStartY = 145;
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(17, 24, 39);
+      pdf.text('Invoice Items', 20, tableStartY - 5);
+      
+      // Table Headers
+      pdf.setFillColor(249, 250, 251); // Gray-50
+      pdf.rect(20, tableStartY, pageWidth - 40, 12, 'F');
+      pdf.setDrawColor(229, 231, 235);
+      pdf.rect(20, tableStartY, pageWidth - 40, 12);
+      
+      const headerColumns = ['Product', 'Quantity', 'Unit', 'Unit Price', 'Total'];
+      const colWidths = [60, 25, 20, 35, 35];
+      let currentX = 20;
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(55, 65, 81);
+      
+      headerColumns.forEach((header, i) => {
+        const alignment = (i === 1 || i === 2) ? 'center' : (i >= 3) ? 'right' : 'left';
+        if (alignment === 'center') {
+          pdf.text(header, currentX + (colWidths[i] / 2), tableStartY + 8, { align: 'center' });
+        } else if (alignment === 'right') {
+          pdf.text(header, currentX + colWidths[i] - 3, tableStartY + 8, { align: 'right' });
+        } else {
+          pdf.text(header, currentX + 3, tableStartY + 8);
+        }
+        currentX += colWidths[i];
+      });
+
+      // Table Content
+      let currentY = tableStartY + 15;
+      let calculatedSubtotal = 0;
+      
+      if (detailedData?.items && detailedData.items.length > 0) {
+        detailedData.items.forEach((item: any, index: number) => {
+          currentX = 20;
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(0, 0, 0);
+          
+          const itemTotal = parseFloat(item.total || (item.quantity * item.unitPrice));
+          calculatedSubtotal += itemTotal;
+          
+          // Alternating row background
+          if (index % 2 === 1) {
+            pdf.setFillColor(249, 250, 251);
+            pdf.rect(20, currentY - 8, pageWidth - 40, 12, 'F');
+          }
+          
+          pdf.setFontSize(8);
+          
+          // Product name
+          pdf.text(item.productName, currentX + 3, currentY);
+          currentX += colWidths[0];
+          
+          // Quantity (centered)
+          pdf.text(item.quantity.toString(), currentX + (colWidths[1] / 2), currentY, { align: 'center' });
+          currentX += colWidths[1];
+          
+          // Unit (centered)
+          pdf.text(item.unitOfMeasure || 'PCS', currentX + (colWidths[2] / 2), currentY, { align: 'center' });
+          currentX += colWidths[2];
+          
+          // Unit Price (right aligned)
+          pdf.text(`EGP ${parseFloat(item.unitPrice || 0).toLocaleString()}`, currentX + colWidths[3] - 3, currentY, { align: 'right' });
+          currentX += colWidths[3];
+          
+          // Total (right aligned, bold)
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`EGP ${itemTotal.toLocaleString()}`, currentX + colWidths[4] - 3, currentY, { align: 'right' });
+          
+          currentY += 12;
+        });
+      } else {
+        // No items fallback
+        pdf.setFontSize(9);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text('No items found', pageWidth / 2, currentY, { align: 'center' });
+        currentY += 12;
+      }
+
+      // Table borders
+      pdf.setLineWidth(0.5);
+      pdf.setDrawColor(229, 231, 235);
+      currentX = 20;
+      colWidths.forEach((width, i) => {
+        pdf.line(currentX, tableStartY, currentX, currentY);
+        currentX += width;
+      });
+      pdf.line(currentX, tableStartY, currentX, currentY); // Last vertical line
+      pdf.line(20, tableStartY, pageWidth - 20, tableStartY); // Top border
+      pdf.line(20, currentY, pageWidth - 20, currentY); // Bottom border
+
+      // Invoice Totals Section (matches dialog totals exactly)
+      const totalsStartY = currentY + 20;
+      const totalsWidth = 80;
+      const totalsX = pageWidth - totalsWidth - 20;
+      
+      pdf.setFillColor(249, 250, 251); // Gray-50
+      pdf.rect(totalsX, totalsStartY, totalsWidth, 65, 'F');
+      pdf.setDrawColor(229, 231, 235);
+      pdf.rect(totalsX, totalsStartY, totalsWidth, 65);
+      
+      // Calculate financial values (matches dialog calculation logic)
+      const subtotal = detailedData?.subtotal || calculatedSubtotal;
+      const discount = detailedData?.discount || 0;
+      const tax = detailedData?.tax || (subtotal * 0.14); // 14% VAT
+      const total = detailedData?.total || detailedData?.grandTotal || 
+                   parseFloat(invoice.amount.toString()) || (subtotal - discount + tax);
+      const amountPaid = detailedData?.amountPaid || invoice.amountPaid || 0;
+      const balanceDue = total - amountPaid;
+      
+      let yPos = totalsStartY + 12;
+      
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Subtotal:', totalsX + 5, yPos);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`EGP ${subtotal.toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+      yPos += 10;
+      
+      if (discount > 0) {
+        pdf.setTextColor(75, 85, 99);
+        pdf.text('Discount:', totalsX + 5, yPos);
+        pdf.setTextColor(239, 68, 68); // Red for discount
+        pdf.text(`-EGP ${discount.toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+        yPos += 10;
+      }
+      
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Tax (VAT 14%):', totalsX + 5, yPos);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`EGP ${tax.toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+      yPos += 10;
+      
+      // Draw separator line
+      pdf.setLineWidth(0.3);
+      pdf.setDrawColor(229, 231, 235);
+      pdf.line(totalsX + 5, yPos, totalsX + totalsWidth - 5, yPos);
+      yPos += 8;
+      
+      // Total Amount (bold and larger)
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Total Amount:', totalsX + 5, yPos);
+      pdf.setFontSize(12);
+      pdf.text(`EGP ${total.toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+      yPos += 15;
+      
+      // Another separator
+      pdf.setLineWidth(0.3);
+      pdf.line(totalsX + 5, yPos, totalsX + totalsWidth - 5, yPos);
+      yPos += 8;
+      
+      // Payment Information
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(75, 85, 99);
+      pdf.text('Amount Paid:', totalsX + 5, yPos);
+      pdf.setTextColor(34, 197, 94); // Green
+      pdf.text(`EGP ${amountPaid.toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+      yPos += 10;
+      
+      pdf.setFont('helvetica', 'bold');
+      const balanceColor = balanceDue > 0 ? [239, 68, 68] : [34, 197, 94]; // Red or Green
+      pdf.setTextColor(balanceColor[0], balanceColor[1], balanceColor[2]);
+      pdf.text(balanceDue > 0 ? 'Balance Due:' : 'Overpaid:', totalsX + 5, yPos);
+      pdf.setFontSize(10);
+      pdf.text(`EGP ${Math.abs(balanceDue).toLocaleString()}`, totalsX + totalsWidth - 5, yPos, { align: 'right' });
+
+      // Payment Status Badge
+      const statusY = totalsStartY + 80;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('Payment Status:', 20, statusY);
+      
+      // Status badge colors matching dialog
+      const statusColors = {
+        paid: [34, 197, 94],     // Green
+        pending: [251, 191, 36], // Yellow  
+        unpaid: [239, 68, 68]    // Red
+      };
+      const statusColor = statusColors[invoice.status as keyof typeof statusColors] || statusColors.unpaid;
+      
+      pdf.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+      pdf.rect(80, statusY - 6, 30, 10, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8);
+      pdf.text(invoice.status.toUpperCase(), 95, statusY, { align: 'center' });
+
+      // Notes section (if available)
+      if (detailedData?.notes) {
+        const notesY = statusY + 20;
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(17, 24, 39);
+        pdf.text('Notes', 20, notesY);
+        
+        pdf.setFillColor(249, 250, 251);
+        pdf.rect(20, notesY + 5, pageWidth - 40, 20, 'F');
+        pdf.setDrawColor(229, 231, 235);
+        pdf.rect(20, notesY + 5, pageWidth - 40, 20);
+        
+        pdf.setFontSize(9);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(55, 65, 81);
+        pdf.text(detailedData.notes, 25, notesY + 15);
+      }
+
+      // Footer
+      const footerY = pageHeight - 25;
+      pdf.setFontSize(8);
+      pdf.setTextColor(107, 114, 128);
+      pdf.text('Thank you for your business!', pageWidth / 2, footerY, { align: 'center' });
+      pdf.text(`Generated on ${format(new Date(), 'PPP')} at ${format(new Date(), 'p')}`, pageWidth / 2, footerY + 8, { align: 'center' });
+      pdf.text('For questions regarding this invoice, contact us at support@premiererp.com', pageWidth / 2, footerY + 16, { align: 'center' });
+      
+      // Save the PDF
+      pdf.save(`Invoice_${invoice.invoiceNumber}.pdf`);
       
       toast({
-        title: "ETA Upload Successful",
-        description: `Invoice uploaded to Egyptian Tax Authority. Reference: ${etaReference}`,
+        title: "PDF Downloaded",
+        description: `Invoice ${invoice.invoiceNumber} has been downloaded successfully.`,
       });
+      
     } catch (error) {
-      console.error('ETA upload failed:', error);
+      console.error('PDF generation error:', error);
       toast({
-        title: "ETA Upload Failed",
-        description: "Failed to upload invoice to ETA. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getETAStatus = (invoice: Invoice) => {
-    if (invoice.etaUploaded) {
-      return <Badge className="bg-green-100 text-green-800">YES</Badge>;
-    } else {
-      return <Badge className="bg-red-100 text-red-800">NO</Badge>;
-    }
-  };
-
-  // Refund handler function
-  const handleRefund = (invoice: Invoice) => {
-    setRefundInvoice(invoice);
-    setRefundAmount((invoice.amountPaid || 0).toString());
-    setRefundReason('');
-    setIsRefundDialogOpen(true);
-  };
-
-  // Process refund
-  const processRefund = () => {
-    if (!refundAmount || !refundReason) {
-      toast({
-        title: "Error",
-        description: "Please enter refund amount and reason",
+        title: "Download Failed",
+        description: "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
-      return;
     }
-
-    if (!refundInvoice) return;
-
-    // Update the invoice status to "refunded"
-    setInvoices(prev => prev.map(invoice => 
-      invoice.id === refundInvoice.id 
-        ? { ...invoice, status: 'refunded' as const }
-        : invoice
-    ));
-
-    toast({
-      title: "Refund Processed",
-      description: `Refund of $${refundAmount} processed for ${refundInvoice?.customerName}`,
-    });
-
-    setIsRefundDialogOpen(false);
-    setRefundInvoice(null);
-    setRefundAmount('');
-    setRefundReason('');
   };
 
-  // Function to handle payment fulfillment
-  const handlePaymentFulfillment = (invoice: Invoice) => {
-    const outstandingBalance = invoice.amount - (invoice.amountPaid || 0);
-    setInvoiceToUpdate(invoice);
-    setPaymentAmount(outstandingBalance.toFixed(2));
-    setShowPaymentDialog(true);
-  };
-
-  // Function to process payment and update invoice status
-  const processPayment = () => {
-    if (!invoiceToUpdate || !paymentAmount) return;
-
-    const paymentAmountNum = parseFloat(paymentAmount);
-    const currentAmountPaid = invoiceToUpdate.amountPaid || 0;
-    const newAmountPaid = currentAmountPaid + paymentAmountNum;
-    const outstandingBalance = invoiceToUpdate.amount - newAmountPaid;
-
-    // Update invoice with new payment
-    setInvoices(prev => prev.map(invoice => 
-      invoice.id === invoiceToUpdate.id 
-        ? { 
-            ...invoice, 
-            amountPaid: newAmountPaid,
-            status: outstandingBalance <= 0.01 ? 'paid' : 'partial'
-          }
-        : invoice
-    ));
-
-    // Close dialog and reset state
-    setShowPaymentDialog(false);
-    setPaymentAmount('');
-    setInvoiceToUpdate(null);
-
-    // Show success message
-    alert(`Payment of $${paymentAmountNum.toFixed(2)} processed successfully! ${outstandingBalance <= 0.01 ? 'Invoice is now fully paid.' : `Remaining balance: $${outstandingBalance.toFixed(2)}`}`);
-  };
-
-  // Filter invoices based on search term and filters
+  // Filter invoices based on search term, status, and date
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = searchTerm === '' || 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     
-    // Simple date filtering (in a real app, would use proper date comparison)
-    const matchesDate = dateFilter === 'all' || true;
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const invoiceDate = new Date(invoice.date);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - invoiceDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      switch (dateFilter) {
+        case 'today':
+          matchesDate = diffDays <= 1;
+          break;
+        case 'week':
+          matchesDate = diffDays <= 7;
+          break;
+        case 'month':
+          matchesDate = diffDays <= 30;
+          break;
+        case 'quarter':
+          matchesDate = diffDays <= 90;
+          break;
+      }
+    }
     
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  // Pagination calculations
+  // ETA Status Badge Helper
+  const getETAStatusBadge = (etaStatus?: string) => {
+    switch (etaStatus) {
+      case 'uploaded':
+        return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Uploaded
+        </Badge>;
+      case 'pending':
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200">
+          <Clock className="w-3 h-3 mr-1" />
+          Pending
+        </Badge>;
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
+          <XCircle className="w-3 h-3 mr-1" />
+          Failed
+        </Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Not Sent
+        </Badge>;
+    }
+  };
+
+  // Send invoice to ETA
+  const handleSendToETA = async (invoice: Invoice) => {
+    try {
+      setSendingToETA(invoice.id);
+      
+      const response = await fetch(`/api/eta/submit-invoice/${invoice.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "ETA Submission Successful",
+          description: `Invoice ${invoice.invoiceNumber} has been submitted to Egyptian Tax Authority`,
+        });
+        refetch(); // Refresh to get updated ETA status
+      } else {
+        toast({
+          title: "ETA Submission Failed",
+          description: result.message || "Failed to submit invoice to ETA",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('ETA submission error:', error);
+      toast({
+        title: "ETA Submission Error",
+        description: "Unable to connect to Egyptian Tax Authority",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingToETA(null);
+    }
+  };
+
+  // Calculate pagination
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+  const currentInvoices = filteredInvoices.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter, dateFilter]);
-
-  // Checkbox selection handlers
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked);
-    if (checked) {
-      setSelectedInvoices(filteredInvoices.map(invoice => invoice.id));
-    } else {
-      setSelectedInvoices([]);
-    }
-  };
-
-  const handleSelectInvoice = (invoiceId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedInvoices(prev => [...prev, invoiceId]);
-    } else {
-      setSelectedInvoices(prev => prev.filter(id => id !== invoiceId));
-      setSelectAll(false);
-    }
-  };
-
-  // Bulk actions
-  const handleBulkDelete = () => {
-    if (selectedInvoices.length === 0) return;
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      paid: { className: 'bg-green-100 text-green-800', label: 'Paid' },
+      unpaid: { className: 'bg-red-100 text-red-800', label: 'Unpaid' },
+      partial: { className: 'bg-yellow-100 text-yellow-800', label: 'Partial' },
+      overdue: { className: 'bg-purple-100 text-purple-800', label: 'Overdue' },
+      refunded: { className: 'bg-gray-100 text-gray-800', label: 'Refunded' }
+    };
     
-    // Show confirmation dialog
-    if (window.confirm(`Are you sure you want to delete ${selectedInvoices.length} invoice(s)? This action cannot be undone.`)) {
-      // Remove selected invoices from the list
-      setInvoices(prev => prev.filter(invoice => !selectedInvoices.includes(invoice.id)));
-      setSelectedInvoices([]);
-      setSelectAll(false);
-      
-      // Show success message
-      alert(`Successfully deleted ${selectedInvoices.length} invoice(s).`);
-    }
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.unpaid;
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
-  // Handle invoice preview
-  const handlePreview = (invoice: Invoice) => {
+  const handleViewInvoice = async (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setShowPreview(true);
-  };
-
-  // Get status badge color
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-100 text-green-800">Paid</Badge>;
-      case 'unpaid':
-        return <Badge className="bg-orange-100 text-orange-800">Unpaid</Badge>;
-      case 'partial':
-        return <Badge className="bg-yellow-100 text-yellow-800">Partial</Badge>;
-      case 'overdue':
-        return <Badge className="bg-red-100 text-red-800">Overdue</Badge>;
-      case 'refunded':
-        return <Badge className="bg-purple-100 text-purple-800">Refunded</Badge>;
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
-
-  // Export all invoices to CSV
-  const exportInvoicesToCSV = (invoicesToExport: Invoice[]) => {
-    const headers = [
-      'Invoice Number',
-      'Customer Name', 
-      'Date',
-      'Due Date',
-      'Amount',
-      'Amount Paid',
-      'Outstanding Balance',
-      'Payment Method',
-      'Status',
-      'ETA Uploaded',
-      'ETA Reference'
-    ];
-
-    const csvData = invoicesToExport.map(invoice => [
-      invoice.invoiceNumber,
-      invoice.customerName,
-      format(new Date(invoice.date), 'PP'),
-      invoice.dueDate ? format(new Date(invoice.dueDate), 'PP') : '',
-      invoice.amount.toFixed(2),
-      (invoice.amountPaid || 0).toFixed(2),
-      (invoice.amount - (invoice.amountPaid || 0)).toFixed(2),
-      invoice.paymentMethod?.replace('_', ' ') || '',
-      invoice.status,
-      invoice.etaUploaded ? 'Yes' : 'No',
-      invoice.etaReference || ''
-    ]);
-
-    const csvContent = [headers, ...csvData]
-      .map(row => row.map(field => `"${field}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `invoices_export_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Export individual invoice to PDF
-  const exportInvoiceToPDF = (invoice: Invoice) => {
-    // Create a printable version for PDF export
-    const printWindow = window.open('', '', 'height=600,width=800');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Invoice ${invoice.invoiceNumber}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; }
-              .invoice-details { margin: 20px 0; }
-              .items { margin-top: 30px; }
-              table { width: 100%; border-collapse: collapse; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-            </style>
-          </head>
-          <body>
-            <div class="header">
-              <h1>INVOICE</h1>
-              <h2>Premier Ltd.</h2>
-            </div>
-            <div class="invoice-details">
-              <p><strong>Invoice #:</strong> ${invoice.invoiceNumber}</p>
-              <p><strong>Customer:</strong> ${invoice.customerName}</p>
-              <p><strong>Date:</strong> ${format(new Date(invoice.date), 'PP')}</p>
-              <p><strong>Amount:</strong> $${invoice.amount.toFixed(2)}</p>
-              <p><strong>Outstanding:</strong> $${(invoice.amount - (invoice.amountPaid || 0)).toFixed(2)}</p>
-              <p><strong>Status:</strong> ${invoice.status}</p>
-            </div>
-            ${invoice.items && invoice.items.length > 0 ? `
-              <div class="items">
-                <h3>Items</h3>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Quantity</th>
-                      <th>Unit Price</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${invoice.items.map(item => `
-                      <tr>
-                        <td>${item.productName}</td>
-                        <td>${item.quantity}</td>
-                        <td>$${item.unitPrice.toFixed(2)}</td>
-                        <td>$${item.total.toFixed(2)}</td>
-                      </tr>
-                    `).join('')}
-                  </tbody>
-                </table>
-              </div>
-            ` : ''}
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
-  };
-
-  // Export selected invoices as individual PDFs
-  const exportSelectedAsPDF = () => {
-    if (selectedInvoices.length === 0) {
-      alert('Please select invoices to export');
-      return;
-    }
-
-    const selectedInvoiceData = invoices.filter(invoice => selectedInvoices.includes(invoice.id));
+    setLoadingDetails(true);
     
-    // Export each selected invoice as a separate PDF
-    selectedInvoiceData.forEach((invoice, index) => {
-      setTimeout(() => {
-        exportInvoiceToPDF(invoice);
-      }, index * 500); // Delay between each PDF to avoid browser issues
-    });
-
-    alert(`Exporting ${selectedInvoices.length} invoice(s) as PDFs...`);
-  };
-
-  // Delete selected invoices (move to recycle bin)
-  const deleteSelectedInvoices = () => {
-    if (selectedInvoices.length === 0) {
-      alert('Please select invoices to delete');
-      return;
-    }
-
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${selectedInvoices.length} selected invoice(s)? They will be moved to the recycle bin for 30 days.`
-    );
-
-    if (confirmDelete) {
-      // Move selected invoices to recycle bin with deletion timestamp
-      const invoicesToDelete = invoices.filter(invoice => selectedInvoices.includes(invoice.id));
-      const deletedWithTimestamp = invoicesToDelete.map(invoice => ({
-        ...invoice,
-        deletedAt: new Date().toISOString()
-      }));
-      
-      setDeletedInvoices(prev => [...prev, ...deletedWithTimestamp]);
-      
-      // Update the invoices state (this would normally involve an API call)
-      alert(`Successfully moved ${selectedInvoices.length} invoice(s) to recycle bin`);
-      
-      // Clear selected invoices
-      setSelectedInvoices([]);
-      setSelectAll(false);
-    }
-  };
-
-  // Recycle bin functions
-  const restoreInvoice = (invoiceId: number) => {
-    const invoiceToRestore = deletedInvoices.find(inv => inv.id === invoiceId);
-    if (invoiceToRestore) {
-      setDeletedInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
-      alert('Invoice restored successfully');
-    }
-  };
-
-  const permanentlyDeleteInvoice = (invoiceId: number) => {
-    if (confirm('Are you sure you want to permanently delete this invoice? This action cannot be undone.')) {
-      setDeletedInvoices(prev => prev.filter(inv => inv.id !== invoiceId));
-      alert('Invoice permanently deleted');
-    }
-  };
-
-  const clearExpiredInvoices = () => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const expiredCount = deletedInvoices.filter(inv => 
-      new Date(inv.deletedAt) < thirtyDaysAgo
-    ).length;
-    
-    if (expiredCount > 0) {
-      setDeletedInvoices(prev => prev.filter(inv => 
-        new Date(inv.deletedAt) >= thirtyDaysAgo
-      ));
-      alert(`${expiredCount} expired invoice(s) permanently removed`);
-    } else {
-      alert('No expired invoices to remove');
+    try {
+      // Use unified API data - no need for separate fetch since unified API provides all data
+      console.log('Using unified invoice data for preview:', invoice);
+      setDetailedInvoice(invoice);
+    } catch (error) {
+      console.error('Error setting invoice details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load invoice details",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Invoice History</h1>
-          <p className="text-muted-foreground">View and manage all your invoices</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setShowRecycleBin(true)}
-            className="bg-gray-50 text-gray-700 hover:bg-gray-100"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Recycle Bin 
-            {deletedInvoices.length > 0 && (
-              <span className="ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
-                {deletedInvoices.length}
-              </span>
-            )}
-          </Button>
-          <Button onClick={() => window.location.href = '/create-invoice'}>
-            <FileText className="mr-2 h-4 w-4" />
-            Create New Invoice
-          </Button>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Find Invoices</CardTitle>
-          <CardDescription>Search and filter through your invoice history</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by invoice number or customer..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Invoice History</h1>
+              <p className="text-gray-600">Manage and track all your invoices</p>
             </div>
-            <div className="flex gap-4">
-              <div className="w-[180px]">
-                <Select 
-                  value={statusFilter} 
-                  onValueChange={setStatusFilter}
-                >
+            
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleRefresh} variant="outline" size="sm">
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <FileText className="h-4 w-4 mr-2" />
+                Create Invoice
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search invoices..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
-                    <div className="flex items-center">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <span>Status</span>
-                    </div>
+                    <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
@@ -862,220 +694,144 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                     <SelectItem value="unpaid">Unpaid</SelectItem>
                     <SelectItem value="partial">Partial</SelectItem>
                     <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="refunded">Refunded</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="w-[180px]">
-                <Select 
-                  value={dateFilter} 
-                  onValueChange={setDateFilter}
-                >
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
                   <SelectTrigger>
-                    <div className="flex items-center">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <span>Date</span>
-                    </div>
+                    <SelectValue placeholder="All dates" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Time</SelectItem>
                     <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="year">This Year</SelectItem>
+                    <SelectItem value="week">Last Week</SelectItem>
+                    <SelectItem value="month">Last Month</SelectItem>
+                    <SelectItem value="quarter">Last Quarter</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Invoice List</CardTitle>
-              <CardDescription>
-                Showing {filteredInvoices.length} invoices
-                {selectedInvoices.length > 0 && (
-                  <span className="ml-2 text-blue-600 font-medium">
-                    ({selectedInvoices.length} selected)
-                  </span>
-                )}
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              {selectedInvoices.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => deleteSelectedInvoices()}
-                  className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border-red-200"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Selected ({selectedInvoices.length})
-                </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-green-50 text-green-700 hover:bg-green-100"
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export
-                    <ChevronDown className="ml-2 h-4 w-4" />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Actions</label>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setDateFilter('all');
+                  }}>
+                    Clear
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => exportSelectedAsPDF()}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Selected as PDFs
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportInvoicesToCSV(filteredInvoices)}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export All as CSV
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </CardContent>
+        </Card>
+
+        {/* Results Summary */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing {currentInvoices.length} of {filteredInvoices.length} invoices
+                {filteredInvoices.length !== invoices.length && ` (filtered from ${invoices.length} total)`}
+              </div>
+              <div className="text-sm text-gray-600">
+                Total Amount: EGP {invoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString()}
+              </div>
             </div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No invoices found</p>
-              {searchTerm || statusFilter !== 'all' || dateFilter !== 'all' ? (
-                <p className="text-sm text-muted-foreground mt-2">Try adjusting your search or filters</p>
-              ) : (
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => window.location.href = '/create-invoice'}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Create Your First Invoice
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          </CardContent>
+        </Card>
+
+        {/* Invoice Table */}
+        <Card>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading invoices...</p>
+                </div>
+              </div>
+            ) : currentInvoices.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices found</h3>
+                <p className="text-gray-600">
+                  {filteredInvoices.length === 0 && invoices.length > 0
+                    ? 'Try adjusting your filters to see more results.'
+                    : 'Create your first invoice to get started.'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[50px]">
-                        <Checkbox
-                          checked={selectAll}
-                          onCheckedChange={handleSelectAll}
-                          aria-label="Select all invoices"
-                        />
-                      </TableHead>
-                      <TableHead className="min-w-[120px]">Invoice #</TableHead>
-                      <TableHead className="min-w-[120px]">Paper Inv. No.</TableHead>
-                      <TableHead className="min-w-[120px]">ETA #</TableHead>
-                      <TableHead className="min-w-[180px]">Customer</TableHead>
-                      <TableHead className="min-w-[120px]">Date</TableHead>
-                      <TableHead className="min-w-[120px]">Amount</TableHead>
-                      <TableHead className="min-w-[120px]">Outstanding</TableHead>
-                      <TableHead className="min-w-[150px]">Payment Method</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="min-w-[100px]">ETA Upload</TableHead>
-                      <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>ETA Status</TableHead>
+                      <TableHead>Payment Method</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedInvoices.map((invoice) => (
-                      <TableRow key={invoice.id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedInvoices.includes(invoice.id)}
-                            onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
-                            aria-label={`Select invoice ${invoice.invoiceNumber}`}
-                          />
-                        </TableCell>
-                        <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                        <TableCell className="font-medium text-gray-700">
-                          {`P-${invoice.invoiceNumber?.slice(-6) || '000001'}`}
-                        </TableCell>
-                        <TableCell className="font-medium text-blue-600">
-                          {invoice.etaReference || (
-                            <span className="text-gray-400 font-normal">Not uploaded</span>
-                          )}
+                    {currentInvoices.map((invoice) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">
+                          {invoice.invoiceNumber}
                         </TableCell>
                         <TableCell>{invoice.customerName}</TableCell>
-                        <TableCell>{format(new Date(invoice.date), 'PP')}</TableCell>
                         <TableCell>
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(invoice.amount)}
+                          {format(new Date(invoice.date), 'MMM dd, yyyy')}
                         </TableCell>
-                        <TableCell>
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(invoice.status === 'paid' ? 0 : 
-                                    invoice.status === 'partial' ? invoice.amount - (invoice.amountPaid || 0) : 
-                                    invoice.amount)}
-                        </TableCell>
-                        <TableCell>
-                          {invoice.paymentMethod ? 
-                            invoice.paymentMethod.charAt(0).toUpperCase() + 
-                            invoice.paymentMethod.slice(1).replace('_', ' ') : 
-                            '-'}
-                        </TableCell>
+                        <TableCell>EGP {parseFloat(invoice.grandTotal || invoice.totalAmount || invoice.amount || 0).toLocaleString()}</TableCell>
                         <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                        <TableCell>{getETAStatus(invoice)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            {!invoice.etaUploaded && (
-                              <Button 
-                                variant="outline" 
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getETAStatusBadge(invoice.etaStatus)}
+                            {(invoice.etaStatus === 'not_sent' || invoice.etaStatus === 'failed' || !invoice.etaStatus) && (
+                              <Button
+                                variant="outline"
                                 size="sm"
-                                onClick={() => uploadToETA(invoice.id)}
-                                className="bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                onClick={() => handleSendToETA(invoice)}
+                                disabled={sendingToETA === invoice.id}
                               >
-                                Upload to ETA
+                                {sendingToETA === invoice.id ? (
+                                  <Clock className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Send className="h-3 w-3 mr-1" />
+                                )}
+                                {sendingToETA === invoice.id ? 'Sending...' : 'Send to ETA'}
                               </Button>
                             )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handlePreview(invoice)}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Invoice
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => exportInvoiceToPDF(invoice)}>
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Download PDF
-                                </DropdownMenuItem>
-                                {(invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') && (
-                                  <DropdownMenuItem onClick={() => handlePaymentFulfillment(invoice)}>
-                                    <CreditCard className="mr-2 h-4 w-4" />
-                                    Pay Balance
-                                  </DropdownMenuItem>
-                                )}
-                                {(invoice.status === 'paid' || invoice.status === 'partial') && (
-                                  <DropdownMenuItem 
-                                    onClick={() => handleRefund(invoice)}
-                                    className="text-red-600"
-                                  >
-                                    <RotateCcw className="mr-2 h-4 w-4" />
-                                    Process Refund
-                                  </DropdownMenuItem>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                        <TableCell className="capitalize">
+                          {invoice.paymentMethod?.replace('_', ' ') || 'Not specified'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewInvoice(invoice)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => downloadInvoicePDF(invoice)}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1083,728 +839,321 @@ Customer: ${selectedInvoice?.customerName || 'N/A'}
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-2 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="flex items-center"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Previous
-          </Button>
-          
-          <div className="flex items-center space-x-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentPage(page)}
-                className={`min-w-[40px] ${
-                  currentPage === page 
-                    ? "bg-blue-600 text-white hover:bg-blue-700" 
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                {page}
-              </Button>
-            ))}
-          </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="flex items-center"
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      )}
-
-      {/* Pagination Info */}
-      {filteredInvoices.length > 0 && (
-        <div className="text-center text-sm text-muted-foreground">
-          Showing {startIndex + 1} to {Math.min(endIndex, filteredInvoices.length)} of {filteredInvoices.length} invoices
-        </div>
-      )}
-
-      {/* Invoice Preview Dialog */}
-      {selectedInvoice && (
-        <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Invoice #{selectedInvoice.invoiceNumber}</DialogTitle>
-              <DialogDescription>
-                <div className="flex items-center justify-between">
-                  <span>{format(new Date(selectedInvoice.date), 'PPP')}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">ETA Status:</span>
-                    {getETAStatus(selectedInvoice)}
-                    {selectedInvoice.etaReference && (
-                      <span className="text-xs text-muted-foreground">
-                        Ref: {selectedInvoice.etaReference}
-                      </span>
-                    )}
-                  </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-2 py-4">
+                <div className="text-sm text-gray-700">
+                  Page {currentPage} of {totalPages}
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Professional Invoice Preview Dialog - Matching CreateInvoice Format */}
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogContent className="max-w-6xl h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>Invoice Preview</span>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.print()}
+                    disabled={!selectedInvoice}
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => selectedInvoice && downloadInvoicePDF(selectedInvoice)}
+                    disabled={!selectedInvoice}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </DialogTitle>
+              <DialogDescription>
+                Preview invoice before printing or downloading
               </DialogDescription>
             </DialogHeader>
             
-            <div className="border rounded-lg p-6">
-              <div className="flex justify-between items-start mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-blue-600">INVOICE</h2>
-                  <p className="text-muted-foreground">Premier Ltd.</p>
-                  <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
+            <div className="flex-1 overflow-auto bg-white">
+              {loadingDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2">Loading invoice details...</span>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">Invoice #: {selectedInvoice.invoiceNumber}</p>
-                  <p>Issue Date: {format(new Date(selectedInvoice.date), 'PP')}</p>
-                  {selectedInvoice.dueDate && (
-                    <p>Due Date: {format(new Date(selectedInvoice.dueDate), 'PP')}</p>
-                  )}
-                  <p className="mt-2">
-                    {getStatusBadge(selectedInvoice.status)}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div>
-                  <h3 className="font-semibold mb-2">Bill To:</h3>
-                  <div className="space-y-1">
-                    <p className="font-medium">{selectedInvoice.customerName}</p>
-                    <p className="text-sm text-slate-600">Mobile: +1 (555) 123-4567</p>
-                    <p className="text-sm text-slate-600">Email: {selectedInvoice.customerName.toLowerCase().replace(/\s+/g, '.')}@pharmacare.com</p>
-                    <p className="text-sm text-blue-600 font-medium">Tax Number: ETA-{Math.floor(Math.random() * 100000000)}</p>
-                    <p className="text-xs text-slate-500">Egyptian Tax Authority Registration</p>
-                  </div>
-                </div>
-              </div>
-              
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Item</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {selectedInvoice.items.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{item.productName}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(item.unitPrice)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD'
-                        }).format(item.total)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              {/* Uploaded Documents Section */}
-              <div className="mt-8 mb-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Uploaded Documents
-                </h3>
-                
-                <div className="border rounded-lg p-4 bg-slate-50">
-                  <div className="grid gap-3 max-h-80 overflow-y-auto pr-2">
-                    {/* Sample documents - in real implementation, this would come from the invoice data */}
-                    <div className="flex items-center justify-between p-3 bg-white rounded border">
-                      <div className="flex items-center">
-                        <FileText className="h-5 w-5 text-blue-600 mr-3" />
-                        <div>
-                          <p className="font-medium text-sm">Invoice_Receipt_{selectedInvoice.invoiceNumber}.pdf</p>
-                          <p className="text-xs text-slate-500">245 KB • Uploaded 2 days ago</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => downloadDocument(`Invoice_Receipt_${selectedInvoice.invoiceNumber}.pdf`, 'pdf')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-white rounded border">
-                      <div className="flex items-center">
-                        <ImageIcon className="h-5 w-5 text-green-600 mr-3" />
-                        <div>
-                          <p className="font-medium text-sm">Product_Certificate_{selectedInvoice.customerName.replace(/\s+/g, '_')}.jpg</p>
-                          <p className="text-xs text-slate-500">1.2 MB • Uploaded 5 days ago</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => downloadDocument(`Product_Certificate_${selectedInvoice.customerName.replace(/\s+/g, '_')}.jpg`, 'jpg')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-white rounded border">
-                      <div className="flex items-center">
-                        <FileText className="h-5 w-5 text-purple-600 mr-3" />
-                        <div>
-                          <p className="font-medium text-sm">Shipping_Label_{selectedInvoice.invoiceNumber}.pdf</p>
-                          <p className="text-xs text-slate-500">156 KB • Uploaded 1 week ago</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => downloadDocument(`Shipping_Label_${selectedInvoice.invoiceNumber}.pdf`, 'pdf')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* Show uploaded files */}
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-white rounded border border-green-200 bg-green-50">
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 text-green-600 mr-3" />
+              ) : selectedInvoice && detailedInvoice ? (
+                <div className="p-6">
+                  <div className="max-w-4xl mx-auto bg-white shadow-sm border rounded-lg overflow-hidden">
+                    {/* Professional Header matching the provided design */}
+                    <div className="bg-white border-b p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-start space-x-4">
+                          {/* Company Logo/Icon */}
+                          <div className="flex-shrink-0">
+                            <img 
+                              src="/attached_assets/P_1749320448134.png" 
+                              alt="Premier ERP Logo" 
+                              className="w-16 h-16 object-contain rounded-lg"
+                            />
+                          </div>
+                          {/* Company Info */}
                           <div>
-                            <p className="font-medium text-sm">{file.name}</p>
-                            <p className="text-xs text-slate-500">{formatFileSize(file.size)} • Just uploaded</p>
+                            <h1 className="text-2xl font-bold text-blue-600 mb-1">Morgan Chemical</h1>
+                            <p className="text-gray-600 text-sm mb-2">Enterprise Resource Planning System</p>
+                            <div className="text-sm text-gray-600 space-y-0.5">
+                              <p>123 Business District</p>
+                              <p>Cairo, Egypt 11511</p>
+                              <p>Phone: +20 2 1234 5678</p>
+                              <p>Email: info@premieregypt.com</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => removeUploadedFile(index)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                        
+                        {/* Invoice Details */}
+                        <div className="text-right">
+                          <h2 className="text-3xl font-bold text-gray-800 mb-2">INVOICE</h2>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <div>
+                              <span className="font-semibold text-gray-800">Invoice Number: </span>
+                              <span>{detailedInvoice.invoiceNumber}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-800">Paper Invoice Number: </span>
+                              <span>{detailedInvoice.paperInvoiceNumber || '23423'}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-800">Approval No.: </span>
+                              <span>{detailedInvoice.approvalNumber || '12312312'}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-800">Date: </span>
+                              <span>{new Date(detailedInvoice.date).toLocaleDateString('en-GB')}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                    
-                    {/* Upload new document option */}
-                    <div 
-                      className="flex items-center justify-center p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-slate-400 transition-colors cursor-pointer"
-                      onClick={triggerFileUpload}
-                    >
-                      <div className="text-center">
-                        <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2" />
-                        <p className="text-sm text-slate-600">Upload additional documents</p>
-                        <p className="text-xs text-slate-400">PDF, JPG, PNG up to 10MB</p>
+                    </div>
+
+                    <div className="p-6 space-y-6">
+                      {/* Bill To Section - Professional Card Design */}
+                      <div className="mb-6">
+                        <h3 className="font-semibold text-gray-900 mb-3">Bill To:</h3>
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div>
+                            <h4 className="text-base font-semibold text-gray-900 mb-2">
+                              {detailedInvoice.customer?.name || selectedInvoice.customerName}
+                            </h4>
+                            
+                            <div className="flex space-x-2 mb-3">
+                              <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                Code: CUST-{String(detailedInvoice.customer?.id || '0001').padStart(4, '0')}
+                              </div>
+                              <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                                Mobile: {detailedInvoice.customer?.phone || '+20 2 2222 3333'}
+                              </div>
+                            </div>
+
+                            {detailedInvoice.customer?.company && (
+                              <p className="text-gray-600 text-sm mb-2">
+                                {detailedInvoice.customer.company}
+                              </p>
+                            )}
+                            {detailedInvoice.customer?.address && (
+                              <p className="text-gray-600 text-sm">
+                                {detailedInvoice.customer.address}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Invoice Details */}
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">Invoice Date:</span>
+                            <p className="text-gray-900">{new Date(detailedInvoice.date).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Due Date:</span>
+                            <p className="text-gray-900">{detailedInvoice.dueDate ? new Date(detailedInvoice.dueDate).toLocaleDateString() : 'Due Immediately'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Payment Terms:</span>
+                            <p className="text-gray-900">{detailedInvoice.paymentTerms === '0' || !detailedInvoice.paymentTerms ? 'Due Immediately' : `Net ${detailedInvoice.paymentTerms} Days`}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Items Table */}
+                      <div className="overflow-x-auto border border-gray-300 rounded-lg">
+                        <table className="w-full border-collapse">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '30%'}}>Item Description</th>
+                              <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '12%'}}>Category</th>
+                              <th className="border border-gray-300 px-3 py-2 text-left text-sm font-bold text-black" style={{width: '10%'}}>Batch No.</th>
+                              <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black" style={{width: '8%'}}>Grade</th>
+                              <th className="border border-gray-300 px-3 py-2 text-center text-sm font-bold text-black" style={{width: '8%'}}>Qty</th>
+                              <th className="border border-gray-300 px-3 py-2 text-right text-sm font-bold text-black" style={{width: '16%'}}>Unit Price</th>
+                              <th className="border border-gray-300 px-3 py-2 text-right text-sm font-bold text-black" style={{width: '16%'}}>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {detailedInvoice.items?.map((item: any, index: number) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="border border-gray-300 px-3 py-2">
+                                  <p className="font-medium text-gray-900 text-sm break-words" style={{wordWrap: 'break-word', hyphens: 'auto'}}>{item.productName || 'No Product Name'}</p>
+                                </td>
+                                <td className="border border-gray-300 px-3 py-2 text-gray-900 text-sm">{item.category || 'Category null'}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-gray-900 text-sm">{item.batchNo || '-'}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-center text-gray-900 text-sm font-bold">({item.grade || 'P'})</td>
+                                <td className="border border-gray-300 px-3 py-2 text-center text-gray-900 text-sm">{item.quantity || 0}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-right text-gray-900 text-sm">EGP {parseFloat(item.unitPrice || 0).toFixed(2)}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-right font-medium text-gray-900 text-sm">EGP {parseFloat(item.total || 0).toFixed(2)}</td>
+                              </tr>
+                            )) || (
+                              <tr>
+                                <td colSpan={7} className="border border-gray-300 px-3 py-4 text-center text-gray-500">
+                                  No items found
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Totals Section */}
+                      <div className="flex justify-end">
+                        <div className="w-80">
+                          <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 space-y-3">
+                            {(() => {
+                              // Use database values directly - no recalculation to avoid mismatches
+                              const subtotal = parseFloat(detailedInvoice.subtotal || 0);
+                              const discountAmount = parseFloat(detailedInvoice.discountAmount || detailedInvoice.discount || 0);
+                              const taxAmount = parseFloat(detailedInvoice.taxAmount || detailedInvoice.tax || 0);
+                              const vatAmount = parseFloat(detailedInvoice.vatAmount || 0);
+                              
+                              // Use actual grandTotal from database instead of calculating
+                              const total = parseFloat(detailedInvoice.grandTotal || detailedInvoice.totalAmount || 0);
+                              
+                              // Payment calculations using database values
+                              const amountPaid = parseFloat(detailedInvoice.amountPaid || 0);
+                              const balanceDue = total - amountPaid;
+                              
+                              return (
+                                <>
+                                  <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                                    <span className="font-medium">Subtotal:</span>
+                                    <span className="font-medium">EGP {subtotal.toFixed(2)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between text-green-600 border-b border-gray-200 pb-2">
+                                    <span className="font-medium">Discount:</span>
+                                    <span className="font-medium">-EGP {discountAmount.toFixed(2)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                                    <span className="font-medium">Tax ({detailedInvoice.taxRate || 14}%):</span>
+                                    <span className="font-medium">EGP {taxAmount.toFixed(2)}</span>
+                                  </div>
+                                  
+                                  {vatAmount > 0 && (
+                                    <div className="flex justify-between text-gray-700 border-b border-gray-200 pb-2">
+                                      <span className="font-medium">VAT ({detailedInvoice.vatRate || 14}%):</span>
+                                      <span className="font-medium">EGP {vatAmount.toFixed(2)}</span>
+                                    </div>
+                                  )}
+                                  
+                                  <div className="bg-blue-600 text-white rounded p-3 -m-1">
+                                    <div className="flex justify-between text-lg font-bold">
+                                      <span>Total Amount:</span>
+                                      <span>EGP {total.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="border-t border-gray-200 pt-3 space-y-2">
+                                    <div className="flex justify-between text-green-600">
+                                      <span className="font-medium">Amount Paid:</span>
+                                      <span className="font-medium">EGP {amountPaid.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-red-600 font-semibold">
+                                      <span>Balance Due:</span>
+                                      <span>EGP {balanceDue.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notes */}
+                      {detailedInvoice.notes && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <h4 className="font-medium text-gray-900 mb-2">Notes:</h4>
+                          <p className="text-sm text-gray-700">{detailedInvoice.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Footer */}
+                      <div className="text-center text-sm text-gray-500 border-t pt-4 mt-8 space-y-2">
+                        <p className="font-medium">Thank you for your business!</p>
+                        <p>This invoice was generated on {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString('en-GB', { hour12: false })}</p>
+                        <p>For any questions regarding this invoice, please contact us at info@morganerp.com</p>
                       </div>
                     </div>
-                    
-                    {/* Hidden file input */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
                   </div>
                 </div>
-              </div>
-              
-              {/* Financial Summary Section */}
-              <div className="mt-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Payment Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold mb-3">Payment Information</h3>
-                    <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Payment Method:</span>
-                        <span className="font-medium capitalize">
-                          {selectedInvoice.paymentMethod?.replace('_', ' ') || 'Not specified'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Payment Status:</span>
-                        <span className="font-medium">
-                          {getStatusBadge(selectedInvoice.status)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Amount Paid:</span>
-                        <span className="font-medium text-green-600">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.amountPaid || 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Outstanding Balance:</span>
-                        <span className="font-medium text-red-600">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format((selectedInvoice.amount || 0) - (selectedInvoice.amountPaid || 0))}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Financial Breakdown */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold mb-3">Financial Summary</h3>
-                    <div className="bg-slate-50 p-4 rounded-lg space-y-3">
-                      {/* Calculate subtotal from items */}
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Subtotal:</span>
-                        <span className="font-medium">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0))}
-                        </span>
-                      </div>
-                      
-                      {/* Discount (if any) */}
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Discount (5%):</span>
-                        <span className="font-medium text-green-600">
-                          -{new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.05)}
-                        </span>
-                      </div>
-                      
-                      {/* Calculate after discount */}
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">After Discount:</span>
-                        <span className="font-medium">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.95)}
-                        </span>
-                      </div>
-                      
-                      {/* Tax */}
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Tax (14%):</span>
-                        <span className="font-medium">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.items.reduce((sum, item) => sum + item.total, 0) * 0.95 * 0.14)}
-                        </span>
-                      </div>
-                      
-                      {/* Shipping (if applicable) */}
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Shipping & Handling:</span>
-                        <span className="font-medium">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(25.00)}
-                        </span>
-                      </div>
-                      
-                      <Separator className="my-2" />
-                      
-                      {/* Final Total */}
-                      <div className="flex justify-between text-lg font-bold border-t pt-2">
-                        <span>Grand Total:</span>
-                        <span className="text-blue-600">
-                          {new Intl.NumberFormat('en-US', {
-                            style: 'currency',
-                            currency: 'USD'
-                          }).format(selectedInvoice.amount)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Failed to load invoice details
                 </div>
-
-                {/* Invoice Notes Section */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2">Invoice Notes</h4>
-                  <div className="text-sm text-blue-700 space-y-2">
-                    <p>• Special handling required for temperature-sensitive pharmaceutical products</p>
-                    <p>• Customer requested expedited shipping for urgent medical supplies</p>
-                    <p>• Quality certificate provided for all pharmaceutical grade chemicals</p>
-                    <p>• Delivery scheduled for {format(new Date(selectedInvoice.dueDate || selectedInvoice.date), 'PP')} at customer facility</p>
-                    <p>• Contact Dr. {selectedInvoice.customerName.split(' ')[0]} for any product-related inquiries</p>
-                  </div>
-                </div>
-
-                {/* Terms & Conditions Section */}
-                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h4 className="font-semibold text-yellow-800 mb-2">Terms & Conditions</h4>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• Payment is due within 30 days of invoice date</li>
-                    <li>• Late payments may incur additional charges</li>
-                    <li>• All pharmaceutical products are subject to quality assurance</li>
-                    <li>• Returns accepted within 14 days with original packaging</li>
-                  </ul>
-                </div>
-              </div>
+              )}
             </div>
             
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowPreview(false)}>
-                Close
+              <Button variant="outline" onClick={() => {
+                setShowPreview(false);
+                setDetailedInvoice(null);
+                setUploadedFiles([]);
+              }}>
+                Close Preview
               </Button>
-              <Button variant="outline" onClick={downloadInvoicePDF}>
-                <Download className="mr-2 h-4 w-4" />
-                Download PDF
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  const customerEmail = selectedInvoice.customerName.toLowerCase().replace(/\s+/g, '.') + '@pharmacare.com';
-                  const subject = `Invoice ${selectedInvoice.invoiceNumber} - Premier`;
-                  const body = `Dear ${selectedInvoice.customerName},
-
-Please find attached your invoice ${selectedInvoice.invoiceNumber} for $${selectedInvoice.amount.toFixed(2)}.
-
-Invoice Details:
-- Invoice Number: ${selectedInvoice.invoiceNumber}
-- Date: ${format(new Date(selectedInvoice.date), 'PP')}
-- Amount: $${selectedInvoice.amount.toFixed(2)}
-- Status: ${selectedInvoice.status.charAt(0).toUpperCase() + selectedInvoice.status.slice(1)}
-
-If you have any questions, please don't hesitate to contact us.
-
-Best regards,
-Premier Team`;
-                  
-                  const mailtoUrl = `mailto:${customerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                  window.location.href = mailtoUrl;
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Mail className="mr-2 h-4 w-4" />
-                Send Email
-              </Button>
-              <Button 
-                variant="default" 
-                onClick={() => {
-                  const phoneNumber = "+15551234567"; // Customer's phone from invoice
-                  const message = `Hello ${selectedInvoice.customerName}! Your invoice ${selectedInvoice.invoiceNumber} for $${selectedInvoice.amount.toFixed(2)} is ready. Please find the details attached. Thank you for your business!`;
-                  const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\+/g, '')}?text=${encodeURIComponent(message)}`;
-                  window.open(whatsappUrl, '_blank');
-                }}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Send to WhatsApp
-              </Button>
-
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      )}
-
-      {/* Payment Dialog */}
-      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Process Payment</DialogTitle>
-            <DialogDescription>
-              {invoiceToUpdate && (
-                <div className="space-y-2 mt-2">
-                  <p>Invoice: <span className="font-medium">{invoiceToUpdate.invoiceNumber}</span></p>
-                  <p>Customer: <span className="font-medium">{invoiceToUpdate.customerName}</span></p>
-                  <p>Total Amount: <span className="font-medium">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(invoiceToUpdate.amount)}
-                  </span></p>
-                  <p>Amount Paid: <span className="font-medium">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(invoiceToUpdate.amountPaid || 0)}
-                  </span></p>
-                  <p>Outstanding Balance: <span className="font-medium text-red-600">
-                    {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: 'USD'
-                    }).format(invoiceToUpdate.amount - (invoiceToUpdate.amountPaid || 0))}
-                  </span></p>
-                </div>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Payment Amount</label>
-              <Input
-                type="number"
-                step="0.01"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder="Enter payment amount"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Enter the amount being paid towards this invoice
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={processPayment}
-              disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Process Payment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Recycle Bin Dialog */}
-      <Dialog open={showRecycleBin} onOpenChange={setShowRecycleBin}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5" />
-              Recycle Bin
-            </DialogTitle>
-            <DialogDescription>
-              Deleted invoices are kept here for 30 days. You can restore them or permanently delete them.
-              {deletedInvoices.length > 0 && (
-                <span className="block text-sm text-blue-600 mt-1">
-                  {deletedInvoices.length} invoice(s) in recycle bin
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {deletedInvoices.length === 0 ? (
-              <div className="text-center py-8">
-                <Trash2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-muted-foreground">Recycle bin is empty</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Deleted invoices will appear here for 30 days
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-muted-foreground">
-                    Items are permanently deleted after 30 days
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={clearExpiredInvoices}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Clear Expired
-                  </Button>
-                </div>
-                
-                <div className="border rounded-lg">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead>Invoice #</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Deleted</TableHead>
-                        <TableHead>Days Remaining</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {deletedInvoices.map((invoice) => {
-                        const deletedDate = new Date(invoice.deletedAt);
-                        const daysSinceDeleted = Math.floor((new Date().getTime() - deletedDate.getTime()) / (1000 * 60 * 60 * 24));
-                        const daysRemaining = Math.max(0, 30 - daysSinceDeleted);
-                        
-                        return (
-                          <TableRow key={invoice.id} className="hover:bg-gray-50">
-                            <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                            <TableCell>{invoice.customerName}</TableCell>
-                            <TableCell>
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'USD'
-                              }).format(invoice.amount)}
-                            </TableCell>
-                            <TableCell>{format(deletedDate, 'PP')}</TableCell>
-                            <TableCell>
-                              <span className={`text-sm ${daysRemaining <= 7 ? 'text-red-600 font-medium' : 'text-muted-foreground'}`}>
-                                {daysRemaining} days
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => restoreInvoice(invoice.id)}
-                                  className="bg-green-50 text-green-700 hover:bg-green-100"
-                                >
-                                  <RotateCcw className="mr-2 h-4 w-4" />
-                                  Restore
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => permanentlyDeleteInvoice(invoice.id)}
-                                  className="bg-red-50 text-red-600 hover:bg-red-100"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete Forever
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRecycleBin(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Refund Dialog */}
-      <Dialog open={isRefundDialogOpen} onOpenChange={setIsRefundDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <RotateCcw className="h-5 w-5 text-red-600" />
-              Process Refund
-            </DialogTitle>
-            <DialogDescription>
-              Process a refund for the selected invoice. This action will create a refund entry in the accounting system.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {refundInvoice && (
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Invoice:</span>
-                    <span className="text-sm">{refundInvoice.invoiceNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Customer:</span>
-                    <span className="text-sm">{refundInvoice.customerName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Total Amount:</span>
-                    <span className="text-sm">${refundInvoice.amount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">Amount Paid:</span>
-                    <span className="text-sm">${(refundInvoice.amountPaid || 0).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="refundAmount" className="text-sm font-medium">Refund Amount</label>
-                <input
-                  id="refundAmount"
-                  type="number"
-                  placeholder="0.00"
-                  value={refundAmount}
-                  onChange={(e) => setRefundAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="refundReason" className="text-sm font-medium">Reason for Refund *</label>
-                <textarea
-                  id="refundReason"
-                  placeholder="Please provide a reason for this refund..."
-                  value={refundReason}
-                  onChange={(e) => setRefundReason(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsRefundDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={processRefund} className="bg-red-600 hover:bg-red-700 text-white">
-              Process Refund
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 };

@@ -136,7 +136,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
 
 
             {customer.taxNumber && (
-              <p className="text-sm text-gray-600">ETA Number: {customer.taxNumber}</p>
+              <p className="text-sm text-gray-600">{t('etaNumber')}: {customer.taxNumber}</p>
             )}
             {customer.address && (
               <p className="text-sm text-gray-600">{t('address')}: {customer.address}</p>
@@ -251,7 +251,7 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
         <div className="text-center text-sm text-gray-600">
           <p className="font-semibold mb-2">{t('thankYouForBusiness')}</p>
           <p>{t('invoiceGeneratedOn')} {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-          <p className="mt-2">{t('forQuestionsContact')} info@morganerp.com</p>
+          <p className="mt-2">{t('forQuestionsContact')} support@premiererp.com</p>
         </div>
       </div>
 

@@ -1,9 +1,11 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertTriangle, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { CheckCircle, AlertTriangle, DollarSign, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface FinancialIntegrationData {
   status: 'active' | 'error';
@@ -17,6 +19,10 @@ interface FinancialIntegrationData {
 }
 
 const FinancialIntegrationStatus: React.FC = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: integrationStatus, isLoading, error } = useQuery<FinancialIntegrationData>({
     queryKey: ['/api/financial-integration/status'],
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -25,6 +31,30 @@ const FinancialIntegrationStatus: React.FC = () => {
   const { data: accountingSummary, isLoading: isAccountingLoading } = useQuery({
     queryKey: ['/api/accounting/summary'],
   });
+
+  // Manual refresh function
+  const handleRefreshStatus = async () => {
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['/api/financial-integration/status'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
+      toast({
+        title: "Status Refreshed",
+        description: "Financial integration status has been updated.",
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Unable to refresh integration status.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+
 
   if (isLoading) {
     return (
@@ -62,19 +92,15 @@ const FinancialIntegrationStatus: React.FC = () => {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Financial Integration Status</CardTitle>
-            <Badge variant={isConnected ? "default" : "destructive"} className="flex items-center gap-1">
-              {isConnected ? (
-                <>
-                  <CheckCircle className="h-3 w-3" />
-                  Active
-                </>
-              ) : (
-                <>
-                  <AlertTriangle className="h-3 w-3" />
-                  Error
-                </>
-              )}
-            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshStatus}
+              disabled={isRefreshing}
+              className="h-8 px-2"
+            >
+              <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="pt-0">

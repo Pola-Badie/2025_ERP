@@ -33,7 +33,10 @@ const expenseFormSchema = z.object({
   date: z.string(),
   amount: z.coerce.number().positive({ message: 'Amount must be greater than 0' }),
   description: z.string().min(3, { message: 'Description must be at least 3 characters' }),
-  category: z.string().min(1, { message: 'Please select a category' }),
+  category: z.string().min(1, { message: 'Please select account type' }),
+  costCenter: z.string().min(1, { message: 'Please select cost center' }),
+  paymentMethod: z.string().min(1, { message: 'Please select payment method' }),
+  status: z.string().default('pending'),
   notes: z.string().optional(),
   receipt: z.instanceof(File).optional(),
 });
@@ -59,9 +62,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
   const defaultValues: Partial<ExpenseFormValues> = {
     userId: 1, // Assuming the current user has ID 1
     date: new Date().toISOString().split('T')[0],
-    amount: undefined,
+    amount: 0,
     description: '',
     category: '',
+    costCenter: '',
+    paymentMethod: '',
+    status: 'pending',
     notes: '',
   };
 
@@ -127,6 +133,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Row 1: Date and Amount */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -147,7 +154,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
             name="amount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Amount ($)</FormLabel>
+                <FormLabel>Amount (EGP)</FormLabel>
                 <FormControl>
                   <Input 
                     type="number" 
@@ -163,6 +170,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           />
         </div>
         
+        {/* Row 2: Description */}
         <FormField
           control={form.control}
           name="description"
@@ -177,31 +185,97 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           )}
         />
         
+        {/* Row 3: Account Type and Cost Center */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Account Type</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Operating Expenses">Operating Expenses</SelectItem>
+                    <SelectItem value="Office Supplies">Office Supplies</SelectItem>
+                    <SelectItem value="Maintenance & Repairs">Maintenance & Repairs</SelectItem>
+                    <SelectItem value="Professional Services">Professional Services</SelectItem>
+                    <SelectItem value="Transportation">Transportation</SelectItem>
+                    <SelectItem value="Marketing & Advertising">Marketing & Advertising</SelectItem>
+                    <SelectItem value="Utilities">Utilities</SelectItem>
+                    <SelectItem value="Raw Materials">Raw Materials</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="costCenter"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cost Center</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cost center" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Administration">Administration</SelectItem>
+                    <SelectItem value="Production">Production</SelectItem>
+                    <SelectItem value="Quality Control">Quality Control</SelectItem>
+                    <SelectItem value="Sales & Marketing">Sales & Marketing</SelectItem>
+                    <SelectItem value="R&D">R&D</SelectItem>
+                    <SelectItem value="Human Resources">Human Resources</SelectItem>
+                    <SelectItem value="Legal & Compliance">Legal & Compliance</SelectItem>
+                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="Regulatory Affairs">Regulatory Affairs</SelectItem>
+                    <SelectItem value="Environmental">Environmental</SelectItem>
+                    <SelectItem value="Facilities">Facilities</SelectItem>
+                    <SelectItem value="Packaging">Packaging</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        {/* Row 4: Payment Method */}
         <FormField
           control={form.control}
-          name="category"
+          name="paymentMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>Payment Method</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Select payment method" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {isLoadingCategories ? (
-                    <SelectItem value="loading" disabled>Loading categories...</SelectItem>
-                  ) : (
-                    categories?.map((category) => (
-                      <SelectItem key={category.id} value={category.name}>
-                        {category.name}
-                      </SelectItem>
-                    ))
-                  )}
+                  <SelectItem value="Cash">Cash</SelectItem>
+                  <SelectItem value="Credit Card">Credit Card</SelectItem>
+                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="Check">Check</SelectItem>
+                  <SelectItem value="Current Account">Current Account</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -209,6 +283,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           )}
         />
         
+        {/* Row 5: Receipt Upload */}
         <FormField
           control={form.control}
           name="receipt"
@@ -223,6 +298,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           )}
         />
         
+        {/* Row 6: Notes */}
         <FormField
           control={form.control}
           name="notes"
@@ -240,6 +316,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           )}
         />
         
+        {/* Actions Row */}
         <div className="flex justify-end space-x-2 pt-4">
           <Button 
             type="button" 
@@ -255,8 +332,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSuccess, expenseId }) => {
           <Button 
             type="submit" 
             disabled={createExpense.isPending}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {createExpense.isPending ? 'Submitting...' : 'Submit for Approval'}
+            {createExpense.isPending ? 'Creating...' : 'Create Expense'}
           </Button>
         </div>
       </form>

@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -44,6 +45,7 @@ const productFormSchema = z.object({
   description: z.string().optional(),
   quantity: z.coerce.number().int().nonnegative({ message: 'Quantity must be a non-negative integer' }),
   unitOfMeasure: z.string().min(1, { message: 'Please select a unit of measure' }),
+  grade: z.array(z.string()).default(['P']),
   lowStockThreshold: z.coerce.number().int().nonnegative({ message: 'Low stock threshold must be a non-negative integer' }),
   reorderLevel: z.coerce.number().int().nonnegative().optional(),
   maxStockLevel: z.coerce.number().int().nonnegative().optional(),
@@ -72,22 +74,23 @@ interface Category {
   description: string | null;
 }
 
+interface Warehouse {
+  id: number;
+  name: string;
+  address: string;
+  code: string;
+}
+
 const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initialData }) => {
   const { t, language } = useLanguage();
   const isRTL = language === 'ar';
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Warehouse data - Updated to match actual database locations
-  const [warehouses] = useState([
-    { id: 1, name: 'Warehouse 1', location: 'Main Storage - Cairo' },
-    { id: 2, name: 'Warehouse 2', location: 'Secondary Storage - Alexandria' },
-    { id: 3, name: 'Warehouse 3', location: 'Distribution Center - Giza' },
-    { id: 4, name: 'Warehouse A', location: 'Raw Materials - Cairo' },
-    { id: 5, name: 'Warehouse B', location: 'Semi-Finished - Alexandria' },
-    { id: 6, name: 'Warehouse C', location: 'Finished Products - Giza' },
-    { id: 7, name: 'A-1', location: 'Special Storage - Cairo' },
-  ]);
+  // Fetch warehouses from API instead of hardcoded data
+  const { data: warehouses = [], isLoading: isLoadingWarehouses } = useQuery<Warehouse[]>({
+    queryKey: ['/api/warehouses'],
+  });
 
   // Fetch categories for select options
   const { data: categories, isLoading: isLoadingCategories } = useQuery<Category[]>({
@@ -104,6 +107,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
     description: initialData?.description || '',
     quantity: initialData?.quantity || 0,
     unitOfMeasure: initialData?.unitOfMeasure || 'PCS',
+    grade: initialData?.grade ? (Array.isArray(initialData.grade) ? initialData.grade : initialData.grade.split(',')) : ['P'],
     lowStockThreshold: initialData?.lowStockThreshold || 10,
     reorderLevel: initialData?.reorderLevel || 25,
     maxStockLevel: initialData?.maxStockLevel || 250,
@@ -132,6 +136,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      // Invalidate inventory alert cards for real-time dashboard updates
+      queryClient.invalidateQueries({ queryKey: ['expiring-products'] });
+      queryClient.invalidateQueries({ queryKey: ['low-stock-products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
+      console.log('Product created successfully - invalidated all inventory caches for real-time updates');
       toast({
         title: 'Success',
         description: 'Product has been added successfully.',
@@ -151,10 +160,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
   // Update product mutation
   const updateProduct = useMutation({
     mutationFn: async (data: ProductFormValues & { id: number }) => {
-      return apiRequest('PATCH', `/api/products/${data.id}`, data);
+      const { id, ...updateData } = data;
+      console.log('🔥 FRONTEND MUTATION: Sending PATCH to /api/products/' + id + ' with data:', updateData);
+      return apiRequest('PATCH', `/api/products/${id}`, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      // Invalidate inventory alert cards for real-time dashboard updates
+      queryClient.invalidateQueries({ queryKey: ['expiring-products'] });
+      queryClient.invalidateQueries({ queryKey: ['low-stock-products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
+      console.log('Product updated successfully - invalidated all inventory caches for real-time updates');
       toast({
         title: 'Success',
         description: 'Product has been updated successfully.',
@@ -171,11 +187,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
   });
 
   const onSubmit = (data: ProductFormValues) => {
+    console.log('🔥 FRONTEND: Form submit data:', JSON.stringify(data, null, 2));
+    
     // Create a clean object with only the fields needed for API submission using the specified format
     const formattedData = {
       name: data.name,
       drugName: data.drugName,
-      categoryId: data.categoryId.toString(),
+      categoryId: Number(data.categoryId),
       sku: data.sku,
       gs1Code: data.gs1Code || '',
       description: data.description || '',
@@ -184,24 +202,31 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
       costPrice: parseFloat(data.costPrice.toString()),
       sellingPrice: parseFloat(data.sellingPrice.toString()),
       unitOfMeasure: data.unitOfMeasure,
+      grade: Array.isArray(data.grade) ? data.grade.join(',') : (data.grade || 'P'),
       location: data.location || '',
       shelf: data.shelf || '',
       status: data.status || 'active',
       productType: data.productType || 'finished',
-      // Format date as YYYY-MM-DD if it exists
+      // Handle expiry date - either a date or 'no-expiry'
       ...(data.expiryDate ? { 
-        expiryDate: new Date(data.expiryDate).toISOString().split('T')[0]
+        expiryDate: data.expiryDate === 'no-expiry' 
+          ? null 
+          : new Date(data.expiryDate).toISOString().split('T')[0]
       } : {})
     };
     
+    console.log('🔥 FRONTEND: Formatted data for API:', JSON.stringify(formattedData, null, 2));
+    
     if (initialData?.id) {
       // If we have an ID, we're updating an existing product
+      console.log('🔥 FRONTEND: Calling UPDATE mutation for product ID:', initialData.id);
       updateProduct.mutate({ 
         ...formattedData, 
         id: initialData.id 
       } as any);
     } else {
       // Otherwise we're creating a new product
+      console.log('🔥 FRONTEND: Calling CREATE mutation');
       createProduct.mutate(formattedData as any);
     }
   };
@@ -247,7 +272,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
           />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="categoryId"
@@ -275,6 +300,47 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     )}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="grade"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Grade</FormLabel>
+                <FormControl>
+                  <div className="space-y-2">
+                    {[
+                      { value: 'P', label: 'Pharmaceutical (P)' },
+                      { value: 'F', label: 'Food (F)' },
+                      { value: 'T', label: 'Technical (T)' }
+                    ].map((grade) => (
+                      <div key={grade.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`grade-${grade.value}`}
+                          checked={field.value?.includes(grade.value) || false}
+                          onCheckedChange={(checked) => {
+                            const currentGrades = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentGrades, grade.value]);
+                            } else {
+                              field.onChange(currentGrades.filter((g: string) => g !== grade.value));
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`grade-${grade.value}`}
+                          className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isRTL ? 'text-right' : 'text-left'}`}
+                        >
+                          {grade.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -399,39 +465,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('lowStockThreshold')}</FormLabel>
-                <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
-                  <Select 
-                    onValueChange={(value) => {
-                      if (value !== 'custom') {
-                        field.onChange(parseInt(value));
-                      }
-                    }} 
-                    value={field.value ? field.value.toString() : ''}
-                  >
-                    <FormControl>
-                      <SelectTrigger className={`flex-1 ${isRTL ? 'text-right' : 'text-left'}`}>
-                        <SelectValue placeholder="Select threshold" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="5">Very Low (5 units)</SelectItem>
-                      <SelectItem value="10">Low (10 units)</SelectItem>
-                      <SelectItem value="20">Medium (20 units)</SelectItem>
-                      <SelectItem value="50">High (50 units)</SelectItem>
-                      <SelectItem value="100">Very High (100 units)</SelectItem>
-                      <SelectItem value="custom">Custom Amount</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <FormControl>
                   <Input 
                     type="number" 
-                    placeholder="Custom" 
-                    min="0"
+                    placeholder="Enter threshold (e.g. 10)" 
+                    min="1"
                     step="1"
-                    className={`w-24 ${isRTL ? 'text-right' : 'text-left'}`}
-                    value={field.value || ''}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    {...field}
+                    className={isRTL ? 'text-right' : 'text-left'}
                   />
-                </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -499,11 +542,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {warehouses.map((warehouse) => (
-                      <SelectItem key={warehouse.id} value={warehouse.name}>
-                        {warehouse.name} - {warehouse.location}
-                      </SelectItem>
-                    ))}
+                    {isLoadingWarehouses ? (
+                      <SelectItem value="loading" disabled>Loading warehouses...</SelectItem>
+                    ) : (
+                      warehouses?.map((warehouse) => (
+                        <SelectItem key={warehouse.id} value={warehouse.name}>
+                          {warehouse.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -534,40 +581,68 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, productId, initial
         <FormField
           control={form.control}
           name="expiryDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Expiry Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(new Date(field.value), "dd/MM/yy")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
-                    onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : '')}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const [noExpiry, setNoExpiry] = useState(field.value === 'no-expiry' || (!field.value && initialData?.expiryDate === 'no-expiry'));
+            
+            return (
+              <FormItem className="flex flex-col">
+                <FormLabel>Expiry Date</FormLabel>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="no-expiry"
+                      checked={noExpiry}
+                      onChange={(e) => {
+                        setNoExpiry(e.target.checked);
+                        if (e.target.checked) {
+                          field.onChange('no-expiry');
+                        } else {
+                          field.onChange('');
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="no-expiry" className="text-sm text-gray-700">
+                      No expiry date
+                    </label>
+                  </div>
+                  
+                  {!noExpiry && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value && field.value !== 'no-expiry' ? (
+                              format(new Date(field.value), "dd/MM/yy")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value && field.value !== 'no-expiry' ? new Date(field.value) : undefined}
+                          onSelect={(date) => field.onChange(date ? format(date, "yyyy-MM-dd") : '')}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </div>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

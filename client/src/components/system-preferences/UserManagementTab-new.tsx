@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -126,6 +127,7 @@ interface UserManagementTabProps {
 
 const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refetch }) => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
@@ -135,6 +137,28 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const [selectedPermission, setSelectedPermission] = useState<any>(null);
   const [modulePermissionFeatures, setModulePermissionFeatures] = useState<Record<string, boolean>>({});
   const [passwordVisibility, setPasswordVisibility] = useState<Record<number, boolean>>({});
+  const [updatingPermissions, setUpdatingPermissions] = useState<Set<string>>(new Set());
+
+  // Available ERP modules with translations
+  const availableModules = [
+    { key: 'dashboard', name: 'Dashboard', nameKey: 'dashboard', description: 'Main dashboard overview and analytics', descriptionKey: 'dashboardDesc' },
+    { key: 'products', name: 'Inventory', nameKey: 'inventory', description: 'Inventory management and stock tracking', descriptionKey: 'inventoryDesc' },
+    { key: 'expenses', name: 'Expenses', nameKey: 'expenses', description: 'Expense tracking and management', descriptionKey: 'expensesDesc' },
+    { key: 'accounting', name: 'Accounting', nameKey: 'accounting', description: 'Financial management and reports', descriptionKey: 'accountingDesc' },
+    { key: 'suppliers', name: 'Suppliers', nameKey: 'suppliers', description: 'Supplier management and relationships', descriptionKey: 'suppliersDesc' },
+    { key: 'customers', name: 'Customers', nameKey: 'customers', description: 'Customer relationship management', descriptionKey: 'customersDesc' },
+    { key: 'createInvoice', name: 'Create Invoice', nameKey: 'createInvoice', description: 'Invoice creation and management', descriptionKey: 'createInvoiceDesc' },
+    { key: 'createQuotation', name: 'Create Quotation', nameKey: 'createQuotation', description: 'Quotation generation and pricing', descriptionKey: 'createQuotationDesc' },
+    { key: 'invoiceHistory', name: 'Invoice History', nameKey: 'invoiceHistory', description: 'View and manage invoice history', descriptionKey: 'invoiceHistoryDesc' },
+    { key: 'quotationHistory', name: 'Quotation History', nameKey: 'quotationHistory', description: 'View quotation records and history', descriptionKey: 'quotationHistoryDesc' },
+    { key: 'orderManagement', name: 'Order Management', nameKey: 'orderManagement', description: 'Order processing and tracking', descriptionKey: 'orderManagementDesc' },
+    { key: 'ordersHistory', name: 'Orders History', nameKey: 'ordersHistory', description: 'Historical order data and records', descriptionKey: 'ordersHistoryDesc' },
+    { key: 'label', name: 'Label Generator', nameKey: 'labelGenerator', description: 'Generate product and shipping labels', descriptionKey: 'labelGeneratorDesc' },
+    { key: 'reports', name: 'Reports', nameKey: 'reports', description: 'Business reports and analytics', descriptionKey: 'reportsDesc' },
+    { key: 'procurement', name: 'Procurement', nameKey: 'procurement', description: 'Procurement and purchasing management', descriptionKey: 'procurementDesc' },
+    { key: 'userManagement', name: 'User Management', nameKey: 'userManagement', description: 'Manage user accounts and roles', descriptionKey: 'userManagementDesc' },
+    { key: 'systemPreferences', name: 'System Preferences', nameKey: 'systemPreferences', description: 'System configuration and settings', descriptionKey: 'systemPreferencesDesc' }
+  ];
 
   // Toggle password visibility for a specific user
   const togglePasswordVisibility = (userId: number) => {
@@ -166,10 +190,63 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
 
   // Fetch user permissions for selected user
   const { data: userPermissions = [], refetch: refetchPermissions } = useQuery({
-    queryKey: ['/api/users', selectedUserForPermissions?.id, 'permissions'],
+    queryKey: [`/api/users/${selectedUserForPermissions?.id}/permissions`],
     enabled: !!selectedUserForPermissions?.id,
     refetchOnWindowFocus: false,
   });
+
+  // Function to check if user has permission for a module
+  const hasPermission = (moduleName: string): boolean => {
+    if (!userPermissions || !Array.isArray(userPermissions)) return false;
+    const permission = userPermissions.find((p: any) => p.moduleName === moduleName);
+    return permission?.accessGranted === true;
+  };
+
+  // Toggle permission mutation
+  const togglePermissionMutation = useMutation({
+    mutationFn: async ({ userId, moduleName, accessGranted }: { userId: number; moduleName: string; accessGranted: boolean }) => {
+      return apiRequest('POST', `/api/users/${userId}/permissions`, {
+        moduleName,
+        accessGranted
+      });
+    },
+    onSuccess: () => {
+      refetchPermissions();
+      queryClient.invalidateQueries({ queryKey: [`/api/users/${selectedUserForPermissions?.id}/permissions`] });
+      toast({
+        title: t('success'),
+        description: t('permissionUpdated'),
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('error'),
+        description: error?.message || t('failedToUpdatePermission'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle toggle permission
+  const handleTogglePermission = async (moduleName: string, accessGranted: boolean) => {
+    if (!selectedUserForPermissions?.id) return;
+    
+    setUpdatingPermissions(prev => new Set(prev).add(moduleName));
+    
+    try {
+      await togglePermissionMutation.mutateAsync({
+        userId: selectedUserForPermissions.id,
+        moduleName,
+        accessGranted
+      });
+    } finally {
+      setUpdatingPermissions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(moduleName);
+        return newSet;
+      });
+    }
+  };
 
   // Form for adding new users
   const form = useForm<UserFormValues>({
@@ -271,6 +348,12 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
     },
   });
 
+  // Handle configure permissions
+  const handleConfigurePermissions = (permission: { moduleName: string; accessGranted: boolean }) => {
+    setSelectedPermission(permission);
+    setIsConfigurePermissionsOpen(true);
+  };
+
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
     editForm.reset({
@@ -284,7 +367,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   };
 
   const handleDeleteUser = (userId: number) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm(t('confirmDeleteUser') || 'Are you sure you want to delete this user?')) {
       deleteUserMutation.mutate(userId);
     }
   };
@@ -292,60 +375,7 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
   const handleManagePermissions = (user: any) => {
     setSelectedUserForPermissions(user);
     setIsPermissionsDialogOpen(true);
-    
-    // Automatically grant access to all 17 modules when opening permissions dialog
-    const allModules = [
-      'dashboard', 'products', 'expenses', 'accounting', 'suppliers', 'customers',
-      'createInvoice', 'createQuotation', 'invoiceHistory', 'quotationHistory',
-      'orderManagement', 'ordersHistory', 'label', 'reports', 'procurement',
-      'userManagement', 'systemPreferences'
-    ];
-    
-    setTimeout(() => {
-      allModules.forEach(module => {
-        addPermissionMutation.mutate({
-          userId: user.id,
-          permission: { moduleName: module, accessGranted: true }
-        });
-      });
-    }, 100);
   };
-
-  const handleConfigurePermissions = (permission: any) => {
-    setSelectedPermission(permission);
-    setIsConfigurePermissionsOpen(true);
-    // Initialize module features state
-    if (moduleFeatures[permission.moduleName as keyof typeof moduleFeatures]) {
-      const features = moduleFeatures[permission.moduleName as keyof typeof moduleFeatures];
-      const initialFeatures: Record<string, boolean> = {};
-      features.forEach((feature: any) => {
-        initialFeatures[feature.key] = true; // Default to enabled
-      });
-      setModulePermissionFeatures(initialFeatures);
-    }
-  };
-
-  // Add permission mutation
-  const addPermissionMutation = useMutation({
-    mutationFn: async (data: { userId: number; permission: { moduleName: string; accessGranted: boolean } }) => {
-      return apiRequest('POST', `/api/users/${data.userId}/permissions`, data.permission);
-    },
-    onSuccess: () => {
-      refetchPermissions();
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    },
-  });
-
-  // Delete permission mutation
-  const deletePermissionMutation = useMutation({
-    mutationFn: async (data: { userId: number; moduleName: string }) => {
-      return apiRequest('DELETE', `/api/users/${data.userId}/permissions/${data.moduleName}`);
-    },
-    onSuccess: () => {
-      refetchPermissions();
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    },
-  });
 
   const handleExportUsers = () => {
     // Convert users data to CSV format
@@ -721,107 +751,72 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
             <div className="flex justify-between items-center">
-              <div className="text-sm font-medium">Module Access Control</div>
+              <div className="text-sm font-medium">{t('moduleAccessControl')}</div>
               <Badge variant="secondary" className="bg-green-100 text-green-800">
-                All 17 Modules Available
+                {t('totalModulesAvailable')}: {availableModules.length}
               </Badge>
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2 sticky top-0 bg-white">
-                <div>Module</div>
-                <div>Access</div>
-                <div>Actions</div>
+                <div>{t('module')}</div>
+                <div>{t('access')}</div>
+                <div>{t('actions')}</div>
               </div>
               
-              {/* Available Modules - All 17 ERP Modules */}
-              {[
-                { name: 'Dashboard', key: 'dashboard', description: 'Main dashboard overview and analytics' },
-                { name: 'Inventory', key: 'products', description: 'Inventory management and stock tracking' },
-                { name: 'Expenses', key: 'expenses', description: 'Expense tracking and management' },
-                { name: 'Accounting', key: 'accounting', description: 'Financial management and reports' },
-                { name: 'Suppliers', key: 'suppliers', description: 'Supplier management and relationships' },
-                { name: 'Customers', key: 'customers', description: 'Customer relationship management' },
-                { name: 'Create Invoice', key: 'createInvoice', description: 'Invoice creation and management' },
-                { name: 'Create Quotation', key: 'createQuotation', description: 'Quotation generation and pricing' },
-                { name: 'Invoice History', key: 'invoiceHistory', description: 'View and manage invoice history' },
-                { name: 'Quotation History', key: 'quotationHistory', description: 'View quotation records and history' },
-                { name: 'Order Management', key: 'orderManagement', description: 'Order processing and tracking' },
-                { name: 'Orders History', key: 'ordersHistory', description: 'Historical order data and records' },
-                { name: 'Label Generator', key: 'label', description: 'Generate product and shipping labels' },
-                { name: 'Reports', key: 'reports', description: 'Business reports and analytics' },
-                { name: 'Procurement', key: 'procurement', description: 'Procurement and purchasing management' },
-                { name: 'User Management', key: 'userManagement', description: 'Manage user accounts and roles' },
-                { name: 'System Preferences', key: 'systemPreferences', description: 'System configuration and settings' }
-              ].map((module) => {
-                const hasPermission = userPermissions.some((p: any) => p.moduleName === module.key);
+              {/* Dynamic ERP Modules from System Configuration */}
+              {availableModules.map((module) => {
+                // Check real permission status from database
+                const permissionRecord = userPermissions.find((p: any) => p.moduleName === module.key);
+                const hasPermission = permissionRecord?.accessGranted === true;
+                const isUpdatingPermission = updatingPermissions.has(module.key);
+                
+                // Permission data successfully loaded from database
+                
                 return (
                   <div key={module.key} className="grid grid-cols-3 gap-4 py-3 border-b items-center hover:bg-gray-50">
                     <div>
-                      <div className="font-medium">{module.name}</div>
-                      <div className="text-xs text-muted-foreground">{module.description}</div>
+                      <div className="font-medium">{t(module.nameKey) || module.name}</div>
+                      <div className="text-xs text-muted-foreground">{t(module.descriptionKey) || module.description}</div>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
                       <Switch
                         checked={hasPermission}
-                        onCheckedChange={(checked) => {
-                          if (checked && selectedUserForPermissions?.id) {
-                            // Grant permission
-                            addPermissionMutation.mutate({
-                              userId: selectedUserForPermissions.id,
-                              permission: { moduleName: module.key, accessGranted: true }
-                            });
-                            toast({
-                              title: "Permission granted",
-                              description: `Access granted to ${module.name} module.`,
-                            });
-                          } else if (!checked && selectedUserForPermissions?.id) {
-                            // Remove permission
-                            deletePermissionMutation.mutate({
-                              userId: selectedUserForPermissions.id,
-                              moduleName: module.key
-                            });
-                            toast({
-                              title: "Permission removed",
-                              description: `Access removed from ${module.name} module.`,
-                            });
-                          }
-                        }}
+                        disabled={isUpdatingPermission}
+                        onCheckedChange={(checked) => handleTogglePermission(module.key, checked)}
                       />
+                      {isUpdatingPermission && (
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      )}
+                      {hasPermission ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                          {t('grantedStatus')} (ID: {permissionRecord?.id})
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-gray-100 text-gray-800 text-xs">
+                          {t('deniedStatus')}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
-                          // Always pass true for accessGranted when configuring
-                          const permission = { moduleName: module.key, accessGranted: true };
-                          handleConfigurePermissions(permission);
-                        }}
-                        disabled={!hasPermission}
+                        onClick={() => handleConfigurePermissions({ moduleName: module.key, accessGranted: hasPermission })}
+                        disabled={!hasPermission || isUpdatingPermission}
                       >
                         <Settings className="h-3 w-3 mr-1" />
-                        Configure
+                        {t('configure')}
                       </Button>
                       {hasPermission && (
                         <Button 
                           variant="outline" 
                           size="sm" 
                           className="text-red-600 hover:text-red-700"
-                          onClick={() => {
-                            if (selectedUserForPermissions?.id) {
-                              deletePermissionMutation.mutate({
-                                userId: selectedUserForPermissions.id,
-                                moduleName: module.key
-                              });
-                              toast({
-                                title: "Permission removed",
-                                description: `Access removed from ${module.name} module.`,
-                              });
-                            }
-                          }}
+                          disabled={isUpdatingPermission}
+                          onClick={() => handleTogglePermission(module.key, false)}
                         >
                           <Trash2 className="h-3 w-3 mr-1" />
-                          Remove
+                          {t('remove')}
                         </Button>
                       )}
                     </div>

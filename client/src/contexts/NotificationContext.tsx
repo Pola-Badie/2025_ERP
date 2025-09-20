@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { useNotificationsData } from '../hooks/use-notifications-data';
 
 export interface Notification {
   id: string;
@@ -19,7 +20,6 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -37,96 +37,38 @@ interface NotificationProviderProps {
 }
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'warning',
-      title: 'Low Stock Alert',
-      message: 'Panadol Advance is running low (only 15 units remaining)',
-      timestamp: '2 minutes ago',
-      isRead: false,
-      category: 'inventory',
-      priority: 'high',
-      actionUrl: '/inventory'
-    },
-    {
-      id: '2',
-      type: 'success',
-      title: 'Payment Received',
-      message: 'Payment of EGP 15,240 received from Cairo Medical Center',
-      timestamp: '15 minutes ago',
-      isRead: false,
-      category: 'financial',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'New User Registration',
-      message: 'Ahmed Hassan has registered as a new Sales Representative',
-      timestamp: '1 hour ago',
-      isRead: true,
-      category: 'user',
-      priority: 'low'
-    },
-    {
-      id: '4',
-      type: 'error',
-      title: 'Product Expired',
-      message: 'Cataflam 500mg batch #CTF-456 has expired (expired 3 days ago)',
-      timestamp: '2 hours ago',
-      isRead: false,
-      category: 'inventory',
-      priority: 'high'
-    },
-    {
-      id: '5',
-      type: 'success',
-      title: 'Order Completed',
-      message: 'Production order #PO-2024-158 has been completed successfully',
-      timestamp: '3 hours ago',
-      isRead: true,
-      category: 'orders',
-      priority: 'medium'
-    },
-    {
-      id: '6',
-      type: 'warning',
-      title: 'System Maintenance',
-      message: 'Scheduled maintenance will occur tonight at 2:00 AM',
-      timestamp: '4 hours ago',
-      isRead: false,
-      category: 'system',
-      priority: 'medium'
-    },
-    {
-      id: '7',
-      type: 'error',
-      title: 'Failed Payment',
-      message: 'Payment from Alexandria Pharmacy failed - requires attention',
-      timestamp: '5 hours ago',
-      isRead: false,
-      category: 'financial',
-      priority: 'high'
+  // Get real-time notifications from API data
+  const { notifications: realTimeNotifications } = useNotificationsData();
+  
+  // Use real-time notifications but allow manual marking as read/deleting
+  const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
+  const [deletedNotifications, setDeletedNotifications] = useState<Set<string>>(new Set());
+
+  // Compute filtered notifications using useMemo to avoid infinite re-renders
+  const notifications = useMemo(() => {
+    if (!realTimeNotifications || realTimeNotifications.length === 0) {
+      return [];
     }
-  ]);
+    
+    return realTimeNotifications
+      .filter(notification => !deletedNotifications.has(notification.id))
+      .map(notification => ({
+        ...notification,
+        isRead: readNotifications.has(notification.id)
+      }));
+  }, [realTimeNotifications, readNotifications, deletedNotifications]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: 'Just now'
-    };
-    setNotifications(prev => [newNotification, ...prev]);
+    // For manual notifications, we can add them to a separate state if needed
+    // For now, real-time notifications handle most cases
+    console.log('Manual notification added:', notification);
   };
 
   const markAsRead = (id: string) => {
     try {
-      setNotifications(prev => 
-        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-      );
+      setReadNotifications(prev => new Set(prev).add(id));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -134,9 +76,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const markAllAsRead = () => {
     try {
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, isRead: true }))
-      );
+      const allIds = notifications.map(n => n.id);
+      setReadNotifications(new Set(allIds));
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -144,7 +85,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   const deleteNotification = (id: string) => {
     try {
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      setDeletedNotifications(prev => new Set(prev).add(id));
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
@@ -156,8 +97,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     addNotification,
     markAsRead,
     markAllAsRead,
-    deleteNotification,
-    setNotifications
+    deleteNotification
   };
 
   return (

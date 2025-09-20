@@ -11,7 +11,7 @@ import {
   customers, suppliers, sales, saleItems, purchaseOrders, purchaseOrderItems,
   backups, backupSettings, inventoryTransactions, salesReports, systemPreferences,
   quotations, quotationItems, orders, orderItems, orderFees, warehouses, warehouseLocations,
-  stockMovements, inventoryAdjustments,
+  stockMovements, inventoryAdjustments, products, productCategories,
   type Customer, type InsertCustomer, type Supplier, type InsertSupplier,
   type Sale, type InsertSale, type SaleItem, type InsertSaleItem,
   type PurchaseOrder, type InsertPurchaseOrder, type PurchaseOrderItem,

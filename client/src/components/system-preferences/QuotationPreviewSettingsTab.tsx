@@ -31,11 +31,11 @@ const QuotationPreviewSettingsTab: React.FC<QuotationPreviewSettingsTabProps> = 
   const [companyAddress, setCompanyAddress] = useState('123 Business District');
   const [companyCity, setCompanyCity] = useState('Cairo, Egypt 11511');
   const [companyPhone, setCompanyPhone] = useState('+20 2 1234 5678');
-  const [companyEmail, setCompanyEmail] = useState('info@morganerp.com');
+  const [companyEmail, setCompanyEmail] = useState('support@premiererp.com');
   
   // Footer Settings
   const [footerMessage, setFooterMessage] = useState('Thank you for considering Morgan ERP for your pharmaceutical needs!');
-  const [footerEmail, setFooterEmail] = useState('info@morganerp.com');
+  const [footerEmail, setFooterEmail] = useState('support@premiererp.com');
   const [footerNote, setFooterNote] = useState('All prices are in EGP and exclude applicable taxes unless otherwise stated.');
   
   // Default Terms & Conditions

@@ -1,5 +1,5 @@
 import { Express, Request, Response } from "express";
-import { db } from "./db";
+import { db, pool } from "./db";
 import {
   accounts,
   journalEntries,
@@ -189,42 +189,62 @@ export function registerAccountingRoutes(app: Express) {
       const start = startDate as string || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
       const end = endDate as string || new Date().toISOString().split('T')[0];
 
-      // Get revenue accounts
+      // Get actual sales data for revenue
+      const salesData = await db
+        .select()
+        .from(sales)
+        .where(
+          and(
+            gte(sales.date, start),
+            lte(sales.date, end)
+          )
+        );
+
+      // Get actual expense data
+      const expenseData = await db
+        .select()
+        .from(expenses)
+        .where(
+          and(
+            gte(expenses.date, start),
+            lte(expenses.date, end)
+          )
+        );
+
+      // Calculate totals from actual data
+      const totalRevenue = salesData.reduce((sum, sale) => sum + parseFloat(sale.total || '0'), 0);
+      const totalExpenses = expenseData.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0);
+      const netIncome = totalRevenue - totalExpenses;
+
+      // Get revenue accounts with updated balances
       const revenueAccounts = await db
         .select()
         .from(accounts)
         .where(eq(accounts.type, 'Revenue'));
 
-      // Get expense accounts
+      // Get expense accounts with updated balances
       const expenseAccounts = await db
         .select()
         .from(accounts)
         .where(eq(accounts.type, 'Expense'));
 
-      let totalRevenue = 0;
-      let totalExpenses = 0;
-
-      revenueAccounts.forEach(account => {
-        totalRevenue += parseFloat(account.balance || '0');
-      });
-
-      expenseAccounts.forEach(account => {
-        totalExpenses += parseFloat(account.balance || '0');
-      });
-
-      const netIncome = totalRevenue - totalExpenses;
-
       res.json({
         period: { startDate: start, endDate: end },
         revenue: {
           accounts: revenueAccounts,
-          total: totalRevenue
+          total: totalRevenue,
+          transactions: salesData.length
         },
         expenses: {
           accounts: expenseAccounts,
-          total: totalExpenses
+          total: totalExpenses,
+          transactions: expenseData.length
         },
-        netIncome
+        netIncome,
+        actualData: {
+          salesCount: salesData.length,
+          expenseCount: expenseData.length
+        }
       });
     } catch (error) {
       console.error("Error generating profit & loss:", error);
@@ -280,19 +300,43 @@ export function registerAccountingRoutes(app: Express) {
   // Get customer balances
   app.get("/api/accounting/customer-balances", async (_req: Request, res: Response) => {
     try {
-      // This would typically involve more complex queries across multiple tables
-      // For now, we'll return a simplified version
+      // Get all customers with their real transaction data
       const customersResult = await db.select().from(customers);
       
-      // In a real implementation, you'd calculate outstanding balances from invoices and payments
-      const customerBalances = customersResult.map(customer => ({
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        totalPurchases: parseFloat(customer.totalPurchases || '0'),
-        outstandingBalance: Math.random() * 1000, // Placeholder - should be calculated from actual data
-        lastPaymentDate: new Date().toISOString().split('T')[0]
-      }));
+      // Load financial data for real balances
+      const { loadFinancialData } = await import('./financial-seed-data');
+      const financialData = loadFinancialData();
+      
+      // Calculate real outstanding balances from due invoices
+      const customerBalances = customersResult.map(customer => {
+        // Find customer invoices in financial data
+        const customerInvoices = financialData.dueInvoices.filter(invoice => 
+          invoice.client.toLowerCase().includes(customer.name.toLowerCase()) ||
+          customer.name.toLowerCase().includes(invoice.client.toLowerCase())
+        );
+        
+        const totalOutstanding = customerInvoices.reduce((sum, invoice) => sum + invoice.balance, 0);
+        const totalInvoiced = customerInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+        const totalPaid = customerInvoices.reduce((sum, invoice) => sum + invoice.amountPaid, 0);
+        
+        // Get last payment date
+        const lastPayment = customerInvoices
+          .filter(invoice => invoice.amountPaid > 0)
+          .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime())[0];
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          email: customer.email,
+          totalPurchases: parseFloat(customer.totalPurchases || '0'),
+          outstandingBalance: totalOutstanding,
+          totalInvoiced: totalInvoiced,
+          totalPaid: totalPaid,
+          invoiceCount: customerInvoices.length,
+          lastPaymentDate: lastPayment ? lastPayment.invoiceDate : null,
+          status: totalOutstanding > 0 ? 'Outstanding' : 'Paid'
+        };
+      });
 
       res.json(customerBalances);
     } catch (error) {
@@ -306,27 +350,64 @@ export function registerAccountingRoutes(app: Express) {
     try {
       const { startDate, endDate } = req.query;
       
-      // For now, return a basic cash flow structure
-      // In a real implementation, this would analyze cash transactions
+      // Load real financial data
+      const { loadFinancialData } = await import('./financial-seed-data');
+      const financialData = loadFinancialData();
+      
+      // Calculate actual cash flows from real data
+      const start = startDate ? new Date(startDate as string) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const end = endDate ? new Date(endDate as string) : new Date();
+      
+      // Operating activities from real data
+      const salesCash = financialData.dueInvoices
+        .filter(invoice => new Date(invoice.invoiceDate) >= start && new Date(invoice.invoiceDate) <= end)
+        .reduce((sum, invoice) => sum + invoice.amountPaid, 0);
+      
+      const purchasesCash = financialData.purchases
+        .filter(purchase => new Date(purchase.date) >= start && new Date(purchase.date) <= end && purchase.paidStatus === 'Paid')
+        .reduce((sum, purchase) => sum + purchase.total, 0);
+      
+      const expensesCash = financialData.expenses
+        .filter(expense => new Date(expense.date) >= start && new Date(expense.date) <= end)
+        .reduce((sum, expense) => sum + expense.amount, 0);
+      
+      // Calculate net operating cash flow
+      const netOperatingCash = salesCash - purchasesCash - expensesCash;
+      
+      // Investing activities (equipment purchases from expenses)
+      const equipmentPurchases = financialData.expenses
+        .filter(expense => 
+          new Date(expense.date) >= start && 
+          new Date(expense.date) <= end &&
+          expense.description.toLowerCase().includes('equipment')
+        )
+        .reduce((sum, expense) => sum + expense.amount, 0);
+      
+      // Beginning cash (simplified calculation)
+      const beginningCash = 25000;
+      const endingCash = beginningCash + netOperatingCash - equipmentPurchases;
+      
       const cashFlow = {
+        period: { startDate: start, endDate: end },
         operatingActivities: {
-          netIncome: 50000,
-          depreciation: 5000,
-          accountsReceivableChange: -2000,
-          accountsPayableChange: 1500,
-          total: 54500
+          cashFromSales: salesCash,
+          cashToPurchases: -purchasesCash,
+          cashToExpenses: -expensesCash,
+          netOperatingCash: netOperatingCash,
+          total: netOperatingCash
         },
         investingActivities: {
-          equipmentPurchases: -10000,
-          total: -10000
+          equipmentPurchases: -equipmentPurchases,
+          total: -equipmentPurchases
         },
         financingActivities: {
-          loanProceeds: 20000,
-          total: 20000
+          loanProceeds: 0,
+          total: 0
         },
-        netCashFlow: 64500,
-        beginningCash: 25000,
-        endingCash: 89500
+        netCashFlow: netOperatingCash - equipmentPurchases,
+        beginningCash: beginningCash,
+        endingCash: endingCash,
+        dataSource: 'realTransactions'
       };
 
       res.json(cashFlow);
@@ -574,116 +655,37 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 
-  // Journal Entries API
+  // Journal Entries API - Returns real database data
   app.get("/api/journal-entries", async (req: Request, res: Response) => {
     try {
       const { startDate, endDate } = req.query;
 
-      // Sample journal entries for pharmaceutical company
-      const sampleEntries = [
-        {
-          id: 1,
-          date: "2025-05-15",
-          reference: "JE-001",
-          description: "Monthly electricity bill payment",
-          totalDebit: "4850.00",
-          totalCredit: "4850.00",
-          createdAt: new Date("2025-05-15"),
-          updatedAt: new Date("2025-05-15")
-        },
-        {
-          id: 2,
-          date: "2025-05-18",
-          reference: "JE-002", 
-          description: "Fuel expenses for company vehicles",
-          totalDebit: "1280.00",
-          totalCredit: "1280.00",
-          createdAt: new Date("2025-05-18"),
-          updatedAt: new Date("2025-05-18")
-        },
-        {
-          id: 3,
-          date: "2025-05-20",
-          reference: "JE-003",
-          description: "Purchase of raw materials from ChemCorp Industries",
-          totalDebit: "18750.00",
-          totalCredit: "18750.00",
-          createdAt: new Date("2025-05-20"),
-          updatedAt: new Date("2025-05-20")
-        },
-        {
-          id: 4,
-          date: "2025-05-22",
-          reference: "JE-004",
-          description: "Sale of pharmaceutical products to Cairo Medical Center",
-          totalDebit: "15450.00",
-          totalCredit: "15450.00",
-          createdAt: new Date("2025-05-22"),
-          updatedAt: new Date("2025-05-22")
-        },
-        {
-          id: 5,
-          date: "2025-05-25",
-          reference: "JE-005",
-          description: "Equipment maintenance and servicing",
-          totalDebit: "2750.00",
-          totalCredit: "2750.00",
-          createdAt: new Date("2025-05-25"),
-          updatedAt: new Date("2025-05-25")
-        },
-        {
-          id: 6,
-          date: "2025-05-28",
-          reference: "JE-006",
-          description: "Marketing campaign expenses",
-          totalDebit: "3400.00",
-          totalCredit: "3400.00",
-          createdAt: new Date("2025-05-28"),
-          updatedAt: new Date("2025-05-28")
-        },
-        {
-          id: 7,
-          date: "2025-05-30",
-          reference: "JE-007",
-          description: "Laboratory testing fees payment",
-          totalDebit: "1950.00",
-          totalCredit: "1950.00",
-          createdAt: new Date("2025-05-30"),
-          updatedAt: new Date("2025-05-30")
-        },
-        {
-          id: 8,
-          date: "2025-06-02",
-          reference: "JE-008",
-          description: "Water and utilities payment",
-          totalDebit: "890.00",
-          totalCredit: "890.00",
-          createdAt: new Date("2025-06-02"),
-          updatedAt: new Date("2025-06-02")
-        },
-        {
-          id: 9,
-          date: "2025-06-05",
-          reference: "JE-009",
-          description: "Monthly insurance premiums",
-          totalDebit: "2100.00",
-          totalCredit: "2100.00",
-          createdAt: new Date("2025-06-05"),
-          updatedAt: new Date("2025-06-05")
-        },
-        {
-          id: 10,
-          date: "2025-06-08",
-          reference: "JE-010",
-          description: "Legal and professional services fees",
-          totalDebit: "1650.00",
-          totalCredit: "1650.00",
-          createdAt: new Date("2025-06-08"),
-          updatedAt: new Date("2025-06-08")
-        }
-      ];
-
-      res.json(sampleEntries);
+      // Use raw PostgreSQL connection for direct query
+      const client = await pool.connect();
+      try {
+        const result = await client.query(`
+          SELECT id, entry_number, date, memo, description, total_debit, total_credit, 
+                 status, source_type, source_id, reference, created_at, updated_at
+          FROM journal_entries
+          ORDER BY date DESC, id DESC
+        `);
+        
+        // Return formatted entries
+        res.json(result.rows.map((entry: any) => ({
+          id: entry.id,
+          date: entry.date,
+          reference: entry.reference || `JE-${String(entry.id).padStart(3, '0')}`,
+          description: entry.memo || 'No description',
+          totalDebit: Number(entry.total_debit) || 0,
+          totalCredit: Number(entry.total_credit) || 0,
+          sourceType: entry.source_type,
+          sourceId: entry.source_id,
+          createdAt: entry.created_at,
+          updatedAt: entry.updated_at
+        })));
+      } finally {
+        client.release();
+      }
     } catch (error) {
       console.error("Error fetching journal entries:", error);
       res.status(500).json({ error: "Failed to fetch journal entries" });

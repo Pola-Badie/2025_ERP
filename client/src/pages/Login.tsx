@@ -29,6 +29,7 @@ import {
 import { useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useEffect } from 'react';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,12 +38,19 @@ const loginSchema = z.object({
 
 const Login: React.FC = () => {
   const [, navigate] = useLocation();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { t, isRTL } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),

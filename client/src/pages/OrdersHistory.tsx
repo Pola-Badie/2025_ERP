@@ -1,502 +1,610 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import jsPDF from 'jspdf';
-import * as XLSX from 'xlsx';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { apiRequest } from '@/lib/queryClient';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Eye, 
-  MoreHorizontal, 
-  Calendar,
+  Search,
+  Filter,
+  Download,
+  Eye,
+  MoreHorizontal,
   Factory,
-  Settings,
-  History as HistoryIcon,
-  FileText,
   TrendingUp,
+  Calendar,
   ChevronLeft,
   ChevronRight,
+  FileText,
   FileSpreadsheet,
-  Printer
+  HistoryIcon,
+  Package,
+  DollarSign,
+  Truck,
+  Calculator,
+  Users,
+  Building,
+  ClipboardList,
+  BoxIcon,
+  FlaskConical,
+  Settings,
+  Save
 } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
 
-interface OrderHistoryItem {
-  id: string;
+// Enhanced Order Interface with complete data structure
+interface DetailedOrder {
+  // Basic Order Info
+  id: number;
   orderNumber: string;
-  batchNumber: string;
-  type: 'production' | 'refining';
-  customerName: string;
-  customerCompany: string;
-  targetProduct: string;
-  orderDate: string;
-  completionDate: string;
-  status: 'completed' | 'in-progress' | 'cancelled';
-  totalCost: number;
-  revenue: number;
-  profit: number;
-  rawMaterials: string[];
-  additionalCosts: {
-    transportation: number;
-    labor: number;
-    equipment: number;
-    qualityControl: number;
-    storage: number;
-  };
+  orderType: 'production' | 'refining';
+  customerId: number;
+  userId: number;
+  description: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  
+  // Financial Data
+  totalMaterialCost: string;
+  totalAdditionalFees: string;
+  totalCost: string;
+  profitMarginPercentage: string;
+  
+  // Materials Data
+  rawMaterials: Array<{
+    id: number;
+    name: string;
+    quantity: string;
+    unitPrice: string;
+    unitOfMeasure: string;
+  }> | null;
+  packagingMaterials: Array<{
+    id: number;
+    name: string;
+    quantity: string;
+    unitPrice: string;
+    unitOfMeasure: string;
+  }> | null;
+  
+  // Production/Refining Specific
+  expectedOutputQuantity?: string;
+  refiningSteps?: string;
+  targetProductId?: number;
+  
+  // Customer & Date Info
+  customerName?: string;
+  customerCompany?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // Calculated Fields
+  revenue?: number;
+  profit?: number;
+  materialsCost?: number;
+  packagingCost?: number;
+  taxAmount?: number;
+  finalTotal?: number;
+}
+
+interface OrderStatistics {
+  totalOrders: number;
+  totalRevenue: number;
+  totalCosts: number;
+  totalProfit: number;
+  completedOrders: number;
+  pendingOrders: number;
+  averageOrderValue: number;
+  profitMargin: number;
 }
 
 const OrdersHistory: React.FC = () => {
-  const { t, isRTL, language } = useLanguage();
+  const { t, isRTL } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // State Management
+  const [selectedOrder, setSelectedOrder] = useState<DetailedOrder | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState<OrderHistoryItem | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const itemsPerPage = 10;
+  const [itemsPerPage] = useState(10);
+  const [activeTab, setActiveTab] = useState<'production' | 'refining'>('production');
+  const [configurableProfitMargin, setConfigurableProfitMargin] = useState<number | ''>('');
+  const [isSavingProfitMargin, setIsSavingProfitMargin] = useState(false);
 
-  // Fetch production order history from database
-  const { data: orderHistory = [], isLoading } = useQuery({
-    queryKey: ['/api/orders/production-history'],
-    queryFn: async () => {
-      const response = await fetch('/api/orders/production-history');
+  // Initialize profit margin when dialog opens
+  useEffect(() => {
+    if (selectedOrder && isDetailsDialogOpen) {
+      const orderProfitMargin = parseFloat(selectedOrder.profitMarginPercentage) || '';
+      setConfigurableProfitMargin(orderProfitMargin);
+    }
+  }, [selectedOrder, isDetailsDialogOpen]);
+
+  // Mutation to save profit margin percentage
+  const saveProfitMarginMutation = useMutation({
+    mutationFn: async ({ orderId, profitMarginPercentage }: { orderId: number, profitMarginPercentage: number }) => {
+      const response = await fetch(`/api/orders/${orderId}/profit-margin`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ profitMarginPercentage })
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch production order history');
+        throw new Error('Failed to save profit margin');
       }
-      const data = await response.json();
-      console.log('API response data:', data);
-      return data;
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'تم الحفظ بنجاح',
+        description: 'تم حفظ هامش الربح الجديد',
+      });
+      // Invalidate and refetch the orders data
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/detailed-history'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'خطأ في الحفظ',
+        description: 'فشل في حفظ هامش الربح',
+        variant: 'destructive',
+      });
+      console.error('Error saving profit margin:', error);
     }
   });
 
-  // Debug logging
-  console.log('orderHistory data:', orderHistory);
-  console.log('orderHistory length:', orderHistory.length);
-
-  // Export functions for individual orders
-  const handleExportPDF = (order: OrderHistoryItem) => {
-    try {
-      const doc = new jsPDF();
-      
-      // Header
-      doc.setFontSize(24);
-      doc.setTextColor(41, 128, 185);
-      doc.text('Premier ERP System', 20, 30);
-      
-      doc.setFontSize(18);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Order Production Report', 20, 45);
-      
-      // Order details
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 150, 30);
-      
-      let yPos = 65;
-      
-      // Order Information
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Order Information', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const orderDetails = [
-        ['Order Number:', order.orderNumber],
-        ['Batch Number:', order.batchNumber],
-        ['Type:', order.type.charAt(0).toUpperCase() + order.type.slice(1)],
-        ['Customer:', order.customerName],
-        ['Company:', order.customerCompany],
-        ['Product:', order.targetProduct],
-        ['Order Date:', new Date(order.orderDate).toLocaleDateString()],
-        ['Completion Date:', new Date(order.completionDate).toLocaleDateString()],
-        ['Status:', order.status.toUpperCase()]
-      ];
-      
-      orderDetails.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
+  // Function to save profit margin
+  const handleSaveProfitMargin = async () => {
+    if (!selectedOrder || configurableProfitMargin === '') {
+      toast({
+        title: 'خطأ',
+        description: 'يرجى إدخال هامش ربح صالح',
+        variant: 'destructive',
       });
-      
-      yPos += 10;
-      
-      // Financial Summary
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Financial Summary', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const financialData = [
-        ['Total Cost:', `$${order.totalCost.toLocaleString()}`],
-        ['Revenue:', `$${order.revenue.toLocaleString()}`],
-        ['Profit:', `$${order.profit.toLocaleString()}`],
-        ['Profit Margin:', `${((order.profit / order.revenue) * 100).toFixed(1)}%`]
-      ];
-      
-      financialData.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
-      
-      yPos += 10;
-      
-      // Additional Costs
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Additional Costs Breakdown', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      const additionalCosts = [
-        ['Transportation:', `$${order.additionalCosts.transportation.toLocaleString()}`],
-        ['Labor:', `$${order.additionalCosts.labor.toLocaleString()}`],
-        ['Equipment:', `$${order.additionalCosts.equipment.toLocaleString()}`],
-        ['Quality Control:', `$${order.additionalCosts.qualityControl.toLocaleString()}`],
-        ['Storage:', `$${order.additionalCosts.storage.toLocaleString()}`]
-      ];
-      
-      additionalCosts.forEach(([label, value]) => {
-        doc.setTextColor(80, 80, 80);
-        doc.text(String(label), 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(String(value), 80, yPos);
-        yPos += 7;
-      });
-      
-      yPos += 10;
-      
-      // Raw Materials
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Raw Materials Used', 20, yPos);
-      yPos += 10;
-      
-      doc.setFontSize(10);
-      order.rawMaterials.forEach((material, index) => {
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${index + 1}. ${material}`, 25, yPos);
-        yPos += 6;
-      });
-      
-      // Footer
-      const pageHeight = doc.internal.pageSize.height;
-      doc.setFontSize(8);
-      doc.setTextColor(120, 120, 120);
-      doc.text('Generated by Premier ERP System', 20, pageHeight - 15);
-      doc.text('Page 1 of 1', 170, pageHeight - 10);
-      
-      const fileName = `order-report-${order.orderNumber.replace(/[\/\\]/g, '-')}.pdf`;
-      doc.save(fileName);
-      
-    } catch (error) {
-      console.error('PDF export error:', error);
-      alert('Failed to export PDF. Please try again.');
-    }
-  };
-
-  const handleExportExcel = (order: OrderHistoryItem) => {
-    try {
-      const workbook = XLSX.utils.book_new();
-      
-      // Order Details Sheet
-      const orderData = [
-        ['Order Information', ''],
-        ['Order Number', order.orderNumber],
-        ['Batch Number', order.batchNumber],
-        ['Type', order.type],
-        ['Customer', order.customerName],
-        ['Company', order.customerCompany],
-        ['Product', order.targetProduct],
-        ['Order Date', order.orderDate],
-        ['Completion Date', order.completionDate],
-        ['Status', order.status],
-        ['', ''],
-        ['Financial Summary', ''],
-        ['Total Cost', order.totalCost],
-        ['Revenue', order.revenue],
-        ['Profit', order.profit],
-        ['Profit Margin (%)', ((order.profit / order.revenue) * 100).toFixed(1)],
-        ['', ''],
-        ['Additional Costs', ''],
-        ['Transportation', order.additionalCosts.transportation],
-        ['Labor', order.additionalCosts.labor],
-        ['Equipment', order.additionalCosts.equipment],
-        ['Quality Control', order.additionalCosts.qualityControl],
-        ['Storage', order.additionalCosts.storage],
-        ['', ''],
-        ['Raw Materials', ''],
-        ...order.rawMaterials.map((material, index) => [`${index + 1}`, material])
-      ];
-      
-      const worksheet = XLSX.utils.aoa_to_sheet(orderData);
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Order Report');
-      
-      const fileName = `order-report-${order.orderNumber.replace(/[\/\\]/g, '-')}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
-      
-    } catch (error) {
-      console.error('Excel export error:', error);
-      alert('Failed to export Excel file. Please try again.');
-    }
-  };
-
-  const handlePrintReport = (order: OrderHistoryItem) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow pop-ups to print the report.');
       return;
     }
+
+    const marginValue = typeof configurableProfitMargin === 'number' ? configurableProfitMargin : parseFloat(String(configurableProfitMargin));
     
-    const printContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Order Report - ${order.orderNumber}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .company-name { color: #2980b9; font-size: 24px; font-weight: bold; }
-            .report-title { font-size: 18px; margin-top: 10px; }
-            .section { margin-bottom: 25px; }
-            .section-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-            .detail-row { display: flex; margin-bottom: 5px; }
-            .detail-label { font-weight: bold; width: 150px; }
-            .detail-value { flex: 1; }
-            .materials-list { margin-left: 20px; }
-            .materials-item { margin-bottom: 3px; }
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="company-name">Premier ERP System</div>
-            <div class="report-title">Order Production Report</div>
-            <div style="font-size: 12px; color: #666; margin-top: 10px;">Generated: ${new Date().toLocaleDateString()}</div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Order Information</div>
-            <div class="detail-row"><span class="detail-label">Order Number:</span><span class="detail-value">${order.orderNumber}</span></div>
-            <div class="detail-row"><span class="detail-label">Batch Number:</span><span class="detail-value">${order.batchNumber}</span></div>
-            <div class="detail-row"><span class="detail-label">Type:</span><span class="detail-value">${order.type.charAt(0).toUpperCase() + order.type.slice(1)}</span></div>
-            <div class="detail-row"><span class="detail-label">Customer:</span><span class="detail-value">${order.customerName}</span></div>
-            <div class="detail-row"><span class="detail-label">Company:</span><span class="detail-value">${order.customerCompany}</span></div>
-            <div class="detail-row"><span class="detail-label">Product:</span><span class="detail-value">${order.targetProduct}</span></div>
-            <div class="detail-row"><span class="detail-label">Order Date:</span><span class="detail-value">${new Date(order.orderDate).toLocaleDateString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Completion Date:</span><span class="detail-value">${new Date(order.completionDate).toLocaleDateString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${order.status.toUpperCase()}</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Financial Summary</div>
-            <div class="detail-row"><span class="detail-label">Total Cost:</span><span class="detail-value">$${order.totalCost.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Revenue:</span><span class="detail-value">$${order.revenue.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Profit:</span><span class="detail-value">$${order.profit.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Profit Margin:</span><span class="detail-value">${((order.profit / order.revenue) * 100).toFixed(1)}%</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Additional Costs Breakdown</div>
-            <div class="detail-row"><span class="detail-label">Transportation:</span><span class="detail-value">$${order.additionalCosts.transportation.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Labor:</span><span class="detail-value">$${order.additionalCosts.labor.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Equipment:</span><span class="detail-value">$${order.additionalCosts.equipment.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Quality Control:</span><span class="detail-value">$${order.additionalCosts.qualityControl.toLocaleString()}</span></div>
-            <div class="detail-row"><span class="detail-label">Storage:</span><span class="detail-value">$${order.additionalCosts.storage.toLocaleString()}</span></div>
-          </div>
-          
-          <div class="section">
-            <div class="section-title">Raw Materials Used</div>
-            <div class="materials-list">
-              ${order.rawMaterials.map((material, index) => `<div class="materials-item">${index + 1}. ${material}</div>`).join('')}
-            </div>
-          </div>
-          
-          <div style="text-align: center; margin-top: 40px; font-size: 10px; color: #666;">
-            Generated by Premier ERP System
-          </div>
-        </body>
-      </html>
-    `;
-    
-    printWindow.document.write(printContent);
-    printWindow.document.close();
-    
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    if (isNaN(marginValue) || marginValue < 0 || marginValue > 100) {
+      toast({
+        title: 'خطأ في القيمة',
+        description: 'يجب أن يكون هامش الربح بين 0 و 100',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSavingProfitMargin(true);
+    try {
+      await saveProfitMarginMutation.mutateAsync({
+        orderId: selectedOrder.id,
+        profitMarginPercentage: marginValue
+      });
+    } finally {
+      setIsSavingProfitMargin(false);
+    }
   };
 
-  // Filter orders based on search and filters
-  const filteredOrders = orderHistory.filter((order: OrderHistoryItem) => {
-    const matchesSearch = 
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerCompany.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.targetProduct.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.batchNumber.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    const matchesType = typeFilter === 'all' || order.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
+  // Fetch system preferences for order status configuration
+  const { data: statusPreferences } = useQuery({
+    queryKey: ['/api/system-preferences/order_status_config'],
+    refetchOnWindowFocus: false,
   });
+
+  // Mutation to update order status
+  const updateOrderStatusMutation = useMutation({
+    mutationFn: async ({ orderId, orderType, newStatus }: { orderId: number; orderType: string; newStatus: string }) => {
+      const endpoint = orderType === 'production' ? '/api/production-orders' : '/api/refining-orders';
+      return await apiRequest('PATCH', `${endpoint}/${orderId}`, { status: newStatus });
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: 'Status Updated',
+        description: `Order status changed to ${variables.newStatus.replace('_', ' ')}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      refetch();
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update order status',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Fetch all orders with complete details
+  const { data: ordersData, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/orders/detailed-history'],
+    queryFn: async () => {
+      console.log('🔄 Fetching complete orders with detailed materials and costs...');
+      const response = await fetch('/api/orders/detailed-history', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch orders: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Complete orders data loaded:', data);
+      return data;
+    },
+  });
+
+  // Calculate comprehensive statistics
+  const statistics = useMemo<OrderStatistics>(() => {
+    if (!ordersData?.orders) {
+      return {
+        totalOrders: 0,
+        totalRevenue: 0,
+        totalCosts: 0,
+        totalProfit: 0,
+        completedOrders: 0,
+        pendingOrders: 0,
+        averageOrderValue: 0,
+        profitMargin: 0
+      };
+    }
+
+    const orders = ordersData.orders as DetailedOrder[];
+    
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter(o => o.status === 'completed').length;
+    const pendingOrders = orders.filter(o => o.status === 'pending').length;
+    
+    // Calculate financial totals with tax
+    let totalRevenue = 0;
+    let totalCosts = 0;
+    let totalMaterialsCosts = 0;
+    
+    orders.forEach(order => {
+      const orderCost = parseFloat(order.totalCost) || 0;
+      const materialCost = parseFloat(order.totalMaterialCost) || 0;
+      const additionalFees = parseFloat(order.totalAdditionalFees) || 0;
+      const profitMargin = parseFloat(order.profitMarginPercentage) || 20;
+      
+      // Calculate revenue based on profit margin
+      const revenue = orderCost * (1 + profitMargin / 100);
+      
+      totalRevenue += revenue;
+      totalCosts += orderCost;
+      totalMaterialsCosts += materialCost;
+    });
+    
+    const totalProfit = totalRevenue - totalCosts;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+
+    return {
+      totalOrders,
+      totalRevenue,
+      totalCosts,
+      totalProfit,
+      completedOrders,
+      pendingOrders,
+      averageOrderValue,
+      profitMargin
+    };
+  }, [ordersData]);
+
+  // Filter and search orders
+  const filteredOrders = useMemo(() => {
+    if (!ordersData?.orders) return [];
+    
+    let filtered = ordersData.orders as DetailedOrder[];
+    
+    // Filter by order type
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(order => order.orderType === typeFilter);
+    }
+    
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(order => 
+        order.orderNumber.toLowerCase().includes(query) ||
+        order.description?.toLowerCase().includes(query) ||
+        order.customerName?.toLowerCase().includes(query) ||
+        order.customerCompany?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Sort by creation date (newest first)
+    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [ordersData, typeFilter, statusFilter, searchQuery]);
 
   // Pagination
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'in-progress':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
-      case 'cancelled':
-        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
-    }
+  // Format currency in EGP
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EGP'
+    }).format(numAmount || 0);
   };
 
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case 'production':
-      case 'manufacturing':
-        return <Badge className="bg-purple-100 text-purple-800"><Factory className="w-3 h-3 mr-1" />Manufacturing</Badge>;
-      case 'refining':
-        return <Badge className="bg-orange-100 text-orange-800"><Settings className="w-3 h-3 mr-1" />Refining</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
-    }
-  };
-
-  const exportToCSV = () => {
-    const headers = ['Order Number', 'Batch Number', 'Type', 'Customer', 'Company', 'Product', 'Order Date', 'Completion Date', 'Status', 'Total Cost', 'Revenue', 'Profit'];
-    const csvData = [
-      headers,
-      ...filteredOrders.map((order: OrderHistoryItem) => [
-        order.orderNumber,
-        order.batchNumber,
-        order.type,
-        order.customerName,
-        order.customerCompany,
-        order.targetProduct,
-        order.orderDate,
-        order.completionDate,
-        order.status,
-        order.totalCost,
-        order.revenue,
-        order.profit
-      ])
-    ];
+  // FIXED: Correct cost calculations with proper tax logic
+  const calculateOrderCosts = (order: DetailedOrder, marginOverride?: number) => {
+    const additionalFees = parseFloat(order.totalAdditionalFees) || 0;
+    const profitMargin = marginOverride ?? (parseFloat(order.profitMarginPercentage) || 20);
     
-    const csvContent = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'orders-history.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    // FIXED: Robustly calculate material costs from line items
+    const sumLineItems = (items: any[]) => {
+      if (!items || !Array.isArray(items)) return 0;
+      return items.reduce((sum, item) => {
+        const quantity = parseFloat(item.quantity) || 0;
+        const unitPrice = parseFloat(item.unitPrice) || 0;
+        return sum + (quantity * unitPrice);
+      }, 0);
+    };
+    
+    // Get material costs from multiple sources (fallback chain)
+    let rawMaterialsCost = 0;
+    let packagingCost = 0;
+    
+    // Try to get from defined materialsCost/packagingCost fields first
+    if (Number.isFinite(order.materialsCost)) {
+      rawMaterialsCost = order.materialsCost;
+    } else {
+      // Calculate from rawMaterials line items
+      rawMaterialsCost = sumLineItems(order.rawMaterials);
+    }
+    
+    if (Number.isFinite(order.packagingCost)) {
+      packagingCost = order.packagingCost;
+    } else {
+      // Calculate from packagingMaterials line items  
+      packagingCost = sumLineItems(order.packagingMaterials);
+    }
+    
+    // Final fallback: if both raw and packaging are 0, try totalMaterialCost
+    if (rawMaterialsCost === 0 && packagingCost === 0 && order.totalMaterialCost) {
+      rawMaterialsCost = parseFloat(order.totalMaterialCost) || 0;
+    }
+    
+    const subtotal = rawMaterialsCost + packagingCost;
+    
+    // FIXED: Correct tax calculation
+    // Tax base = materials + packaging + transport (total taxable amount)
+    const taxBase = subtotal + additionalFees;
+    const taxRate = 0.14; // 14%
+    const taxAmount = taxBase * taxRate;
+    
+    // FIXED: Correct total cost calculation
+    const totalWithTax = subtotal + additionalFees + taxAmount;
+    
+    // FIXED: Always calculate revenue from profit margin with validation
+    // Profit margin should be percentage of REVENUE, not cost
+    // If profit margin is 20%, then profit = 20% of revenue, cost = 80% of revenue
+    // Therefore: revenue = cost / (1 - profit_margin_decimal)
+    const profitMarginDecimal = Math.max(0, Math.min(95, profitMargin)) / 100; // Clamp 0-95%
+    const revenue = profitMarginDecimal >= 0.95 ? totalWithTax * 20 : totalWithTax / (1 - profitMarginDecimal);
+    const profit = revenue - totalWithTax;
+    
+    // Calculate percentage breakdown for UI display
+    const preTaxTotal = subtotal + additionalFees;
+    const percentages = preTaxTotal > 0 ? {
+      rawMaterialsPercent: (rawMaterialsCost / preTaxTotal) * 100,
+      packagingPercent: (packagingCost / preTaxTotal) * 100,
+      additionalFeesPercent: (additionalFees / preTaxTotal) * 100
+    } : {
+      rawMaterialsPercent: 0,
+      packagingPercent: 0,
+      additionalFeesPercent: 0
+    };
+
+
+    return {
+      rawMaterialsCost,
+      packagingCost,
+      subtotal,
+      additionalFees,
+      taxAmount, // FIXED: Properly calculated tax
+      totalWithTax, // FIXED: Proper total cost calculation
+      revenue,
+      profit,
+      profitMargin,
+      actualTotalCost: totalWithTax,
+      sellingPrice: revenue,
+      // Add pre-calculated percentages
+      percentages
+    };
   };
 
-  const handleViewDetails = (order: OrderHistoryItem) => {
+  // FIXED: Make costs calculation reactive to profit margin changes
+  const currentOrderCosts = useMemo(() => {
+    if (!selectedOrder) return null;
+    const marginValue = configurableProfitMargin === '' ? undefined : configurableProfitMargin;
+    return calculateOrderCosts(selectedOrder, marginValue);
+  }, [selectedOrder, configurableProfitMargin]);
+
+  // Get status configuration (shared between badge and dropdown)
+  const getStatusConfig = () => {
+    // Default configuration
+    const defaultStatusConfig = {
+      pending: { color: 'bg-yellow-100', textColor: 'text-yellow-800', borderColor: 'border-yellow-300', label: 'Pending' },
+      'in_progress': { color: 'bg-blue-100', textColor: 'text-blue-800', borderColor: 'border-blue-300', label: 'In Progress' },
+      completed: { color: 'bg-green-100', textColor: 'text-green-800', borderColor: 'border-green-300', label: 'Completed' },
+      cancelled: { color: 'bg-red-100', textColor: 'text-red-800', borderColor: 'border-red-300', label: 'Cancelled' }
+    };
+    
+    // Use configured settings if available, otherwise use defaults
+    let statusConfig = defaultStatusConfig;
+    if (statusPreferences && statusPreferences.value && Array.isArray(statusPreferences.value)) {
+      const configuredStatuses = statusPreferences.value.reduce((acc: any, statusItem: any) => {
+        acc[statusItem.key] = {
+          color: statusItem.color,
+          textColor: statusItem.textColor,
+          borderColor: statusItem.borderColor,
+          label: statusItem.label
+        };
+        return acc;
+      }, {});
+      statusConfig = { ...defaultStatusConfig, ...configuredStatuses };
+    }
+    
+    return statusConfig;
+  };
+
+  // Status badge component with configurable settings (for read-only display)
+  const getStatusBadge = (status: string) => {
+    const statusConfig = getStatusConfig();
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    
+    return (
+      <Badge className={`${config.color} ${config.textColor} ${config.borderColor} border px-2 py-1 text-xs font-medium`}>
+        {config.label}
+      </Badge>
+    );
+  };
+
+  // Editable status dropdown component
+  const getEditableStatusDropdown = (order: DetailedOrder) => {
+    const statusConfig = getStatusConfig();
+    const currentConfig = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.pending;
+    
+    const handleStatusChange = (newStatus: string) => {
+      updateOrderStatusMutation.mutate({
+        orderId: order.id,
+        orderType: order.orderType,
+        newStatus
+      });
+    };
+    
+    return (
+      <Select
+        value={order.status}
+        onValueChange={handleStatusChange}
+        disabled={updateOrderStatusMutation.isPending}
+      >
+        <SelectTrigger className={`w-[120px] h-7 ${currentConfig.color} ${currentConfig.textColor} ${currentConfig.borderColor} border text-xs font-medium`}>
+          <SelectValue>{currentConfig.label}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {Object.entries(statusConfig).map(([key, config]) => (
+            <SelectItem key={key} value={key}>
+              <div className={`flex items-center px-2 py-1 rounded text-xs font-medium ${config.color} ${config.textColor}`}>
+                {config.label}
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  // Type badge component
+  const getTypeBadge = (type: string) => {
+    const typeConfig = {
+      production: { color: 'bg-purple-100 text-purple-800 border-purple-300', label: 'Production', icon: Factory },
+      refining: { color: 'bg-orange-100 text-orange-800 border-orange-300', label: 'Refining', icon: FlaskConical }
+    };
+    
+    const config = typeConfig[type as keyof typeof typeConfig] || typeConfig.production;
+    const IconComponent = config.icon;
+    
+    return (
+      <Badge className={`${config.color} border px-2 py-1 text-xs font-medium flex items-center gap-1`}>
+        <IconComponent className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  // Handle view details
+  const handleViewDetails = async (order: DetailedOrder) => {
+    console.log('🔍 Viewing complete order details:', order.orderNumber);
     setSelectedOrder(order);
     setIsDetailsDialogOpen(true);
   };
 
-  const handleDownloadReport = (order: OrderHistoryItem) => {
-    const reportData = {
-      orderNumber: order.orderNumber,
-      batchNumber: order.batchNumber,
-      type: order.type,
-      customer: {
-        name: order.customerName,
-        company: order.customerCompany
-      },
-      product: order.targetProduct,
-      dates: {
-        orderDate: order.orderDate,
-        completionDate: order.completionDate
-      },
-      status: order.status,
-      financial: {
-        totalCost: order.totalCost,
-        revenue: order.revenue,
-        profit: order.profit,
-        profitMargin: ((order.profit / order.revenue) * 100).toFixed(1)
-      },
-      additionalCosts: order.additionalCosts,
-      rawMaterials: order.rawMaterials
-    };
-
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `order-report-${order.orderNumber}.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = [
+      'Order #', 'Order Type', 'Customer', 'Final Product', 'Status',
+      'Materials Cost', 'Additional Fees', 'Total Cost', 'Profit Margin',
+      'Revenue', 'Profit', 'Created Date'
+    ];
+    
+    const csvData = filteredOrders.map(order => {
+      const costs = calculateOrderCosts(order);
+      return [
+        order.orderNumber,
+        order.orderType === 'production' ? 'Production' : 'Refining',
+        order.customerName || '',
+        order.description || '',
+        order.status === 'pending' ? 'Pending' : 
+        order.status === 'completed' ? 'Completed' : 
+        order.status === 'in_progress' ? 'In Progress' : 'Cancelled',
+        costs.subtotal.toFixed(2),
+        costs.additionalFees.toFixed(2),
+        costs.totalWithTax.toFixed(2),
+        `${costs.profitMargin}%`,
+        costs.revenue.toFixed(2),
+        costs.profit.toFixed(2),
+        new Date(order.createdAt).toLocaleDateString('en-US')
+      ];
+    });
+    
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `orders_history_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
-
-  const handleGenerateInvoice = (order: OrderHistoryItem) => {
-    console.log('Generating invoice for order:', order);
-    // Here you would typically navigate to invoice generation or call an API
-    alert(`Invoice generation for order ${order.orderNumber} will be implemented soon.`);
-  };
-
-  // Calculate summary statistics
-  const totalRevenue = filteredOrders.reduce((sum: number, order: OrderHistoryItem) => sum + order.revenue, 0);
-  const totalCosts = filteredOrders.reduce((sum: number, order: OrderHistoryItem) => sum + order.totalCost, 0);
-  const totalProfit = totalRevenue - totalCosts;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3BCEAC] mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading order history...</p>
+          <Factory className="h-12 w-12 text-[#3BCEAC] mx-auto mb-4 animate-spin" />
+          <p className="text-lg text-gray-600">Loading order details...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="text-center p-6">
+            <Factory className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Data Loading Error</h2>
+            <p className="text-gray-600 mb-4">An error occurred while loading order details</p>
+            <Button onClick={() => refetch()} variant="outline">
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -512,11 +620,11 @@ const OrdersHistory: React.FC = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Orders History</h1>
-              <p className="text-gray-600">Production and refining order tracking</p>
+              <p className="text-gray-600">Comprehensive details for production and refining orders with costs</p>
             </div>
           </div>
 
-          {/* Summary Cards */}
+          {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -524,8 +632,10 @@ const OrdersHistory: React.FC = () => {
                 <Factory className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{filteredOrders.length}</div>
-                <p className="text-xs text-muted-foreground">Active production orders</p>
+                <div className="text-2xl font-bold">{statistics.totalOrders}</div>
+                <p className="text-xs text-muted-foreground">
+                  Completed: {statistics.completedOrders} | Pending: {statistics.pendingOrders}
+                </p>
               </CardContent>
             </Card>
 
@@ -535,31 +645,33 @@ const OrdersHistory: React.FC = () => {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">From completed orders</p>
+                <div className="text-2xl font-bold">{formatCurrency(statistics.totalRevenue)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Average Order Value: {formatCurrency(statistics.averageOrderValue)}
+                </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Costs</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <Calculator className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${totalCosts.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">Production expenses</p>
+                <div className="text-2xl font-bold">{formatCurrency(statistics.totalCosts)}</div>
+                <p className="text-xs text-muted-foreground">Production and materials costs</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">${totalProfit.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(statistics.totalProfit)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {totalRevenue > 0 ? `${((totalProfit / totalRevenue) * 100).toFixed(1)}% margin` : 'No data'}
+                  Profit Margin: {statistics.profitMargin.toFixed(1)}%
                 </p>
               </CardContent>
             </Card>
@@ -571,7 +683,7 @@ const OrdersHistory: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters & Search
+              Search & Filters
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -592,8 +704,9 @@ const OrdersHistory: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
@@ -604,9 +717,8 @@ const OrdersHistory: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="production">Production</SelectItem>
-                  <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                  <SelectItem value="refining">Refining</SelectItem>
+                  <SelectItem value="production">Production Orders</SelectItem>
+                  <SelectItem value="refining">Refining Orders</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -629,53 +741,52 @@ const OrdersHistory: React.FC = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-4 font-medium">Order #</th>
-                    <th className="text-left p-4 font-medium">Batch #</th>
                     <th className="text-left p-4 font-medium">Type</th>
                     <th className="text-left p-4 font-medium">Customer</th>
                     <th className="text-left p-4 font-medium">Product</th>
                     <th className="text-left p-4 font-medium">Status</th>
+                    <th className="text-left p-4 font-medium">Cost</th>
                     <th className="text-left p-4 font-medium">Revenue</th>
                     <th className="text-left p-4 font-medium">Profit</th>
                     <th className="text-left p-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedOrders.map((order: OrderHistoryItem) => (
-                    <tr key={order.id} className="border-b hover:bg-gray-50">
-                      <td className="p-4 font-medium text-blue-600">{order.orderNumber}</td>
-                      <td className="p-4 text-gray-600">{order.batchNumber}</td>
-                      <td className="p-4">{getTypeBadge(order.type)}</td>
-                      <td className="p-4">
-                        <div>
-                          <div className="font-medium">{order.customerName}</div>
-                          <div className="text-sm text-gray-500">{order.customerCompany}</div>
-                        </div>
-                      </td>
-                      <td className="p-4 text-gray-600">{order.targetProduct}</td>
-                      <td className="p-4">{getStatusBadge(order.status)}</td>
-                      <td className="p-4 font-medium text-green-600">${order.revenue.toLocaleString()}</td>
-                      <td className="p-4 font-medium text-blue-600">${order.profit.toLocaleString()}</td>
-                      <td className="p-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadReport(order)}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Download Report
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
+                  {paginatedOrders.map((order: DetailedOrder, index: number) => {
+                    const costs = calculateOrderCosts(order);
+                    return (
+                      <tr key={`${order.orderType}-${order.id}-${index}`} className="border-b hover:bg-gray-50">
+                        <td className="p-4 font-medium text-blue-600">{order.orderNumber}</td>
+                        <td className="p-4">{getTypeBadge(order.orderType)}</td>
+                        <td className="p-4">
+                          <div className="text-left">
+                            <div className="font-medium">{order.customerName || 'Not specified'}</div>
+                            <div className="text-sm text-gray-500">{order.customerCompany || ''}</div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-gray-600">{order.description || 'Not specified'}</td>
+                        <td className="p-4">{getEditableStatusDropdown(order)}</td>
+                        <td className="p-4 font-medium text-red-600">{formatCurrency(costs.totalWithTax)}</td>
+                        <td className="p-4 font-medium text-green-600">{formatCurrency(costs.revenue)}</td>
+                        <td className="p-4 font-medium text-blue-600">{formatCurrency(costs.profit)}</td>
+                        <td className="p-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -692,7 +803,7 @@ const OrdersHistory: React.FC = () => {
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
                   Previous
                 </Button>
                 <span className="text-sm text-gray-600">
@@ -705,7 +816,7 @@ const OrdersHistory: React.FC = () => {
                   disabled={currentPage === totalPages}
                 >
                   Next
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -713,197 +824,439 @@ const OrdersHistory: React.FC = () => {
         </Card>
       </div>
 
-      {/* Order Details Dialog */}
+      {/* Complete Order Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           {selectedOrder && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
+                <DialogTitle className="flex items-center gap-3 text-xl">
                   <Factory className="h-6 w-6 text-[#3BCEAC]" />
                   Order Details: {selectedOrder.orderNumber}
                 </DialogTitle>
                 <DialogDescription>
-                  Complete information for batch {selectedOrder.batchNumber}
+                  Comprehensive order details with materials, costs and profits
                 </DialogDescription>
               </DialogHeader>
 
-              {/* Order Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Order Information</h3>
-                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Order Number:</span>
-                        <span className="font-medium">{selectedOrder.orderNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Batch Number:</span>
-                        <span className="font-medium">{selectedOrder.batchNumber}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        {getTypeBadge(selectedOrder.type)}
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        {getStatusBadge(selectedOrder.status)}
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Target Product:</span>
-                        <span className="font-medium">{selectedOrder.targetProduct}</span>
-                      </div>
-                    </div>
-                  </div>
+              <div className="mt-6">
+                <Tabs defaultValue="overview" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="materials">Raw Materials</TabsTrigger>
+                    <TabsTrigger value="packaging">Packaging</TabsTrigger>
+                    <TabsTrigger value="financials">Financials</TabsTrigger>
+                  </TabsList>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Customer Information</h3>
-                    <div className="space-y-2 bg-blue-50 p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Customer Name:</span>
-                        <span className="font-medium text-blue-900">{selectedOrder.customerName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Company:</span>
-                        <span className="font-medium text-blue-900">{selectedOrder.customerCompany}</span>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Overview Tab */}
+                  <TabsContent value="overview" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Order Information */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <ClipboardList className="h-5 w-5" />
+                            Order Information
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Order #:</span>
+                            <span className="font-medium">{selectedOrder.orderNumber}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Order Type:</span>
+                            {getTypeBadge(selectedOrder.orderType)}
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Status:</span>
+                            {getStatusBadge(selectedOrder.status)}
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Final Product:</span>
+                            <span className="font-medium">{selectedOrder.description || 'Not specified'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Created Date:</span>
+                            <span className="font-medium">
+                              {new Date(selectedOrder.createdAt).toLocaleDateString('en-US')}
+                            </span>
+                          </div>
+                          {selectedOrder.expectedOutputQuantity && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Expected Quantity:</span>
+                              <span className="font-medium">{selectedOrder.expectedOutputQuantity}</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Timeline</h3>
-                    <div className="space-y-2 bg-green-50 p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Order Date:</span>
-                        <span className="font-medium text-green-900">{new Date(selectedOrder.orderDate).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-green-700">Completion Date:</span>
-                        <span className="font-medium text-green-900">{new Date(selectedOrder.completionDate).toLocaleDateString()}</span>
-                      </div>
+                      {/* Customer Information */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Customer Information
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-blue-700">Customer:</span>
+                            <span className="font-medium text-blue-900">{selectedOrder.customerName || 'Not specified'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-blue-700">Company:</span>
+                            <span className="font-medium text-blue-900">{selectedOrder.customerCompany || 'Not specified'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-blue-700">Customer ID:</span>
+                            <span className="font-medium text-blue-900">{selectedOrder.customerId}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </div>
-                </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Financial Summary</h3>
-                    <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Cost:</span>
-                        <span className="font-medium text-red-600">${selectedOrder.totalCost.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Revenue:</span>
-                        <span className="font-medium text-green-600">${selectedOrder.revenue.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span className="text-gray-800 font-semibold">Net Profit:</span>
-                        <span className="font-bold text-blue-600">${selectedOrder.profit.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Profit Margin:</span>
-                        <span className="font-medium text-blue-600">
-                          {((selectedOrder.profit / selectedOrder.revenue) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                    {/* Production/Refining Steps */}
+                    {selectedOrder.refiningSteps && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Settings className="h-5 w-5" />
+                            {selectedOrder.orderType === 'production' ? 'Production' : 'Refining'} Steps
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            {JSON.parse(selectedOrder.refiningSteps).map((step: string, index: number) => (
+                              <div key={index} className="flex items-start">
+                                <span className="text-indigo-600 font-medium mr-2 text-sm">{index + 1}.</span>
+                                <span className="text-indigo-800 text-sm">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
 
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">Additional Costs</h3>
-                    <div className="space-y-2 bg-red-50 p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <span className="text-red-700">Transportation:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.transportation.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-red-700">Labor:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.labor.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-red-700">Equipment:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.equipment.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-red-700">Quality Control:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.qualityControl.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-red-700">Storage:</span>
-                        <span className="font-medium text-red-900">${selectedOrder.additionalCosts.storage.toLocaleString()}</span>
-                      </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between font-semibold">
-                          <span className="text-red-800">Total Additional:</span>
-                          <span className="text-red-900">
-                            ${Object.values(selectedOrder.additionalCosts).reduce((sum, cost) => sum + cost, 0).toLocaleString()}
-                          </span>
+                  {/* Raw Materials Tab */}
+                  <TabsContent value="materials" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <BoxIcon className="h-5 w-5" />
+                          Raw Materials Used
+                          <Badge className="ml-2">{selectedOrder.rawMaterials?.length || 0} items</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {selectedOrder.rawMaterials && selectedOrder.rawMaterials.length > 0 ? (
+                          <div className="space-y-4">
+                            {selectedOrder.rawMaterials.map((material, index) => (
+                              <div key={index} className="bg-blue-50 p-4 rounded-lg border">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                  <div>
+                                    <span className="text-sm text-gray-600">Material Name:</span>
+                                    <p className="font-medium">{material.name}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Quantity:</span>
+                                    <p className="font-medium">{material.quantity} {material.unitOfMeasure}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Unit Price:</span>
+                                    <p className="font-medium">{formatCurrency(material.unitPrice)}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Total:</span>
+                                    <p className="font-bold text-green-600">
+                                      {formatCurrency(parseFloat(material.quantity) * parseFloat(material.unitPrice))}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            <div className="bg-blue-100 p-4 rounded-lg border-t-4 border-blue-500">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-blue-800">Total Raw Materials Cost:</span>
+                                <span className="text-xl font-bold text-blue-600">
+                                  {formatCurrency(
+                                    selectedOrder.rawMaterials.reduce((sum, material) => 
+                                      sum + (parseFloat(material.quantity) * parseFloat(material.unitPrice)), 0)
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <BoxIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600">No raw materials specified for this order</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Packaging Materials Tab */}
+                  <TabsContent value="packaging" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Package className="h-5 w-5" />
+                          Packaging Materials
+                          <Badge className="ml-2">{selectedOrder.packagingMaterials?.length || 0} items</Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {selectedOrder.packagingMaterials && selectedOrder.packagingMaterials.length > 0 ? (
+                          <div className="space-y-4">
+                            {selectedOrder.packagingMaterials.map((material, index) => (
+                              <div key={index} className="bg-purple-50 p-4 rounded-lg border">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                  <div>
+                                    <span className="text-sm text-gray-600">Material Name:</span>
+                                    <p className="font-medium">{material.name}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Quantity:</span>
+                                    <p className="font-medium">{material.quantity} {material.unitOfMeasure}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Unit Price:</span>
+                                    <p className="font-medium">{formatCurrency(material.unitPrice)}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-sm text-gray-600">Total:</span>
+                                    <p className="font-bold text-green-600">
+                                      {formatCurrency(parseFloat(material.quantity) * parseFloat(material.unitPrice))}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            <div className="bg-purple-100 p-4 rounded-lg border-t-4 border-purple-500">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-purple-800">Total Packaging Materials Cost:</span>
+                                <span className="text-xl font-bold text-purple-600">
+                                  {formatCurrency(
+                                    selectedOrder.packagingMaterials.reduce((sum, material) => 
+                                      sum + (parseFloat(material.quantity) * parseFloat(material.unitPrice)), 0)
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600">No packaging materials specified for this order</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  {/* Financial Details Tab */}
+                  <TabsContent value="financials" className="space-y-4">
+                    {(() => {
+                      const costs = currentOrderCosts;
+                      if (!costs) {
+                        return (
+                          <div className="text-center py-8">
+                            <Calculator className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                            <p className="text-gray-600">Unable to calculate costs for this order</p>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="space-y-6">
+                          {/* Cost Breakdown */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Calculator className="h-5 w-5" />
+                                تفصيل التكاليف والأرباح
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Costs Section */}
+                                <div className="space-y-3">
+                                  <h4 className="font-semibold text-gray-800 border-b pb-2">التكاليف</h4>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">تكلفة المواد الخام:</span>
+                                    <span className="font-medium">{formatCurrency(costs.rawMaterialsCost)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">تكلفة مواد التعبئة:</span>
+                                    <span className="font-medium">{formatCurrency(costs.packagingCost)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">المجموع الفرعي:</span>
+                                    <span className="font-medium">{formatCurrency(costs.subtotal)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">الرسوم الإضافية (نقل):</span>
+                                    <span className="font-medium text-orange-600">{formatCurrency(costs.additionalFees)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">الضرائب (14%):</span>
+                                    <span className="font-medium text-red-600">{formatCurrency(costs.taxAmount)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between border-t pt-2 font-bold">
+                                    <span className="text-gray-800">إجمالي التكلفة:</span>
+                                    <span className="text-red-600">{formatCurrency(costs.totalWithTax)}</span>
+                                  </div>
+                                </div>
+
+                                {/* Revenue & Profit Section */}
+                                <div className="space-y-3">
+                                  <h4 className="font-semibold text-gray-800 border-b pb-2">الإيرادات والأرباح</h4>
+                                  
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">هامش الربح:</span>
+                                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                                      <Input
+                                        type="number"
+                                        max="100"
+                                        step="0.1"
+                                        value={configurableProfitMargin}
+                                        onChange={(e) => {
+                                          const inputValue = e.target.value;
+                                          if (inputValue === '') {
+                                            setConfigurableProfitMargin('');
+                                          } else {
+                                            const value = Math.max(0, Math.min(100, parseFloat(inputValue) || 0));
+                                            setConfigurableProfitMargin(value);
+                                          }
+                                        }}
+                                        className="w-20 h-8 text-right rtl:text-left font-medium text-purple-600 border-purple-200 focus:border-purple-400"
+                                        data-testid="input-profit-margin"
+                                      />
+                                      <span className="text-purple-600 font-medium">%</span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleSaveProfitMargin}
+                                        disabled={isSavingProfitMargin || configurableProfitMargin === '' || saveProfitMarginMutation.isPending}
+                                        className="h-8 px-2 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 disabled:opacity-50"
+                                        data-testid="button-save-profit-margin"
+                                      >
+                                        <Save className="h-3 w-3" />
+                                      </Button>
+                                      <Settings className="h-4 w-4 text-purple-400" />
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">إجمالي الإيرادات:</span>
+                                    <span className="font-medium text-green-600">{formatCurrency(costs.revenue)}</span>
+                                  </div>
+                                  
+                                  <div className="flex justify-between border-t pt-2 font-bold">
+                                    <span className="text-gray-800">صافي الربح:</span>
+                                    <span className="text-green-600 text-xl">{formatCurrency(costs.profit)}</span>
+                                  </div>
+                                  
+                                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <div className="text-sm text-green-800">
+                                      <strong>نسبة الربح الفعلية: </strong>
+                                      {costs.revenue > 0 ? ((costs.profit / costs.revenue) * 100).toFixed(1) : '0'}%
+                                    </div>
+                                    <div className="text-xs text-green-600 mt-1 flex items-center">
+                                      <Calculator className="h-3 w-3 ml-1" />
+                                      يتم تحديث الحسابات تلقائياً عند تغيير هامش الربح
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Visual Cost Breakdown */}
+                              <div className="mt-6">
+                                <h4 className="font-semibold text-gray-800 mb-3">التوزيع المرئي للتكاليف</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  {(() => {
+                                    // Use pre-calculated percentages from the costs object
+                                    const percentages = costs.percentages;
+                                    const taxRate = 14; // Fixed 14% tax rate
+                                    
+                                    return (
+                                      <>
+                                        <div className="bg-blue-100 p-3 rounded-lg text-center">
+                                          <div className="text-2xl font-bold text-blue-600">{percentages.rawMaterialsPercent.toFixed(0)}%</div>
+                                          <div className="text-xs text-blue-800">مواد خام</div>
+                                        </div>
+                                        <div className="bg-purple-100 p-3 rounded-lg text-center">
+                                          <div className="text-2xl font-bold text-purple-600">{percentages.packagingPercent.toFixed(0)}%</div>
+                                          <div className="text-xs text-purple-800">تعبئة</div>
+                                        </div>
+                                        <div className="bg-orange-100 p-3 rounded-lg text-center">
+                                          <div className="text-2xl font-bold text-orange-600">{percentages.additionalFeesPercent.toFixed(0)}%</div>
+                                          <div className="text-xs text-orange-800">رسوم إضافية</div>
+                                        </div>
+                                        <div className="bg-green-100 p-3 rounded-lg text-center">
+                                          <div className="text-2xl font-bold text-green-600">{taxRate}%</div>
+                                          <div className="text-xs text-green-800">معدل الضريبة</div>
+                                        </div>
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Raw Materials Section */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Raw Materials Used</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {selectedOrder.rawMaterials.map((material, index) => (
-                      <div key={index} className="bg-white p-2 rounded border">
-                        <span className="text-sm font-medium text-gray-700">{index + 1}. {material}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                      );
+                    })()}
+                  </TabsContent>
+                </Tabs>
               </div>
 
               {/* Action Buttons */}
               <div className="border-t pt-6 flex justify-end space-x-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center space-x-2 hover:bg-gray-50 border-gray-300"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Export Report</span>
-                      <ChevronRight className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem
-                      onClick={() => handleExportPDF(selectedOrder)}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <FileText className="h-4 w-4 text-red-600" />
-                      <span>Export as PDF</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleExportExcel(selectedOrder)}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 text-green-600" />
-                      <span>Export as Excel</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handlePrintReport(selectedOrder)}
-                      className="flex items-center space-x-2 cursor-pointer"
-                    >
-                      <Printer className="h-4 w-4 text-gray-600" />
-                      <span>Print Report</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 <Button
-                  onClick={() => handleGenerateInvoice(selectedOrder)}
-                  className="flex items-center space-x-2 bg-[#3BCEAC] hover:bg-[#2A9A7A] text-white"
+                  onClick={() => {
+                    // Export this specific order details
+                    const costs = currentOrderCosts;
+                    if (!costs) {
+                      console.error('Unable to export: costs calculation failed');
+                      return;
+                    }
+                    const exportData = {
+                      orderInfo: selectedOrder,
+                      costs: costs,
+                      exportDate: new Date().toLocaleDateString('en-US')
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+                      type: 'application/json;charset=utf-8;'
+                    });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `order_${selectedOrder.orderNumber}_details.json`;
+                    link.click();
+                  }}
+                  variant="outline"
+                  className="flex items-center space-x-2"
                 >
-                  <FileText className="h-4 w-4" />
-                  <span>Generate Invoice</span>
+                  <Download className="h-4 w-4" />
+                  <span>تصدير التفاصيل</span>
+                </Button>
+                
+                <Button
+                  onClick={() => setIsDetailsDialogOpen(false)}
+                  className="bg-[#3BCEAC] hover:bg-[#2A9A7A] text-white"
+                >
+                  إغلاق
                 </Button>
               </div>
             </>

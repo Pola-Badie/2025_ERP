@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { usePagination } from '@/contexts/PaginationContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -99,6 +99,7 @@ interface Product {
   expiryDate: string;
   status: string;
   productType?: 'raw' | 'semi-raw' | 'finished';
+  grade?: string; // Added grade field for P, F, T classification
   createdAt: string;
 }
 
@@ -114,11 +115,22 @@ const Inventory: React.FC = () => {
   // Highlight functionality for navigation from dashboard
   const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
   
-  // Get URL search parameters for highlighting
+  // Get URL search parameters for highlighting and warehouse filtering
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const highlightId = urlParams.get('highlight');
     const productName = urlParams.get('product');
+    const warehouseParam = urlParams.get('warehouse');
+    
+    // Handle warehouse parameter - if specified, use it; otherwise default to "All Warehouses" (0)
+    if (warehouseParam) {
+      setSelectedWarehouse(parseInt(warehouseParam));
+      console.log(`🔥 WAREHOUSE FILTER: Setting warehouse to ${warehouseParam}`);
+    } else {
+      // When navigating from dashboard alerts without warehouse param, show ALL stock
+      setSelectedWarehouse(0);
+      console.log('🔄 SHOWING ALL WAREHOUSES: Complete stock visibility across all locations');
+    }
     
     if (highlightId) {
       const productId = parseInt(highlightId);
@@ -156,17 +168,14 @@ const Inventory: React.FC = () => {
     }
   }, [window.location.search, toast]);
   
-  // Warehouse management - Updated to match actual database locations
-  const [warehouses, setWarehouses] = useState([
-    { id: 1, name: 'Warehouse 1', location: 'Main Storage - Cairo' },
-    { id: 2, name: 'Warehouse 2', location: 'Secondary Storage - Alexandria' },
-    { id: 3, name: 'Warehouse 3', location: 'Distribution Center - Giza' },
-    { id: 4, name: 'Warehouse A', location: 'Raw Materials - Cairo' },
-    { id: 5, name: 'Warehouse B', location: 'Semi-Finished - Alexandria' },
-    { id: 6, name: 'Warehouse C', location: 'Finished Products - Giza' },
-    { id: 7, name: 'A-1', location: 'Special Storage - Cairo' },
-  ]);
-  const [selectedWarehouse, setSelectedWarehouse] = useState(1);
+  // Fetch warehouses from API
+  const { data: warehouses = [], isLoading: isLoadingWarehouses } = useQuery<any[]>({
+    queryKey: ['/api/warehouses'],
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
+  });
+  const [selectedWarehouse, setSelectedWarehouse] = useState(0); // Default to "All Warehouses" for complete stock visibility
   const [isWarehouseDialogOpen, setIsWarehouseDialogOpen] = useState(false);
   const [warehouseToEdit, setWarehouseToEdit] = useState<any>(null);
   
@@ -180,6 +189,7 @@ const Inventory: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [gradeFilter, setGradeFilter] = useState<string[]>([]);
   
   // State for product history dialog
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
@@ -198,46 +208,63 @@ const Inventory: React.FC = () => {
     statusOptions: ['Active', 'Inactive', 'Discontinued', 'Out of Stock'],
     locationTypes: ['Warehouse', 'Storage Room', 'Cold Storage', 'Quarantine']
   });
+
+  // Update inventory settings with translations once component mounts
+  useEffect(() => {
+    setInventorySettings({
+      unitsOfMeasure: ['L', 'PCS', 'T', 'KG', 'g', 'mg'],
+      productTypes: [t('rawMaterial'), t('semiRawMaterial'), t('finishedProduct')],
+      statusOptions: [t('active'), t('inactive'), t('discontinued'), t('outOfStock')],
+      locationTypes: [t('warehouse'), t('storageRoom'), t('coldStorage'), t('quarantine')]
+    });
+  }, [t]);
   const [newOption, setNewOption] = useState({ type: '', value: '' });
   
   // CSV Integration
   const { setCSVData, setCSVOptions, clearCSV } = useCSV<Product>();
   
   // Handle CSV import
-  const handleImportProducts = async (data: Record<string, string>[]) => {
+  const handleImportProducts = async (data: Record<string, string>[], warehouse?: string) => {
     if (!data || data.length === 0) {
       return;
     }
     
     toast({
-      title: "Importing Products",
-      description: `Processing ${data.length} products...`
+      title: t('importingProducts'),
+      description: `${t('processing')} ${data.length} ${t('products')}...`
     });
     
-    // In a production environment, you would call an API to bulk import products
     console.log('Products to import:', data);
     
-    // Add validation and API call code here
-    // Example:
-    // const importMutation = async () => {
-    //   try {
-    //     const response = await apiRequest('POST', '/api/products/import', { products: data });
-    //     const result = await response.json();
-    //     queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-    //     return result;
-    //   } catch (error) {
-    //     console.error('Import error:', error);
-    //     throw error;
-    //   }
-    // };
-    
-    // Simulate successful import
-    setTimeout(() => {
-      toast({
-        title: "Import Complete",
-        description: `Successfully imported ${data.length} products.`
+    try {
+      // Use authenticated API request for secure import
+      console.log('Sending JSON import request to:', '/api/bulk/import-json');
+      console.log('Data to import:', data.length, 'records');
+      
+      const result = await apiRequest('POST', '/api/bulk/import-json', {
+        type: 'products',
+        data: data,
+        warehouse: warehouse // Pass the selected warehouse
       });
-    }, 1500);
+      
+      console.log('Import result:', result);
+      
+      // Refresh the products list
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      
+      toast({
+        title: t('importComplete'),
+        description: `${t('successfullyImported')} ${result.imported || data.length} ${t('products')}.`
+      });
+      
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: 'Import Error',
+        description: 'Failed to import products. Please check the file format and try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   // State for category management
@@ -250,15 +277,65 @@ const Inventory: React.FC = () => {
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  
+  // Real activity data for selected product
+  const { data: productActivity = [], isLoading: isLoadingActivity } = useQuery({
+    queryKey: ['/api/products', selectedProductHistory?.id, 'activity'],
+    queryFn: async () => {
+      if (!selectedProductHistory?.id) return [];
+      
+      try {
+        const response = await fetch(`${window.location.origin}/api/products/${selectedProductHistory.id}/activity`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(`✅ FRONTEND: Fetched ${data.length} real activity entries for product ${selectedProductHistory.name}`);
+        return data;
+      } catch (error) {
+        console.error('Error fetching product activity:', error);
+        return [];
+      }
+    },
+    enabled: !!selectedProductHistory?.id,
+    refetchOnWindowFocus: false,
+  });
 
-  // Fetch products and categories
+  // Fetch products and categories with warehouse filtering
   const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/products', selectedWarehouse],
+    queryFn: async () => {
+      try {
+        // For "All Stock" (selectedWarehouse === 0), don't include warehouse parameter
+        // For specific warehouses, include the warehouse parameter
+        const warehouseParam = selectedWarehouse === 0 ? '' : `?warehouse=${selectedWarehouse}`;
+        const endpoint = `/api/products${warehouseParam}`;
+        console.log(`🔥 API ENDPOINT: Fetching from ${endpoint} (${selectedWarehouse === 0 ? 'all stock' : `warehouse ${selectedWarehouse}`})`);
+        
+        const response = await fetch(`${window.location.origin}${endpoint}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`🔥 FRONTEND: Fetched ${Array.isArray(data) ? data.length : 0} products from ${selectedWarehouse === 0 ? 'all stock' : `warehouse ${selectedWarehouse}`}`);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        return [];
+      }
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when tab gains focus
+    refetchOnMount: true, // Always refetch when component mounts
   });
 
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery<Category[]>({
     queryKey: ['/api/categories'],
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
   });
   
   // Set up CSV options when component loads
@@ -286,7 +363,7 @@ const Inventory: React.FC = () => {
         importButtonText: 'Import Products',
         onImport: handleImportProducts,
         showWarehouseDropdown: true,
-        warehouseLocations: ['Warehouse 1', 'Warehouse 2', 'Warehouse 3', 'Warehouse A', 'Warehouse B', 'Warehouse C', 'A-1'],
+        warehouseLocations: ['Main Warehouse', 'Temperature-Controlled Storage', 'Finished Products Warehouse', 'Raw Materials Warehouse', 'Medical Supplies Warehouse'],
         onWarehouseFilter: (location: string | null) => {
           if (!location) return products;
           return products.filter(product => product.location === location);
@@ -373,29 +450,54 @@ const Inventory: React.FC = () => {
     },
   });
 
-  // Filter products
-  const filteredProducts = products?.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.drugName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || product.categoryId.toString() === categoryFilter;
+  // Filter products (warehouse filtering now handled by API)
+  const filteredProducts = useMemo(() => {
+    console.log('Products received for filtering:', {
+      productsLength: products?.length || 0,
+      searchTerm,
+      statusFilter,
+      categoryFilter,
+      gradeFilter,
+      selectedWarehouse,
+      sampleProduct: products?.[0]
+    });
     
-    // Add empty warehouse locations if needed
-    if (!product.location) {
-      const warehouseIndex = product.id % warehouses.length;
-      product.location = 'Main Floor';
+    if (!products || products.length === 0) {
+      console.log('No products available for filtering');
+      return [];
     }
     
-    // Add shelf numbers if needed
-    if (!product.shelf) {
-      // Create a shelf number based on the product ID to ensure consistency
-      const shelfNumber = product.id % 20 + 1;
-      product.shelf = shelfNumber < 10 ? `Shelf 0${shelfNumber}` : `Shelf ${shelfNumber}`;
-    }
+    const filtered = products.filter(product => {
+      const matchesSearch = !searchTerm || (
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.drugName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
+      const matchesCategory = categoryFilter === 'all' || product.categoryId?.toString() === categoryFilter;
+      
+      // Grade filtering logic - if no grades selected, show all products
+      const matchesGrade = gradeFilter.length === 0 || (
+        product.grade && 
+        gradeFilter.some(selectedGrade => {
+          const productGrades = product.grade.split(',').map(g => g.trim());
+          return productGrades.includes(selectedGrade);
+        })
+      );
+      
+      // Add shelf numbers if needed (warehouse-specific location is now set by API)
+      if (!product.shelf) {
+        // Create a shelf number based on the product ID to ensure consistency
+        const shelfNumber = product.id % 20 + 1;
+        product.shelf = shelfNumber < 10 ? `Shelf 0${shelfNumber}` : `Shelf ${shelfNumber}`;
+      }
+      
+      return matchesSearch && matchesStatus && matchesCategory && matchesGrade;
+    });
     
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+    console.log(`Filtered ${filtered.length} products from ${products.length} total`);
+    return filtered;
+  }, [products, searchTerm, statusFilter, categoryFilter, gradeFilter]);
 
   // Pagination calculations
   const totalPages = Math.ceil((filteredProducts?.length || 0) / itemsPerPage);
@@ -413,7 +515,7 @@ const Inventory: React.FC = () => {
     } else {
       clearCSV();
     }
-  }, [filteredProducts, products, searchTerm, statusFilter, categoryFilter]);
+  }, [filteredProducts, products, searchTerm, statusFilter, categoryFilter, gradeFilter]);
 
   // Handle category form submission
   const handleAddCategory = (e: React.FormEvent) => {
@@ -630,6 +732,8 @@ const Inventory: React.FC = () => {
                   buttonText={t('importCsv')}
                   variant="outline"
                   size="sm"
+                  showWarehouseDialog={true}
+                  warehouseLocations={warehouses?.map(w => w.name) || []}
                 />
                 <CSVExport 
                   data={filteredProducts} 
@@ -769,7 +873,7 @@ const Inventory: React.FC = () => {
           {/* Filters */}
           <Card className="mb-6">
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                   <Input
@@ -783,29 +887,31 @@ const Inventory: React.FC = () => {
                 <Select
                   value={statusFilter}
                   onValueChange={setStatusFilter}
+                  modal={false}
                 >
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder={t('filterByStatus')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-80 overflow-auto z-50" side="bottom" sideOffset={5} avoidCollisions={true}>
                     <SelectItem value="all">{t('allStatuses')}</SelectItem>
                     <SelectItem value="active">{t('inStock')}</SelectItem>
                     <SelectItem value="out_of_stock">{t('outOfStock')}</SelectItem>
                     <SelectItem value="expired">{t('expired')}</SelectItem>
-                    <SelectItem value="near">NEAR</SelectItem>
+                    <SelectItem value="near">{t('nearExpiry')}</SelectItem>
                   </SelectContent>
                 </Select>
                 
                 <Select
                   value={categoryFilter}
                   onValueChange={setCategoryFilter}
+                  modal={false}
                 >
                   <SelectTrigger>
                     <Filter className="h-4 w-4 mr-2" />
                     <SelectValue placeholder={t('filterByCategory')} />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-80 overflow-auto z-50" side="bottom" sideOffset={5} avoidCollisions={true}>
                     <SelectItem value="all">{t('allCategories')}</SelectItem>
                     {categories?.map((category) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
@@ -814,6 +920,84 @@ const Inventory: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {/* Grade Filter Dropdown */}
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className={`justify-between h-10 ${gradeFilter.length > 0 ? 'text-blue-600 border-blue-200' : ''}`}
+                    >
+                      <div className="flex items-center">
+                        <Filter className="h-4 w-4 mr-2" />
+                        {gradeFilter.length === 0 
+                          ? 'Filter by Grade'
+                          : gradeFilter.length === 1 
+                            ? `Grade: ${gradeFilter[0]}`
+                            : `${gradeFilter.length} Grades Selected`
+                        }
+                      </div>
+                      {gradeFilter.length > 0 && (
+                        <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-600">
+                          {gradeFilter.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-56 max-h-80 overflow-auto z-50" 
+                    side="bottom"
+                    sideOffset={5}
+                    avoidCollisions={true}
+                  >
+                    <div className="p-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">Grade Filter</span>
+                        {gradeFilter.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setGradeFilter([])}
+                            className="h-6 px-2 text-xs"
+                          >
+                            Clear
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'P', label: 'Pharmaceutical', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                          { value: 'F', label: 'Food', color: 'bg-green-50 text-green-700 border-green-200' },
+                          { value: 'T', label: 'Technical', color: 'bg-orange-50 text-orange-700 border-orange-200' }
+                        ].map((grade) => (
+                          <div key={grade.value} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`grade-${grade.value}`}
+                              checked={gradeFilter.includes(grade.value)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setGradeFilter(prev => [...prev, grade.value]);
+                                } else {
+                                  setGradeFilter(prev => prev.filter(g => g !== grade.value));
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`grade-${grade.value}`}
+                              className="flex items-center cursor-pointer text-sm w-full"
+                            >
+                              <span className={`px-1.5 py-0.5 rounded text-xs font-medium border mr-2 ${grade.color}`}>
+                                ({grade.value})
+                              </span>
+                              {grade.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
@@ -830,11 +1014,11 @@ const Inventory: React.FC = () => {
                   <AlertCircle className="mx-auto h-12 w-12 text-slate-300 mb-3" />
                   <h3 className="text-lg font-medium text-slate-700 mb-1">{t('noProductsFound')}</h3>
                   <p className="text-slate-500 mb-4">
-                    {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
+                    {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || gradeFilter.length > 0
                       ? t('tryAdjustingFilters')
                       : t('addFirstProduct')}
                   </p>
-                  {!(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all') && (
+                  {!(searchTerm || statusFilter !== 'all' || categoryFilter !== 'all' || gradeFilter.length > 0) && (
                     <Button onClick={() => {
                       setProductToEdit(null);
                       setIsProductFormOpen(true);
@@ -862,7 +1046,7 @@ const Inventory: React.FC = () => {
                               }}
                               checked={selectedProducts.length === paginatedProducts.length && paginatedProducts.length > 0}
                             />
-                            <label htmlFor="select-all" className={`${isRTL ? 'mr-2' : 'ml-2'} cursor-pointer`}>All</label>
+                            <label htmlFor="select-all" className={`${isRTL ? 'mr-2' : 'ml-2'} cursor-pointer`}>{t('all')}</label>
                           </div>
                         </th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('product')}</th>
@@ -870,6 +1054,7 @@ const Inventory: React.FC = () => {
                         <th className={`px-6 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('batchNo')}</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('gs1Code')}</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('type')}</th>
+                        <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>Grade</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('quantity')}</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('location')}</th>
                         <th className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'} font-medium text-slate-500`}>{t('shelf')}</th>
@@ -951,8 +1136,28 @@ const Inventory: React.FC = () => {
                                     ? 'bg-amber-100 text-amber-800'
                                     : 'bg-green-100 text-green-800'
                                 }`}>
-                                  {product.productType === 'semi-raw' ? 'Semi-Raw' : product.productType.charAt(0).toUpperCase() + product.productType.slice(1)}
+                                  {product.productType === 'semi-raw' ? t('semiRaw') : product.productType.charAt(0).toUpperCase() + product.productType.slice(1)}
                                 </span>
+                              ) : '-'}
+                            </td>
+                            <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
+                              {product.grade ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {product.grade.split(',').map((grade) => (
+                                    <span 
+                                      key={grade}
+                                      className={`px-1.5 py-0.5 rounded text-xs font-medium border ${
+                                        grade.trim() === 'P' 
+                                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                          : grade.trim() === 'F'
+                                          ? 'bg-green-50 text-green-700 border-green-200'
+                                          : 'bg-orange-50 text-orange-700 border-orange-200'
+                                      }`}
+                                    >
+                                      ({grade.trim()})
+                                    </span>
+                                  ))}
+                                </div>
                               ) : '-'}
                             </td>
                             <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
@@ -965,18 +1170,13 @@ const Inventory: React.FC = () => {
                             </td>
                             <td className={`px-4 py-3 text-slate-600 ${isRTL ? 'text-right' : 'text-left'}`}>
                               <div className="flex flex-col">
-                                {selectedWarehouse === 0 ? (
-                                  <>
-                                    <span className="font-medium text-xs text-blue-600">
-                                      {`Warehouse ${product.id % 6 + 1}`}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="font-medium text-xs text-blue-600">
-                                      {warehouses.find(w => w.id === selectedWarehouse)?.name}
-                                    </span>
-                                  </>
+                                <span className="font-medium text-xs text-blue-600">
+                                  {product.location || 'No Location'}
+                                </span>
+                                {selectedWarehouse !== 0 && (
+                                  <span className="text-xs text-slate-500">
+                                    {warehouses.find(w => w.id === selectedWarehouse)?.location}
+                                  </span>
                                 )}
                               </div>
                             </td>
@@ -1024,7 +1224,7 @@ const Inventory: React.FC = () => {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                                     <Pencil className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                                    Edit
+                                    {t('edit')}
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 
@@ -1032,7 +1232,7 @@ const Inventory: React.FC = () => {
                                     onClick={() => handleDeleteProduct(product)}
                                   >
                                     <Trash2 className={`h-4 w-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-                                    Delete
+                                    {t('delete')}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -1255,9 +1455,9 @@ const Inventory: React.FC = () => {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className={`max-h-[90vh] overflow-y-auto ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>{t('editCategory')}</DialogTitle>
             <DialogDescription>
-              Make changes to the category details below.
+              {t('makeCategoryChanges')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1584,70 +1784,140 @@ const Inventory: React.FC = () => {
                 </div>
               </div>
 
-              {/* Activity Timeline Section */}
+              {/* Activity Timeline Section - Real Data */}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 className={`text-lg font-semibold text-gray-900 mb-4 flex items-center ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}>
                   <Clock className={`h-5 w-5 ${isRTL ? 'ml-2' : 'mr-2'}`} />
                   {t('activityTimeline')}
                 </h3>
                 
-                <div className="space-y-4">
-                  <div className={`flex items-start border-l-4 border-blue-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
-                    <div className={`w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
-                      <Pencil className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productInfoUpdated')}</p>
-                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date().toISOString())}</span>
+                {isLoadingActivity ? (
+                  <div className="space-y-4">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className={`flex items-start border-l-4 border-gray-300 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                          <div className={`w-12 h-12 rounded-full bg-gray-200 ${isRTL ? 'ml-4' : 'mr-4'}`}></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                          </div>
+                        </div>
                       </div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('quantityChanged')} {selectedProductHistory.quantity} {selectedProductHistory.unitOfMeasure}</p>
-                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('updatedBy')}</p>
-                    </div>
+                    ))}
                   </div>
-                  
-                  <div className={`flex items-start border-l-4 border-green-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
-                    <div className={`w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
-                      <Package className="h-6 w-6 text-green-600" />
+                ) : productActivity.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Clock className="h-8 w-8 text-gray-400" />
                     </div>
-                    <div className="flex-1">
-                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('stockReceived')}</p>
-                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString())}</span>
-                      </div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('receivedUnits')} 50 {selectedProductHistory.unitOfMeasure} {t('fromSupplier')}</p>
-                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('purchaseOrder')}: PO-2025-{selectedProductHistory.id}</p>
-                    </div>
+                    <p className="text-gray-500 text-sm">No recent activity found for this product.</p>
                   </div>
-                  
-                  <div className={`flex items-start border-l-4 border-purple-500 pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
-                    <div className={`w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
-                      <Tag className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('labelGenerated')}</p>
-                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())}</span>
-                      </div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productLabelCreated')} #BATCH-{selectedProductHistory.id}2025</p>
-                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('labelType')}</p>
-                    </div>
+                ) : (
+                  <div className="space-y-4">
+                    {productActivity.map((activity: any, index: number) => {
+                      const getActivityIcon = (type: string, icon?: string) => {
+                        switch (icon || type) {
+                          case 'edit':
+                            return <Pencil className="h-6 w-6 text-blue-600" />;
+                          case 'package':
+                            return <Package className="h-6 w-6 text-green-600" />;
+                          case 'shopping-cart':
+                            return <ArrowRightLeft className="h-6 w-6 text-red-600" />;
+                          case 'truck':
+                            return <Package className="h-6 w-6 text-green-600" />;
+                          case 'settings':
+                            return <Settings className="h-6 w-6 text-orange-600" />;
+                          case 'plus':
+                            return <Plus className="h-6 w-6 text-purple-600" />;
+                          default:
+                            return <FileText className="h-6 w-6 text-gray-600" />;
+                        }
+                      };
+
+                      const getBorderColor = (type: string, icon?: string) => {
+                        switch (icon || type) {
+                          case 'edit':
+                          case 'update':
+                            return 'border-blue-500';
+                          case 'package':
+                          case 'purchase':
+                            return 'border-green-500';
+                          case 'shopping-cart':
+                          case 'sale':
+                            return 'border-red-500';
+                          case 'truck':
+                            return 'border-green-500';
+                          case 'settings':
+                          case 'adjustment':
+                            return 'border-orange-500';
+                          case 'plus':
+                          case 'create':
+                            return 'border-purple-500';
+                          default:
+                            return 'border-gray-500';
+                        }
+                      };
+
+                      const getBgColor = (type: string, icon?: string) => {
+                        switch (icon || type) {
+                          case 'edit':
+                          case 'update':
+                            return 'bg-blue-100';
+                          case 'package':
+                          case 'purchase':
+                            return 'bg-green-100';
+                          case 'shopping-cart':
+                          case 'sale':
+                            return 'bg-red-100';
+                          case 'truck':
+                            return 'bg-green-100';
+                          case 'settings':
+                          case 'adjustment':
+                            return 'bg-orange-100';
+                          case 'plus':
+                          case 'create':
+                            return 'bg-purple-100';
+                          default:
+                            return 'bg-gray-100';
+                        }
+                      };
+
+                      return (
+                        <div key={index} className={`flex items-start border-l-4 ${getBorderColor(activity.type, activity.icon)} pl-4 pb-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
+                          <div className={`w-12 h-12 rounded-full ${getBgColor(activity.type, activity.icon)} flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
+                            {getActivityIcon(activity.type, activity.icon)}
+                          </div>
+                          <div className="flex-1">
+                            <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                              <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>
+                                {activity.title}
+                              </p>
+                              <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>
+                                {formatDate(activity.date)}
+                              </span>
+                            </div>
+                            <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>
+                              {activity.description}
+                            </p>
+                            {activity.reference && (
+                              <p className={`text-xs text-blue-600 mt-1 font-mono ${isRTL ? 'text-right' : 'text-left'}`}>
+                                Ref: {activity.reference}
+                              </p>
+                            )}
+                            {activity.notes && (
+                              <p className={`text-xs text-gray-500 mt-1 italic ${isRTL ? 'text-right' : 'text-left'}`}>
+                                Note: {activity.notes}
+                              </p>
+                            )}
+                            <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                              by {activity.user}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  
-                  <div className={`flex items-start border-l-4 border-yellow-500 pl-4 ${isRTL ? 'border-r-4 border-l-0 pr-4 pl-0' : ''}`}>
-                    <div className={`w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 ${isRTL ? 'ml-4' : 'mr-4'}`}>
-                      <Plus className="h-6 w-6 text-yellow-600" />
-                    </div>
-                    <div className="flex-1">
-                      <div className={`flex justify-between items-start mb-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                        <p className={`font-medium text-gray-900 ${isRTL ? 'text-right' : 'text-left'}`}>{t('productAddedInventory')}</p>
-                        <span className={`text-xs text-gray-500 ${isRTL ? 'text-left' : 'text-right'}`}>{formatDate(selectedProductHistory.createdAt)}</span>
-                      </div>
-                      <p className={`text-sm text-gray-600 ${isRTL ? 'text-right' : 'text-left'}`}>{t('initialStock')}: 100 {selectedProductHistory.unitOfMeasure}</p>
-                      <p className={`text-xs text-gray-500 mt-1 ${isRTL ? 'text-right' : 'text-left'}`}>{t('createdBy')}</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -1740,29 +2010,47 @@ const Inventory: React.FC = () => {
             }}>
               {t('cancel')}
             </Button>
-            <Button onClick={() => {
+            <Button onClick={async () => {
               if (warehouseToEdit) {
-                if (warehouseToEdit.id) {
-                  // Edit existing warehouse
-                  setWarehouses(warehouses.map(w => 
-                    w.id === warehouseToEdit.id ? warehouseToEdit : w
-                  ));
+                try {
+                  if (warehouseToEdit.id) {
+                    // Edit existing warehouse
+                    const response = await apiRequest('PUT', `/api/warehouses/${warehouseToEdit.id}`, {
+                      name: warehouseToEdit.name,
+                      code: warehouseToEdit.code,
+                      address: warehouseToEdit.address || warehouseToEdit.location,
+                    });
+                    
+                    if (response.ok) {
+                      toast({
+                        title: t('warehouseUpdated'),
+                        description: t('warehouseUpdatedSuccess')
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['/api/warehouses'] });
+                    }
+                  } else {
+                    // Add new warehouse
+                    const response = await apiRequest('POST', '/api/warehouses', {
+                      name: warehouseToEdit.name,
+                      address: warehouseToEdit.location || warehouseToEdit.address || ''
+                    });
+                    
+                    if (response.ok) {
+                      const newWarehouse = await response.json();
+                      setSelectedWarehouse(newWarehouse.id);
+                      toast({
+                        title: t('warehouseAdded'),
+                        description: t('warehouseAddedSuccess')
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['/api/warehouses'] });
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error saving warehouse:', error);
                   toast({
-                    title: t('warehouseUpdated'),
-                    description: t('warehouseUpdatedSuccess')
-                  });
-                } else {
-                  // Add new warehouse
-                  const newWarehouse = {
-                    id: Date.now(),
-                    name: warehouseToEdit.name,
-                    location: warehouseToEdit.location || ''
-                  };
-                  setWarehouses([...warehouses, newWarehouse]);
-                  setSelectedWarehouse(newWarehouse.id);
-                  toast({
-                    title: t('warehouseAdded'),
-                    description: t('warehouseAddedSuccess')
+                    title: t('error'),
+                    description: t('failedToSaveWarehouse') || 'Failed to save warehouse',
+                    variant: 'destructive'
                   });
                 }
                 setWarehouseToEdit(null);

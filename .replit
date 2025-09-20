@@ -8,15 +8,47 @@ packages = ["jq"]
 
 [deployment]
 deploymentTarget = "autoscale"
-build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+build = ["sh", "-c", "npm run build"]
+run = ["sh", "-c", "NODE_ENV=production npm start"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 33159
+externalPort = 3003
+
+[[ports]]
+localPort = 36497
+externalPort = 3002
+
+[[ports]]
+localPort = 39301
+externalPort = 6000
+
+[[ports]]
+localPort = 40413
+externalPort = 3000
+
+[[ports]]
+localPort = 41925
+externalPort = 3001
+
+[[ports]]
+localPort = 43139
+externalPort = 4200
+
+[[ports]]
+localPort = 44791
+externalPort = 5000
+
+[[ports]]
+localPort = 45275
+externalPort = 5173
+
 [workflows]
-runButton = "Start Development Server"
+runButton = "Run"
 
 [[workflows.workflow]]
 name = "Project"
@@ -80,3 +112,15 @@ args = "chmod +x start-dev.sh"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "./start-dev.sh"
+
+[[workflows.workflow]]
+name = "Run"
+author = 41805457
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[agent]
+integrations = ["javascript_log_in_with_replit:1.0.0"]

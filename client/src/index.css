@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Globe Language Selector Animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
 /* RTL Support */
 [dir="rtl"] {
   direction: rtl;
@@ -189,6 +203,42 @@
     font-size: 0.75rem;
     line-height: 1rem;
   }
+}
+
+/* Enhanced Scrollbar Styling for Tables */
+.table-scrollbar-container {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #e5e7eb;
+}
+
+.table-scrollbar-container::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.table-scrollbar-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.table-scrollbar-container::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+  min-height: 30px;
+}
+
+.table-scrollbar-container::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+.table-scrollbar-container::-webkit-scrollbar-thumb:active {
+  background: #1d4ed8;
+}
+
+.table-scrollbar-container::-webkit-scrollbar-corner {
+  background: #f1f5f9;
 }
 
 /* Tablet responsive improvements */
@@ -380,5 +430,26 @@
   50% {
     opacity: 0.7;
   }
+}
+
+/* Grade dropdown horizontal layout */
+[data-radix-select-content] {
+  display: flex !important;
+  flex-direction: row !important;
+  padding: 4px !important;
+  min-width: fit-content !important;
+  width: auto !important;
+}
+
+[data-radix-select-item] {
+  flex-shrink: 0 !important;
+  padding: 4px 8px !important;
+  margin: 0 2px !important;
+  cursor: pointer !important;
+  border-radius: 4px !important;
+}
+
+[data-radix-select-item]:hover {
+  background-color: hsl(var(--accent)) !important;
 }
 

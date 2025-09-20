@@ -11,9 +11,20 @@ interface QuotationItem {
   unitPrice: number;
   total: number;
   type: 'manufacturing' | 'refining' | 'finished';
+  grade?: string; // P (Pharmaceutical), F (Food), T (Technical)
   processingTime?: number;
   qualityGrade?: string;
   specifications?: string;
+}
+
+interface PackagingItem {
+  id: string;
+  type: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  notes?: string;
 }
 
 interface Customer {
@@ -34,14 +45,18 @@ interface PrintableQuotationProps {
   validUntil: string;
   customer: Customer;
   items: QuotationItem[];
+  packagingItems?: PackagingItem[];
   subtotal: number;
   transportationFees: number;
+  packagingFees: number;
   vatPercentage: number;
   vatAmount: number;
   grandTotal: number;
   notes?: string;
   transportationType?: string;
   transportationNotes?: string;
+  packagingType?: string;
+  packagingNotes?: string;
   quotationType: 'manufacturing' | 'refining' | 'finished';
   termsAndConditions?: string;
 }
@@ -52,14 +67,18 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
   validUntil,
   customer,
   items,
+  packagingItems = [],
   subtotal,
   transportationFees,
+  packagingFees,
   vatPercentage,
   vatAmount,
   grandTotal,
   notes,
   transportationType,
   transportationNotes,
+  packagingType,
+  packagingNotes,
   quotationType,
   termsAndConditions,
 }) => {
@@ -173,6 +192,7 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
               <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Description</th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Qty</th>
               <th className="border border-gray-300 px-4 py-3 text-center font-semibold">UoM</th>
+              <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Grade</th>
               <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Unit Price</th>
               <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Total</th>
             </tr>
@@ -197,6 +217,14 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
                 </td>
                 <td className="border border-gray-300 px-4 py-3 text-center">{item.quantity}</td>
                 <td className="border border-gray-300 px-4 py-3 text-center">{item.uom}</td>
+                <td className="border border-gray-300 px-4 py-3 text-center">
+                  <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs font-medium">
+                    {item.grade === 'P' ? 'Pharmaceutical' : 
+                     item.grade === 'F' ? 'Food Grade' : 
+                     item.grade === 'T' ? 'Technical' : 
+                     item.grade || 'N/A'}
+                  </span>
+                </td>
                 <td className="border border-gray-300 px-4 py-3 text-right">EGP {item.unitPrice.toFixed(2)}</td>
                 <td className="border border-gray-300 px-4 py-3 text-right font-semibold">EGP {item.total.toFixed(2)}</td>
               </tr>
@@ -204,6 +232,7 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
           </tbody>
         </table>
       </div>
+
 
       {/* Transportation Section */}
       {transportationFees > 0 && (
@@ -225,6 +254,34 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
         </div>
       )}
 
+      {/* Packaging Items Section */}
+      {packagingItems && packagingItems.length > 0 && (
+        <div className="packaging-info mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Packaging Items</h3>
+          <div className="space-y-3">
+            {packagingItems.map((item, index) => (
+              <div key={item.id} className="bg-green-50 p-4 rounded border">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="font-medium text-green-900">{item.type}</p>
+                    {item.description && (
+                      <p className="text-sm text-green-700 mt-1">{item.description}</p>
+                    )}
+                    {item.notes && (
+                      <p className="text-xs text-green-600 mt-1 italic">{item.notes}</p>
+                    )}
+                  </div>
+                  <div className="text-right ml-4">
+                    <p className="font-semibold text-green-900">EGP {item.total.toFixed(2)}</p>
+                    <p className="text-xs text-green-600">{item.quantity} × EGP {item.unitPrice.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Totals Section */}
       <div className="flex justify-end mb-8">
         <div className="w-80">
@@ -238,6 +295,13 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
               <div className="flex justify-between px-4 py-2 border-b border-gray-300">
                 <span className="font-medium">Transportation:</span>
                 <span>EGP {transportationFees.toFixed(2)}</span>
+              </div>
+            )}
+            
+            {packagingFees > 0 && (
+              <div className="flex justify-between px-4 py-2 border-b border-gray-300">
+                <span className="font-medium">Packaging:</span>
+                <span>EGP {packagingFees.toFixed(2)}</span>
               </div>
             )}
             
@@ -279,7 +343,7 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
         <div className="text-center text-sm text-gray-600">
           <p className="font-semibold mb-2">Thank you for considering Morgan ERP for your pharmaceutical needs!</p>
           <p>This quotation was generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-          <p className="mt-2">For any questions regarding this quotation, please contact us at info@morganerp.com</p>
+          <p className="mt-2">For any questions regarding this quotation, please contact us at support@premiererp.com</p>
           <p className="mt-1 text-xs">All prices are in USD and exclude applicable taxes unless otherwise stated.</p>
         </div>
       </div>

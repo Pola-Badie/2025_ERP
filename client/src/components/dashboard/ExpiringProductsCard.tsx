@@ -37,17 +37,31 @@ const ExpiringProductsCard = () => {
   const navigateToProduct = (productId: number, productName: string) => {
     setLocation(`/inventory?highlight=${productId}&product=${encodeURIComponent(productName)}`);
   };
-  
-  const { data: expiringProducts, isLoading, error } = useQuery<ExpiringProduct[]>({
+
+  const { data: expiringProducts = [], isLoading, error } = useQuery<ExpiringProduct[]>({
     queryKey: ['expiring-products'],
-    queryFn: () => fetch('/api/inventory/expiring').then(r => r.json()),
-    refetchInterval: 3600000 // Refresh every hour
+    queryFn: async () => {
+      console.log('Fetching expiring products from real API for real-time inventory tracking');
+      const response = await fetch('/api/inventory/expiring');
+      if (!response.ok) {
+        throw new Error('Failed to fetch expiring products');
+      }
+      const data = await response.json();
+      console.log('Expiring products API response:', data);
+      return Array.isArray(data) ? data : [];
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds for real-time updates
   });
 
   const { data: summary } = useQuery<InventorySummary>({
     queryKey: ['inventory-summary'],
-    queryFn: () => fetch('/api/inventory/summary').then(r => r.json()),
-    refetchInterval: 3600000
+    queryFn: async () => {
+      const response = await fetch('/api/inventory/summary');
+      const data = await response.json();
+      console.log('Inventory summary API response:', data);
+      return data;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds for real-time updates
   });
 
   const getExpiryStatusColor = (status: string) => {
@@ -130,10 +144,10 @@ const ExpiringProductsCard = () => {
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="destructive" className="text-xs">
-            {summary?.expiredCount || 0} {t('expired')}
+            {expiringProducts.filter(p => p.expiryStatus === 'expired').length} {t('expired')}
           </Badge>
           <Badge variant="secondary" className="text-xs">
-            {summary?.expiringCount || 0} {t('expiring')}
+            {expiringProducts.filter(p => p.expiryStatus !== 'expired' && p.daysUntilExpiry <= 30).length} {t('expiring')}
           </Badge>
         </div>
       </CardHeader>
@@ -145,7 +159,7 @@ const ExpiringProductsCard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {(showAll ? expiringProducts : expiringProducts.slice(0, 5)).map((product) => (
+            {(showAll ? expiringProducts : Array.isArray(expiringProducts) ? expiringProducts.slice(0, 5) : []).map((product) => (
               <div 
                 key={product.id} 
                 className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-200 hover:shadow-md alert-card-item"
@@ -176,7 +190,7 @@ const ExpiringProductsCard = () => {
                 </div>
               </div>
             ))}
-            
+
             {expiringProducts.length > 5 && (
               <div className="flex gap-2">
                 <Button 

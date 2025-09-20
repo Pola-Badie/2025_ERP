@@ -90,4 +90,44 @@ router.get('/liveness', (req: Request, res: Response) => {
   res.status(200).json({ status: 'alive' });
 });
 
+// Extended health check with database connectivity
+router.get('/health/detailed', async (req, res) => {
+  try {
+    // Test database connection
+    const { db } = await import('../db.js');
+    const testQuery = await db.select().from(accounts).limit(1);
+    
+    // Test file system
+    const fs = await import('fs');
+    const uploadsExists = fs.existsSync('./uploads');
+    
+    const healthData = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      environment: process.env.NODE_ENV,
+      database: {
+        status: 'connected',
+        recordCount: testQuery.length
+      },
+      filesystem: {
+        uploads: uploadsExists ? 'accessible' : 'missing'
+      },
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
+      },
+      uptime: Math.floor(process.uptime()) + 's'
+    };
+    
+    res.json(healthData);
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 export default router;

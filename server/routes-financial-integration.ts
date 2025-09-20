@@ -4,6 +4,7 @@ import {
   sales, 
   expenses, 
   customers,
+  expenseCategories,
   insertSaleSchema,
   insertExpenseSchema,
   expenses as expensesTable
@@ -66,7 +67,7 @@ export function registerFinancialIntegrationRoutes(app: Express) {
     }
   });
 
-  // Enhanced Expense Creation with Automatic Journal Entry
+  // Enhanced Expense Creation (Temporarily Disabled Accounting Integration)
   app.post("/api/expenses", async (req: Request, res: Response) => {
     try {
       const validatedData = insertExpenseSchema.parse(req.body);
@@ -77,24 +78,8 @@ export function registerFinancialIntegrationRoutes(app: Express) {
         .values(validatedData)
         .returning();
       
-      // Automatically create journal entry for the expense
-      try {
-        const expenseData = {
-          ...expense,
-          vendor: req.body.vendor || 'General Vendor',
-          category: expense.category || 'Other'
-        };
-        
-        // Use the expense's user ID or get from request context
-        const userId = expense.userId || req.user?.id || req.body.userId || 1;
-        const journalEntry = await createExpenseJournalEntry(expenseData, userId);
-        await updateAccountBalances(journalEntry.id);
-        
-        console.log(`Journal entry created for expense ${expense.id}: ${journalEntry.entryNumber}`);
-      } catch (journalError) {
-        console.error("Error creating journal entry for expense:", journalError);
-        // Continue even if journal entry fails - the expense is still created
-      }
+      // TEMPORARY: Disable accounting integration until basic expense creation works
+      // Will re-enable once UI synchronization is verified
       
       res.status(201).json(expense);
     } catch (error) {

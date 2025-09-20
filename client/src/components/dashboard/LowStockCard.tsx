@@ -39,14 +39,31 @@ const LowStockCard = () => {
   
   const { data: lowStockProducts, isLoading, error } = useQuery<LowStockProduct[]>({
     queryKey: ['low-stock-products'],
-    queryFn: () => fetch('/api/inventory/low-stock').then(r => r.json()),
-    refetchInterval: 300000 // Refresh every 5 minutes
+    queryFn: async () => {
+      console.log('Fetching low stock products from real API for real-time inventory tracking');
+      const response = await fetch('/api/inventory/low-stock');
+      const data = await response.json();
+      // Handle API error responses
+      if (!response.ok || data.error) {
+        console.error('Low stock API error:', data);
+        return [];
+      }
+      console.log('Low stock products API response:', data);
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : [];
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds for real-time updates
   });
 
   const { data: summary } = useQuery<InventorySummary>({
     queryKey: ['inventory-summary'],
-    queryFn: () => fetch('/api/inventory/summary').then(r => r.json()),
-    refetchInterval: 300000
+    queryFn: async () => {
+      const response = await fetch('/api/inventory/summary');
+      const data = await response.json();
+      console.log('Inventory summary API response for low stock:', data);
+      return data;
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds for real-time updates
   });
 
   const getStockStatusColor = (status: string) => {
@@ -112,10 +129,10 @@ const LowStockCard = () => {
         </CardTitle>
         <div className="flex gap-2">
           <Badge variant="destructive" className="text-xs">
-            {summary?.outOfStockCount || 0} {t('outOfStock')}
+            {lowStockProducts?.filter(p => p.stockStatus === 'out_of_stock').length || 0} {t('outOfStock')}
           </Badge>
           <Badge variant="secondary" className="text-xs">
-            {summary?.lowStockCount || 0} {t('low')}
+            {lowStockProducts?.length || 0} {t('low')}
           </Badge>
         </div>
       </CardHeader>

@@ -92,6 +92,11 @@ const InventoryNew = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      // Invalidate inventory alert cards for real-time dashboard updates
+      queryClient.invalidateQueries({ queryKey: ['expiring-products'] });
+      queryClient.invalidateQueries({ queryKey: ['low-stock-products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
+      console.log('Product deleted successfully - invalidated all inventory caches for real-time updates');
       toast({
         title: "Product deleted",
         description: "The product has been successfully deleted.",

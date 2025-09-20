@@ -2,6 +2,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'wouter';
 
 interface LogoutDialogProps {
   open: boolean;
@@ -9,13 +11,12 @@ interface LogoutDialogProps {
 }
 
 export const LogoutDialog: React.FC<LogoutDialogProps> = ({ open, onOpenChange }) => {
-  const handleLogout = () => {
-    // Clear any stored authentication data
-    localStorage.removeItem('authToken');
-    sessionStorage.clear();
-    
-    // Redirect to login page
-    window.location.href = '/login';
+  const { logout } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  const handleLogout = async () => {
+    await logout();
+    setLocation('/login');
   };
 
   return (

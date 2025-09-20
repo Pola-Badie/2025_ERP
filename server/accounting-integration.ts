@@ -31,7 +31,7 @@ export async function getAccountIdByCode(code: string): Promise<number | null> {
       .from(accounts)
       .where(eq(accounts.code, code))
       .limit(1);
-    
+
     return account?.id || null;
   } catch (error) {
     console.error(`Error finding account with code ${code}:`, error);
@@ -43,19 +43,25 @@ export async function getAccountIdByCode(code: string): Promise<number | null> {
 export async function generateJournalEntryNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, '0');
+
+  // Get count of existing journal entries for this month to generate next sequence
+  const prefix = `JE-${year}${month}-`;
   
-  // Get the count of journal entries this month
-  const monthStart = `${year}-${month}-01`;
-  const nextMonth = new Date(year, new Date().getMonth() + 1, 1);
-  const monthEnd = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01`;
-  
-  const entriesThisMonth = await db
-    .select()
-    .from(journalEntries)
-    .where(eq(journalEntries.date, monthStart));
-  
-  const sequence = String(entriesThisMonth.length + 1).padStart(4, '0');
-  return `JE-${year}${month}-${sequence}`;
+  try {
+    const result = await db.execute(
+      `SELECT COUNT(*) as count FROM journal_entries WHERE entry_number LIKE $1`,
+      [`${prefix}%`]
+    );
+    
+    const count = result.rows[0]?.count || 0;
+    const sequence = String(Number(count) + 1).padStart(4, '0');
+    return `${prefix}${sequence}`;
+  } catch (error) {
+    console.error('Error generating journal entry number:', error);
+    // Fallback to timestamp-based unique number
+    const timestamp = Date.now().toString().slice(-4);
+    return `JE-${year}${month}-${timestamp}`;
+  }
 }
 
 // Create journal entry for invoice
@@ -271,19 +277,43 @@ async function getExpenseAccountId(category: string): Promise<number | null> {
 // Generate financial summary for dashboard
 export async function generateFinancialSummary() {
   try {
-    // Get all accounts with their current balances
-    const allAccounts = await db.select().from(accounts);
+    // Import the required tables
+    const { sales, expenses } = await import("@shared/schema");
     
-    // Calculate totals by account type
+    // Calculate total revenue from sales table
+    const salesData = await db.select().from(sales);
+    const totalRevenue = salesData.reduce((sum, sale) => {
+      const amount = parseFloat(sale.grandTotal || '0');
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    // Calculate total expenses from expenses table
+    const expensesData = await db.select().from(expenses);
+    const totalExpenses = expensesData.reduce((sum, expense) => {
+      const amount = parseFloat(expense.amount || '0');
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+
+    // Calculate outstanding A/R from pending invoices
+    const outstandingAR = salesData.reduce((sum, sale) => {
+      if (sale.paymentStatus === 'pending') {
+        const amount = parseFloat(sale.grandTotal || '0');
+        return sum + (isNaN(amount) ? 0 : amount);
+      }
+      return sum;
+    }, 0);
+
+    // Calculate net profit
+    const netProfit = totalRevenue - totalExpenses;
+
+    // Get account balances for assets, liabilities, equity
+    const allAccounts = await db.select().from(accounts);
     let totalAssets = 0;
     let totalLiabilities = 0;
     let totalEquity = 0;
-    let totalRevenue = 0;
-    let totalExpenses = 0;
 
     for (const account of allAccounts) {
       const balance = parseFloat(account.balance || '0');
-      
       switch (account.type) {
         case 'Asset':
           totalAssets += balance;
@@ -294,21 +324,17 @@ export async function generateFinancialSummary() {
         case 'Equity':
           totalEquity += balance;
           break;
-        case 'Revenue':
-        case 'Income':
-          totalRevenue += balance;
-          break;
-        case 'Expense':
-          totalExpenses += balance;
-          break;
       }
     }
 
-    const netProfit = totalRevenue - totalExpenses;
-    
-    // Get accounts receivable balance
-    const arAccount = allAccounts.find(a => a.code === ACCOUNT_CODES.ACCOUNTS_RECEIVABLE);
-    const outstandingAR = parseFloat(arAccount?.balance || '0');
+    console.log('Financial Summary Calculation:', {
+      totalRevenue,
+      totalExpenses,
+      netProfit,
+      outstandingAR,
+      salesCount: salesData.length,
+      expensesCount: expensesData.length
+    });
 
     return {
       totalRevenue,
@@ -317,7 +343,9 @@ export async function generateFinancialSummary() {
       outstandingAR,
       totalAssets,
       totalLiabilities,
-      totalEquity
+      totalEquity,
+      accountsReceivable: outstandingAR,
+      netIncome: netProfit
     };
   } catch (error) {
     console.error('Error generating financial summary:', error);
@@ -328,7 +356,9 @@ export async function generateFinancialSummary() {
       outstandingAR: 0,
       totalAssets: 0,
       totalLiabilities: 0,
-      totalEquity: 0
+      totalEquity: 0,
+      accountsReceivable: 0,
+      netIncome: 0
     };
   }
 }

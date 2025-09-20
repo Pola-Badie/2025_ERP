@@ -6,15 +6,18 @@ import * as schema from "@shared/schema";
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Database configuration - optimized for better performance and error handling
+// Database configuration - optimized for stability and memory efficiency
 const dbConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://erp_user:erp_secure_password@localhost:5432/premier_erp',
   ssl: false, // Disable SSL for Replit database
-  max: 3, // Reduced pool size for stability
+  max: 3, // Increase pool size slightly for stability
+  min: 1, // Keep at least one connection open
   idleTimeoutMillis: 30000, // 30 seconds idle timeout
-  connectionTimeoutMillis: 5000, // 5 seconds connection timeout
-  maxUses: 1000, // Connection reuse
-  allowExitOnIdle: true, // Allow pool to exit when idle
+  connectionTimeoutMillis: 20000, // 20 seconds connection timeout - increased for Replit
+  maxUses: 1000, // Increase connection reuse
+  allowExitOnIdle: false, // Keep pool alive for stability
+  statement_timeout: 60000, // 60 second query timeout
+  query_timeout: 60000, // 60 second query timeout
 };
 
 // Create connection pool with error handling
@@ -23,21 +26,29 @@ export const pool = new Pool(dbConfig);
 // Create Drizzle instance with schema
 export const db = drizzle(pool, { schema });
 
-// Database health check with better error handling
-export const checkDatabaseHealth = async (): Promise<boolean> => {
-  let client;
-  try {
-    client = await pool.connect();
-    await client.query('SELECT 1');
-    return true;
-  } catch (error) {
-    logger.error('Database health check failed:', error);
-    return false;
-  } finally {
-    if (client) {
-      client.release();
+// Database health check with retry logic
+export const checkDatabaseHealth = async (retries = 3): Promise<boolean> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    let client;
+    try {
+      client = await pool.connect();
+      await client.query('SELECT 1');
+      return true;
+    } catch (error) {
+      if (attempt === retries) {
+        logger.error('Database health check failed after all retries:', error);
+        return false;
+      }
+      logger.warn(`Database health check attempt ${attempt} failed, retrying...`);
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    } finally {
+      if (client) {
+        client.release();
+      }
     }
   }
+  return false;
 };
 
 // Initialize database connection
@@ -75,7 +86,7 @@ pool.on('connect', (client) => {
 pool.on('error', (err, client) => {
   logger.error('Database pool error:', err);
   // Don't exit process, just log the error
-  if (err.code === '57P01') {
+  if ((err as any).code === '57P01') {
     logger.warn('Database connection terminated by administrator - will reconnect automatically');
   }
 });

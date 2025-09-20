@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import { Home, Package, ShoppingCart, FileText, PieChart, Briefcase, Settings, DollarSign, Sliders, FilePlus, Receipt, BookOpen, Users, UserPlus, ClipboardList, Calculator, Landmark, Truck, ShoppingBag, Factory, History, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useSidebarContext } from '@/contexts/SidebarContext';
+import { useUserPermissions } from '@/contexts/UserPermissionsContext';
+import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 
 interface SidebarProps {
   className?: string;
@@ -15,10 +17,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [location, setLocation] = useLocation();
   const { language, setLanguage, t } = useLanguage();
   const { isCollapsed, toggleCollapsed } = useSidebarContext();
+  const { hasPermission, isLoading } = useUserPermissions();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  const navItems = [
+  const allNavItems = [
     { path: '/', key: 'dashboard', icon: 'home' },
-    { path: '/customers-demo', key: 'customers', icon: 'user-plus' },
+    { path: '/customers', key: 'customers', icon: 'user-plus' },
     { path: '/create-quotation', key: 'createQuotation', icon: 'quote' },
     { path: '/quotation-history', key: 'quotationHistory', icon: 'clipboard-list' },
     { path: '/create-invoice', key: 'createInvoice', icon: 'file-plus' },
@@ -32,9 +36,19 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
     { path: '/expenses', key: 'expenses', icon: 'dollar-sign' },
     { path: '/accounting', key: 'accounting', icon: 'landmark' },
     { path: '/reports', key: 'reports', icon: 'pie-chart' },
-    { path: '/users', key: 'userManagement', icon: 'users' },
+    { path: '/user-management', key: 'userManagement', icon: 'users' },
     { path: '/system-preferences', key: 'systemPreferences', icon: 'sliders' },
   ];
+
+  // Filter navigation items based on user permissions
+  const navItems = useMemo(() => {
+    // Don't show any items while permissions are loading to prevent showing all items
+    if (isLoading) {
+      return [];
+    }
+    
+    return allNavItems.filter(item => hasPermission(item.key));
+  }, [hasPermission, isLoading]);
 
   const renderIcon = (iconName: string) => {
     switch (iconName) {
@@ -266,7 +280,9 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
         
         {/* Logout Button */}
         <div className="flex items-center justify-center">
-          <button className={cn(
+          <button 
+            onClick={() => setShowLogoutDialog(true)}
+            className={cn(
             "text-white bg-red-600 hover:bg-red-700 rounded-md py-2 flex items-center justify-center transition-colors",
             isCollapsed ? "w-10 h-10 p-0" : "px-4 w-full"
           )}>
@@ -280,6 +296,12 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
           </button>
         </div>
       </div>
+      
+      {/* Logout Dialog */}
+      <LogoutDialog 
+        open={showLogoutDialog} 
+        onOpenChange={setShowLogoutDialog} 
+      />
     </div>
   );
 };
