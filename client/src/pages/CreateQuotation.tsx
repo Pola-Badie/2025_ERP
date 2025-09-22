@@ -494,6 +494,22 @@ const CreateQuotation: React.FC = () => {
   const generateQuotationPDF = (): jsPDF | null => {
     try {
       console.log('🎯 GENERATING PDF TO MATCH PREVIEW EXACTLY');
+      console.log('Quotation data:', { quotationNumber, selectedCustomer, items, validUntil, quotationType });
+      
+      // Validate required data with user-friendly error messages
+      if (!quotationNumber) {
+        throw new Error('Please generate a quotation number first');
+      }
+      if (!selectedCustomer) {
+        throw new Error('Please select a customer before generating PDF');
+      }
+      if (!items || items.length === 0) {
+        throw new Error('Please add at least one item to the quotation');
+      }
+      
+      // Ensure dates are valid
+      const finalValidUntil = validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days from now
+      const finalQuotationType = quotationType || 'finished';
       
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
@@ -526,12 +542,12 @@ const CreateQuotation: React.FC = () => {
       doc.setTextColor(0, 0, 0);
       doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 15, { align: 'right' });
       doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 22, { align: 'right' });
-      doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 29, { align: 'right' });
+      doc.text(`Valid Until: ${new Date(finalValidUntil).toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 29, { align: 'right' });
       
       // Service type label
-      const serviceTypeLabel = quotationType === 'finished' ? 'Finished Products' : 
-                              quotationType === 'manufacturing' ? 'Manufacturing Services' : 
-                              quotationType === 'refining' ? 'Refining Services' : 'General Services';
+      const serviceTypeLabel = finalQuotationType === 'finished' ? 'Finished Products' : 
+                              finalQuotationType === 'manufacturing' ? 'Manufacturing Services' : 
+                              finalQuotationType === 'refining' ? 'Refining Services' : 'General Services';
       doc.text(`Service Type: ${serviceTypeLabel}`, pageWidth - 20, yPosition + 36, { align: 'right' });
 
       yPosition += 55;
