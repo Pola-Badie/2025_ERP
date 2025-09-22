@@ -490,215 +490,207 @@ const CreateQuotation: React.FC = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
-    let yPosition = 15;
+    let yPosition = 20;
 
-    // Header - Company Info
-    doc.setFontSize(18);
-    doc.setTextColor(37, 99, 235); // blue-600
-    doc.text('Morgan ERP', 20, yPosition);
+    // Header section with exact same layout as preview
+    doc.setFontSize(24);
+    doc.setTextColor(37, 99, 235); // blue-600 to match preview
+    doc.text('QUOTATION', 20, yPosition);
     
-    doc.setFontSize(9);
-    doc.setTextColor(75, 85, 99); // gray-600
-    doc.text('Enterprise Resource Planning System', 20, yPosition + 6);
-    doc.text('123 Business District', 20, yPosition + 12);
-    doc.text('Cairo, Egypt 11511', 20, yPosition + 17);
-    doc.text('Phone: +20 2 1234 5678', 20, yPosition + 22);
-    doc.text('Email: support@premiererp.com', 20, yPosition + 27);
+    doc.setFontSize(12);
+    doc.setTextColor(107, 114, 128); // text-muted-foreground
+    doc.text('Premier Ltd.', 20, yPosition + 8);
+    doc.text('123 Pharma Street, Lagos', 20, yPosition + 15);
 
-    // Quotation Header (right side)
-    doc.setFontSize(16);
+    // Right side - Quotation details (matching preview exactly)
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text('QUOTATION', pageWidth - 20, yPosition, { align: 'right' });
+    doc.text(`Quotation Number: ${quotationNumber}`, pageWidth - 20, yPosition, { align: 'right' });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 6, { align: 'right' });
+    doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString()}`, pageWidth - 20, yPosition + 12, { align: 'right' });
+    
+    // Service type with badge-like formatting
+    doc.setFontSize(9);
+    doc.text(`Type: ${quotationType.charAt(0).toUpperCase() + quotationType.slice(1)}`, pageWidth - 20, yPosition + 18, { align: 'right' });
+
+    yPosition += 30;
+
+    // Two-column layout section (matching preview exactly)
+    // Left column - Customer Information
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Customer:', 20, yPosition);
+    
+    doc.setFontSize(10);
+    doc.text(selectedCustomer.name, 20, yPosition + 8);
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128);
+    doc.text(selectedCustomer.email, 20, yPosition + 14);
+    doc.text(selectedCustomer.phone, 20, yPosition + 20);
+
+    // Right column - Service Type
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Service Type:', pageWidth / 2 + 10, yPosition);
     
     doc.setFontSize(9);
-    doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 8, { align: 'right' });
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 13, { align: 'right' });
-    doc.text(`Valid Until: ${validUntil}`, pageWidth - 20, yPosition + 18, { align: 'right' });
-    doc.text(`Service Type: ${getQuotationTypeLabel(quotationType)}`, pageWidth - 20, yPosition + 23, { align: 'right' });
+    doc.setTextColor(107, 114, 128);
+    doc.text(getQuotationTypeDescription(quotationType), pageWidth / 2 + 10, yPosition + 8);
 
     yPosition += 35;
 
-    // Line separator
-    doc.setDrawColor(229, 231, 235);
-    doc.line(20, yPosition, pageWidth - 20, yPosition);
-    yPosition += 10;
+    // Items Table (matching preview exactly)
+    if (items.length > 0) {
+      const tableData = items.map(item => [
+        item.productName + (item.description ? `\n${item.description}` : '') +
+        (item.type === 'manufacturing' && item.processingTime ? 
+          `\nProcessing: ${item.processingTime} days | Grade: ${item.qualityGrade}` : ''),
+        item.quantity.toString(),
+        item.uom,
+        `$${item.unitPrice.toFixed(2)}`,
+        `$${item.total.toFixed(2)}`
+      ]);
 
-    // Customer Information
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Quote For:', 20, yPosition);
-    yPosition += 8;
+      (doc as any).autoTable({
+        startY: yPosition,
+        head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [243, 244, 246],
+          textColor: [0, 0, 0],
+          fontSize: 9,
+          fontStyle: 'bold',
+          cellPadding: 4
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [0, 0, 0],
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { cellWidth: 70 },
+          1: { halign: 'center', cellWidth: 20 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 25 },
+          4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
+        },
+        margin: { left: 20, right: 20 }
+      });
 
-    // Customer details in a box
-    doc.setDrawColor(229, 231, 235);
-    doc.rect(20, yPosition, pageWidth - 40, 18);
-    doc.setFillColor(248, 250, 252);
-    doc.rect(20, yPosition, pageWidth - 40, 18, 'F');
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    if (selectedCustomer.company) {
-      doc.text(selectedCustomer.company, 25, yPosition + 6);
-      doc.setFontSize(8);
-      doc.setTextColor(75, 85, 99);
-      doc.text(selectedCustomer.name, 25, yPosition + 11);
-    } else {
-      doc.text(selectedCustomer.name, 25, yPosition + 6);
+      yPosition = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    // Customer badges
-    if (selectedCustomer.id) {
-      doc.setFontSize(7);
-      doc.setTextColor(30, 64, 175);
-      doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, 25, yPosition + 15);
-    }
-    if (selectedCustomer.phone) {
-      doc.setTextColor(22, 101, 52);
-      doc.text(`Mobile: ${selectedCustomer.phone}`, 100, yPosition + 15);
-    }
-
-    yPosition += 25;
-
-    // Items Table
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Quoted Items & Services', 20, yPosition);
-    yPosition += 6;
-
-    const tableData = items.map(item => [
-      item.productName,
-      item.description,
-      item.quantity.toString(),
-      item.uom,
-      item.grade === 'P' ? 'Pharmaceutical' : 
-      item.grade === 'F' ? 'Food Grade' : 
-      item.grade === 'T' ? 'Technical' : 
-      item.grade || 'N/A',
-      `EGP ${item.unitPrice.toFixed(2)}`,
-      `EGP ${item.total.toFixed(2)}`
-    ]);
-
-    (doc as any).autoTable({
-      startY: yPosition,
-      head: [['Item/Service', 'Description', 'Qty', 'UoM', 'Grade', 'Unit Price', 'Total']],
-      body: tableData,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [243, 244, 246],
-        textColor: [0, 0, 0],
-        fontSize: 8,
-        fontStyle: 'bold',
-        cellPadding: 3
-      },
-      bodyStyles: {
-        fontSize: 7,
-        textColor: [0, 0, 0],
-        cellPadding: 3
-      },
-      columnStyles: {
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'center' },
-        5: { halign: 'right' },
-        6: { halign: 'right', fontStyle: 'bold' }
-      },
-      margin: { left: 20, right: 20 }
-    });
-
-    yPosition = (doc as any).lastAutoTable.finalY + 8;
-
-    // Transportation (if applicable)
-    if (transportationFees > 0) {
-      doc.setFontSize(9);
-      doc.text('Transportation & Delivery', 20, yPosition);
-      yPosition += 5;
+      // Totals Section (matching preview exactly with right alignment)
+      const totalsX = pageWidth - 80;
+      const totalsWidth = 60;
       
-      doc.setFillColor(239, 246, 255);
-      doc.rect(20, yPosition, pageWidth - 40, 12, 'F');
-      doc.setDrawColor(219, 234, 254);
-      doc.rect(20, yPosition, pageWidth - 40, 12);
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
       
-      doc.setFontSize(8);
-      doc.setTextColor(30, 58, 138);
-      doc.text(getTransportationTypeLabel(transportationType), 25, yPosition + 6);
-      doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
+      // Subtotal
+      doc.text('Subtotal:', totalsX, yPosition);
+      doc.text(`$${calculateSubtotal().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
+      yPosition += 8;
+
+      // Transportation
+      doc.text('Transportation:', totalsX, yPosition);
+      doc.text(`$${transportationFees.toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
+      yPosition += 8;
+
+      // VAT
+      doc.text(`VAT (${vatPercentage}%):`, totalsX, yPosition);
+      doc.text(`$${calculateTax().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
+      yPosition += 8;
+
+      // Separator line
+      doc.setDrawColor(229, 231, 235);
+      doc.line(totalsX, yPosition, totalsX + totalsWidth, yPosition);
+      yPosition += 6;
+
+      // Total (bold and larger)
+      doc.setFontSize(12);
+      doc.text('Total:', totalsX, yPosition);
+      doc.text(`$${calculateGrandTotal().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
+      yPosition += 15;
+
+    // Transportation & Delivery section (if applicable)
+    if (transportationType && transportationType !== 'pickup') {
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Transportation & Delivery:', 20, yPosition);
+      yPosition += 8;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(107, 114, 128);
+      doc.text(`Method: ${transportationType.charAt(0).toUpperCase() + transportationType.slice(1).replace('-', ' ')}`, 20, yPosition);
+      yPosition += 6;
+      doc.text(`Fee: $${transportationFees.toFixed(2)}`, 20, yPosition);
+      yPosition += 6;
       
       if (transportationNotes) {
-        doc.text(transportationNotes.substring(0, 50), 25, yPosition + 10);
+        doc.text(`Notes: ${transportationNotes}`, 20, yPosition);
+        yPosition += 6;
       }
-      
-      yPosition += 16;
+      yPosition += 8;
     }
 
-    // Totals Section
-    const totalsX = pageWidth - 70;
-    const totalsWidth = 50;
-    
-    doc.setDrawColor(229, 231, 235);
-    doc.setFillColor(249, 250, 251);
-    
-    // Subtotal
-    doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
-    doc.setFontSize(8);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Subtotal:', totalsX + 2, yPosition + 4);
-    doc.text(`EGP ${subtotal.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
-    yPosition += 6;
-
-    // Transportation
-    if (transportationFees > 0) {
-      doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
-      doc.text('Transportation:', totalsX + 2, yPosition + 4);
-      doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
-      yPosition += 6;
-    }
-
-    // VAT
-    doc.rect(totalsX, yPosition, totalsWidth, 6, 'FD');
-    doc.text(`VAT (${vatPercentage}%):`, totalsX + 2, yPosition + 4);
-    doc.text(`EGP ${vatAmount.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 4, { align: 'right' });
-    yPosition += 6;
-
-    // Total
-    doc.setFillColor(37, 99, 235);
-    doc.rect(totalsX, yPosition, totalsWidth, 8, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(9);
-    doc.text('Total Amount:', totalsX + 2, yPosition + 5);
-    doc.text(`EGP ${grandTotal.toFixed(2)}`, totalsX + totalsWidth - 2, yPosition + 5, { align: 'right' });
-    yPosition += 12;
-
-    // Terms & Conditions
-    if (termsAndConditions) {
-      doc.setFontSize(9);
+    // Packaging Items section (if applicable)
+    if (packagingItems.length > 0) {
+      doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text('Terms & Conditions', 20, yPosition);
-      yPosition += 5;
+      doc.text('Packaging Items:', 20, yPosition);
+      yPosition += 8;
       
-      doc.setFillColor(248, 250, 252);
-      const termsHeight = 25;
-      doc.rect(20, yPosition, pageWidth - 40, termsHeight, 'F');
-      doc.setDrawColor(229, 231, 235);
-      doc.rect(20, yPosition, pageWidth - 40, termsHeight);
-      
-      doc.setFontSize(7);
-      doc.setTextColor(55, 65, 81);
-      const splitTerms = doc.splitTextToSize(termsAndConditions, pageWidth - 50);
-      doc.text(splitTerms.slice(0, 6), 25, yPosition + 4);
-      yPosition += termsHeight + 5;
+      packagingItems.forEach((item) => {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPosition, pageWidth - 40, 18, 'F');
+        doc.setDrawColor(229, 231, 235);
+        doc.rect(20, yPosition, pageWidth - 40, 18);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(item.type, 25, yPosition + 6);
+        
+        if (item.description) {
+          doc.setFontSize(9);
+          doc.setTextColor(107, 114, 128);
+          doc.text(item.description, 25, yPosition + 12);
+        }
+        
+        if (item.notes) {
+          doc.setFontSize(8);
+          doc.text(item.notes, 25, yPosition + 16);
+        }
+        
+        // Right side - pricing
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`EGP ${item.total.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128);
+        doc.text(`${item.quantity} × EGP ${item.unitPrice.toFixed(2)}`, pageWidth - 25, yPosition + 12, { align: 'right' });
+        
+        yPosition += 22;
+      });
     }
 
-    // Footer
-    if (yPosition < pageHeight - 20) {
-      doc.setDrawColor(229, 231, 235);
-      doc.line(20, pageHeight - 18, pageWidth - 20, pageHeight - 18);
+    // Notes & Special Instructions (if applicable)
+    if (notes) {
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Notes & Special Instructions:', 20, yPosition);
+      yPosition += 8;
       
-      doc.setFontSize(8);
-      doc.setTextColor(75, 85, 99);
-      doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 13, { align: 'center' });
-      doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
-      doc.text('For questions: support@premiererp.com', pageWidth / 2, pageHeight - 4, { align: 'center' });
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
+      doc.text(splitNotes, 20, yPosition);
+      yPosition += splitNotes.length * 4 + 10;
     }
+
+    // Save the PDF
+    doc.save(`Quotation-${quotationNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
 
     return doc;
   };
@@ -1599,6 +1591,19 @@ const CreateQuotation: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
               {t('closePreview')}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                generateQuotationPDF();
+                toast({
+                  title: "PDF Downloaded",
+                  description: "Quotation PDF has been downloaded to your device",
+                });
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Download PDF
             </Button>
             <Button onClick={() => {
               setIsPreviewOpen(false);
