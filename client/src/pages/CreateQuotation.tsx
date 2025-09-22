@@ -479,37 +479,6 @@ const CreateQuotation: React.FC = () => {
 
   const generateQuotationPDF = (): jsPDF | null => {
     try {
-      console.log('PDF Generation started');
-      
-      // Simple test - create minimal PDF first
-      const doc = new jsPDF();
-      console.log('jsPDF instance created successfully');
-      
-      // Add basic text
-      doc.text('Test PDF Generation', 20, 20);
-      console.log('Text added to PDF');
-      
-      return doc;
-      
-    } catch (error) {
-      console.error('PDF Generation Error Details:', error);
-      toast({
-        title: "PDF Generation Failed",
-        description: `Error: ${error?.message || 'Unknown error'}`,
-        variant: "destructive"
-      });
-      return null;
-    }
-  };
-
-  const generateQuotationPDFOriginal = (): jsPDF | null => {
-    try {
-      console.log('PDF Generation started');
-      console.log('Selected Customer:', selectedCustomer);
-      console.log('Items:', items);
-      console.log('Transportation Fees:', transportationFees);
-      console.log('VAT Percentage:', vatPercentage);
-      
       if (!selectedCustomer || items.length === 0) {
         toast({
           title: "Error",
@@ -519,21 +488,15 @@ const CreateQuotation: React.FC = () => {
         return null;
       }
 
-      console.log('Creating jsPDF instance...');
       const doc = new jsPDF();
-      console.log('jsPDF created successfully');
-      
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       let yPosition = 20;
-      console.log('Page dimensions:', pageWidth, pageHeight);
 
       // Header section with exact same layout as preview
-      console.log('Setting header...');
       doc.setFontSize(24);
       doc.setTextColor(37, 99, 235); // blue-600 to match preview
       doc.text('QUOTATION', 20, yPosition);
-      console.log('Header set successfully');
       
       doc.setFontSize(12);
       doc.setTextColor(107, 114, 128); // text-muted-foreground
@@ -551,73 +514,73 @@ const CreateQuotation: React.FC = () => {
       doc.setFontSize(9);
       doc.text(`Type: ${quotationType.charAt(0).toUpperCase() + quotationType.slice(1)}`, pageWidth - 20, yPosition + 18, { align: 'right' });
 
-    yPosition += 30;
+      yPosition += 30;
 
-    // Two-column layout section (matching preview exactly)
-    // Left column - Customer Information
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Customer:', 20, yPosition);
-    
-    doc.setFontSize(10);
-    doc.text(selectedCustomer.name, 20, yPosition + 8);
-    doc.setFontSize(9);
-    doc.setTextColor(107, 114, 128);
-    doc.text(selectedCustomer.email, 20, yPosition + 14);
-    doc.text(selectedCustomer.phone, 20, yPosition + 20);
+      // Two-column layout section (matching preview exactly)
+      // Left column - Customer Information
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Customer:', 20, yPosition);
+      
+      doc.setFontSize(10);
+      doc.text(selectedCustomer.name, 20, yPosition + 8);
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      doc.text(selectedCustomer.email, 20, yPosition + 14);
+      doc.text(selectedCustomer.phone, 20, yPosition + 20);
 
-    // Right column - Service Type
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Service Type:', pageWidth / 2 + 10, yPosition);
-    
-    doc.setFontSize(9);
-    doc.setTextColor(107, 114, 128);
-    doc.text(getQuotationTypeDescription(quotationType), pageWidth / 2 + 10, yPosition + 8);
+      // Right column - Service Type
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Service Type:', pageWidth / 2 + 10, yPosition);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      doc.text(getQuotationTypeDescription(quotationType), pageWidth / 2 + 10, yPosition + 8);
 
-    yPosition += 35;
+      yPosition += 35;
 
-    // Items Table (matching preview exactly)
-    if (items.length > 0) {
-      const tableData = items.map(item => [
-        item.productName + (item.description ? `\n${item.description}` : '') +
-        (item.type === 'manufacturing' && item.processingTime ? 
-          `\nProcessing: ${item.processingTime} days | Grade: ${item.qualityGrade}` : ''),
-        item.quantity.toString(),
-        item.uom,
-        `$${item.unitPrice.toFixed(2)}`,
-        `$${item.total.toFixed(2)}`
-      ]);
+      // Items Table (matching preview exactly)
+      if (items.length > 0) {
+        const tableData = items.map(item => [
+          item.productName + (item.description ? `\n${item.description}` : '') +
+          (item.type === 'manufacturing' && item.processingTime ? 
+            `\nProcessing: ${item.processingTime} days | Grade: ${item.qualityGrade}` : ''),
+          item.quantity.toString(),
+          item.uom,
+          `$${item.unitPrice.toFixed(2)}`,
+          `$${item.total.toFixed(2)}`
+        ]);
 
-      (doc as any).autoTable({
-        startY: yPosition,
-        head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [243, 244, 246],
-          textColor: [0, 0, 0],
-          fontSize: 9,
-          fontStyle: 'bold',
-          cellPadding: 4
-        },
-        bodyStyles: {
-          fontSize: 8,
-          textColor: [0, 0, 0],
-          cellPadding: 4
-        },
-        columnStyles: {
-          0: { cellWidth: 70 },
-          1: { halign: 'center', cellWidth: 20 },
-          2: { halign: 'center', cellWidth: 20 },
-          3: { halign: 'right', cellWidth: 25 },
-          4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
-        },
-        margin: { left: 20, right: 20 }
-      });
+        (doc as any).autoTable({
+          startY: yPosition,
+          head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [243, 244, 246],
+            textColor: [0, 0, 0],
+            fontSize: 9,
+            fontStyle: 'bold',
+            cellPadding: 4
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [0, 0, 0],
+            cellPadding: 4
+          },
+          columnStyles: {
+            0: { cellWidth: 70 },
+            1: { halign: 'center', cellWidth: 20 },
+            2: { halign: 'center', cellWidth: 20 },
+            3: { halign: 'right', cellWidth: 25 },
+            4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
+          },
+          margin: { left: 20, right: 20 }
+        });
 
-      yPosition = (doc as any).lastAutoTable.finalY + 10;
-    }
+        yPosition = (doc as any).lastAutoTable.finalY + 10;
+      }
 
       // Totals Section (matching preview exactly with right alignment)
       const totalsX = pageWidth - 80;
@@ -652,85 +615,22 @@ const CreateQuotation: React.FC = () => {
       doc.text(`$${calculateGrandTotal().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
       yPosition += 15;
 
-    // Transportation & Delivery section (if applicable)
-    if (transportationType && transportationType !== 'pickup') {
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Transportation & Delivery:', 20, yPosition);
-      yPosition += 8;
-      
-      doc.setFontSize(10);
-      doc.setTextColor(107, 114, 128);
-      doc.text(`Method: ${transportationType.charAt(0).toUpperCase() + transportationType.slice(1).replace('-', ' ')}`, 20, yPosition);
-      yPosition += 6;
-      doc.text(`Fee: $${(Number(transportationFees) || 0).toFixed(2)}`, 20, yPosition);
-      yPosition += 6;
-      
-      if (transportationNotes) {
-        doc.text(`Notes: ${transportationNotes}`, 20, yPosition);
-        yPosition += 6;
-      }
-      yPosition += 8;
-    }
-
-    // Packaging Items section (if applicable)
-    if (packagingItems.length > 0) {
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Packaging Items:', 20, yPosition);
-      yPosition += 8;
-      
-      packagingItems.forEach((item) => {
-        doc.setFillColor(248, 250, 252);
-        doc.rect(20, yPosition, pageWidth - 40, 18, 'F');
-        doc.setDrawColor(229, 231, 235);
-        doc.rect(20, yPosition, pageWidth - 40, 18);
-        
-        doc.setFontSize(10);
+      // Notes & Special Instructions (if applicable)
+      if (notes) {
+        doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
-        doc.text(item.type, 25, yPosition + 6);
+        doc.text('Notes & Special Instructions:', 20, yPosition);
+        yPosition += 8;
         
-        if (item.description) {
-          doc.setFontSize(9);
-          doc.setTextColor(107, 114, 128);
-          doc.text(item.description, 25, yPosition + 12);
-        }
-        
-        if (item.notes) {
-          doc.setFontSize(8);
-          doc.text(item.notes, 25, yPosition + 16);
-        }
-        
-        // Right side - pricing
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`$${item.total.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
-        doc.setFontSize(8);
+        doc.setFontSize(9);
         doc.setTextColor(107, 114, 128);
-        doc.text(`${item.quantity} × $${item.unitPrice.toFixed(2)}`, pageWidth - 25, yPosition + 12, { align: 'right' });
-        
-        yPosition += 22;
-      });
-    }
-
-    // Notes & Special Instructions (if applicable)
-    if (notes) {
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Notes & Special Instructions:', 20, yPosition);
-      yPosition += 8;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(107, 114, 128);
-      const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
-      doc.text(splitNotes, 20, yPosition);
-      yPosition += splitNotes.length * 4 + 10;
-    }
-
-      // Save the PDF
-      doc.save(`Quotation-${quotationNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
+        const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
+        doc.text(splitNotes, 20, yPosition);
+        yPosition += splitNotes.length * 4 + 10;
+      }
 
       return doc;
+      
     } catch (error) {
       console.error('Download error:', error);
       toast({
@@ -741,6 +641,7 @@ const CreateQuotation: React.FC = () => {
       return null;
     }
   };
+
 
   const getTransportationTypeLabel = (type?: string) => {
     switch (type) {
