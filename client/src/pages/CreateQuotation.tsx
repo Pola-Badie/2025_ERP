@@ -1969,10 +1969,15 @@ const CreateQuotation: React.FC = () => {
                     });
                   }
                 } catch (error) {
-                  console.error('Download error:', error);
+                  console.error('Download error details:', error);
+                  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                  console.error('Error message:', errorMessage);
+                  if (error instanceof Error) {
+                    console.error('Error stack:', error.stack);
+                  }
                   toast({
                     title: "Download Error",
-                    description: "Failed to generate PDF. Please try again.",
+                    description: `PDF generation failed: ${errorMessage}`,
                     variant: "destructive"
                   });
                 }
