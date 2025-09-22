@@ -479,15 +479,6 @@ const CreateQuotation: React.FC = () => {
 
   const generateQuotationPDF = (): jsPDF | null => {
     try {
-      if (!selectedCustomer || items.length === 0) {
-        toast({
-          title: "Error",
-          description: "Please select a customer and add items before generating PDF",
-          variant: "destructive"
-        });
-        return null;
-      }
-
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
@@ -523,11 +514,11 @@ const CreateQuotation: React.FC = () => {
       doc.text('Customer:', 20, yPosition);
       
       doc.setFontSize(10);
-      doc.text(selectedCustomer.name, 20, yPosition + 8);
+      doc.text(selectedCustomer?.name || 'No Customer Selected', 20, yPosition + 8);
       doc.setFontSize(9);
       doc.setTextColor(107, 114, 128);
-      doc.text(selectedCustomer.email, 20, yPosition + 14);
-      doc.text(selectedCustomer.phone, 20, yPosition + 20);
+      doc.text(selectedCustomer?.email || 'No Email', 20, yPosition + 14);
+      doc.text(selectedCustomer?.phone || 'No Phone', 20, yPosition + 20);
 
       // Right column - Service Type
       doc.setFontSize(12);
@@ -541,8 +532,8 @@ const CreateQuotation: React.FC = () => {
       yPosition += 35;
 
       // Items Table (matching preview exactly)
-      if (items.length > 0) {
-        const tableData = items.map(item => [
+      const tableData = items.length > 0 ? 
+        items.map(item => [
           item.productName + (item.description ? `\n${item.description}` : '') +
           (item.type === 'manufacturing' && item.processingTime ? 
             `\nProcessing: ${item.processingTime} days | Grade: ${item.qualityGrade}` : ''),
@@ -550,37 +541,37 @@ const CreateQuotation: React.FC = () => {
           item.uom,
           `$${item.unitPrice.toFixed(2)}`,
           `$${item.total.toFixed(2)}`
-        ]);
+        ]) :
+        [['No items added yet', '', '', '', '$0.00']];
 
-        (doc as any).autoTable({
-          startY: yPosition,
-          head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
-          body: tableData,
-          theme: 'grid',
-          headStyles: {
-            fillColor: [243, 244, 246],
-            textColor: [0, 0, 0],
-            fontSize: 9,
-            fontStyle: 'bold',
-            cellPadding: 4
-          },
-          bodyStyles: {
-            fontSize: 8,
-            textColor: [0, 0, 0],
-            cellPadding: 4
-          },
-          columnStyles: {
-            0: { cellWidth: 70 },
-            1: { halign: 'center', cellWidth: 20 },
-            2: { halign: 'center', cellWidth: 20 },
-            3: { halign: 'right', cellWidth: 25 },
-            4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
-          },
-          margin: { left: 20, right: 20 }
-        });
+      (doc as any).autoTable({
+        startY: yPosition,
+        head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [243, 244, 246],
+          textColor: [0, 0, 0],
+          fontSize: 9,
+          fontStyle: 'bold',
+          cellPadding: 4
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [0, 0, 0],
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { cellWidth: 70 },
+          1: { halign: 'center', cellWidth: 20 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 25 },
+          4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
+        },
+        margin: { left: 20, right: 20 }
+      });
 
-        yPosition = (doc as any).lastAutoTable.finalY + 10;
-      }
+      yPosition = (doc as any).lastAutoTable.finalY + 10;
 
       // Totals Section (matching preview exactly with right alignment)
       const totalsX = pageWidth - 80;
