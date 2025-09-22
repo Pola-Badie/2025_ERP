@@ -478,40 +478,41 @@ const CreateQuotation: React.FC = () => {
   };
 
   const generateQuotationPDF = (): jsPDF | null => {
-    if (!selectedCustomer || items.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select a customer and add items before generating PDF",
-        variant: "destructive"
-      });
-      return null;
-    }
+    try {
+      if (!selectedCustomer || items.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please select a customer and add items before generating PDF",
+          variant: "destructive"
+        });
+        return null;
+      }
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    let yPosition = 20;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      let yPosition = 20;
 
-    // Header section with exact same layout as preview
-    doc.setFontSize(24);
-    doc.setTextColor(37, 99, 235); // blue-600 to match preview
-    doc.text('QUOTATION', 20, yPosition);
-    
-    doc.setFontSize(12);
-    doc.setTextColor(107, 114, 128); // text-muted-foreground
-    doc.text('Premier Ltd.', 20, yPosition + 8);
-    doc.text('123 Pharma Street, Lagos', 20, yPosition + 15);
+      // Header section with exact same layout as preview
+      doc.setFontSize(24);
+      doc.setTextColor(37, 99, 235); // blue-600 to match preview
+      doc.text('QUOTATION', 20, yPosition);
+      
+      doc.setFontSize(12);
+      doc.setTextColor(107, 114, 128); // text-muted-foreground
+      doc.text('Premier Ltd.', 20, yPosition + 8);
+      doc.text('123 Pharma Street, Lagos', 20, yPosition + 15);
 
-    // Right side - Quotation details (matching preview exactly)
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Quotation Number: ${quotationNumber}`, pageWidth - 20, yPosition, { align: 'right' });
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 6, { align: 'right' });
-    doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString()}`, pageWidth - 20, yPosition + 12, { align: 'right' });
-    
-    // Service type with badge-like formatting
-    doc.setFontSize(9);
-    doc.text(`Type: ${quotationType.charAt(0).toUpperCase() + quotationType.slice(1)}`, pageWidth - 20, yPosition + 18, { align: 'right' });
+      // Right side - Quotation details (matching preview exactly)
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Quotation Number: ${quotationNumber}`, pageWidth - 20, yPosition, { align: 'right' });
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 6, { align: 'right' });
+      doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString()}`, pageWidth - 20, yPosition + 12, { align: 'right' });
+      
+      // Service type with badge-like formatting
+      doc.setFontSize(9);
+      doc.text(`Type: ${quotationType.charAt(0).toUpperCase() + quotationType.slice(1)}`, pageWidth - 20, yPosition + 18, { align: 'right' });
 
     yPosition += 30;
 
@@ -689,10 +690,19 @@ const CreateQuotation: React.FC = () => {
       yPosition += splitNotes.length * 4 + 10;
     }
 
-    // Save the PDF
-    doc.save(`Quotation-${quotationNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
+      // Save the PDF
+      doc.save(`Quotation-${quotationNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
 
-    return doc;
+      return doc;
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "An error occurred while generating the PDF. Please try again.",
+        variant: "destructive"
+      });
+      return null;
+    }
   };
 
   const getTransportationTypeLabel = (type?: string) => {
