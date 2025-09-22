@@ -479,156 +479,47 @@ const CreateQuotation: React.FC = () => {
 
   const generateQuotationPDF = (): jsPDF | null => {
     try {
+      console.log('Starting PDF generation...');
+      
+      // Create basic PDF first
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      let yPosition = 20;
-
-      // Header section with exact same layout as preview
-      doc.setFontSize(24);
-      doc.setTextColor(37, 99, 235); // blue-600 to match preview
-      doc.text('QUOTATION', 20, yPosition);
+      console.log('jsPDF instance created');
+      
+      // Add simple text first
+      doc.setFontSize(16);
+      doc.text('QUOTATION', 20, 30);
       
       doc.setFontSize(12);
-      doc.setTextColor(107, 114, 128); // text-muted-foreground
-      doc.text('Premier Ltd.', 20, yPosition + 8);
-      doc.text('123 Pharma Street, Lagos', 20, yPosition + 15);
-
-      // Right side - Quotation details (matching preview exactly)
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Quotation Number: ${quotationNumber}`, pageWidth - 20, yPosition, { align: 'right' });
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 20, yPosition + 6, { align: 'right' });
-      doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString()}`, pageWidth - 20, yPosition + 12, { align: 'right' });
-      
-      // Service type with badge-like formatting
-      doc.setFontSize(9);
-      doc.text(`Type: ${quotationType.charAt(0).toUpperCase() + quotationType.slice(1)}`, pageWidth - 20, yPosition + 18, { align: 'right' });
-
-      yPosition += 30;
-
-      // Two-column layout section (matching preview exactly)
-      // Left column - Customer Information
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Customer:', 20, yPosition);
+      doc.text('Premier Ltd.', 20, 50);
+      doc.text('123 Pharma Street, Lagos', 20, 65);
       
       doc.setFontSize(10);
-      doc.text(selectedCustomer?.name || 'No Customer Selected', 20, yPosition + 8);
-      doc.setFontSize(9);
-      doc.setTextColor(107, 114, 128);
-      doc.text(selectedCustomer?.email || 'No Email', 20, yPosition + 14);
-      doc.text(selectedCustomer?.phone || 'No Phone', 20, yPosition + 20);
-
-      // Right column - Service Type
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Service Type:', pageWidth / 2 + 10, yPosition);
+      doc.text(`Quotation Number: ${quotationNumber}`, 20, 85);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 100);
       
-      doc.setFontSize(9);
-      doc.setTextColor(107, 114, 128);
-      doc.text(getQuotationTypeDescription(quotationType), pageWidth / 2 + 10, yPosition + 8);
-
-      yPosition += 35;
-
-      // Items Table (matching preview exactly)
-      const tableData = items.length > 0 ? 
-        items.map(item => [
-          item.productName + (item.description ? `\n${item.description}` : '') +
-          (item.type === 'manufacturing' && item.processingTime ? 
-            `\nProcessing: ${item.processingTime} days | Grade: ${item.qualityGrade}` : ''),
-          item.quantity.toString(),
-          item.uom,
-          `$${item.unitPrice.toFixed(2)}`,
-          `$${item.total.toFixed(2)}`
-        ]) :
-        [['No items added yet', '', '', '', '$0.00']];
-
-      (doc as any).autoTable({
-        startY: yPosition,
-        head: [['Item', 'Qty', 'UoM', 'Unit Price', 'Total']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [243, 244, 246],
-          textColor: [0, 0, 0],
-          fontSize: 9,
-          fontStyle: 'bold',
-          cellPadding: 4
-        },
-        bodyStyles: {
-          fontSize: 8,
-          textColor: [0, 0, 0],
-          cellPadding: 4
-        },
-        columnStyles: {
-          0: { cellWidth: 70 },
-          1: { halign: 'center', cellWidth: 20 },
-          2: { halign: 'center', cellWidth: 20 },
-          3: { halign: 'right', cellWidth: 25 },
-          4: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
-        },
-        margin: { left: 20, right: 20 }
-      });
-
-      yPosition = (doc as any).lastAutoTable.finalY + 10;
-
-      // Totals Section (matching preview exactly with right alignment)
-      const totalsX = pageWidth - 80;
-      const totalsWidth = 60;
+      // Customer Info
+      doc.text(`Customer: ${selectedCustomer?.name || 'No Customer Selected'}`, 20, 120);
+      doc.text(`Email: ${selectedCustomer?.email || 'No Email'}`, 20, 135);
+      doc.text(`Phone: ${selectedCustomer?.phone || 'No Phone'}`, 20, 150);
       
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
+      // Simple totals without complex formatting
+      doc.text(`Subtotal: $${calculateSubtotal().toFixed(2)}`, 20, 180);
+      doc.text(`Transportation: $${(Number(transportationFees) || 0).toFixed(2)}`, 20, 195);
+      doc.text(`VAT (${vatPercentage}%): $${calculateTax().toFixed(2)}`, 20, 210);
+      doc.text(`Total: $${calculateGrandTotal().toFixed(2)}`, 20, 230);
       
-      // Subtotal
-      doc.text('Subtotal:', totalsX, yPosition);
-      doc.text(`$${calculateSubtotal().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
-      yPosition += 8;
-
-      // Transportation
-      doc.text('Transportation:', totalsX, yPosition);
-      doc.text(`$${(Number(transportationFees) || 0).toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
-      yPosition += 8;
-
-      // VAT
-      doc.text(`VAT (${vatPercentage}%):`, totalsX, yPosition);
-      doc.text(`$${calculateTax().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
-      yPosition += 8;
-
-      // Separator line
-      doc.setDrawColor(229, 231, 235);
-      doc.line(totalsX, yPosition, totalsX + totalsWidth, yPosition);
-      yPosition += 6;
-
-      // Total (bold and larger)
-      doc.setFontSize(12);
-      doc.text('Total:', totalsX, yPosition);
-      doc.text(`$${calculateGrandTotal().toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
-      yPosition += 15;
-
-      // Notes & Special Instructions (if applicable)
+      // Notes if any
       if (notes) {
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Notes & Special Instructions:', 20, yPosition);
-        yPosition += 8;
-        
-        doc.setFontSize(9);
-        doc.setTextColor(107, 114, 128);
-        const splitNotes = doc.splitTextToSize(notes, pageWidth - 40);
-        doc.text(splitNotes, 20, yPosition);
-        yPosition += splitNotes.length * 4 + 10;
+        doc.text('Notes:', 20, 250);
+        doc.text(notes, 20, 265);
       }
-
+      
+      console.log('PDF content added successfully');
       return doc;
       
     } catch (error) {
-      console.error('Download error:', error);
-      toast({
-        title: "PDF Generation Failed",
-        description: "An error occurred while generating the PDF. Please try again.",
-        variant: "destructive"
-      });
+      console.error('PDF Generation Error:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return null;
     }
   };
