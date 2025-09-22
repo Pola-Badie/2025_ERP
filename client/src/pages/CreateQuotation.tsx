@@ -68,7 +68,7 @@ import {
 import { PrintableQuotation } from '@/components/PrintableQuotation';
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { useLanguage } from '@/contexts/LanguageContext';
 import logoPath from '@assets/P_1749320448134.png';
 
@@ -662,7 +662,7 @@ const CreateQuotation: React.FC = () => {
         }) :
         [['No items added yet', '', '', '', '', 'EGP 0.00', 'EGP 0.00']];
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: yPosition,
         head: [['Item/Service', 'Description', 'Qty', 'UoM', 'Grade', 'Unit Price', 'Total']],
         body: tableData,
@@ -772,10 +772,9 @@ const CreateQuotation: React.FC = () => {
       const totalsX = pageWidth - 100;
       const totalsWidth = 80;
       
-      // Background box
+      // Background box - individual rows will be drawn separately
       doc.setDrawColor(209, 213, 219); // Gray-300
       doc.setFillColor(249, 250, 251); // Gray-50
-      doc.rect(totalsX, totalsStartY, totalsWidth, 0, 'FD'); // Will draw each row separately
       
       let totalsY = totalsStartY;
       const rowHeight = 10;
@@ -895,7 +894,8 @@ const CreateQuotation: React.FC = () => {
       return doc;
       
     } catch (error) {
-      console.error('❌ PDF Generation Error:', error);
+      console.error('❌ PDF Generation Error:', error instanceof Error ? error.message : error);
+      console.error('❌ Full Error Object:', error);
       return null;
     }
   };
