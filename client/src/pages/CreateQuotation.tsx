@@ -479,47 +479,230 @@ const CreateQuotation: React.FC = () => {
 
   const generateQuotationPDF = (): jsPDF | null => {
     try {
-      console.log('Starting PDF generation...');
+      console.log('Starting professional PDF generation...');
       
-      // Create basic PDF first
       const doc = new jsPDF();
-      console.log('jsPDF instance created');
-      
-      // Add simple text first
-      doc.setFontSize(16);
-      doc.text('QUOTATION', 20, 30);
-      
-      doc.setFontSize(12);
-      doc.text('Premier Ltd.', 20, 50);
-      doc.text('123 Pharma Street, Lagos', 20, 65);
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      let yPosition = 20;
+
+      // Header Section - Morgan ERP branding
+      doc.setFontSize(24);
+      doc.setTextColor(37, 99, 235); // Blue color
+      doc.text('Morgan ERP', 20, yPosition);
       
       doc.setFontSize(10);
-      doc.text(`Quotation Number: ${quotationNumber}`, 20, 85);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 100);
+      doc.setTextColor(107, 114, 128); // Gray color
+      doc.text('Enterprise Resource Planning System', 20, yPosition + 8);
+      doc.text('123 Business District', 20, yPosition + 16);
+      doc.text('Cairo, Egypt 11511', 20, yPosition + 22);
+      doc.text('Phone: +20 2 1234 5678', 20, yPosition + 28);
+      doc.text('Email: info@morganerp.com', 20, yPosition + 34);
+
+      // Right side - QUOTATION header
+      doc.setFontSize(20);
+      doc.setTextColor(0, 0, 0);
+      doc.text('QUOTATION', pageWidth - 20, yPosition, { align: 'right' });
       
-      // Customer Info
-      doc.text(`Customer: ${selectedCustomer?.name || 'No Customer Selected'}`, 20, 120);
-      doc.text(`Email: ${selectedCustomer?.email || 'No Email'}`, 20, 135);
-      doc.text(`Phone: ${selectedCustomer?.phone || 'No Phone'}`, 20, 150);
+      doc.setFontSize(9);
+      doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 12, { align: 'right' });
+      doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 18, { align: 'right' });
+      doc.text(`Valid Until: ${new Date(validUntil).toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 24, { align: 'right' });
+      doc.text(`Service Type: ${getQuotationTypeDescription(quotationType)}`, pageWidth - 20, yPosition + 30, { align: 'right' });
+
+      yPosition += 50;
+
+      // Horizontal line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPosition, pageWidth - 20, yPosition);
+      yPosition += 10;
+
+      // Quote For Section
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Quote For:', 20, yPosition);
+      yPosition += 10;
+
+      // Customer information box
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 250, 252); // Light gray background
+      doc.rect(20, yPosition, pageWidth - 40, 35, 'FD');
       
-      // Simple totals without complex formatting
-      doc.text(`Subtotal: $${calculateSubtotal().toFixed(2)}`, 20, 180);
-      doc.text(`Transportation: $${(Number(transportationFees) || 0).toFixed(2)}`, 20, 195);
-      doc.text(`VAT (${vatPercentage}%): $${calculateTax().toFixed(2)}`, 20, 210);
-      doc.text(`Total: $${calculateGrandTotal().toFixed(2)}`, 20, 230);
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      const customerName = selectedCustomer?.company || selectedCustomer?.name || 'No Customer Selected';
+      doc.text(customerName, 25, yPosition + 8);
       
-      // Notes if any
-      if (notes) {
-        doc.text('Notes:', 20, 250);
-        doc.text(notes, 20, 265);
+      doc.setFontSize(9);
+      doc.setTextColor(107, 114, 128);
+      if (selectedCustomer?.name && selectedCustomer?.company) {
+        doc.text(selectedCustomer.name, 25, yPosition + 15);
       }
       
-      console.log('PDF content added successfully');
+      // Customer badges
+      if (selectedCustomer?.id) {
+        doc.setFillColor(219, 234, 254); // Blue background
+        doc.setTextColor(30, 64, 175); // Blue text
+        doc.rect(25, yPosition + 20, 35, 8, 'F');
+        doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, 27, yPosition + 25);
+      }
+      
+      if (selectedCustomer?.phone) {
+        doc.setFillColor(220, 252, 231); // Green background
+        doc.setTextColor(22, 101, 52); // Green text
+        doc.rect(65, yPosition + 20, 45, 8, 'F');
+        doc.text(`Mobile: ${selectedCustomer.phone}`, 67, yPosition + 25);
+      }
+
+      yPosition += 45;
+
+      // Items Table Section
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Quoted Items & Services', 20, yPosition);
+      yPosition += 10;
+
+      // Create items table data
+      const tableData = items.length > 0 ? 
+        items.map(item => [
+          item.productName,
+          item.description || '',
+          item.quantity.toString(),
+          item.uom,
+          item.grade === 'P' ? 'Pharmaceutical' : 
+          item.grade === 'F' ? 'Food Grade' : 
+          item.grade === 'T' ? 'Technical' : 
+          item.grade || 'N/A',
+          `EGP ${item.unitPrice.toFixed(2)}`,
+          `EGP ${item.total.toFixed(2)}`
+        ]) :
+        [['No items added yet', '', '', '', '', 'EGP 0.00', 'EGP 0.00']];
+
+      (doc as any).autoTable({
+        startY: yPosition,
+        head: [['Item/Service', 'Description', 'Qty', 'UoM', 'Grade', 'Unit Price', 'Total']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [243, 244, 246],
+          textColor: [0, 0, 0],
+          fontSize: 9,
+          fontStyle: 'bold',
+          cellPadding: 3,
+          halign: 'left'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [0, 0, 0],
+          cellPadding: 3
+        },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 40 },
+          2: { halign: 'center', cellWidth: 15 },
+          3: { halign: 'center', cellWidth: 15 },
+          4: { halign: 'center', cellWidth: 25 },
+          5: { halign: 'right', cellWidth: 25 },
+          6: { halign: 'right', fontStyle: 'bold', cellWidth: 25 }
+        },
+        margin: { left: 20, right: 20 }
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 15;
+
+      // Transportation section if applicable
+      if (transportationFees > 0) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Transportation & Delivery', 20, yPosition);
+        yPosition += 8;
+        
+        doc.setFillColor(239, 246, 255); // Light blue background
+        doc.rect(20, yPosition, pageWidth - 40, 15, 'F');
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(20, yPosition, pageWidth - 40, 15);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(30, 58, 138);
+        doc.text('Standard Delivery', 25, yPosition + 6);
+        doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
+        
+        yPosition += 20;
+      }
+
+      // Totals Section
+      const totalsY = yPosition;
+      const totalsX = pageWidth - 90;
+      const totalsWidth = 70;
+      
+      doc.setDrawColor(200, 200, 200);
+      doc.setFillColor(248, 250, 252);
+      doc.rect(totalsX, totalsY, totalsWidth, 40, 'FD');
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      
+      // Subtotal
+      doc.text('Subtotal:', totalsX + 5, totalsY + 8);
+      doc.text(`EGP ${calculateSubtotal().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 8, { align: 'right' });
+      
+      // Transportation
+      if (transportationFees > 0) {
+        doc.text('Transportation:', totalsX + 5, totalsY + 16);
+        doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 16, { align: 'right' });
+      }
+      
+      // VAT
+      doc.text(`VAT (${vatPercentage}%):`, totalsX + 5, totalsY + 24);
+      doc.text(`EGP ${calculateTax().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 24, { align: 'right' });
+      
+      // Total (highlighted)
+      doc.setFillColor(37, 99, 235); // Blue background
+      doc.rect(totalsX, totalsY + 28, totalsWidth, 12, 'F');
+      doc.setTextColor(255, 255, 255); // White text
+      doc.setFontSize(11);
+      doc.text('Total Amount:', totalsX + 5, totalsY + 36);
+      doc.text(`EGP ${calculateGrandTotal().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 36, { align: 'right' });
+
+      yPosition += 50;
+
+      // Notes section
+      if (notes) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Additional Notes:', 20, yPosition);
+        yPosition += 8;
+        
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPosition, pageWidth - 40, 20, 'F');
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(20, yPosition, pageWidth - 40, 20);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(75, 85, 99);
+        const splitNotes = doc.splitTextToSize(notes, pageWidth - 50);
+        doc.text(splitNotes, 25, yPosition + 6);
+        
+        yPosition += 25;
+      }
+
+      // Footer
+      if (yPosition < pageHeight - 30) {
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, pageHeight - 25, pageWidth - 20, pageHeight - 25);
+        
+        doc.setFontSize(8);
+        doc.setTextColor(107, 114, 128);
+        doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 18, { align: 'center' });
+        doc.text(`This quotation was generated on ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`, pageWidth / 2, pageHeight - 12, { align: 'center' });
+        doc.text('All prices are in EGP and exclude applicable taxes unless otherwise stated.', pageWidth / 2, pageHeight - 6, { align: 'center' });
+      }
+
+      console.log('Professional PDF generated successfully');
       return doc;
       
     } catch (error) {
       console.error('PDF Generation Error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
       return null;
     }
   };
