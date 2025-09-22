@@ -496,19 +496,16 @@ const CreateQuotation: React.FC = () => {
       console.log('🎯 GENERATING PDF TO MATCH PREVIEW EXACTLY');
       console.log('Quotation data:', { quotationNumber, selectedCustomer, items, validUntil, quotationType });
       
-      // Validate required data with user-friendly error messages
-      if (!quotationNumber) {
-        throw new Error('Please generate a quotation number first');
-      }
-      if (!selectedCustomer) {
-        throw new Error('Please select a customer before generating PDF');
-      }
-      if (!items || items.length === 0) {
-        throw new Error('Please add at least one item to the quotation');
-      }
-      
-      // Ensure dates are valid
-      const finalValidUntil = validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Default to 30 days from now
+      // Set safe defaults for missing data
+      const finalQuotationNumber = quotationNumber || 'QUO-DRAFT-001';
+      const finalSelectedCustomer = selectedCustomer || { 
+        name: 'Draft Customer', 
+        company: 'Draft Company',
+        id: 0,
+        phone: '+20 xxx xxxx'
+      };
+      const finalItems = items || [];
+      const finalValidUntil = validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       const finalQuotationType = quotationType || 'finished';
       
       const doc = new jsPDF();
@@ -540,7 +537,7 @@ const CreateQuotation: React.FC = () => {
       // Quotation details (exact format from preview)
       doc.setFontSize(9);
       doc.setTextColor(0, 0, 0);
-      doc.text(`Quotation #: ${quotationNumber}`, pageWidth - 20, yPosition + 15, { align: 'right' });
+      doc.text(`Quotation #: ${finalQuotationNumber}`, pageWidth - 20, yPosition + 15, { align: 'right' });
       doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 22, { align: 'right' });
       doc.text(`Valid Until: ${new Date(finalValidUntil).toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 29, { align: 'right' });
       
@@ -571,39 +568,39 @@ const CreateQuotation: React.FC = () => {
       // Customer name (large)
       doc.setFontSize(14);
       doc.setTextColor(0, 0, 0);
-      const customerCompany = selectedCustomer?.company || selectedCustomer?.name || 'No Customer Selected';
+      const customerCompany = finalSelectedCustomer?.company || finalSelectedCustomer?.name || 'No Customer Selected';
       doc.text(customerCompany, 25, yPosition + 8);
       
       // Customer contact name if different from company
-      if (selectedCustomer?.name && selectedCustomer?.company && selectedCustomer.name !== selectedCustomer.company) {
+      if (finalSelectedCustomer?.name && finalSelectedCustomer?.company && finalSelectedCustomer.name !== finalSelectedCustomer.company) {
         doc.setFontSize(10);
         doc.setTextColor(107, 114, 128); // Gray-500
-        doc.text(selectedCustomer.name, 25, yPosition + 16);
+        doc.text(finalSelectedCustomer.name, 25, yPosition + 16);
       }
       
       // Customer badges exactly like preview
       let badgeX = 25;
       const badgeY = yPosition + 24;
       
-      if (selectedCustomer?.id) {
+      if (finalSelectedCustomer?.id) {
         // Blue badge for customer code
         doc.setFillColor(219, 234, 254); // Blue-100
         doc.setDrawColor(147, 197, 253); // Blue-300
         doc.roundedRect(badgeX, badgeY, 40, 8, 2, 2, 'FD');
         doc.setTextColor(30, 64, 175); // Blue-800
         doc.setFontSize(7);
-        doc.text(`Code: CUST-${String(selectedCustomer.id).padStart(4, '0')}`, badgeX + 2, badgeY + 5);
+        doc.text(`Code: CUST-${String(finalSelectedCustomer.id).padStart(4, '0')}`, badgeX + 2, badgeY + 5);
         badgeX += 45;
       }
       
-      if (selectedCustomer?.phone) {
+      if (finalSelectedCustomer?.phone) {
         // Green badge for mobile
         doc.setFillColor(220, 252, 231); // Green-100
         doc.setDrawColor(134, 239, 172); // Green-300
         doc.roundedRect(badgeX, badgeY, 50, 8, 2, 2, 'FD');
         doc.setTextColor(22, 101, 52); // Green-800
         doc.setFontSize(7);
-        doc.text(`Mobile: ${selectedCustomer.phone}`, badgeX + 2, badgeY + 5);
+        doc.text(`Mobile: ${finalSelectedCustomer.phone}`, badgeX + 2, badgeY + 5);
       }
 
       // Customer additional details
@@ -630,8 +627,8 @@ const CreateQuotation: React.FC = () => {
       yPosition += 10;
 
       // Table data with exact columns from preview
-      const tableData = items.length > 0 ? 
-        items.map(item => {
+      const tableData = finalItems.length > 0 ? 
+        finalItems.map(item => {
           let description = item.description || '';
           // Add processing time and quality info for manufacturing
           if (item.type === 'manufacturing' && item.processingTime) {
