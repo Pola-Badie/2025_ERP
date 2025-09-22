@@ -479,6 +479,37 @@ const CreateQuotation: React.FC = () => {
 
   const generateQuotationPDF = (): jsPDF | null => {
     try {
+      console.log('PDF Generation started');
+      
+      // Simple test - create minimal PDF first
+      const doc = new jsPDF();
+      console.log('jsPDF instance created successfully');
+      
+      // Add basic text
+      doc.text('Test PDF Generation', 20, 20);
+      console.log('Text added to PDF');
+      
+      return doc;
+      
+    } catch (error) {
+      console.error('PDF Generation Error Details:', error);
+      toast({
+        title: "PDF Generation Failed",
+        description: `Error: ${error?.message || 'Unknown error'}`,
+        variant: "destructive"
+      });
+      return null;
+    }
+  };
+
+  const generateQuotationPDFOriginal = (): jsPDF | null => {
+    try {
+      console.log('PDF Generation started');
+      console.log('Selected Customer:', selectedCustomer);
+      console.log('Items:', items);
+      console.log('Transportation Fees:', transportationFees);
+      console.log('VAT Percentage:', vatPercentage);
+      
       if (!selectedCustomer || items.length === 0) {
         toast({
           title: "Error",
@@ -488,15 +519,21 @@ const CreateQuotation: React.FC = () => {
         return null;
       }
 
+      console.log('Creating jsPDF instance...');
       const doc = new jsPDF();
+      console.log('jsPDF created successfully');
+      
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       let yPosition = 20;
+      console.log('Page dimensions:', pageWidth, pageHeight);
 
       // Header section with exact same layout as preview
+      console.log('Setting header...');
       doc.setFontSize(24);
       doc.setTextColor(37, 99, 235); // blue-600 to match preview
       doc.text('QUOTATION', 20, yPosition);
+      console.log('Header set successfully');
       
       doc.setFontSize(12);
       doc.setTextColor(107, 114, 128); // text-muted-foreground
@@ -596,7 +633,7 @@ const CreateQuotation: React.FC = () => {
 
       // Transportation
       doc.text('Transportation:', totalsX, yPosition);
-      doc.text(`$${transportationFees.toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
+      doc.text(`$${(Number(transportationFees) || 0).toFixed(2)}`, totalsX + totalsWidth, yPosition, { align: 'right' });
       yPosition += 8;
 
       // VAT
@@ -626,7 +663,7 @@ const CreateQuotation: React.FC = () => {
       doc.setTextColor(107, 114, 128);
       doc.text(`Method: ${transportationType.charAt(0).toUpperCase() + transportationType.slice(1).replace('-', ' ')}`, 20, yPosition);
       yPosition += 6;
-      doc.text(`Fee: $${transportationFees.toFixed(2)}`, 20, yPosition);
+      doc.text(`Fee: $${(Number(transportationFees) || 0).toFixed(2)}`, 20, yPosition);
       yPosition += 6;
       
       if (transportationNotes) {
@@ -667,10 +704,10 @@ const CreateQuotation: React.FC = () => {
         // Right side - pricing
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
-        doc.text(`EGP ${item.total.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
+        doc.text(`$${item.total.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
         doc.setFontSize(8);
         doc.setTextColor(107, 114, 128);
-        doc.text(`${item.quantity} × EGP ${item.unitPrice.toFixed(2)}`, pageWidth - 25, yPosition + 12, { align: 'right' });
+        doc.text(`${item.quantity} × $${item.unitPrice.toFixed(2)}`, pageWidth - 25, yPosition + 12, { align: 'right' });
         
         yPosition += 22;
       });
