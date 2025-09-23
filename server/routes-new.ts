@@ -2403,6 +2403,7 @@ export async function registerRoutes(app: Express): Promise<void> {
             total: parseFloat(quotation.grandTotal?.toString() || '0'),
             amount: parseFloat(quotation.grandTotal?.toString() || '0'),
             status: quotation.status || 'pending',
+            termsAndConditions: quotation.termsAndConditions || "1. Validity: This quotation is valid for 30 days from the date of issue.\n\n2. Payment Terms: 50% advance payment required upon order confirmation. Balance due upon completion/delivery.\n\n3. Quality Assurance: All pharmaceutical services comply with GMP standards and regulatory requirements as per Egyptian Drug Authority guidelines.\n\n4. Delivery: Delivery times are estimates and subject to production schedules, regulatory approvals, and raw material availability.\n\n5. Changes: Any changes to specifications, quantities, or requirements after quotation acceptance may affect pricing and delivery timelines.\n\n6. Liability: Our liability is limited to the value of services provided. We maintain comprehensive insurance coverage for pharmaceutical operations.",
             items: items,
             packagingItems: packagingItems
           };

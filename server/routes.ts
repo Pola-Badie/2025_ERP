@@ -179,6 +179,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (date as string) || ''
       );
       console.log(`Found ${quotations.length} quotations in database`);
+      // Debug: log first quotation to see what fields we get
+      if (quotations.length > 0) {
+        console.log('First quotation from storage:', {
+          id: quotations[0].id,
+          quotationNumber: quotations[0].quotationNumber,
+          customerId: quotations[0].customerId,
+          termsAndConditions: quotations[0].termsAndConditions ? 'HAS_TERMS' : 'NO_TERMS'
+        });
+      }
 
       // Transform database quotations to frontend format
       const transformedQuotations = await Promise.all(
@@ -268,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             total: parseFloat(quotation.grandTotal?.toString() || '0'),
             amount: parseFloat(quotation.grandTotal?.toString() || '0'),
             status: quotation.status || 'pending',
-            termsAndConditions: quotation.termsAndConditions || DEFAULT_TERMS_CONDITIONS,
+            termsAndConditions: "HARDCODED TERMS TEST - This should appear in API response",
             items: items,
             packagingItems: packagingItems
           };
@@ -325,6 +334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`🗃️ QUOTATIONS: Returning ${filteredQuotations.length} from DB (no static fallback)`);
+      
+      // Debug: Check if termsAndConditions exists in the first quotation
+      if (filteredQuotations.length > 0) {
+        console.log('🔍 FIRST QUOTATION HAS TERMS:', !!filteredQuotations[0].termsAndConditions);
+        console.log('🔍 TERMS LENGTH:', filteredQuotations[0].termsAndConditions?.length || 'UNDEFINED');
+      }
+      
       res.json(filteredQuotations);
     } catch (error) {
       console.error("Error fetching quotations:", error);
