@@ -211,6 +211,7 @@ export const quotations = pgTable("quotations", {
   grandTotal: numeric("grand_total").notNull(),
   status: text("status").default("pending").notNull(), // 'pending', 'approved', 'rejected', 'expired', 'converted'
   notes: text("notes"),
+  termsAndConditions: text("terms_and_conditions"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -600,6 +601,7 @@ export const insertQuotationSchema = createInsertSchema(quotations).pick({
   grandTotal: true,
   status: true,
   notes: true,
+  termsAndConditions: true,
 });
 
 export const insertQuotationItemSchema = createInsertSchema(quotationItems).pick({
