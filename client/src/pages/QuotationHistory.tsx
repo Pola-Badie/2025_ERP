@@ -36,6 +36,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PrintableQuotation } from '@/components/PrintableQuotation';
 
 // Enhanced Quotation interface
 interface Quotation {
@@ -67,6 +68,7 @@ interface Quotation {
     uom: string;
     unitPrice: number;
     total: number;
+    grade?: string;
     specifications?: string;
     rawMaterials?: string[];
     processingTime?: number;
@@ -81,6 +83,7 @@ interface Quotation {
     total: number;
     notes?: string;
   }[];
+  termsAndConditions?: string;
 }
 
 // Helper functions
@@ -926,181 +929,43 @@ const QuotationHistory = () => {
               </DialogHeader>
               
               <div className="flex-1 overflow-y-auto">
-                <div className="border rounded-lg p-6 bg-white">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h2 className="text-2xl font-bold text-blue-600">PHARMACEUTICAL QUOTATION</h2>
-                    <p className="text-gray-600 mt-1">Premier Ltd.</p>
-                    <p className="text-gray-600">123 Pharma Street, Lagos, Nigeria</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900">#{selectedQuotation.quotationNumber}</p>
-                    <p className="text-gray-600">Date: {selectedQuotation.date ? format(new Date(selectedQuotation.date), 'PP') : 'N/A'}</p>
-                    <p className="text-gray-600">Valid Until: {selectedQuotation.validUntil ? format(new Date(selectedQuotation.validUntil), 'PP') : 'N/A'}</p>
-                    <div className="mt-3 flex items-center gap-2 justify-end">
-                      {getQuotationTypeBadge(selectedQuotation.type)}
-                      {getStatusBadge(selectedQuotation.status)}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Customer Info */}
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Customer:</h3>
-                    <p className="font-medium text-gray-800">{selectedQuotation.customerName}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Quotation Type:</h3>
-                    {getQuotationTypeBadge(selectedQuotation.type)}
-                  </div>
-                </div>
-                
-                {/* Items Table */}
-                <div className="mb-8">
-                  <h3 className="font-semibold text-gray-900 mb-4">Products & Services</h3>
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold">Description</TableHead>
-                        <TableHead className="text-center font-semibold">UoM</TableHead>
-                        <TableHead className="text-right font-semibold">Qty</TableHead>
-                        <TableHead className="text-right font-semibold">Unit Price</TableHead>
-                        <TableHead className="text-right font-semibold">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(selectedQuotation.items || []).map((item, i) => (
-                        <TableRow key={i}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900">{item.productName}</p>
-                              {item.description && (
-                                <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                              )}
-                              {item.specifications && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                  <span className="font-medium">Specs:</span> {item.specifications}
-                                </p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">{item.uom}</TableCell>
-                          <TableCell className="text-right">{(item.quantity || 0).toLocaleString()}</TableCell>
-                          <TableCell className="text-right">
-                            ${(item.unitPrice || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            ${(item.total || 0).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                {/* Packaging Items Section */}
-                {selectedQuotation.packagingItems && selectedQuotation.packagingItems.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Package className="h-4 w-4" />
-                      Packaging Items
-                    </h3>
-                    <div className="space-y-3">
-                      {(selectedQuotation.packagingItems || []).map((item, index) => (
-                        <div key={item.id} className="bg-green-50 p-4 rounded-lg border border-green-200">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <p className="font-medium text-green-900">{item.type}</p>
-                              {item.description && (
-                                <p className="text-sm text-green-700 mt-1">{item.description}</p>
-                              )}
-                              {item.notes && (
-                                <p className="text-xs text-green-600 mt-1 italic">{item.notes}</p>
-                              )}
-                            </div>
-                            <div className="text-right ml-4">
-                              <p className="font-semibold text-green-900">EGP {item.total.toLocaleString()}</p>
-                              <p className="text-xs text-green-600">{item.quantity} × EGP {item.unitPrice.toLocaleString()}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Totals */}
-                <div className="flex justify-end mb-8">
-                  <div className="w-80">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Subtotal:</span>
-                        <span className="font-medium">
-                          EGP {(selectedQuotation.subtotal || selectedQuotation.amount || 0).toLocaleString()}
-                        </span>
-                      </div>
-                      {selectedQuotation.transportationFees > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Transportation:</span>
-                          <span className="font-medium">
-                            EGP {(selectedQuotation.transportationFees || 0).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedQuotation.packagingFees > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Packaging:</span>
-                          <span className="font-medium">
-                            EGP {(selectedQuotation.packagingFees || 0).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">VAT (14%):</span>
-                        <span className="font-medium">
-                          EGP {(selectedQuotation.tax || (selectedQuotation.amount || 0) * 0.14).toLocaleString()}
-                        </span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Total:</span>
-                        <span className="text-blue-600">
-                          EGP {(selectedQuotation.total || selectedQuotation.amount || 0).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Transportation Details */}
-                {selectedQuotation.transportationType && selectedQuotation.transportationType !== 'pickup' && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <Truck className="h-4 w-4" />
-                      Transportation & Delivery
-                    </h3>
-                    <div className="bg-gray-50 p-4 rounded-lg text-sm">
-                      <p><span className="font-medium">Method:</span> {selectedQuotation.transportationType?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
-                      <p><span className="font-medium">Fee:</span> ${selectedQuotation.transportationFees?.toLocaleString()}</p>
-                      {selectedQuotation.transportationNotes && (
-                        <p><span className="font-medium">Notes:</span> {selectedQuotation.transportationNotes}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Notes */}
-                {selectedQuotation.notes && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-gray-900 mb-3">Notes & Instructions</h3>
-                    <div className="bg-blue-50 p-4 rounded-lg text-sm text-gray-700">
-                      {selectedQuotation.notes}
-                    </div>
-                  </div>
-                )}
-                </div>
+                <PrintableQuotation
+                  quotationNumber={selectedQuotation.quotationNumber}
+                  date={new Date(selectedQuotation.date)}
+                  validUntil={selectedQuotation.validUntil}
+                  customer={{
+                    name: selectedQuotation.customerName,
+                    id: selectedQuotation.customerId
+                  }}
+                  items={selectedQuotation.items.map(item => ({
+                    id: item.id,
+                    productName: item.productName,
+                    description: item.description,
+                    quantity: item.quantity,
+                    uom: item.uom,
+                    unitPrice: item.unitPrice,
+                    total: item.total,
+                    type: item.type,
+                    grade: item.grade || 'P',
+                    processingTime: item.processingTime,
+                    qualityGrade: item.qualityGrade,
+                    specifications: item.specifications
+                  }))}
+                  packagingItems={selectedQuotation.packagingItems || []}
+                  subtotal={selectedQuotation.subtotal}
+                  transportationFees={selectedQuotation.transportationFees}
+                  packagingFees={selectedQuotation.packagingFees}
+                  vatPercentage={14}
+                  vatAmount={selectedQuotation.tax}
+                  grandTotal={selectedQuotation.total}
+                  notes={selectedQuotation.notes}
+                  transportationType={selectedQuotation.transportationType}
+                  transportationNotes={selectedQuotation.transportationNotes}
+                  packagingType={selectedQuotation.packagingType}
+                  packagingNotes={selectedQuotation.packagingNotes}
+                  quotationType={selectedQuotation.type}
+                  termsAndConditions={selectedQuotation.termsAndConditions}
+                />
               </div>
               
               <DialogFooter>
