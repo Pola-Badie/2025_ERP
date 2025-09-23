@@ -283,11 +283,11 @@ const CreateInvoice = () => {
 
   // Fetch all customers data
   const { data: allCustomers = [], isLoading: isLoadingCustomers, error: customersError } = useQuery<any[]>({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/v1/customers'],
     queryFn: async () => {
       try {
         console.log('🔥 INVOICE: Fetching customers from API...');
-        const response = await fetch(`${window.location.origin}/api/customers`);
+        const response = await fetch(`${window.location.origin}/api/v1/customers`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
