@@ -1,5 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, doublePrecision, date, numeric, primaryKey, unique, index } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -1147,6 +1147,20 @@ export const warehouseLocations = pgTable("warehouse_locations", {
   isActive: boolean("is_active").default(true).notNull(),
 });
 
+// Warehouse Inventory - tracks product quantities per warehouse
+export const warehouseInventory = pgTable("warehouse_inventory", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  warehouseId: integer("warehouse_id").references(() => warehouses.id).notNull(),
+  quantity: integer("quantity").default(0).notNull(),
+  reservedQuantity: integer("reserved_quantity").default(0).notNull(), // For pending orders
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  updatedBy: integer("updated_by").references(() => users.id).notNull(),
+}, (table) => ({
+  // Unique constraint to prevent duplicate product-warehouse combinations
+  productWarehouse: unique().on(table.productId, table.warehouseId),
+}));
+
 // Stock Movements
 export const stockMovements = pgTable("stock_movements", {
   id: serial("id").primaryKey(),
@@ -1732,6 +1746,14 @@ export const insertWarehouseLocationSchema = createInsertSchema(warehouseLocatio
   isActive: true,
 });
 
+export const insertWarehouseInventorySchema = createInsertSchema(warehouseInventory).pick({
+  productId: true,
+  warehouseId: true,
+  quantity: true,
+  reservedQuantity: true,
+  updatedBy: true,
+});
+
 export const insertStockMovementSchema = createInsertSchema(stockMovements).pick({
   productId: true,
   batchId: true,
@@ -1882,6 +1904,9 @@ export type Warehouse = typeof warehouses.$inferSelect;
 
 export type InsertWarehouseLocation = z.infer<typeof insertWarehouseLocationSchema>;
 export type WarehouseLocation = typeof warehouseLocations.$inferSelect;
+
+export type InsertWarehouseInventory = z.infer<typeof insertWarehouseInventorySchema>;
+export type WarehouseInventory = typeof warehouseInventory.$inferSelect;
 
 export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;
 export type StockMovement = typeof stockMovements.$inferSelect;

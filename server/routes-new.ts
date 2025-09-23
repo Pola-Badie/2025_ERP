@@ -9,7 +9,7 @@ import {
   saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings,
   systemPreferences, rolePermissions, loginLogs, userPermissions,
   journalEntries, journalEntryLines, accounts, expenses, expenseCategories,
-  warehouses, inventoryTransactions, auditLogs, quotations, quotationItems,
+  warehouses, warehouseLocations, warehouseInventory, inventoryTransactions, auditLogs, quotations, quotationItems,
   quotationPackagingItems,
   insertUserSchema, insertProductSchema, updateProductSchema, insertProductCategorySchema,
   insertCustomerSchema, insertSaleSchema, insertSaleItemSchema,
@@ -1544,11 +1544,13 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Get all products with optional warehouse filtering
+  // Get all products with proper warehouse inventory tracking
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
       const { categoryId, status, warehouse } = req.query;
       const warehouseId = warehouse as string;
+
+      console.log(`🔥 API PRODUCTS: Fetching products with warehouse=${warehouseId || 'ALL'}, category=${categoryId || 'ALL'}, status=${status || 'ALL'}`);
 
       let whereConditions = [];
       if (categoryId) {
@@ -1558,28 +1560,11 @@ export async function registerRoutes(app: Express): Promise<void> {
         whereConditions.push(eq(products.status, status as string));
       }
 
-      let allProducts = await db
-        .select()
-        .from(products)
-        .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
-        .orderBy(products.name);
-      
-      // Join with categories to get category names
-      let productsWithCategories = await Promise.all(
-        allProducts.map(async (product) => {
-          const category = await db.select().from(productCategories).where(eq(productCategories.id, product.categoryId));
-          return {
-            ...product,
-            category: category[0]?.name || 'Uncategorized'
-          };
-        })
-      );
-      
-      // Filter by warehouse if specified - USE REAL DATABASE LOCATIONS
       if (warehouseId && warehouseId !== '0' && warehouseId !== '') {
+        // Get products from specific warehouse using proper inventory system
         const warehouseNumber = parseInt(warehouseId);
         
-        // Get warehouse from database instead of hardcoded mapping
+        // Verify warehouse exists
         const [warehouseRecord] = await db.select()
           .from(warehouses)
           .where(eq(warehouses.id, warehouseNumber));
@@ -1589,21 +1574,105 @@ export async function registerRoutes(app: Express): Promise<void> {
           return res.json([]);
         }
         
-        // Filter products by matching the warehouse address/location with product location
-        // Products can be stored by warehouse name OR warehouse address
-        productsWithCategories = productsWithCategories.filter(product => 
-          product.location === warehouseRecord.name || 
-          product.location === warehouseRecord.address ||
-          product.location === warehouseRecord.code
+        // Get products with their warehouse inventory quantities
+        const productsWithInventory = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            drugName: products.drugName,
+            categoryId: products.categoryId,
+            description: products.description,
+            sku: products.sku,
+            barcode: products.barcode,
+            costPrice: products.costPrice,
+            sellingPrice: products.sellingPrice,
+            quantity: sql`COALESCE(${warehouseInventory.quantity}, 0)`.mapWith(Number),
+            unitOfMeasure: products.unitOfMeasure,
+            lowStockThreshold: products.lowStockThreshold,
+            expiryDate: products.expiryDate,
+            status: products.status,
+            productType: products.productType,
+            manufacturer: products.manufacturer,
+            location: sql`${warehouses.name}`,
+            shelf: products.shelf, // Use product's original shelf field
+            grade: products.grade,
+            imagePath: products.imagePath,
+            createdAt: products.createdAt,
+            updatedAt: products.updatedAt
+          })
+          .from(products)
+          .innerJoin(warehouseInventory, eq(warehouseInventory.productId, products.id))
+          .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+          .where(
+            and(
+              eq(warehouses.id, warehouseNumber),
+              ...(whereConditions.length > 0 ? whereConditions : [])
+            )
+          )
+          .orderBy(products.name);
+        
+        // Get categories
+        const productsWithCategories = await Promise.all(
+          productsWithInventory.map(async (product) => {
+            const [category] = await db.select().from(productCategories).where(eq(productCategories.id, product.categoryId));
+            return {
+              ...product,
+              category: category?.name || 'Uncategorized'
+            };
+          })
         );
         
-        console.log(`🔥 WAREHOUSE FILTER: Warehouse ${warehouseNumber} (${warehouseRecord.name}) has ${productsWithCategories.length} products`);
+        console.log(`🔥 WAREHOUSE INVENTORY: Found ${productsWithCategories.length} products in warehouse ${warehouseNumber} (${warehouseRecord.name})`);
+        res.json(productsWithCategories);
+        
       } else {
-        // When no warehouse is specified or warehouse is '0', show ALL products from ALL warehouses
-        console.log(`🔥 ALL STOCK: Returning ${productsWithCategories.length} products from all warehouses`);
+        // Get ALL products from ALL warehouses with aggregated quantities
+        const allProductsQuery = await db
+          .select({
+            id: products.id,
+            name: products.name,
+            drugName: products.drugName,
+            categoryId: products.categoryId,
+            description: products.description,
+            sku: products.sku,
+            barcode: products.barcode,
+            costPrice: products.costPrice,
+            sellingPrice: products.sellingPrice,
+            quantity: sql`COALESCE(SUM(${warehouseInventory.quantity}), ${products.quantity})`.mapWith(Number),
+            unitOfMeasure: products.unitOfMeasure,
+            lowStockThreshold: products.lowStockThreshold,
+            expiryDate: products.expiryDate,
+            status: products.status,
+            productType: products.productType,
+            manufacturer: products.manufacturer,
+            location: products.location, // Keep original location for fallback
+            shelf: products.shelf,
+            grade: products.grade,
+            imagePath: products.imagePath,
+            createdAt: products.createdAt,
+            updatedAt: products.updatedAt
+          })
+          .from(products)
+          .leftJoin(warehouseInventory, eq(warehouseInventory.productId, products.id))
+          .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+          .groupBy(products.id)
+          .orderBy(products.name);
+        
+        // Get categories
+        const productsWithCategories = await Promise.all(
+          allProductsQuery.map(async (product) => {
+            const [category] = await db.select().from(productCategories).where(eq(productCategories.id, product.categoryId));
+            return {
+              ...product,
+              category: category?.name || 'Uncategorized'
+            };
+          })
+        );
+        
+        console.log(`🔥 ALL STOCK: Returning ${productsWithCategories.length} products aggregated from all warehouses`);
+        res.json(productsWithCategories);
       }
       
-      res.json(productsWithCategories);
     } catch (error) {
       console.error("Products error:", error);
       res.status(500).json({ message: "Failed to fetch products" });
