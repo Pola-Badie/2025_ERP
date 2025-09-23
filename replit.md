@@ -69,3 +69,16 @@ The system features a responsive design optimized for both mobile and desktop us
 - UserPermissionsContext now waits for AuthContext to finish loading before marking permissions as loaded
 - Added comprehensive loading state checks to prevent navigation items from showing until permissions are fully loaded
 - Successfully tested permission filtering - test_user now only sees Dashboard and Inventory modules as intended in all contexts (original tab, new tabs, enlarged view)
+
+### Customer Data Fetching Fix for Quotation History (September 2025)
+- **ISSUE RESOLVED**: Quotation history previews were not showing complete customer data (phone, company, email, address)
+- **ROOT CAUSE**: Wrong API endpoint being used - `/api/customers/:id` (returns HTML/404) instead of `/api/v1/customers/:id` (returns complete JSON data)
+- **SOLUTION**: Updated QuotationHistory.tsx useQuery to use correct endpoint `/api/v1/customers/${selectedQuotation.customerId}`
+- **TECHNICAL APPROACH**: 
+  - Modified the customer details fetch query to use proper API v1 endpoint
+  - Enhanced customer object passed to PrintableQuotation with all fields (company, phone, email, address, taxNumber, sector, position)
+  - Maintained fallback values to prevent undefined data display issues
+- **RESULT**: Quotation history previews now show complete customer information identical to Create Quotation preview style
+- **USER REQUEST**: "okay rembmer this way to fix" - Documented this approach for future similar API endpoint issues
+- **CODE LOCATION**: `client/src/pages/QuotationHistory.tsx` - customer details useQuery hook
+- **KEY LEARNING**: Always verify API endpoint paths - v1 routes may differ from base routes, check actual server response before debugging frontend logic
