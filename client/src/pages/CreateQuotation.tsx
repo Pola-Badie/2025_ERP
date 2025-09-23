@@ -68,9 +68,7 @@ import {
 import { PrintableQuotation } from '@/components/PrintableQuotation';
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useLanguage } from '@/contexts/LanguageContext';
-import logoPath from '@assets/P_1749320448134.png';
 
 interface QuotationItem {
   id: string;
@@ -209,7 +207,6 @@ const CreateQuotation: React.FC = () => {
     processingTime: 0,
     qualityGrade: 'pharmaceutical'
   });
-
 
   // Create quotation mutation
   const createQuotationMutation = useMutation({
@@ -491,418 +488,102 @@ const CreateQuotation: React.FC = () => {
     }
   };
 
-  const generateQuotationPDF = (): jsPDF | null => {
-    try {
-      console.log('🎯 GENERATING PDF TO MATCH PREVIEW EXACTLY');
-      console.log('Quotation data:', { quotationNumber, selectedCustomer, items, validUntil, quotationType });
-      
-      // Set safe defaults for missing data
-      const finalQuotationNumber = quotationNumber || 'QUO-DRAFT-001';
-      const finalSelectedCustomer = selectedCustomer || { 
-        name: 'Draft Customer', 
-        company: 'Draft Company',
-        id: 0,
-        phone: '+20 xxx xxxx'
-      };
-      const finalItems = items || [];
-      const finalValidUntil = validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      const finalQuotationType = quotationType || 'finished';
-      
-      const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.width;
-      const pageHeight = doc.internal.pageSize.height;
-      let yPosition = 20;
-
-      // EXACT HEADER MATCH - Morgan ERP with logo space
-      doc.setFontSize(26);
-      doc.setTextColor(37, 99, 235); // Blue-600 color
-      doc.text('Morgan ERP', 20, yPosition);
-      
-      doc.setFontSize(10);
-      doc.setTextColor(107, 114, 128); // Gray-500
-      doc.text('Enterprise Resource Planning System', 20, yPosition + 10);
-      
-      // Company details exactly as preview
-      doc.setFontSize(9);
-      doc.text('123 Business District', 20, yPosition + 20);
-      doc.text('Cairo, Egypt 11511', 20, yPosition + 26);
-      doc.text('Phone: +20 2 1234 5678', 20, yPosition + 32);
-      doc.text('Email: info@morganerp.com', 20, yPosition + 38);
-
-      // QUOTATION header on right (exact match)
-      doc.setFontSize(20);
-      doc.setTextColor(75, 85, 99); // Gray-800
-      doc.text('QUOTATION', pageWidth - 20, yPosition, { align: 'right' });
-      
-      // Quotation details (exact format from preview)
-      doc.setFontSize(9);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Quotation #: ${finalQuotationNumber}`, pageWidth - 20, yPosition + 15, { align: 'right' });
-      doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 22, { align: 'right' });
-      doc.text(`Valid Until: ${new Date(finalValidUntil).toLocaleDateString('en-GB')}`, pageWidth - 20, yPosition + 29, { align: 'right' });
-      
-      // Service type label
-      const serviceTypeLabel = finalQuotationType === 'finished' ? 'Finished Products' : 
-                              finalQuotationType === 'manufacturing' ? 'Manufacturing Services' : 
-                              finalQuotationType === 'refining' ? 'Refining Services' : 'General Services';
-      doc.text(`Service Type: ${serviceTypeLabel}`, pageWidth - 20, yPosition + 36, { align: 'right' });
-
-      yPosition += 55;
-
-      // Border line exactly like preview
-      doc.setDrawColor(209, 213, 219); // Gray-300
-      doc.line(20, yPosition, pageWidth - 20, yPosition);
-      yPosition += 15;
-
-      // QUOTE FOR section exactly like preview
-      doc.setFontSize(14);
-      doc.setTextColor(75, 85, 99); // Gray-800
-      doc.text('Quote For:', 20, yPosition);
-      yPosition += 10;
-
-      // Customer info box with exact styling from preview
-      doc.setDrawColor(209, 213, 219); // Gray-300 border
-      doc.setFillColor(249, 250, 251); // Gray-50 background
-      doc.rect(20, yPosition, pageWidth - 40, 40, 'FD');
-      
-      // Customer name (large)
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      const customerCompany = finalSelectedCustomer?.company || finalSelectedCustomer?.name || 'No Customer Selected';
-      doc.text(customerCompany, 25, yPosition + 8);
-      
-      // Customer contact name if different from company
-      if (finalSelectedCustomer?.name && finalSelectedCustomer?.company && finalSelectedCustomer.name !== finalSelectedCustomer.company) {
-        doc.setFontSize(10);
-        doc.setTextColor(107, 114, 128); // Gray-500
-        doc.text(finalSelectedCustomer.name, 25, yPosition + 16);
-      }
-      
-      // Customer badges exactly like preview
-      let badgeX = 25;
-      const badgeY = yPosition + 24;
-      
-      if (finalSelectedCustomer?.id) {
-        // Blue badge for customer code
-        doc.setFillColor(219, 234, 254); // Blue-100
-        doc.setDrawColor(147, 197, 253); // Blue-300
-        doc.roundedRect(badgeX, badgeY, 40, 8, 2, 2, 'FD');
-        doc.setTextColor(30, 64, 175); // Blue-800
-        doc.setFontSize(7);
-        doc.text(`Code: CUST-${String(finalSelectedCustomer.id).padStart(4, '0')}`, badgeX + 2, badgeY + 5);
-        badgeX += 45;
-      }
-      
-      if (finalSelectedCustomer?.phone) {
-        // Green badge for mobile
-        doc.setFillColor(220, 252, 231); // Green-100
-        doc.setDrawColor(134, 239, 172); // Green-300
-        doc.roundedRect(badgeX, badgeY, 50, 8, 2, 2, 'FD');
-        doc.setTextColor(22, 101, 52); // Green-800
-        doc.setFontSize(7);
-        doc.text(`Mobile: ${finalSelectedCustomer.phone}`, badgeX + 2, badgeY + 5);
-      }
-
-      // Customer additional details
-      yPosition += 35;
-      if (selectedCustomer?.taxNumber) {
-        doc.setFontSize(8);
-        doc.setTextColor(107, 114, 128);
-        doc.text(`ETA Number: ${selectedCustomer.taxNumber}`, 25, yPosition);
-        yPosition += 6;
-      }
-      if (selectedCustomer?.address) {
-        doc.setFontSize(8);
-        doc.setTextColor(107, 114, 128);
-        doc.text(`Address: ${selectedCustomer.address}`, 25, yPosition);
-        yPosition += 8;
-      }
-
-      yPosition += 15;
-
-      // ITEMS TABLE exactly like preview
-      doc.setFontSize(14);
-      doc.setTextColor(75, 85, 99); // Gray-800
-      doc.text('Quoted Items & Services', 20, yPosition);
-      yPosition += 10;
-
-      // Table data with exact columns from preview
-      const tableData = finalItems.length > 0 ? 
-        finalItems.map(item => {
-          let description = item.description || '';
-          // Add processing time and quality info for manufacturing
-          if (item.type === 'manufacturing' && item.processingTime) {
-            description += `\nProcessing Time: ${item.processingTime} days`;
-            if (item.qualityGrade) {
-              description += ` | Quality: ${item.qualityGrade}`;
-            }
-          }
-          // Add specifications for refining
-          if (item.type === 'refining' && item.specifications) {
-            description += `\nSpecifications: ${item.specifications}`;
-          }
-          
-          const gradeDisplay = item.grade === 'P' ? 'Pharmaceutical' : 
-                              item.grade === 'F' ? 'Food Grade' : 
-                              item.grade === 'T' ? 'Technical' : 
-                              item.grade || 'N/A';
-          
-          return [
-            item.productName,
-            description,
-            item.quantity.toString(),
-            item.uom,
-            gradeDisplay,
-            `EGP ${item.unitPrice.toFixed(2)}`,
-            `EGP ${item.total.toFixed(2)}`
-          ];
-        }) :
-        [['No items added yet', '', '', '', '', 'EGP 0.00', 'EGP 0.00']];
-
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['Item/Service', 'Description', 'Qty', 'UoM', 'Grade', 'Unit Price', 'Total']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [243, 244, 246], // Gray-100
-          textColor: [0, 0, 0],
-          fontSize: 9,
-          fontStyle: 'bold',
-          cellPadding: { top: 4, right: 4, bottom: 4, left: 4 }
-        },
-        bodyStyles: {
-          fontSize: 8,
-          textColor: [0, 0, 0],
-          cellPadding: { top: 4, right: 4, bottom: 4, left: 4 }
-        },
-        columnStyles: {
-          0: { cellWidth: 30, halign: 'left' },   // Item/Service
-          1: { cellWidth: 35, halign: 'left' },   // Description
-          2: { cellWidth: 15, halign: 'center' }, // Qty
-          3: { cellWidth: 15, halign: 'center' }, // UoM
-          4: { cellWidth: 20, halign: 'center' }, // Grade
-          5: { cellWidth: 25, halign: 'right' },  // Unit Price
-          6: { cellWidth: 25, halign: 'right', fontStyle: 'bold' } // Total
-        },
-        margin: { left: 20, right: 20 },
-        styles: {
-          lineColor: [209, 213, 219], // Gray-300
-          lineWidth: 0.5
-        }
-      });
-
-      yPosition = (doc as any).lastAutoTable.finalY + 15;
-
-      // TRANSPORTATION section if applicable (exact match to preview)
-      if (transportationFees > 0) {
-        doc.setFontSize(14);
-        doc.setTextColor(75, 85, 99); // Gray-800
-        doc.text('Transportation & Delivery', 20, yPosition);
-        yPosition += 8;
-        
-        // Blue box exactly like preview
-        doc.setFillColor(239, 246, 255); // Blue-50
-        doc.setDrawColor(209, 213, 219); // Gray-300
-        doc.rect(20, yPosition, pageWidth - 40, 20, 'FD');
-        
-        doc.setFontSize(11);
-        doc.setTextColor(30, 58, 138); // Blue-900
-        const transportLabel = getTransportationTypeLabel(transportationType || 'standard');
-        doc.text(transportLabel, 25, yPosition + 8);
-        
-        if (transportationNotes) {
-          doc.setFontSize(9);
-          doc.setTextColor(29, 78, 216); // Blue-700
-          doc.text(transportationNotes, 25, yPosition + 14);
-        }
-        
-        doc.setFontSize(11);
-        doc.text(`EGP ${transportationFees.toFixed(2)}`, pageWidth - 25, yPosition + 8, { align: 'right' });
-        
-        yPosition += 25;
-      }
-
-      // PACKAGING section if applicable (exact match to preview)
-      if (packagingItems && packagingItems.length > 0) {
-        doc.setFontSize(14);
-        doc.setTextColor(75, 85, 99); // Gray-800
-        doc.text('Packaging Items', 20, yPosition);
-        yPosition += 8;
-        
-        packagingItems.forEach((item) => {
-          // Green box for each packaging item
-          doc.setFillColor(240, 253, 244); // Green-50
-          doc.setDrawColor(209, 213, 219); // Gray-300
-          doc.rect(20, yPosition, pageWidth - 40, 18, 'FD');
-          
-          doc.setFontSize(11);
-          doc.setTextColor(22, 101, 52); // Green-900
-          doc.text(item.type, 25, yPosition + 6);
-          
-          if (item.description) {
-            doc.setFontSize(9);
-            doc.setTextColor(21, 128, 61); // Green-700
-            doc.text(item.description, 25, yPosition + 12);
-          }
-          
-          if (item.notes) {
-            doc.setFontSize(8);
-            doc.setTextColor(22, 163, 74); // Green-600
-            doc.text(item.notes, 25, yPosition + 16);
-          }
-          
-          // Right side pricing
-          doc.setFontSize(11);
-          doc.setTextColor(22, 101, 52); // Green-900
-          doc.text(`EGP ${item.total.toFixed(2)}`, pageWidth - 25, yPosition + 6, { align: 'right' });
-          doc.setFontSize(8);
-          doc.setTextColor(22, 163, 74); // Green-600
-          doc.text(`${item.quantity} × EGP ${item.unitPrice.toFixed(2)}`, pageWidth - 25, yPosition + 12, { align: 'right' });
-          
-          yPosition += 22;
-        });
-      }
-
-      // TOTALS SECTION exactly like preview
-      const totalsStartY = yPosition + 10;
-      const totalsX = pageWidth - 100;
-      const totalsWidth = 80;
-      
-      // Background box - individual rows will be drawn separately
-      doc.setDrawColor(209, 213, 219); // Gray-300
-      doc.setFillColor(249, 250, 251); // Gray-50
-      
-      let totalsY = totalsStartY;
-      const rowHeight = 10;
-      
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      
-      // Subtotal row
-      doc.setFillColor(249, 250, 251); // Gray-50
-      doc.rect(totalsX, totalsY, totalsWidth, rowHeight, 'FD');
-      doc.setDrawColor(209, 213, 219);
-      doc.rect(totalsX, totalsY, totalsWidth, rowHeight);
-      doc.text('Subtotal:', totalsX + 5, totalsY + 6);
-      doc.text(`EGP ${calculateSubtotal().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 6, { align: 'right' });
-      totalsY += rowHeight;
-      
-      // Transportation row (if applicable)
-      if (transportationFees > 0) {
-        doc.setFillColor(249, 250, 251);
-        doc.rect(totalsX, totalsY, totalsWidth, rowHeight, 'FD');
-        doc.rect(totalsX, totalsY, totalsWidth, rowHeight);
-        doc.text('Transportation:', totalsX + 5, totalsY + 6);
-        doc.text(`EGP ${transportationFees.toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 6, { align: 'right' });
-        totalsY += rowHeight;
-      }
-      
-      // Packaging row (if applicable) - combine packagingItems + legacy packagingFees
-      const packagingItemsTotal = packagingItems?.reduce((sum, item) => sum + item.total, 0) || 0;
-      const totalPackagingCost = packagingItemsTotal + packagingFees;
-      if (totalPackagingCost > 0) {
-        doc.setFillColor(249, 250, 251);
-        doc.rect(totalsX, totalsY, totalsWidth, rowHeight, 'FD');
-        doc.rect(totalsX, totalsY, totalsWidth, rowHeight);
-        doc.text('Packaging:', totalsX + 5, totalsY + 6);
-        doc.text(`EGP ${totalPackagingCost.toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 6, { align: 'right' });
-        totalsY += rowHeight;
-      }
-      
-      // VAT row
-      doc.setFillColor(249, 250, 251);
-      doc.rect(totalsX, totalsY, totalsWidth, rowHeight, 'FD');
-      doc.rect(totalsX, totalsY, totalsWidth, rowHeight);
-      doc.text(`VAT (${vatPercentage}%):`, totalsX + 5, totalsY + 6);
-      doc.text(`EGP ${calculateTax().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 6, { align: 'right' });
-      totalsY += rowHeight;
-      
-      // TOTAL row (blue background like preview)
-      const totalRowHeight = 12;
-      doc.setFillColor(37, 99, 235); // Blue-600
-      doc.rect(totalsX, totalsY, totalsWidth, totalRowHeight, 'F');
-      doc.setTextColor(255, 255, 255); // White text
-      doc.setFontSize(12);
-      doc.text('Total Amount:', totalsX + 5, totalsY + 8);
-      doc.text(`EGP ${calculateGrandTotal().toFixed(2)}`, totalsX + totalsWidth - 5, totalsY + 8, { align: 'right' });
-
-      yPosition = totalsY + totalRowHeight + 20;
-
-      // TERMS & CONDITIONS section if applicable
-      if (termsAndConditions) {
-        doc.setFontSize(14);
-        doc.setTextColor(75, 85, 99); // Gray-800
-        doc.text('Terms & Conditions', 20, yPosition);
-        yPosition += 8;
-        
-        doc.setFillColor(249, 250, 251); // Gray-50
-        doc.setDrawColor(209, 213, 219); // Gray-300
-        doc.rect(20, yPosition, pageWidth - 40, 25, 'FD');
-        
-        doc.setFontSize(8);
-        doc.setTextColor(55, 65, 81); // Gray-700
-        const splitTerms = doc.splitTextToSize(termsAndConditions, pageWidth - 50);
-        doc.text(splitTerms, 25, yPosition + 5);
-        
-        yPosition += 30;
-      }
-
-      // NOTES section if applicable
-      if (notes) {
-        doc.setFontSize(12);
-        doc.setTextColor(75, 85, 99); // Gray-800
-        doc.text('Additional Notes:', 20, yPosition);
-        yPosition += 8;
-        
-        doc.setFillColor(249, 250, 251); // Gray-50
-        doc.setDrawColor(209, 213, 219); // Gray-300
-        doc.rect(20, yPosition, pageWidth - 40, 20, 'FD');
-        
-        doc.setFontSize(9);
-        doc.setTextColor(55, 65, 81); // Gray-700
-        const splitNotes = doc.splitTextToSize(notes, pageWidth - 50);
-        doc.text(splitNotes, 25, yPosition + 5);
-        
-        yPosition += 25;
-      }
-
-      // FOOTER exactly like preview
-      if (yPosition < pageHeight - 40) {
-        doc.setDrawColor(209, 213, 219); // Gray-300
-        doc.line(20, pageHeight - 35, pageWidth - 20, pageHeight - 35);
-        
-        doc.setFontSize(9);
-        doc.setTextColor(107, 114, 128); // Gray-500
-        doc.text('Thank you for considering Morgan ERP for your pharmaceutical needs!', pageWidth / 2, pageHeight - 25, { align: 'center' });
-        
-        const currentDate = new Date();
-        const dateStr = currentDate.toLocaleDateString('en-GB');
-        const timeStr = currentDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        doc.text(`This quotation was generated on ${dateStr} ${timeStr}`, pageWidth / 2, pageHeight - 18, { align: 'center' });
-        
-        doc.text('For any questions regarding this quotation, please contact us at support@premiererp.com', pageWidth / 2, pageHeight - 11, { align: 'center' });
-        
-        doc.setFontSize(7);
-        doc.text('All prices are in EGP and exclude applicable taxes unless otherwise stated.', pageWidth / 2, pageHeight - 5, { align: 'center' });
-      }
-
-      console.log('✅ PDF GENERATED TO MATCH PREVIEW EXACTLY');
-      return doc;
-      
-    } catch (error) {
-      console.error('❌ PDF Generation Error:', error instanceof Error ? error.message : error);
-      console.error('❌ Full Error Object:', error);
-      return null;
-    }
-  };
-
   const getQuotationTypeLabel = (type: string) => {
     switch (type) {
       case 'manufacturing': return 'Manufacturing Services';
       case 'refining': return 'Refining & Processing';
       case 'finished': return 'Finished Products';
       default: return 'Pharmaceutical Services';
+    }
+  };
+
+  // Clean HTML2Canvas PDF Generation Function
+  const generateQuotationPDF = async (): Promise<void> => {
+    try {
+      console.log('🎯 GENERATING PDF FROM PREVIEW COMPONENT');
+      
+      // Get the preview element
+      const previewElement = document.querySelector('.printable-quotation') as HTMLElement;
+      if (!previewElement) {
+        toast({
+          title: "Error",
+          description: "Preview not found. Please ensure the preview is visible.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Show loading toast
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we create your PDF..."
+      });
+
+      // Import html2canvas dynamically
+      const html2canvas = (await import('html2canvas')).default;
+      
+      // Capture the preview as an image with high quality
+      const canvas = await html2canvas(previewElement, {
+        scale: 2, // High resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: previewElement.scrollWidth,
+        height: previewElement.scrollHeight
+      });
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Calculate dimensions to fit the page
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+
+      // If content is longer than one page, add additional pages
+      if (imgHeight > pageHeight - 20) {
+        let remainingHeight = imgHeight - (pageHeight - 20);
+        let currentY = -(pageHeight - 20);
+        
+        while (remainingHeight > 0) {
+          pdf.addPage();
+          const pageContentHeight = Math.min(remainingHeight, pageHeight - 20);
+          pdf.addImage(imgData, 'PNG', 10, currentY, imgWidth, imgHeight);
+          remainingHeight -= pageContentHeight;
+          currentY -= (pageHeight - 20);
+        }
+      }
+
+      // Generate filename
+      const filename = `quotation-${quotationNumber || 'draft'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      // Download the PDF
+      pdf.save(filename);
+
+      // Success message
+      toast({
+        title: "Success",
+        description: `PDF downloaded: ${filename}`
+      });
+
+      console.log('✅ PDF generated successfully using html2canvas approach');
+      
+    } catch (error) {
+      console.error('❌ PDF Generation Error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1378,70 +1059,44 @@ const CreateQuotation: React.FC = () => {
                   </Table>
                 </div>
               )}
-              
-              {/* Legacy packaging fields for backward compatibility */}
-              {(packagingFees > 0 || packagingType !== 'standard' || packagingNotes) && (
-                <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-                  <h4 className="font-semibold mb-3 text-gray-600">Additional Packaging Costs</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>{t('packagingType')}</Label>
-                      <Input 
-                        placeholder={t('describePackagingRequirements')}
-                        value={packagingType}
-                        onChange={(e) => setPackagingType(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label>{t('packagingFees')}</Label>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={packagingFees || ''}
-                        onChange={(e) => setPackagingFees(Number(e.target.value) || 0)}
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <Label>{t('packagingNotes')}</Label>
-                    <Textarea 
-                      placeholder={t('specialPackagingRequirements')}
-                      value={packagingNotes}
-                      onChange={(e) => setPackagingNotes(e.target.value)}
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              )}
-
             </CardContent>
           </Card>
 
-          {/* Transportation Fees */}
+          {/* Transportation */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Truck className="h-5 w-5" />
-                {t('transportationDelivery')}
+                {t('transportation')}
               </CardTitle>
               <CardDescription>
-                {t('addShippingHandlingCosts')}
+                {t('specifyTransportationRequirements')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>{t('transportationType')}</Label>
-                  <Input 
-                    placeholder={t('describeTransportationMethod')}
+                  <Select 
                     value={transportationType}
-                    onChange={(e) => setTransportationType(e.target.value)}
-                  />
+                    onValueChange={setTransportationType}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard Delivery (3-5 days)</SelectItem>
+                      <SelectItem value="express">Express Delivery (1-2 days)</SelectItem>
+                      <SelectItem value="cold-chain">Cold Chain Transport</SelectItem>
+                      <SelectItem value="hazmat">Hazardous Materials Transport</SelectItem>
+                      <SelectItem value="international">International Shipping</SelectItem>
+                      <SelectItem value="pickup">Customer Pickup</SelectItem>
+                      <SelectItem value="custom">Custom Transportation</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <Label>{t('transportationFees')}</Label>
+                  <Label>{t('transportationCost')} (EGP)</Label>
                   <Input 
                     type="number"
                     step="0.01"
@@ -1452,106 +1107,42 @@ const CreateQuotation: React.FC = () => {
                   />
                 </div>
               </div>
-              
               <div>
                 <Label>{t('transportationNotes')}</Label>
                 <Textarea 
-                  placeholder={t('specialHandlingRequirements')}
+                  placeholder={t('addSpecialTransportationRequirements')}
                   value={transportationNotes}
                   onChange={(e) => setTransportationNotes(e.target.value)}
                   rows={2}
                 />
               </div>
-
             </CardContent>
           </Card>
 
-          {/* Tax Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                {t('taxConfiguration')}
-              </CardTitle>
-              <CardDescription>
-                {t('configureVatPercentage')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label>{t('vatPercentage')}</Label>
-                <Input 
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  value={vatPercentage || ''}
-                  onChange={(e) => setVatPercentage(Number(e.target.value) || 0)}
-                  placeholder="14"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('standardEgyptianVat')}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Terms & Conditions */}
+          {/* Terms and Conditions */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {t('termsConditions')}
+                {t('termsAndConditions')}
               </CardTitle>
               <CardDescription>
-                {t('standardTermsConditions')}
+                {t('defineContractualTerms')}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div>
-                <Label>{t('termsConditions')}</Label>
-                <Textarea 
-                  value={termsAndConditions}
-                  onChange={(e) => setTermsAndConditions(e.target.value)}
-                  rows={12}
-                  className="mt-1"
-                  placeholder={t('enterTermsConditions')}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('termsWillAppearOnDocument')}
-                </p>
-              </div>
+              <Textarea 
+                value={termsAndConditions}
+                onChange={(e) => setTermsAndConditions(e.target.value)}
+                rows={8}
+                placeholder={t('enterTermsAndConditions')}
+              />
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {/* Summary Sidebar */}
         <div className="space-y-6">
-          {/* Customer Info */}
-          {selectedCustomer && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  {t('customerDetails')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div>
-                  <p className="font-medium">{selectedCustomer.name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
-                  <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('address')}:</p>
-                  <p className="text-sm">{selectedCustomer.address}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Quotation Summary */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1559,34 +1150,78 @@ const CreateQuotation: React.FC = () => {
                 {t('quotationSummary')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span>{t('items')}:</span>
-                <span>{items.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('subtotal')}:</span>
-                <span>${calculateSubtotal().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('transportation')}:</span>
-                <span>${transportationFees.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('packaging')}:</span>
-                <span>${calculatePackagingTotal().toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>{t('vat')} ({vatPercentage}%):</span>
-                <span>${calculateTax().toFixed(2)}</span>
-              </div>
+            <CardContent className="space-y-4">
+              {selectedCustomer && (
+                <div className="text-sm">
+                  <div className="font-medium">{selectedCustomer.company || selectedCustomer.name}</div>
+                  <div className="text-muted-foreground">{selectedCustomer.email}</div>
+                  <div className="text-muted-foreground">{selectedCustomer.phone}</div>
+                </div>
+              )}
+              
               <Separator />
-              <div className="flex justify-between font-bold text-lg">
-                <span>{t('total')}:</span>
-                <span>${calculateGrandTotal().toFixed(2)}</span>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>{t('quotationType')}:</span>
+                  <Badge variant="outline" className="capitalize">{quotationType}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('quotationNumber')}:</span>
+                  <span className="font-mono text-xs">{quotationNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('validUntil')}:</span>
+                  <span>{validUntil}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>{t('items')}:</span>
+                  <span>{items.length}</span>
+                </div>
               </div>
               
+              <Separator />
               
+              {/* Pricing Breakdown */}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>{t('subtotal')}:</span>
+                  <span>EGP {subtotal.toFixed(2)}</span>
+                </div>
+                {transportationFees > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{t('transportation')}:</span>
+                    <span>EGP {transportationFees.toFixed(2)}</span>
+                  </div>
+                )}
+                {calculatePackagingTotal() > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>{t('packaging')}:</span>
+                    <span>EGP {calculatePackagingTotal().toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>VAT ({vatPercentage}%):</span>
+                  <span>EGP {vatAmount.toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-medium text-lg">
+                  <span>{t('total')}:</span>
+                  <span>EGP {grandTotal.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <Label>{t('vatPercentage')} (%)</Label>
+                <Input 
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={vatPercentage}
+                  onChange={(e) => setVatPercentage(Number(e.target.value) || 0)}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -1596,261 +1231,59 @@ const CreateQuotation: React.FC = () => {
               <CardTitle>{t('quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full" onClick={() => handleSubmit('send')}>
-                <FileText className="mr-2 h-4 w-4" />
-                {t('createQuotation')}
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => setIsPreviewOpen(true)}>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => setIsPreviewOpen(true)}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 {t('previewQuotation')}
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => handleSubmit('draft')}>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => handleSubmit('draft')}
+                disabled={!selectedCustomer || items.length === 0}
+              >
                 <Save className="mr-2 h-4 w-4" />
-                {t('saveAsDraft')}
+                {t('saveDraft')}
+              </Button>
+              <Button 
+                className="w-full justify-start"
+                onClick={() => handleSubmit('send')}
+                disabled={!selectedCustomer || items.length === 0}
+              >
+                <Send className="mr-2 h-4 w-4" />
+                {t('sendQuotation')}
               </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* Preview Dialog */}
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>{t('quotationPreview')}</DialogTitle>
-            <DialogDescription>
-              {t('reviewQuotationBeforeSending')}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="border rounded-lg p-6 bg-white">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-blue-600">{t('quotation').toUpperCase()}</h2>
-                <p className="text-muted-foreground">Premier Ltd.</p>
-                <p className="text-muted-foreground">123 Pharma Street, Lagos</p>
-              </div>
-              <div className="text-right">
-                <p className="font-bold">{t('quotationNumber')}: {quotationNumber}</p>
-                <p>{t('date')}: {new Date().toLocaleDateString()}</p>
-                <p>{t('validUntil')}: {new Date(validUntil).toLocaleDateString()}</p>
-                <div className="mt-2 flex items-center gap-2 justify-end">
-                  {getQuotationTypeIcon(quotationType)}
-                  <Badge variant="secondary" className="capitalize">
-                    {quotationType}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-6 mb-8">
-              <div>
-                <h3 className="font-semibold mb-2">{t('customer')}:</h3>
-                {selectedCustomer ? (
-                  <div>
-                    <p className="font-medium">{selectedCustomer.name}</p>
-                    <p className="text-sm text-muted-foreground">{selectedCustomer.email}</p>
-                    <p className="text-sm text-muted-foreground">{selectedCustomer.phone}</p>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">{t('noCustomerSelected')}</p>
-                )}
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">{t('serviceType')}:</h3>
-                <p className="text-sm">{getQuotationTypeDescription(quotationType)}</p>
-              </div>
-            </div>
-            
-            {items.length > 0 && (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('item')}</TableHead>
-                      <TableHead className="text-center">{t('qty')}</TableHead>
-                      <TableHead className="text-center">{t('uom')}</TableHead>
-                      <TableHead className="text-right">{t('unitPrice')}</TableHead>
-                      <TableHead className="text-right">{t('total')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{item.productName}</p>
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground">{item.description}</p>
-                            )}
-                            {item.type === 'manufacturing' && item.processingTime && (
-                              <p className="text-xs text-muted-foreground">
-                                {t('processing')}: {item.processingTime} {t('days')} | {t('grade')}: {item.qualityGrade}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">{item.quantity}</TableCell>
-                        <TableCell className="text-center">{item.uom}</TableCell>
-                        <TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${item.total.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                
-                <div className="mt-8 flex justify-end">
-                  <div className="w-72">
-                    <div className="flex justify-between">
-                      <span>{t('subtotal')}:</span>
-                      <span>${calculateSubtotal().toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{t('transportation')}:</span>
-                      <span>${transportationFees.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>{t('vat')} ({vatPercentage}%):</span>
-                      <span>${calculateTax().toFixed(2)}</span>
-                    </div>
-                    <Separator className="my-2" />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>{t('total')}:</span>
-                      <span>${calculateGrandTotal().toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {transportationType && transportationType !== 'pickup' && (
-              <div className="mt-8">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  {t('transportationDelivery')}:
-                </h3>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p><span className="font-medium">{t('method')}:</span> {transportationType.charAt(0).toUpperCase() + transportationType.slice(1).replace('-', ' ')}</p>
-                  <p><span className="font-medium">{t('fee')}:</span> ${transportationFees.toFixed(2)}</p>
-                  {transportationNotes && (
-                    <p><span className="font-medium">{t('notes')}:</span> {transportationNotes}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {packagingItems.length > 0 && (
-              <div className="mt-8">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Package className="h-4 w-4" />
-                  Packaging Items:
-                </h3>
-                <div className="space-y-2">
-                  {packagingItems.map((item, index) => (
-                    <div key={item.id} className="bg-gray-50 p-3 rounded border text-sm">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{item.type}</p>
-                          {item.description && (
-                            <p className="text-muted-foreground">{item.description}</p>
-                          )}
-                          {item.notes && (
-                            <p className="text-xs text-muted-foreground mt-1">{item.notes}</p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">EGP {item.total.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">{item.quantity} × EGP {item.unitPrice.toFixed(2)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {notes && (
-              <div className="mt-8">
-                <h3 className="font-semibold mb-2">{t('notesSpecialInstructions')}:</h3>
-                <p className="text-sm text-muted-foreground">{notes}</p>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
-              {t('closePreview')}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                try {
-                  const doc = generateQuotationPDF();
-                  if (doc) {
-                    doc.save(`Quotation-${quotationNumber}.pdf`);
-                    toast({
-                      title: "PDF Downloaded",
-                      description: `Quotation ${quotationNumber} has been downloaded successfully`,
-                      variant: "default"
-                    });
-                  } else {
-                    toast({
-                      title: "Download Error",
-                      description: "Failed to generate PDF. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
-                } catch (error) {
-                  console.error('PDF Download Error:', error);
-                  toast({
-                    title: "Download Error", 
-                    description: "An error occurred while generating the PDF",
-                    variant: "destructive"
-                  });
-                }
-              }}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Download PDF
-            </Button>
-            <Button onClick={() => {
-              setIsPreviewOpen(false);
-              handleSubmit('send');
-            }}>
-              <Send className="mr-2 h-4 w-4" />
-              {t('sendQuotation')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
         </TabsContent>
-
-        {/* Draft Quotations Tab */}
+        
         <TabsContent value="drafts" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {t('draftQuotations')}
-              </CardTitle>
+              <CardTitle>{t('draftQuotations')}</CardTitle>
               <CardDescription>
-                {t('manageDraftQuotations')}
+                {t('manageAndEditSavedDrafts')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {/* Sample Draft Quotations */}
-                <div className="grid gap-4">
+                <div className="space-y-3">
                   <Card className="border-dashed">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-start gap-3">
                           <div className="p-2 bg-blue-100 rounded-lg">
-                            <FileText className="h-4 w-4 text-blue-600" />
+                            <Factory className="h-4 w-4 text-blue-600" />
                           </div>
                           <div>
                             <h4 className="font-medium">QUOTE-MFG-2025-001</h4>
-                            <p className="text-sm text-muted-foreground">Manufacturing - Cairo Medical Center</p>
+                            <p className="text-sm text-muted-foreground">Manufacturing - Cairo Pharmaceuticals</p>
                             <p className="text-xs text-muted-foreground mt-1">
                               Last modified: 2 hours ago • 3 items • $12,450.00
                             </p>
@@ -1946,7 +1379,7 @@ const CreateQuotation: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-start gap-3">
                           <div className="p-2 bg-green-100 rounded-lg">
-                            <FileText className="h-4 w-4 text-green-600" />
+                            <TestTube className="h-4 w-4 text-green-600" />
                           </div>
                           <div>
                             <h4 className="font-medium">QUOTE-REF-2025-002</h4>
@@ -2046,7 +1479,7 @@ const CreateQuotation: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-start gap-3">
                           <div className="p-2 bg-purple-100 rounded-lg">
-                            <FileText className="h-4 w-4 text-purple-600" />
+                            <Package className="h-4 w-4 text-purple-600" />
                           </div>
                           <div>
                             <h4 className="font-medium">QUOTE-FIN-2025-003</h4>
@@ -2220,36 +1653,8 @@ const CreateQuotation: React.FC = () => {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => {
-                try {
-                  const doc = generateQuotationPDF();
-                  if (doc) {
-                    doc.save(`Quotation-${quotationNumber}.pdf`);
-                    toast({
-                      title: "PDF Downloaded",
-                      description: `Quotation ${quotationNumber} has been downloaded successfully`,
-                      variant: "default"
-                    });
-                  } else {
-                    toast({
-                      title: "Download Error",
-                      description: "Failed to generate PDF. Please ensure all required fields are filled.",
-                      variant: "destructive"
-                    });
-                  }
-                } catch (error) {
-                  console.error('Download error details:', error);
-                  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                  console.error('Error message:', errorMessage);
-                  if (error instanceof Error) {
-                    console.error('Error stack:', error.stack);
-                  }
-                  toast({
-                    title: "Download Error",
-                    description: `PDF generation failed: ${errorMessage}`,
-                    variant: "destructive"
-                  });
-                }
+              onClick={async () => {
+                await generateQuotationPDF();
               }}
             >
               <FileText className="mr-2 h-4 w-4" />
