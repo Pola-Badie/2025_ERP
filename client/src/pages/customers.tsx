@@ -225,7 +225,15 @@ const CustomerProfileReports = ({ customerId, selectedCustomer }: { customerId: 
                           </TableCell>
                           <TableCell>EGP {parseFloat(invoice.grandTotal || invoice.totalAmount || 0).toLocaleString()}</TableCell>
                           <TableCell>
-                            <Badge variant={invoice.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+                            <Badge variant={
+                              invoice.paymentStatus === 'paid' ? 'default' :
+                              invoice.paymentStatus === 'partial' ? 'secondary' :
+                              invoice.paymentStatus === 'pending' ? 'outline' :
+                              invoice.paymentStatus === 'unpaid' ? 'outline' :
+                              invoice.paymentStatus === 'overdue' ? 'destructive' :
+                              invoice.paymentStatus === 'failed' ? 'destructive' :
+                              'secondary'
+                            }>
                               {invoice.paymentStatus || invoice.status}
                             </Badge>
                           </TableCell>
@@ -295,7 +303,15 @@ const CustomerProfileReports = ({ customerId, selectedCustomer }: { customerId: 
                           </TableCell>
                           <TableCell>EGP {parseFloat(quotation.totalAmount || quotation.grandTotal || 0).toLocaleString()}</TableCell>
                           <TableCell>
-                            <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
+                            <Badge variant={
+                              quotation.status === 'approved' ? 'default' :
+                              quotation.status === 'sent' ? 'secondary' :
+                              quotation.status === 'pending' ? 'outline' :
+                              quotation.status === 'rejected' ? 'destructive' :
+                              quotation.status === 'expired' ? 'outline' :
+                              quotation.status === 'converted' ? 'default' :
+                              'secondary'
+                            }>
                               {quotation.status || 'pending'}
                             </Badge>
                           </TableCell>
