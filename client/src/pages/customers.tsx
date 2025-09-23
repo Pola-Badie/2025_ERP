@@ -194,44 +194,46 @@ const CustomerProfileReports = ({ customerId, selectedCustomer }: { customerId: 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customerInvoices.map((invoice: any) => (
-                      <TableRow key={invoice.id}>
-                        <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                        <TableCell>{new Date(invoice.date || invoice.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {invoice.items && invoice.items.length > 0 ? (
-                              invoice.items.map((item: any, idx: number) => (
-                                <div key={idx} className="text-xs">
-                                  {item.productName || 'Product'} × {item.quantity}
-                                </div>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground text-xs">No items</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>EGP {parseFloat(invoice.grandTotal || invoice.totalAmount || 0).toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant={invoice.paymentStatus === 'paid' ? 'default' : 'secondary'}>
-                            {invoice.paymentStatus || invoice.status}
-                          </Badge>
-                        </TableCell>
+                <div className="max-h-96 overflow-y-auto rounded-md border">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background">
+                      <TableRow>
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {customerInvoices.map((invoice: any) => (
+                        <TableRow key={invoice.id}>
+                          <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                          <TableCell>{new Date(invoice.date || invoice.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {invoice.items && invoice.items.length > 0 ? (
+                                invoice.items.map((item: any, idx: number) => (
+                                  <div key={idx} className="text-xs">
+                                    {item.productName || 'Product'} × {item.quantity}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-muted-foreground text-xs">No items</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>EGP {parseFloat(invoice.grandTotal || invoice.totalAmount || 0).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge variant={invoice.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+                              {invoice.paymentStatus || invoice.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           ) : (
@@ -262,44 +264,46 @@ const CustomerProfileReports = ({ customerId, selectedCustomer }: { customerId: 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Quotation #</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Items</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {customerQuotations.map((quotation: any) => (
-                      <TableRow key={quotation.id}>
-                        <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
-                        <TableCell>{new Date(quotation.date || quotation.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {quotation.items && quotation.items.length > 0 ? (
-                              quotation.items.map((item: any, idx: number) => (
-                                <div key={idx} className="text-xs">
-                                  {item.productName || item.description} × {item.quantity}
-                                </div>
-                              ))
-                            ) : (
-                              <span className="text-muted-foreground text-xs">No items</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>EGP {parseFloat(quotation.totalAmount || quotation.grandTotal || 0).toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
-                            {quotation.status || 'pending'}
-                          </Badge>
-                        </TableCell>
+                <div className="max-h-96 overflow-y-auto rounded-md border">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background">
+                      <TableRow>
+                        <TableHead>Quotation #</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Items</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {customerQuotations.map((quotation: any) => (
+                        <TableRow key={quotation.id}>
+                          <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
+                          <TableCell>{new Date(quotation.date || quotation.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              {quotation.items && quotation.items.length > 0 ? (
+                                quotation.items.map((item: any, idx: number) => (
+                                  <div key={idx} className="text-xs">
+                                    {item.productName || item.description} × {item.quantity}
+                                  </div>
+                                ))
+                              ) : (
+                                <span className="text-muted-foreground text-xs">No items</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>EGP {parseFloat(quotation.totalAmount || quotation.grandTotal || 0).toLocaleString()}</TableCell>
+                          <TableCell>
+                            <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
+                              {quotation.status || 'pending'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           ) : (
