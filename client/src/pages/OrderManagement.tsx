@@ -274,9 +274,9 @@ const OrderManagement = () => {
 
   // Fetch customers
   const { data: customers, isLoading: isLoadingCustomers } = useQuery({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/v1/customers'],
     queryFn: async () => {
-      const response = await fetch('/api/customers');
+      const response = await fetch('/api/v1/customers');
       if (!response.ok) {
         throw new Error('Failed to fetch customers');
       }
