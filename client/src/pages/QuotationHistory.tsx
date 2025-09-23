@@ -170,6 +170,17 @@ const QuotationHistory = () => {
     },
   });
 
+  // Fetch customer details when a quotation is selected
+  const { data: customerDetails } = useQuery({
+    queryKey: ['/api/customers', selectedQuotation?.customerId],
+    queryFn: async () => {
+      if (!selectedQuotation?.customerId) return null;
+      const res = await apiRequest('GET', `/api/customers/${selectedQuotation.customerId}`);
+      return res;
+    },
+    enabled: !!selectedQuotation?.customerId,
+  });
+
   // Filter quotations
   const filteredQuotations = quotations.filter(quotation => {
     const matchesSearch = searchTerm === '' || 
@@ -934,8 +945,15 @@ const QuotationHistory = () => {
                   date={new Date(selectedQuotation.date)}
                   validUntil={selectedQuotation.validUntil}
                   customer={{
-                    name: selectedQuotation.customerName,
-                    id: selectedQuotation.customerId
+                    name: customerDetails?.name || selectedQuotation.customerName,
+                    id: selectedQuotation.customerId,
+                    company: customerDetails?.company,
+                    phone: customerDetails?.phone,
+                    email: customerDetails?.email,
+                    address: customerDetails?.address,
+                    taxNumber: customerDetails?.taxNumber,
+                    sector: customerDetails?.sector,
+                    position: customerDetails?.position
                   }}
                   items={selectedQuotation.items.map(item => ({
                     id: item.id,
