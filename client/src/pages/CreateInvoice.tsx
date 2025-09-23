@@ -57,6 +57,7 @@ import { Check, ChevronsUpDown, Loader2, Plus, Trash, X, Printer, RefreshCw, Rot
 import { cn } from '@/lib/utils';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { PrintableInvoice } from '@/components/PrintableInvoice';
+import { useFinancialPreferences } from '@/hooks/use-financial-preferences';
 import { useReactToPrint } from 'react-to-print';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -114,8 +115,8 @@ interface InvoiceDraft {
   lastUpdated: string;
 }
 
-// Default form values
-const defaultFormValues: InvoiceFormValues = {
+// Dynamic default form values based on system preferences
+const getDefaultFormValues = (financialPrefs: any): InvoiceFormValues => ({
   customer: {
     id: undefined,
     name: '',
@@ -144,9 +145,9 @@ const defaultFormValues: InvoiceFormValues = {
   discountType: 'none',
   discountValue: 0,
   discountAmount: 0,
-  taxRate: 14, // Standard VAT rate 14%
+  taxRate: financialPrefs.taxRate || 14,
   taxAmount: 0,
-  vatRate: 14, // Standard VAT rate 14%
+  vatRate: financialPrefs.vatRate || 14,
   vatAmount: 0,
   grandTotal: 0,
   paymentStatus: 'unpaid',
@@ -157,12 +158,13 @@ const defaultFormValues: InvoiceFormValues = {
   paperInvoiceNumber: '',
   approvalNumber: '',
   notes: '',
-};
+});
 
 const CreateInvoice = () => {
   const { t, language } = useLanguage();
   const isRTL = language === 'ar';
   const { toast } = useToast();
+  const { preferences: financialPrefs, formatCurrency } = useFinancialPreferences();
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
@@ -207,7 +209,7 @@ const CreateInvoice = () => {
     return [{
       id: 'draft-1',
       name: 'Invoice 1',
-      data: defaultFormValues,
+      data: getDefaultFormValues(financialPrefs),
       lastUpdated: new Date().toISOString()
     }];
   });
@@ -223,7 +225,7 @@ const CreateInvoice = () => {
     const newDraft: InvoiceDraft = {
       id: 'draft-1',
       name: 'Invoice 1',
-      data: defaultFormValues,
+      data: getDefaultFormValues(financialPrefs),
       lastUpdated: new Date().toISOString()
     };
     
@@ -237,7 +239,7 @@ const CreateInvoice = () => {
     updateActiveInvoiceId('draft-1');
     
     // Reset the form with default values
-    form.reset(defaultFormValues);
+    form.reset(getDefaultFormValues(financialPrefs));
     
     toast({
       title: "Invoices reset",
@@ -266,7 +268,7 @@ const CreateInvoice = () => {
   // Set up the form with stable default values
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: getDefaultFormValues(financialPrefs),
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -667,7 +669,7 @@ const CreateInvoice = () => {
     const newDraft: InvoiceDraft = {
       id: newId,
       name: `Invoice ${invoiceDrafts.length + 1}`,
-      data: defaultFormValues,
+      data: getDefaultFormValues(financialPrefs),
       lastUpdated: new Date().toISOString()
     };
     
@@ -999,7 +1001,7 @@ const CreateInvoice = () => {
             updated.push({
               id: 'draft-1',
               name: 'Invoice 1',
-              data: defaultFormValues,
+              data: getDefaultFormValues(financialPrefs),
               lastUpdated: new Date().toISOString()
             });
           }
@@ -1013,7 +1015,7 @@ const CreateInvoice = () => {
         });
         
         // Reset form
-        form.reset(defaultFormValues);
+        form.reset(getDefaultFormValues(financialPrefs));
         setShowInvoicePreview(true);
         
         // Trigger global cache invalidation
@@ -2226,7 +2228,7 @@ const CreateInvoice = () => {
             </Button>
             <Button onClick={() => {
               setShowInvoicePreview(false);
-              form.reset(defaultFormValues);
+              form.reset(getDefaultFormValues(financialPrefs));
             }}>
               {t('createAnotherInvoice')}
             </Button>
