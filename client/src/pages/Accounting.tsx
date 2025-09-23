@@ -1437,6 +1437,17 @@ const InvoiceHistoryTab = () => {
               }}>
                 Close
               </Button>
+              <Button 
+                variant="outline" 
+                className="hover:bg-red-50 text-red-600 border-red-200"
+                onClick={() => {
+                  setRefundInvoice(detailedInvoice);
+                  setIsRefundDialogOpen(true);
+                }}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Refund
+              </Button>
               <Button variant="outline" className="hover:bg-gray-50">
                 <Mail className="h-4 w-4 mr-2" />
                 Email Invoice
@@ -1844,18 +1855,65 @@ const Accounting: React.FC = () => {
         return sum;
       }, 0);
 
-      toast({
-        title: "Item Refund Processed",
-        description: `Refund of ${selectedItems.length} item(s) totaling EGP ${totalRefundAmount.toLocaleString()} processed for invoice ${refundInvoice.invoiceNumber}`,
+      // Prepare refund data for API
+      const refundData = {
+        invoiceId: refundInvoice.id,
+        invoiceNumber: refundInvoice.invoiceNumber,
+        customerId: refundInvoice.customerId,
+        customerName: refundInvoice.customerName,
+        totalRefundAmount: totalRefundAmount,
+        refundReason: refundReason,
+        refundDate: new Date().toISOString(),
+        items: selectedItems.map(itemId => {
+          const item = detailedInvoice?.items.find((i: any) => i.id.toString() === itemId);
+          const refund = refundItems[itemId];
+          return {
+            productId: item?.productId || item?.id,
+            productName: item?.productName,
+            originalQuantity: item?.quantity,
+            refundQuantity: refund.quantity,
+            unitPrice: parseFloat(item?.unitPrice || 0),
+            refundAmount: parseFloat(item?.unitPrice || 0) * refund.quantity,
+            itemReason: refund.reason
+          };
+        })
+      };
+
+      // Make API call to process refund and update sales revenue
+      const response = await fetch('/api/accounting/process-refund', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(refundData),
+        credentials: 'include',
       });
-      setIsRefundDialogOpen(false);
-      setRefundItems({});
-      setRefundReason('');
-      setRefundInvoice(null);
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast({
+          title: "✅ Refund Processed Successfully",
+          description: `Refund of ${selectedItems.length} item(s) totaling EGP ${totalRefundAmount.toLocaleString()} processed for invoice ${refundInvoice.invoiceNumber}. Sales revenue updated.`,
+        });
+
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/sales'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/accounting/dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/unified/invoices'] });
+        
+        setIsRefundDialogOpen(false);
+        setRefundItems({});
+        setRefundReason('');
+        setRefundInvoice(null);
+      } else {
+        throw new Error(result.message || 'Failed to process refund');
+      }
     } catch (error) {
+      console.error('Refund processing error:', error);
       toast({
-        title: "Error",
-        description: "Failed to process refund",
+        title: "❌ Refund Processing Failed",
+        description: "Failed to process refund and update sales revenue. Please try again.",
         variant: "destructive"
       });
     }

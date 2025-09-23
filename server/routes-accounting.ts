@@ -24,11 +24,112 @@ import {
   createPaymentJournalEntry,
   createExpenseJournalEntry,
   updateAccountBalances,
-  ACCOUNT_CODES
+  ACCOUNT_CODES,
+  generateJournalEntryNumber,
+  getAccountIdByCode
 } from "./accounting-integration";
 
 export function registerAccountingRoutes(app: Express) {
   // Accounting API Routes
+
+  // Process refund and update sales revenue
+  app.post("/api/accounting/process-refund", async (req: Request, res: Response) => {
+    try {
+      const {
+        invoiceId,
+        invoiceNumber,
+        customerId,
+        customerName,
+        totalRefundAmount,
+        refundReason,
+        refundDate,
+        items
+      } = req.body;
+
+      console.log(`🔄 Processing refund for invoice ${invoiceNumber}: EGP ${totalRefundAmount}`);
+
+      // Get the original invoice
+      const [originalInvoice] = await db.select().from(sales).where(eq(sales.id, invoiceId));
+      if (!originalInvoice) {
+        return res.status(404).json({ success: false, message: 'Invoice not found' });
+      }
+
+      // Create refund journal entry to reverse the original sale
+      const receivableAccountId = await getAccountIdByCode(ACCOUNT_CODES.ACCOUNTS_RECEIVABLE);
+      const revenueAccountId = await getAccountIdByCode(ACCOUNT_CODES.SALES_REVENUE);
+
+      if (!receivableAccountId || !revenueAccountId) {
+        throw new Error('Required accounting accounts not found');
+      }
+
+      // Generate unique refund journal entry number
+      const entryNumber = await generateJournalEntryNumber();
+      const refundJournalEntry = {
+        entryNumber: `REFUND-${entryNumber}`,
+        description: `Refund for Invoice ${invoiceNumber} - ${refundReason}`,
+        date: refundDate,
+        reference: `REF-${invoiceNumber}`,
+        totalAmount: totalRefundAmount.toString(),
+        userId: req.user?.id || 1,
+        isReversing: true,
+        originalReference: invoiceNumber
+      };
+
+      const [journalEntry] = await db.insert(journalEntries).values(refundJournalEntry).returning();
+
+      // Create journal entry lines (reverse of original sale)
+      // Credit Accounts Receivable (reducing what customer owes)
+      await db.insert(journalLines).values({
+        journalEntryId: journalEntry.id,
+        accountId: receivableAccountId,
+        debit: '0',
+        credit: totalRefundAmount.toString(),
+        description: `Refund - reduce receivable from ${customerName}`
+      });
+
+      // Debit Sales Revenue (reducing revenue)
+      await db.insert(journalLines).values({
+        journalEntryId: journalEntry.id,
+        accountId: revenueAccountId,
+        debit: totalRefundAmount.toString(),
+        credit: '0',
+        description: `Refund - reduce sales revenue for ${invoiceNumber}`
+      });
+
+      // Update account balances
+      await updateAccountBalances(receivableAccountId, -totalRefundAmount, 'credit');
+      await updateAccountBalances(revenueAccountId, -totalRefundAmount, 'debit');
+
+      // Update original invoice to mark as partially/fully refunded
+      await db.update(sales)
+        .set({
+          paymentStatus: 'refunded',
+          notes: originalInvoice.notes ? 
+            `${originalInvoice.notes}\n\nREFUNDED: EGP ${totalRefundAmount} on ${new Date(refundDate).toLocaleDateString()} - ${refundReason}` :
+            `REFUNDED: EGP ${totalRefundAmount} on ${new Date(refundDate).toLocaleDateString()} - ${refundReason}`
+        })
+        .where(eq(sales.id, invoiceId));
+
+      console.log(`✅ Refund processed successfully: Journal Entry ${journalEntry.entryNumber}`);
+      console.log(`💰 Sales revenue reduced by EGP ${totalRefundAmount}`);
+
+      res.json({
+        success: true,
+        message: `Refund of EGP ${totalRefundAmount} processed successfully`,
+        journalEntryNumber: journalEntry.entryNumber,
+        refundAmount: totalRefundAmount,
+        itemsRefunded: items.length
+      });
+
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process refund',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 
   // Get comprehensive financial summary for dashboard
   app.get("/api/accounting/summary", async (_req: Request, res: Response) => {
