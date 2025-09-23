@@ -172,10 +172,10 @@ const QuotationHistory = () => {
 
   // Fetch customer details when a quotation is selected
   const { data: customerDetails } = useQuery({
-    queryKey: ['/api/customers', selectedQuotation?.customerId],
+    queryKey: ['/api/v1/customers', selectedQuotation?.customerId],
     queryFn: async () => {
       if (!selectedQuotation?.customerId) return null;
-      const res = await apiRequest('GET', `/api/customers/${selectedQuotation.customerId}`);
+      const res = await apiRequest('GET', `/api/v1/customers/${selectedQuotation.customerId}`);
       return res;
     },
     enabled: !!selectedQuotation?.customerId,
