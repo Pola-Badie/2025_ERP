@@ -29,9 +29,9 @@ const CustomerSearch: React.FC<CustomerSearchProps> = ({ value, onChange }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const { data: customers, isLoading } = useQuery({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/v1/customers'],
     queryFn: async () => {
-      const response = await fetch('/api/customers');
+      const response = await fetch('/api/v1/customers');
       if (!response.ok) {
         throw new Error('Failed to fetch customers');
       }
