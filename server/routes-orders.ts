@@ -1,6 +1,6 @@
 import { Express, Request, Response } from 'express';
 import { db } from './db';
-import { orders, orderItems, customers, users } from '../shared/schema';
+import { orders, orderItems, customers, users, systemPreferences } from '../shared/schema';
 import { eq, desc } from 'drizzle-orm';
 import { extractOrderMaterials, calculateMaterialsCost, serializeMaterials, parseMaterials } from './utils/materials-parser';
 import { calculateOrderFinancials } from './utils/order-calculator';
@@ -780,6 +780,13 @@ export function registerOrderRoutes(app: Express) {
         return !dbOrderNumbers.has(orderNumber);
       });
 
+      // Get tax rate from system preferences
+      const taxRatePreference = await db.select().from(systemPreferences)
+        .where(eq(systemPreferences.key, 'financial_vatRate'))
+        .limit(1);
+      const systemTaxRate = taxRatePreference.length > 0 ? 
+        parseFloat(taxRatePreference[0].value) / 100 : 0.14; // Default to 14%
+
       // Transform and combine all orders using utility functions  
       const allOrders = [...dbOrders, ...uniqueMemoryOrders].map((order, index) => {
         // Parse materials using standardized utility functions
@@ -801,8 +808,8 @@ export function registerOrderRoutes(app: Express) {
         // 2. Apply profit margin to get selling price (before tax)
         const sellingPrice = actualTotalCost * (1 + profitMargin / 100);
         
-        // 3. Calculate tax on selling price (14%)
-        const taxRate = 0.14;
+        // 3. Calculate tax on selling price (using system preference)
+        const taxRate = systemTaxRate;
         const taxAmount = sellingPrice * taxRate;
         
         // 4. Final revenue (selling price + tax)

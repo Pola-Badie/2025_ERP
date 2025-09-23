@@ -540,7 +540,7 @@ export default function CreateInvoice() {
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
                           <SelectItem value="percentage">%</SelectItem>
-                          <SelectItem value="amount">{financialPrefs.currency || 'USD'}</SelectItem>
+                          <SelectItem value="amount">{financialPrefs.baseCurrency || 'USD'}</SelectItem>
                         </SelectContent>
                       </Select>
                       {form.watch("discountType") !== "none" && (
@@ -735,7 +735,7 @@ export default function CreateInvoice() {
             <Button
               onClick={() => {
                 setShowInvoicePreview(false);
-                form.reset(defaultFormValues);
+                form.reset(getDefaultFormValues(financialPrefs));
               }}
             >
               Create Another Invoice
