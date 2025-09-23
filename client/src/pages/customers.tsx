@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, Plus, Download, Upload, Users, Building, DollarSign, TrendingUp, 
   Phone, Mail, MapPin, Edit, Trash2, Eye, BarChart3, Loader2,
-  FileText, Database, Filter, RefreshCw
+  FileText, Database, Filter, RefreshCw, Receipt, Package, Calendar
 } from 'lucide-react';
 
 // Form handling
@@ -47,6 +47,275 @@ const customerSchema = z.object({
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
+
+// CustomerProfileReports Component - 100% Real Database Data
+const CustomerProfileReports = ({ customerId, selectedCustomer }: { customerId: number, selectedCustomer: Customer }) => {
+  // Fetch customer invoices from real database
+  const { data: customerInvoices = [], isLoading: loadingInvoices } = useQuery({
+    queryKey: ['/api/sales', customerId],
+    queryFn: async () => {
+      const response = await fetch(`/api/sales?customerId=${customerId}`);
+      if (!response.ok) throw new Error('Failed to fetch customer invoices');
+      return response.json();
+    }
+  });
+
+  // Fetch customer quotations from real database
+  const { data: allQuotations = [], isLoading: loadingQuotations } = useQuery({
+    queryKey: ['/api/quotations'],
+    queryFn: async () => {
+      const response = await fetch('/api/quotations');
+      if (!response.ok) throw new Error('Failed to fetch quotations');
+      return response.json();
+    }
+  });
+
+  // Filter quotations for this specific customer
+  const customerQuotations = allQuotations.filter((q: any) => q.customerId === customerId);
+
+  // Calculate real totals from database data
+  const totalInvoiceValue = customerInvoices.reduce((sum: number, invoice: any) => {
+    return sum + parseFloat(invoice.grandTotal || invoice.totalAmount || 0);
+  }, 0);
+
+  const totalQuotationValue = customerQuotations.reduce((sum: number, quotation: any) => {
+    return sum + parseFloat(quotation.totalAmount || quotation.grandTotal || 0);
+  }, 0);
+
+  const totalItemsInvoiced = customerInvoices.reduce((sum: number, invoice: any) => {
+    return sum + (invoice.items?.length || 0);
+  }, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Customer Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Receipt className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Invoices</p>
+                <p className="text-lg font-semibold">{customerInvoices.length}</p>
+                <p className="text-xs text-green-600">EGP {totalInvoiceValue.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Total Quotations</p>
+                <p className="text-lg font-semibold">{customerQuotations.length}</p>
+                <p className="text-xs text-blue-600">EGP {totalQuotationValue.toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Items Purchased</p>
+                <p className="text-lg font-semibold">{totalItemsInvoiced}</p>
+                <p className="text-xs text-muted-foreground">Across all invoices</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Customer Profile Tabs */}
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices ({customerInvoices.length})</TabsTrigger>
+          <TabsTrigger value="quotations">Quotations ({customerQuotations.length})</TabsTrigger>
+        </TabsList>
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div><strong>Name:</strong> {selectedCustomer.name}</div>
+                <div><strong>Email:</strong> {selectedCustomer.email}</div>
+                <div><strong>Phone:</strong> {selectedCustomer.phone}</div>
+                {selectedCustomer.address && (
+                  <div><strong>Address:</strong> {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode].filter(Boolean).join(', ')}</div>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-4 w-4" />
+                  Business Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {selectedCustomer.company && <div><strong>Company:</strong> {selectedCustomer.company}</div>}
+                {selectedCustomer.position && <div><strong>Position:</strong> {selectedCustomer.position}</div>}
+                {selectedCustomer.sector && <div><strong>Sector:</strong> {selectedCustomer.sector}</div>}
+                {selectedCustomer.taxNumber && <div><strong>Tax Number:</strong> {selectedCustomer.taxNumber}</div>}
+                <div><strong>Customer ID:</strong> {selectedCustomer.id}</div>
+                <div><strong>Member Since:</strong> {new Date(selectedCustomer.createdAt).toLocaleDateString()}</div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Invoices Tab */}
+        <TabsContent value="invoices" className="space-y-4">
+          {loadingInvoices ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading customer invoices from database...
+            </div>
+          ) : customerInvoices.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Invoice History
+                  <Badge variant="secondary">{customerInvoices.length} invoices</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Invoice #</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customerInvoices.map((invoice: any) => (
+                      <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                        <TableCell>{new Date(invoice.date || invoice.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {invoice.items && invoice.items.length > 0 ? (
+                              invoice.items.map((item: any, idx: number) => (
+                                <div key={idx} className="text-xs">
+                                  {item.productName || 'Product'} × {item.quantity}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-xs">No items</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>EGP {parseFloat(invoice.grandTotal || invoice.totalAmount || 0).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={invoice.paymentStatus === 'paid' ? 'default' : 'secondary'}>
+                            {invoice.paymentStatus || invoice.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <Receipt className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No invoices found for this customer</p>
+                <p className="text-sm">Invoice data is fetched from the live database</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Quotations Tab */}
+        <TabsContent value="quotations" className="space-y-4">
+          {loadingQuotations ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading customer quotations from database...
+            </div>
+          ) : customerQuotations.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Quotation History
+                  <Badge variant="secondary">{customerQuotations.length} quotations</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Quotation #</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Items</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {customerQuotations.map((quotation: any) => (
+                      <TableRow key={quotation.id}>
+                        <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
+                        <TableCell>{new Date(quotation.date || quotation.createdAt).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            {quotation.items && quotation.items.length > 0 ? (
+                              quotation.items.map((item: any, idx: number) => (
+                                <div key={idx} className="text-xs">
+                                  {item.productName || item.description} × {item.quantity}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-xs">No items</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>EGP {parseFloat(quotation.totalAmount || quotation.grandTotal || 0).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
+                            {quotation.status || 'pending'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No quotations found for this customer</p>
+                <p className="text-sm">Quotation data is fetched from the live database</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
 interface Customer {
   id: number;
@@ -963,75 +1232,7 @@ const CustomersPage = () => {
             <DialogTitle>Customer Details</DialogTitle>
           </DialogHeader>
           {selectedCustomer && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Contact Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      <span>{selectedCustomer.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      <span>{selectedCustomer.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <span>{selectedCustomer.phone}</span>
-                    </div>
-                    {selectedCustomer.address && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>
-                          {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.zipCode]
-                            .filter(Boolean)
-                            .join(', ')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Business Information</h3>
-                  <div className="space-y-2 text-sm">
-                    {selectedCustomer.company && (
-                      <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4" />
-                        <span>{selectedCustomer.company}</span>
-                      </div>
-                    )}
-                    {selectedCustomer.position && (
-                      <div>
-                        <strong>Position:</strong> {selectedCustomer.position}
-                      </div>
-                    )}
-                    {selectedCustomer.sector && (
-                      <div>
-                        <strong>Sector:</strong> {selectedCustomer.sector}
-                      </div>
-                    )}
-                    {selectedCustomer.taxNumber && (
-                      <div>
-                        <strong>Tax Number:</strong> {selectedCustomer.taxNumber}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      <span>Total Purchases: EGP {parseFloat(selectedCustomer.totalPurchases || '0').toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-2">Database Information</h3>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <div>Customer ID: {selectedCustomer.id}</div>
-                  <div>Created: {new Date(selectedCustomer.createdAt).toLocaleDateString()}</div>
-                  <div>Last Updated: {new Date(selectedCustomer.updatedAt).toLocaleDateString()}</div>
-                </div>
-              </div>
-            </div>
+            <CustomerProfileReports customerId={selectedCustomer.id} selectedCustomer={selectedCustomer} />
           )}
         </DialogContent>
       </Dialog>
