@@ -107,9 +107,9 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
   };
 
   return (
-    <div className="printable-quotation bg-white p-8 max-w-4xl mx-auto text-black">
+    <div className="printable-quotation bg-white p-6 max-w-4xl mx-auto text-black text-sm">
       {/* Header */}
-      <div className="flex justify-between items-start mb-8 border-b pb-6">
+      <div className="flex justify-between items-start mb-4 border-b pb-3">
         <div className="company-info flex items-start gap-4">
           <img 
             src={logoPath} 
@@ -117,9 +117,9 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
             className="w-16 h-16 object-contain"
           />
           <div>
-            <h1 className="text-3xl font-bold text-blue-600 mb-2">Morgan ERP</h1>
-            <p className="text-gray-600 text-sm">Enterprise Resource Planning System</p>
-            <div className="mt-4 text-sm text-gray-600">
+            <h1 className="text-xl font-bold text-blue-600 mb-1">Morgan ERP</h1>
+            <p className="text-gray-600 text-xs">Enterprise Resource Planning System</p>
+            <div className="mt-2 text-xs text-gray-600">
               <p>123 Business District</p>
               <p>Cairo, Egypt 11511</p>
               <p>Phone: +20 2 1234 5678</p>
@@ -129,8 +129,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
         </div>
         
         <div className="quotation-header text-right">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">QUOTATION</h2>
-          <div className="text-sm">
+          <h2 className="text-lg font-bold text-gray-800 mb-1">QUOTATION</h2>
+          <div className="text-xs">
             <p><span className="font-semibold">Quotation #:</span> {quotationNumber}</p>
             <p><span className="font-semibold">Date:</span> {format(date, 'dd/MM/yyyy')}</p>
             <p><span className="font-semibold">Valid Until:</span> {format(validUntilDate, 'dd/MM/yyyy')}</p>
@@ -140,8 +140,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       </div>
 
       {/* Customer Information */}
-      <div className="customer-info mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Quote For:</h3>
+      <div className="customer-info mb-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Quote For:</h3>
         <div className="bg-gray-50 p-4 rounded border">
           <div className="flex justify-between items-start">
             <div className="flex-1">
@@ -183,25 +183,25 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       </div>
 
       {/* Items Table */}
-      <div className="items-table mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Quoted Items & Services</h3>
+      <div className="items-table mb-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Quoted Items & Services</h3>
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Item/Service</th>
-              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">Description</th>
-              <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Qty</th>
-              <th className="border border-gray-300 px-4 py-3 text-center font-semibold">UoM</th>
-              <th className="border border-gray-300 px-4 py-3 text-center font-semibold">Grade</th>
-              <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Unit Price</th>
-              <th className="border border-gray-300 px-4 py-3 text-right font-semibold">Total</th>
+              <th className="border border-gray-300 px-2 py-1 text-left font-semibold text-xs">Item/Service</th>
+              <th className="border border-gray-300 px-2 py-1 text-left font-semibold text-xs">Description</th>
+              <th className="border border-gray-300 px-2 py-1 text-center font-semibold text-xs">Qty</th>
+              <th className="border border-gray-300 px-2 py-1 text-center font-semibold text-xs">UoM</th>
+              <th className="border border-gray-300 px-2 py-1 text-center font-semibold text-xs">Grade</th>
+              <th className="border border-gray-300 px-2 py-1 text-right font-semibold text-xs">Unit Price</th>
+              <th className="border border-gray-300 px-2 py-1 text-right font-semibold text-xs">Total</th>
             </tr>
           </thead>
           <tbody>
             {items.map((item, index) => (
               <tr key={index} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-3 font-medium">{item.productName}</td>
-                <td className="border border-gray-300 px-4 py-3 text-gray-600">
+                <td className="border border-gray-300 px-2 py-1 font-medium text-xs">{item.productName}</td>
+                <td className="border border-gray-300 px-2 py-1 text-gray-600 text-xs">
                   {item.description}
                   {item.type === 'manufacturing' && item.processingTime && (
                     <div className="text-xs mt-1 text-blue-600">
@@ -215,9 +215,9 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
                     </div>
                   )}
                 </td>
-                <td className="border border-gray-300 px-4 py-3 text-center">{item.quantity}</td>
-                <td className="border border-gray-300 px-4 py-3 text-center">{item.uom}</td>
-                <td className="border border-gray-300 px-4 py-3 text-center">
+                <td className="border border-gray-300 px-2 py-1 text-center text-xs">{item.quantity}</td>
+                <td className="border border-gray-300 px-2 py-1 text-center text-xs">{item.uom}</td>
+                <td className="border border-gray-300 px-2 py-1 text-center">
                   <span className="inline-block px-2 py-1 bg-gray-100 rounded text-xs font-medium">
                     {item.grade === 'P' ? 'Pharmaceutical' : 
                      item.grade === 'F' ? 'Food Grade' : 
@@ -225,8 +225,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
                      item.grade || 'N/A'}
                   </span>
                 </td>
-                <td className="border border-gray-300 px-4 py-3 text-right">EGP {item.unitPrice.toFixed(2)}</td>
-                <td className="border border-gray-300 px-4 py-3 text-right font-semibold">EGP {item.total.toFixed(2)}</td>
+                <td className="border border-gray-300 px-2 py-1 text-right text-xs">EGP {item.unitPrice.toFixed(2)}</td>
+                <td className="border border-gray-300 px-2 py-1 text-right font-semibold text-xs">EGP {item.total.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -236,8 +236,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
 
       {/* Transportation Section */}
       {transportationFees > 0 && (
-        <div className="transportation-info mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Transportation & Delivery</h3>
+        <div className="transportation-info mb-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-1">Transportation & Delivery</h3>
           <div className="bg-blue-50 p-4 rounded border">
             <div className="flex justify-between items-center">
               <div>
@@ -256,8 +256,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
 
       {/* Packaging Items Section */}
       {packagingItems && packagingItems.length > 0 && (
-        <div className="packaging-info mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Packaging Items</h3>
+        <div className="packaging-info mb-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-1">Packaging Items</h3>
           <div className="space-y-3">
             {packagingItems.map((item, index) => (
               <div key={item.id} className="bg-green-50 p-4 rounded border">
@@ -283,34 +283,34 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       )}
 
       {/* Totals Section */}
-      <div className="flex justify-end mb-8">
+      <div className="flex justify-end mb-4">
         <div className="w-80">
           <div className="border border-gray-300 bg-gray-50">
-            <div className="flex justify-between px-4 py-2 border-b border-gray-300">
+            <div className="flex justify-between px-2 py-1 border-b border-gray-300 text-xs">
               <span className="font-medium">Subtotal:</span>
               <span>EGP {subtotal.toFixed(2)}</span>
             </div>
             
             {transportationFees > 0 && (
-              <div className="flex justify-between px-4 py-2 border-b border-gray-300">
+              <div className="flex justify-between px-2 py-1 border-b border-gray-300 text-xs">
                 <span className="font-medium">Transportation:</span>
                 <span>EGP {transportationFees.toFixed(2)}</span>
               </div>
             )}
             
             {packagingFees > 0 && (
-              <div className="flex justify-between px-4 py-2 border-b border-gray-300">
+              <div className="flex justify-between px-2 py-1 border-b border-gray-300 text-xs">
                 <span className="font-medium">Packaging:</span>
                 <span>EGP {packagingFees.toFixed(2)}</span>
               </div>
             )}
             
-            <div className="flex justify-between px-4 py-2 border-b border-gray-300">
+            <div className="flex justify-between px-2 py-1 border-b border-gray-300 text-xs">
               <span className="font-medium">VAT ({vatPercentage}%):</span>
               <span>EGP {vatAmount.toFixed(2)}</span>
             </div>
             
-            <div className="flex justify-between px-4 py-3 bg-blue-600 text-white font-bold text-lg">
+            <div className="flex justify-between px-2 py-2 bg-blue-600 text-white font-bold text-sm">
               <span>Total Amount:</span>
               <span>EGP {grandTotal.toFixed(2)}</span>
             </div>
@@ -320,8 +320,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
 
       {/* Terms & Conditions */}
       {termsAndConditions && (
-        <div className="terms mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Terms & Conditions</h3>
+        <div className="terms mb-4 page-break-before">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2">Terms & Conditions</h3>
           <div className="bg-gray-50 p-4 rounded border text-sm">
             <pre className="whitespace-pre-wrap font-sans text-gray-700">{termsAndConditions}</pre>
           </div>
@@ -330,8 +330,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
 
       {/* Notes */}
       {notes && (
-        <div className="notes mb-8">
-          <h3 className="font-semibold text-gray-800 mb-2">Additional Notes:</h3>
+        <div className="notes mb-3">
+          <h3 className="font-semibold text-gray-800 mb-1 text-sm">Additional Notes:</h3>
           <div className="bg-gray-50 p-4 rounded border">
             <p className="text-gray-700">{notes}</p>
           </div>
@@ -339,8 +339,8 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       )}
 
       {/* Footer */}
-      <div className="footer border-t pt-6 mt-8">
-        <div className="text-center text-sm text-gray-600">
+      <div className="footer border-t pt-2 mt-3">
+        <div className="text-center text-xs text-gray-600">
           <p className="font-semibold mb-2">Thank you for considering Morgan ERP for your pharmaceutical needs!</p>
           <p>This quotation was generated on {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
           <p className="mt-2">For any questions regarding this quotation, please contact us at support@premiererp.com</p>
@@ -355,9 +355,15 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
           .printable-quotation {
             box-shadow: none !important;
             margin: 0 !important;
-            padding: 20px !important;
+            padding: 15px !important;
             max-width: none !important;
             width: 100% !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+          }
+          
+          .page-break-before {
+            page-break-before: always !important;
           }
           
           .bg-gray-50 {
