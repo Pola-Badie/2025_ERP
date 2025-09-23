@@ -2,6 +2,19 @@ import React from 'react';
 import { format } from 'date-fns';
 import logoPath from '@assets/P_1749320448134.png';
 
+// Default terms and conditions for pharmaceutical quotations
+const DEFAULT_TERMS = `1. Validity: This quotation is valid for 30 days from the date of issue.
+
+2. Payment Terms: 50% advance payment required upon order confirmation. Balance due upon completion/delivery.
+
+3. Quality Assurance: All pharmaceutical services comply with GMP standards and regulatory requirements as per Egyptian Drug Authority guidelines.
+
+4. Delivery: Delivery times are estimates and subject to production schedules, regulatory approvals, and raw material availability.
+
+5. Changes: Any changes to specifications, quantities, or requirements after quotation acceptance may affect pricing and delivery timelines.
+
+6. Liability: Our liability is limited to the value of services provided. We maintain comprehensive insurance coverage for pharmaceutical operations.`;
+
 interface QuotationItem {
   id: string;
   productName: string;
@@ -319,14 +332,12 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       </div>
 
       {/* Terms & Conditions */}
-      {termsAndConditions && (
-        <div className="terms mb-4 page-break-before">
-          <h3 className="text-sm font-semibold text-gray-800 mb-2">Terms & Conditions</h3>
-          <div className="bg-gray-50 p-4 rounded border text-sm">
-            <pre className="whitespace-pre-wrap font-sans text-gray-700">{termsAndConditions}</pre>
-          </div>
+      <div className="terms mb-4 page-break-before">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Terms & Conditions</h3>
+        <div className="bg-gray-50 p-4 rounded border text-sm">
+          <pre className="whitespace-pre-wrap font-sans text-gray-700">{(termsAndConditions ?? '').trim() || DEFAULT_TERMS}</pre>
         </div>
-      )}
+      </div>
 
       {/* Notes */}
       {notes && (
