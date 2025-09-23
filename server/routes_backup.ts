@@ -151,6 +151,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Quotation Endpoints =============
 
+  // Default terms and conditions for quotations
+  const DEFAULT_TERMS_CONDITIONS = `1. Validity: This quotation is valid for 30 days from the date of issue.
+
+2. Payment Terms: 50% advance payment required upon order confirmation. Balance due upon completion/delivery.
+
+3. Quality Assurance: All pharmaceutical services comply with GMP standards and regulatory requirements as per Egyptian Drug Authority guidelines.
+
+4. Delivery: Delivery times are estimates and subject to production schedules, regulatory approvals, and raw material availability.
+
+5. Changes: Any changes to specifications, quantities, or requirements after quotation acceptance may affect pricing and delivery timelines.
+
+6. Liability: Our liability is limited to the value of services provided. We maintain comprehensive insurance coverage for pharmaceutical operations.`;
+
   // Get all quotations
   app.get("/api/quotations", async (req: Request, res: Response) => {
     try {
@@ -226,6 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             total: parseFloat(quotation.grandTotal?.toString() || '0'),
             amount: parseFloat(quotation.grandTotal?.toString() || '0'),
             status: quotation.status || 'pending',
+            termsAndConditions: quotation.termsAndConditions || DEFAULT_TERMS_CONDITIONS,
             items: items
           };
         })
