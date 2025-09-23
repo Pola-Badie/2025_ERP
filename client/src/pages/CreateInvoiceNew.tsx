@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useFinancialPreferences } from '@/hooks/use-financial-preferences';
 import {
   Card,
   CardContent,
@@ -84,7 +85,8 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
-const defaultFormValues: InvoiceFormValues = {
+// Dynamic default form values based on system preferences  
+const getDefaultFormValues = (financialPrefs: any): InvoiceFormValues => ({
   customer: {
     name: "",
     email: "",
@@ -97,17 +99,18 @@ const defaultFormValues: InvoiceFormValues = {
   discountType: "none",
   discountValue: 0,
   discountAmount: 0,
-  taxRate: 14,
+  taxRate: financialPrefs.taxRate || 14,
   taxAmount: 0,
   grandTotal: 0,
   paymentStatus: "unpaid",
   paymentMethod: "",
   paymentTerms: "30",
   notes: "",
-};
+});
 
 export default function CreateInvoice() {
   const { toast } = useToast();
+  const { preferences: financialPrefs, formatCurrency } = useFinancialPreferences();
   const [showInvoicePreview, setShowInvoicePreview] = useState(false);
   const [showQuotationSelector, setShowQuotationSelector] = useState(false);
   const [showOrderSelector, setShowOrderSelector] = useState(false);
@@ -115,7 +118,7 @@ export default function CreateInvoice() {
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: getDefaultFormValues(financialPrefs),
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -456,7 +459,7 @@ export default function CreateInvoice() {
                         />
                       </TableCell>
                       <TableCell>
-                        ${(form.watch(`items.${index}.total`) || 0).toFixed(2)}
+                        {formatCurrency(form.watch(`items.${index}.total`) || 0)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -521,7 +524,7 @@ export default function CreateInvoice() {
                 <div className="space-y-2 bg-muted/50 rounded-lg p-4">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${(form.watch("subtotal") || 0).toFixed(2)}</span>
+                    <span>{formatCurrency(form.watch("subtotal") || 0)}</span>
                   </div>
                   
                   <div className="flex justify-between items-center">
@@ -537,7 +540,7 @@ export default function CreateInvoice() {
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
                           <SelectItem value="percentage">%</SelectItem>
-                          <SelectItem value="amount">$</SelectItem>
+                          <SelectItem value="amount">{financialPrefs.currency || 'USD'}</SelectItem>
                         </SelectContent>
                       </Select>
                       {form.watch("discountType") !== "none" && (
@@ -565,14 +568,14 @@ export default function CreateInvoice() {
 
                   <div className="flex justify-between">
                     <span>Tax Amount</span>
-                    <span>${(form.watch("taxAmount") || 0).toFixed(2)}</span>
+                    <span>{formatCurrency(form.watch("taxAmount") || 0)}</span>
                   </div>
 
                   <Separator />
 
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>${(form.watch("grandTotal") || 0).toFixed(2)}</span>
+                    <span>{formatCurrency(form.watch("grandTotal") || 0)}</span>
                   </div>
                 </div>
               </div>
