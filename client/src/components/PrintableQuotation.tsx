@@ -156,69 +156,42 @@ export const PrintableQuotation: React.FC<PrintableQuotationProps> = ({
       <div className="customer-info mb-4">
         <h3 className="text-sm font-semibold text-gray-800 mb-2">Quote For:</h3>
         <div className="bg-gray-50 p-4 rounded border">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Left Column - Basic Info */}
-            <div>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
               {customer.company ? (
                 <div>
-                  <h3 className="font-medium text-lg text-gray-900">{customer.company}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{customer.name}</p>
-                  {customer.position && (
-                    <p className="text-xs text-gray-500">{customer.position}</p>
-                  )}
+                  <h3 className="font-medium text-lg">{customer.company}</h3>
+                  <p className="text-sm text-gray-600">{customer.name}</p>
                 </div>
               ) : (
-                <h3 className="font-medium text-lg text-gray-900">{customer.name}</h3>
+                <h3 className="font-medium text-lg">{customer.company || customer.name}</h3>
               )}
               
-              {/* Customer Code prominently displayed */}
-              {customer.id && (
-                <div className="mt-2">
+              {/* Customer Code and Mobile prominently displayed */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {customer.id && (
                   <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                     Code: CUST-{String(customer.id).padStart(4, '0')}
                   </span>
-                </div>
-              )}
-            </div>
-            
-            {/* Right Column - Contact Details */}
-            <div className="space-y-2">
-              {customer.phone && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500 w-16">Mobile:</span>
-                  <span className="text-sm text-gray-700">{customer.phone}</span>
-                </div>
-              )}
-              {customer.email && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500 w-16">Email:</span>
-                  <span className="text-sm text-gray-700">{customer.email}</span>
-                </div>
-              )}
-              {customer.sector && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500 w-16">Sector:</span>
-                  <span className="text-sm text-gray-700">{customer.sector}</span>
-                </div>
-              )}
-              {customer.taxNumber && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-gray-500 w-16">ETA #:</span>
-                  <span className="text-sm text-gray-700">{customer.taxNumber}</span>
-                </div>
-              )}
+                )}
+                {customer.phone && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                    Mobile: {customer.phone}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Address - Full Width */}
-          {customer.address && (
-            <div className="pt-3 mt-3 border-t border-gray-200">
-              <div className="flex items-start gap-2">
-                <span className="text-xs font-medium text-gray-500 w-16 mt-0.5">Address:</span>
-                <span className="text-sm text-gray-700 flex-1">{customer.address}</span>
-              </div>
-            </div>
-          )}
+          {/* Other customer details */}
+          <div className="space-y-1 pt-2 border-t mt-3">
+            {customer.taxNumber && (
+              <p className="text-sm text-gray-600">ETA Number: {customer.taxNumber}</p>
+            )}
+            {customer.address && (
+              <p className="text-sm text-gray-600">Address: {customer.address}</p>
+            )}
+          </div>
         </div>
       </div>
 
