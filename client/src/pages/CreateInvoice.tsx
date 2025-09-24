@@ -771,51 +771,119 @@ const CreateInvoice = () => {
 
   // Handle quotation selection and import items
   const handleQuotationSelection = (quotation: any) => {
-    // Set customer if exists in quotation (using quotations history structure)
-    if (quotation.customerName) {
-      form.setValue('customer', {
-        id: quotation.customerId,
-        name: quotation.customerName,
-        company: quotation.customerName,
-        position: '',
-        email: '',
-        phone: '',
-        sector: '',
-        address: '',
-        taxNumber: '',
-      });
+    console.log('🔥 QUOTATION CONVERSION: Converting quotation to invoice:', quotation);
+    
+    // Resolve customer information
+    const customerId = quotation.customerId ?? quotation.customer_id ?? quotation.customer?.id;
+    const customerName = quotation.customerName ?? quotation.customer?.name ?? quotation.customer_name;
+    
+    if (customerId || customerName) {
+      // Try to find full customer details from allCustomers
+      let resolvedCustomer = null;
+      
+      if (customerId && allCustomers?.length > 0) {
+        resolvedCustomer = allCustomers.find(c => c.id === customerId);
+      }
+      
+      if (!resolvedCustomer && customerName && allCustomers?.length > 0) {
+        resolvedCustomer = allCustomers.find(c => 
+          c.name?.toLowerCase() === customerName.toLowerCase() ||
+          c.company?.toLowerCase() === customerName.toLowerCase()
+        );
+      }
+      
+      // Build customer object with full details or fallback values
+      const customerData = {
+        id: resolvedCustomer?.id || customerId || 0,
+        name: resolvedCustomer?.name || customerName || '',
+        company: resolvedCustomer?.company || quotation.customer?.company || customerName || '',
+        position: resolvedCustomer?.position || quotation.customer?.position || '',
+        email: resolvedCustomer?.email || quotation.customer?.email || '',
+        phone: resolvedCustomer?.phone || quotation.customer?.phone || '',
+        sector: resolvedCustomer?.sector || quotation.customer?.sector || '',
+        address: resolvedCustomer?.address || quotation.customer?.address || '',
+        taxNumber: resolvedCustomer?.taxNumber || quotation.customer?.taxNumber || '',
+      };
+      
+      console.log('🔥 QUOTATION CONVERSION: Setting customer data:', customerData);
+      form.setValue('customer', customerData);
+      setSelectedCustomerId(customerData.id);
     }
 
-    // Clear existing items
-    fields.forEach((_, index) => {
-      if (index > 0) remove(index);
-    });
-
-    // Import quotation items (using quotations history structure)
+    // Convert quotation items to invoice items
+    const unresolvedItems: string[] = [];
+    const mappedItems: any[] = [];
+    
     if (quotation.items && quotation.items.length > 0) {
-      // Remove the default empty item first
-      remove(0);
-      
-      quotation.items.forEach((item: any, index: number) => {
-        append({
-          productId: index + 1,
-          productName: item.productName || '',
-          category: item.specifications || '',
-          batchNo: '',
-          gs1Code: '',
-          type: quotation.type || '',
-          quantity: item.quantity || 1,
-          unitPrice: item.unitPrice || 0,
-          total: item.total || 0,
-        });
+      quotation.items.forEach((item: any) => {
+        // Resolve actual product ID - this is critical!
+        let productId = item.productId ?? item.product_id ?? item.id;
+        
+        // If no direct productId, try to match by name/sku from products
+        if (!productId && (item.productName || item.name) && allProducts?.length > 0) {
+          const productName = item.productName || item.name;
+          const matchedProduct = allProducts.find(p => 
+            p.name === productName || 
+            p.sku === productName ||
+            p.barcode === productName
+          );
+          if (matchedProduct) {
+            productId = matchedProduct.id;
+          }
+        }
+        
+        if (!productId) {
+          unresolvedItems.push(item.productName || item.name || 'Unknown Item');
+          return; // Skip items without valid product ID
+        }
+        
+        // Build invoice item with proper field mapping
+        const invoiceItem = {
+          productId: parseInt(productId),
+          productName: item.productName || item.name || item.product?.name || '',
+          category: item.category || item.categoryName || item.specifications || '',
+          batchNo: item.batchNo || item.batch_no || '',
+          gs1Code: item.gs1Code || item.gs1_code || '',
+          type: item.type || quotation.type || '',
+          quantity: Number(item.quantity ?? item.qty ?? 1),
+          unitPrice: Number(item.unitPrice ?? item.price ?? item.unit_price ?? 0),
+          total: 0, // Will be auto-calculated
+        };
+        
+        // Calculate total
+        invoiceItem.total = Math.round((invoiceItem.quantity * invoiceItem.unitPrice) * 100) / 100;
+        
+        mappedItems.push(invoiceItem);
       });
+      
+      console.log('🔥 QUOTATION CONVERSION: Mapped items:', mappedItems);
+      
+      // Replace entire items array in one operation
+      form.setValue('items', mappedItems, { shouldValidate: true });
+    }
+
+    // Copy over discount/tax settings if present
+    if (quotation.discountType && quotation.discountValue) {
+      form.setValue('discountType', quotation.discountType);
+      form.setValue('discountValue', Number(quotation.discountValue));
+    }
+    
+    if (quotation.taxRate) {
+      form.setValue('taxRate', Number(quotation.taxRate));
     }
 
     setShowQuotationSelector(false);
     
+    // Show success with warnings if needed
+    let description = `Items from quotation ${quotation.quotationNumber} have been imported`;
+    if (unresolvedItems.length > 0) {
+      description += `. Warning: ${unresolvedItems.length} items could not be mapped: ${unresolvedItems.join(', ')}`;
+    }
+    
     toast({
       title: "Quotation Imported",
-      description: `Items from quotation ${quotation.quotationNumber} have been imported`,
+      description,
+      variant: unresolvedItems.length > 0 ? "destructive" : "default"
     });
   };
 
