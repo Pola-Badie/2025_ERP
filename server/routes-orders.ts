@@ -1,9 +1,220 @@
 import { Express, Request, Response } from 'express';
 import { db } from './db';
-import { orders, orderItems, customers, users, systemPreferences } from '../shared/schema';
-import { eq, desc } from 'drizzle-orm';
+import { orders, orderItems, customers, users, systemPreferences, products, warehouseInventory, warehouses } from '../shared/schema';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import { extractOrderMaterials, calculateMaterialsCost, serializeMaterials, parseMaterials } from './utils/materials-parser';
 import { calculateOrderFinancials } from './utils/order-calculator';
+
+// ============= INVENTORY MANAGEMENT HELPER FUNCTIONS =============
+
+/**
+ * Check if sufficient stock is available in warehouses for a product
+ */
+async function checkStockAvailability(productId: number, requiredQuantity: number, warehouseId?: number): Promise<{
+  available: boolean;
+  totalStock: number;
+  availableStock: number;
+  warehouseDetails: any[];
+}> {
+  try {
+    let warehouseStock;
+    
+    if (warehouseId) {
+      // Check specific warehouse
+      warehouseStock = await db
+        .select({
+          warehouseId: warehouseInventory.warehouseId,
+          warehouseName: warehouses.name,
+          quantity: warehouseInventory.quantity,
+          reservedQuantity: warehouseInventory.reservedQuantity,
+          availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+        })
+        .from(warehouseInventory)
+        .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+        .where(and(
+          eq(warehouseInventory.productId, productId),
+          eq(warehouseInventory.warehouseId, warehouseId)
+        ));
+    } else {
+      // Check all warehouses
+      warehouseStock = await db
+        .select({
+          warehouseId: warehouseInventory.warehouseId,
+          warehouseName: warehouses.name,
+          quantity: warehouseInventory.quantity,
+          reservedQuantity: warehouseInventory.reservedQuantity,
+          availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+        })
+        .from(warehouseInventory)
+        .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+        .where(eq(warehouseInventory.productId, productId));
+    }
+
+    const totalStock = warehouseStock.reduce((sum, stock) => sum + stock.quantity, 0);
+    const availableStock = warehouseStock.reduce((sum, stock) => sum + stock.availableQuantity, 0);
+    
+    return {
+      available: availableStock >= requiredQuantity,
+      totalStock,
+      availableStock,
+      warehouseDetails: warehouseStock
+    };
+  } catch (error) {
+    console.error('Error checking stock availability:', error);
+    return {
+      available: false,
+      totalStock: 0,
+      availableStock: 0,
+      warehouseDetails: []
+    };
+  }
+}
+
+/**
+ * Deduct inventory from warehouse stock
+ */
+async function deductInventoryStock(productId: number, quantity: number, warehouseId?: number): Promise<{
+  success: boolean;
+  deductions: any[];
+  error?: string;
+}> {
+  try {
+    const stockCheck = await checkStockAvailability(productId, quantity, warehouseId);
+    
+    if (!stockCheck.available) {
+      return {
+        success: false,
+        deductions: [],
+        error: `Insufficient stock. Required: ${quantity}, Available: ${stockCheck.availableStock}`
+      };
+    }
+
+    let deductions = [];
+    let remainingQuantity = quantity;
+
+    // If specific warehouse provided, deduct from that warehouse only
+    if (warehouseId) {
+      const warehouseStock = stockCheck.warehouseDetails.find(w => w.warehouseId === warehouseId);
+      if (warehouseStock && warehouseStock.availableQuantity >= quantity) {
+        await db
+          .update(warehouseInventory)
+          .set({
+            reservedQuantity: sql`${warehouseInventory.reservedQuantity} + ${quantity}`,
+            lastUpdated: new Date(),
+            updatedBy: 1 // TODO: Get from session
+          })
+          .where(and(
+            eq(warehouseInventory.productId, productId),
+            eq(warehouseInventory.warehouseId, warehouseId)
+          ));
+
+        deductions.push({
+          warehouseId,
+          warehouseName: warehouseStock.warehouseName,
+          quantityDeducted: quantity
+        });
+      }
+    } else {
+      // Deduct from multiple warehouses if needed (FIFO approach)
+      for (const warehouse of stockCheck.warehouseDetails) {
+        if (remainingQuantity <= 0) break;
+        
+        const availableInWarehouse = warehouse.availableQuantity;
+        const deductFromWarehouse = Math.min(remainingQuantity, availableInWarehouse);
+        
+        if (deductFromWarehouse > 0) {
+          await db
+            .update(warehouseInventory)
+            .set({
+              reservedQuantity: sql`${warehouseInventory.reservedQuantity} + ${deductFromWarehouse}`,
+              lastUpdated: new Date(),
+              updatedBy: 1 // TODO: Get from session
+            })
+            .where(and(
+              eq(warehouseInventory.productId, productId),
+              eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+            ));
+
+          deductions.push({
+            warehouseId: warehouse.warehouseId,
+            warehouseName: warehouse.warehouseName,
+            quantityDeducted: deductFromWarehouse
+          });
+
+          remainingQuantity -= deductFromWarehouse;
+        }
+      }
+    }
+
+    return {
+      success: remainingQuantity === 0,
+      deductions,
+      error: remainingQuantity > 0 ? `Could not allocate ${remainingQuantity} units` : undefined
+    };
+  } catch (error) {
+    console.error('Error deducting inventory stock:', error);
+    return {
+      success: false,
+      deductions: [],
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Confirm inventory deduction (convert reserved to actual reduction)
+ */
+async function confirmInventoryDeduction(productId: number, quantity: number, warehouseId?: number): Promise<boolean> {
+  try {
+    if (warehouseId) {
+      await db
+        .update(warehouseInventory)
+        .set({
+          quantity: sql`${warehouseInventory.quantity} - ${quantity}`,
+          reservedQuantity: sql`${warehouseInventory.reservedQuantity} - ${quantity}`,
+          lastUpdated: new Date(),
+          updatedBy: 1
+        })
+        .where(and(
+          eq(warehouseInventory.productId, productId),
+          eq(warehouseInventory.warehouseId, warehouseId)
+        ));
+    } else {
+      // This is more complex for multi-warehouse deduction - would need to track per warehouse
+      // For now, implement simple approach
+      const stockCheck = await checkStockAvailability(productId, quantity);
+      let remainingQuantity = quantity;
+      
+      for (const warehouse of stockCheck.warehouseDetails) {
+        if (remainingQuantity <= 0) break;
+        
+        const deductFromWarehouse = Math.min(remainingQuantity, warehouse.reservedQuantity);
+        
+        if (deductFromWarehouse > 0) {
+          await db
+            .update(warehouseInventory)
+            .set({
+              quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
+              reservedQuantity: sql`${warehouseInventory.reservedQuantity} - ${deductFromWarehouse}`,
+              lastUpdated: new Date(),
+              updatedBy: 1
+            })
+            .where(and(
+              eq(warehouseInventory.productId, productId),
+              eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+            ));
+
+          remainingQuantity -= deductFromWarehouse;
+        }
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error confirming inventory deduction:', error);
+    return false;
+  }
+}
 
 export function registerOrderRoutes(app: Express) {
   // POST endpoint for creating new orders
@@ -107,6 +318,78 @@ export function registerOrderRoutes(app: Express) {
         packaging = [];
       }
 
+      // ============= INVENTORY VALIDATION AND DEDUCTION =============
+      
+      // Validate stock availability for all materials before creating order
+      const stockValidation = [];
+      const inventoryDeductions = [];
+      
+      if (materials && materials.length > 0) {
+        for (const material of materials) {
+          if (material.productId && material.quantity) {
+            const stockCheck = await checkStockAvailability(
+              parseInt(material.productId), 
+              parseFloat(material.quantity)
+            );
+            
+            if (!stockCheck.available) {
+              return res.status(400).json({
+                success: false,
+                message: `Insufficient stock for ${material.name || `Product ID ${material.productId}`}. Required: ${material.quantity}, Available: ${stockCheck.availableStock}`,
+                error: 'INSUFFICIENT_STOCK',
+                stockDetails: {
+                  productId: material.productId,
+                  productName: material.name,
+                  required: parseFloat(material.quantity),
+                  available: stockCheck.availableStock,
+                  warehouseDetails: stockCheck.warehouseDetails
+                }
+              });
+            }
+            
+            stockValidation.push({
+              productId: material.productId,
+              productName: material.name,
+              quantity: parseFloat(material.quantity),
+              stockCheck
+            });
+          }
+        }
+        
+        console.log('✅ STOCK VALIDATION PASSED for all materials');
+        
+        // Reserve inventory for all materials
+        for (const validation of stockValidation) {
+          const deduction = await deductInventoryStock(
+            validation.productId,
+            validation.quantity
+          );
+          
+          if (!deduction.success) {
+            // Rollback any previous reservations if this fails
+            for (const prevDeduction of inventoryDeductions) {
+              // TODO: Implement rollback logic
+              console.error('⚠️ Need to rollback previous inventory reservations');
+            }
+            
+            return res.status(400).json({
+              success: false,
+              message: `Failed to reserve inventory for ${validation.productName}: ${deduction.error}`,
+              error: 'INVENTORY_RESERVATION_FAILED'
+            });
+          }
+          
+          inventoryDeductions.push({
+            productId: validation.productId,
+            productName: validation.productName,
+            quantity: validation.quantity,
+            deductions: deduction.deductions
+          });
+        }
+        
+        console.log('✅ INVENTORY RESERVED successfully for all materials:', inventoryDeductions);
+      }
+
       // Try to create the order in the database, fall back to memory storage if table doesn't exist
       let newOrder;
       try {
@@ -119,7 +402,8 @@ export function registerOrderRoutes(app: Express) {
           materialsCount: materials.length,
           packagingCount: packaging.length,
           materials: materials,
-          packaging: packaging
+          packaging: packaging,
+          inventoryReserved: inventoryDeductions.length > 0
         });
 
         // For production orders, we don't need targetProductId, only for refining orders
