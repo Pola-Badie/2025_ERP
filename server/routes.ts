@@ -27,7 +27,9 @@ import {
   users,
   sales,
   orders,
-  products
+  products,
+  warehouseInventory,
+  warehouses
 } from "@shared/schema";
 import { eq, sql, or, desc, and, like, gte, lte, inArray, between } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
@@ -2632,8 +2634,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create order
       const order = await storage.createOrder(validatedOrder);
 
-      // Process order items
+      // ============= INVENTORY VALIDATION AND DEDUCTION =============
+      
+      // Validate stock availability for all items before processing
+      const stockValidation = [];
+      const inventoryDeductions = [];
+      
       if (req.body.items && req.body.items.length > 0) {
+        // First, validate stock availability for all items
+        for (const item of req.body.items) {
+          if (item.productId && item.quantity) {
+            const stockCheck = await db
+              .select({
+                warehouseId: warehouseInventory.warehouseId,
+                warehouseName: warehouses.name,
+                quantity: warehouseInventory.quantity,
+                reservedQuantity: warehouseInventory.reservedQuantity,
+                availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+              })
+              .from(warehouseInventory)
+              .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+              .where(eq(warehouseInventory.productId, item.productId));
+
+            const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
+            const requiredQuantity = parseFloat(item.quantity);
+            
+            if (availableStock < requiredQuantity) {
+              return res.status(400).json({
+                success: false,
+                message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
+                error: 'INSUFFICIENT_STOCK',
+                stockDetails: {
+                  productId: item.productId,
+                  required: requiredQuantity,
+                  available: availableStock,
+                  warehouseDetails: stockCheck
+                }
+              });
+            }
+            
+            stockValidation.push({
+              productId: item.productId,
+              quantity: requiredQuantity,
+              availableStock,
+              warehouseDetails: stockCheck
+            });
+          }
+        }
+        
+        console.log('✅ STOCK VALIDATION PASSED for all order items');
+        
+        // Reserve inventory for all items
+        for (const validation of stockValidation) {
+          let remainingQuantity = validation.quantity;
+          const itemDeductions = [];
+          
+          for (const warehouse of validation.warehouseDetails) {
+            if (remainingQuantity <= 0) break;
+            
+            const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
+            
+            if (deductFromWarehouse > 0) {
+              await db
+                .update(warehouseInventory)
+                .set({
+                  reservedQuantity: sql`${warehouseInventory.reservedQuantity} + ${deductFromWarehouse}`,
+                  lastUpdated: new Date(),
+                  updatedBy: 1 // TODO: Get from session
+                })
+                .where(and(
+                  eq(warehouseInventory.productId, validation.productId),
+                  eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+                ));
+
+              itemDeductions.push({
+                warehouseId: warehouse.warehouseId,
+                warehouseName: warehouse.warehouseName,
+                quantityDeducted: deductFromWarehouse
+              });
+
+              remainingQuantity -= deductFromWarehouse;
+            }
+          }
+          
+          inventoryDeductions.push({
+            productId: validation.productId,
+            quantity: validation.quantity,
+            deductions: itemDeductions
+          });
+        }
+        
+        console.log('✅ INVENTORY RESERVED successfully for all order items:', inventoryDeductions);
+        
+        // Process order items
         for (const item of req.body.items) {
           const itemData = {
             orderId: order.id,
@@ -2686,13 +2779,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status value" });
       }
 
-      const order = await storage.updateOrder(id, { status });
-
+      // Get order details and items for inventory management
+      const order = await storage.getOrder(id);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      res.json(order);
+      // Handle inventory deduction confirmation when order is completed
+      if (status === 'completed' && order.status !== 'completed') {
+        const orderItems = await storage.getOrderItems(id);
+        
+        console.log('🔥 ORDER COMPLETED - Confirming inventory deductions for order:', id);
+        
+        for (const item of orderItems) {
+          try {
+            // Get warehouses that have reserved stock for this product
+            const warehouseStock = await db
+              .select({
+                warehouseId: warehouseInventory.warehouseId,
+                warehouseName: warehouses.name,
+                quantity: warehouseInventory.quantity,
+                reservedQuantity: warehouseInventory.reservedQuantity
+              })
+              .from(warehouseInventory)
+              .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+              .where(and(
+                eq(warehouseInventory.productId, item.productId),
+                sql`${warehouseInventory.reservedQuantity} > 0`
+              ));
+
+            let remainingQuantity = parseFloat(item.quantity);
+            
+            for (const warehouse of warehouseStock) {
+              if (remainingQuantity <= 0) break;
+              
+              const deductFromWarehouse = Math.min(remainingQuantity, warehouse.reservedQuantity);
+              
+              if (deductFromWarehouse > 0) {
+                // Convert reserved quantity to actual deduction
+                await db
+                  .update(warehouseInventory)
+                  .set({
+                    quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
+                    reservedQuantity: sql`${warehouseInventory.reservedQuantity} - ${deductFromWarehouse}`,
+                    lastUpdated: new Date(),
+                    updatedBy: 1 // TODO: Get from session
+                  })
+                  .where(and(
+                    eq(warehouseInventory.productId, item.productId),
+                    eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+                  ));
+
+                console.log(`✅ INVENTORY CONFIRMED: Product ${item.productId} - ${deductFromWarehouse} units deducted from ${warehouse.warehouseName}`);
+                remainingQuantity -= deductFromWarehouse;
+              }
+            }
+          } catch (inventoryError) {
+            console.error(`Error confirming inventory for product ${item.productId}:`, inventoryError);
+            // Continue with other items even if one fails
+          }
+        }
+      }
+
+      // Handle inventory release when order is cancelled
+      if (status === 'cancelled' && order.status !== 'cancelled') {
+        const orderItems = await storage.getOrderItems(id);
+        
+        console.log('🔥 ORDER CANCELLED - Releasing reserved inventory for order:', id);
+        
+        for (const item of orderItems) {
+          try {
+            // Release all reserved inventory for this product
+            await db
+              .update(warehouseInventory)
+              .set({
+                reservedQuantity: sql`GREATEST(0, ${warehouseInventory.reservedQuantity} - ${parseFloat(item.quantity)})`,
+                lastUpdated: new Date(),
+                updatedBy: 1
+              })
+              .where(eq(warehouseInventory.productId, item.productId));
+
+            console.log(`✅ INVENTORY RELEASED: Product ${item.productId} - ${item.quantity} units released from reservation`);
+          } catch (inventoryError) {
+            console.error(`Error releasing inventory for product ${item.productId}:`, inventoryError);
+          }
+        }
+      }
+
+      // Update order status
+      const updatedOrder = await storage.updateOrder(id, { status });
+
+      res.json(updatedOrder);
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
