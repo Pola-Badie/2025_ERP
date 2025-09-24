@@ -2080,7 +2080,97 @@ export async function registerRoutes(app: Express): Promise<void> {
         notes: invoiceData.notes || ""
       }).returning();
 
-      // Create sale items and update inventory
+      // ============= INVENTORY VALIDATION AND DEDUCTION =============
+      
+      // Validate stock availability for all items before processing
+      const stockValidation = [];
+      const inventoryDeductions = [];
+      
+      for (const item of invoiceData.items) {
+        if (item.productId && item.quantity) {
+          const stockCheck = await db
+            .select({
+              warehouseId: warehouseInventory.warehouseId,
+              warehouseName: warehouses.name,
+              quantity: warehouseInventory.quantity,
+              reservedQuantity: warehouseInventory.reservedQuantity,
+              availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+            })
+            .from(warehouseInventory)
+            .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+            .where(eq(warehouseInventory.productId, item.productId));
+
+          const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
+          const requiredQuantity = parseFloat(item.quantity);
+          
+          if (availableStock < requiredQuantity) {
+            return res.status(400).json({
+              success: false,
+              message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
+              error: 'INSUFFICIENT_STOCK',
+              stockDetails: {
+                productId: item.productId,
+                required: requiredQuantity,
+                available: availableStock,
+                warehouseDetails: stockCheck
+              }
+            });
+          }
+          
+          stockValidation.push({
+            productId: item.productId,
+            quantity: requiredQuantity,
+            availableStock,
+            warehouseDetails: stockCheck
+          });
+        }
+      }
+      
+      console.log('✅ STOCK VALIDATION PASSED for all invoice items');
+      
+      // Immediately deduct inventory for invoices (invoices are immediate sales)
+      for (const validation of stockValidation) {
+        let remainingQuantity = validation.quantity;
+        const itemDeductions = [];
+        
+        for (const warehouse of validation.warehouseDetails) {
+          if (remainingQuantity <= 0) break;
+          
+          const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
+          
+          if (deductFromWarehouse > 0) {
+            await db
+              .update(warehouseInventory)
+              .set({
+                quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
+                lastUpdated: new Date(),
+                updatedBy: 1 // TODO: Get from session
+              })
+              .where(and(
+                eq(warehouseInventory.productId, validation.productId),
+                eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+              ));
+
+            itemDeductions.push({
+              warehouseId: warehouse.warehouseId,
+              warehouseName: warehouse.warehouseName,
+              quantityDeducted: deductFromWarehouse
+            });
+
+            remainingQuantity -= deductFromWarehouse;
+          }
+        }
+        
+        inventoryDeductions.push({
+          productId: validation.productId,
+          quantity: validation.quantity,
+          deductions: itemDeductions
+        });
+      }
+      
+      console.log('✅ INVENTORY DEDUCTED successfully for all invoice items:', inventoryDeductions);
+
+      // Create sale items
       for (const item of invoiceData.items) {
         const quantity = parseFloat(item.quantity) || 0;
         const unitPrice = parseFloat(item.unitPrice) || 0;
@@ -2094,13 +2184,6 @@ export async function registerRoutes(app: Express): Promise<void> {
           discount: "0",
           total: itemTotal.toFixed(2)
         });
-
-        // Update product stock
-        await db.update(products)
-          .set({ 
-            quantity: sql`${products.quantity} - ${quantity}`
-          })
-          .where(eq(products.id, item.productId));
       }
 
       // Create accounting entries for the invoice

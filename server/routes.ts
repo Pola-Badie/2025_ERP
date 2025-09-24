@@ -761,6 +761,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tax: sale.tax ? Number(sale.tax) : 0
       });
 
+      // ============= INVENTORY VALIDATION AND DEDUCTION =============
+      
+      // Validate stock availability for all items before processing
+      const stockValidation = [];
+      
+      for (const item of items) {
+        if (item.productId && item.quantity) {
+          const stockCheck = await db
+            .select({
+              warehouseId: warehouseInventory.warehouseId,
+              warehouseName: warehouses.name,
+              quantity: warehouseInventory.quantity,
+              reservedQuantity: warehouseInventory.reservedQuantity,
+              availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+            })
+            .from(warehouseInventory)
+            .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+            .where(eq(warehouseInventory.productId, Number(item.productId)));
+
+          const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
+          const requiredQuantity = Number(item.quantity);
+          
+          if (availableStock < requiredQuantity) {
+            return res.status(400).json({
+              success: false,
+              message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
+              error: 'INSUFFICIENT_STOCK',
+              stockDetails: {
+                productId: item.productId,
+                required: requiredQuantity,
+                available: availableStock,
+                warehouseDetails: stockCheck
+              }
+            });
+          }
+          
+          stockValidation.push({
+            productId: Number(item.productId),
+            quantity: requiredQuantity,
+            availableStock,
+            warehouseDetails: stockCheck
+          });
+        }
+      }
+      
+      console.log('✅ STOCK VALIDATION PASSED for all sale items');
+      
+      // Immediately deduct inventory for sales (sales are immediate transactions)
+      for (const validation of stockValidation) {
+        let remainingQuantity = validation.quantity;
+        
+        for (const warehouse of validation.warehouseDetails) {
+          if (remainingQuantity <= 0) break;
+          
+          const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
+          
+          if (deductFromWarehouse > 0) {
+            await db
+              .update(warehouseInventory)
+              .set({
+                quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
+                lastUpdated: new Date(),
+                updatedBy: 1 // TODO: Get from session
+              })
+              .where(and(
+                eq(warehouseInventory.productId, validation.productId),
+                eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+              ));
+
+            remainingQuantity -= deductFromWarehouse;
+          }
+        }
+        
+        console.log(`✅ INVENTORY DEDUCTED: Product ${validation.productId} - ${validation.quantity} units deducted from warehouse inventory`);
+      }
+
       // Validate each item
       const validatedItems = [];
       for (const item of items) {
@@ -1225,6 +1301,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discount: sale.discount ? Number(sale.discount) : 0,
         tax: sale.tax ? Number(sale.tax) : 0
       });
+
+      // ============= INVENTORY VALIDATION AND DEDUCTION =============
+      
+      // Validate stock availability for all items before processing
+      const stockValidation = [];
+      
+      for (const item of items) {
+        if (item.productId && item.quantity) {
+          const stockCheck = await db
+            .select({
+              warehouseId: warehouseInventory.warehouseId,
+              warehouseName: warehouses.name,
+              quantity: warehouseInventory.quantity,
+              reservedQuantity: warehouseInventory.reservedQuantity,
+              availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
+            })
+            .from(warehouseInventory)
+            .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
+            .where(eq(warehouseInventory.productId, Number(item.productId)));
+
+          const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
+          const requiredQuantity = Number(item.quantity);
+          
+          if (availableStock < requiredQuantity) {
+            return res.status(400).json({
+              success: false,
+              message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
+              error: 'INSUFFICIENT_STOCK',
+              stockDetails: {
+                productId: item.productId,
+                required: requiredQuantity,
+                available: availableStock,
+                warehouseDetails: stockCheck
+              }
+            });
+          }
+          
+          stockValidation.push({
+            productId: Number(item.productId),
+            quantity: requiredQuantity,
+            availableStock,
+            warehouseDetails: stockCheck
+          });
+        }
+      }
+      
+      console.log('✅ STOCK VALIDATION PASSED for all sale items');
+      
+      // Immediately deduct inventory for sales (sales are immediate transactions)
+      for (const validation of stockValidation) {
+        let remainingQuantity = validation.quantity;
+        
+        for (const warehouse of validation.warehouseDetails) {
+          if (remainingQuantity <= 0) break;
+          
+          const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
+          
+          if (deductFromWarehouse > 0) {
+            await db
+              .update(warehouseInventory)
+              .set({
+                quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
+                lastUpdated: new Date(),
+                updatedBy: 1 // TODO: Get from session
+              })
+              .where(and(
+                eq(warehouseInventory.productId, validation.productId),
+                eq(warehouseInventory.warehouseId, warehouse.warehouseId)
+              ));
+
+            remainingQuantity -= deductFromWarehouse;
+          }
+        }
+        
+        console.log(`✅ INVENTORY DEDUCTED: Product ${validation.productId} - ${validation.quantity} units deducted from warehouse inventory`);
+      }
 
       // Validate each item
       const validatedItems = [];
