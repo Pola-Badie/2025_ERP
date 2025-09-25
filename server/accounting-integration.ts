@@ -48,12 +48,13 @@ export async function generateJournalEntryNumber(): Promise<string> {
   const prefix = `JE-${year}${month}-`;
   
   try {
-    const result = await db.execute(
-      sql`SELECT COUNT(*) as count FROM journal_entries WHERE entry_number LIKE ${prefix + '%'}`
-    );
+    const entries = await db
+      .select({ entryNumber: journalEntries.entryNumber })
+      .from(journalEntries)
+      .where(sql`entry_number LIKE ${prefix + '%'}`);
     
-    const count = result.rows[0]?.count || 0;
-    const sequence = String(Number(count) + 1).padStart(4, '0');
+    const count = entries.length;
+    const sequence = String(count + 1).padStart(4, '0');
     return `${prefix}${sequence}`;
   } catch (error) {
     console.error('Error generating journal entry number:', error);
@@ -365,8 +366,8 @@ export async function updateAccountBalances(journalEntryId: number) {
     // Get all journal lines for this entry
     const lines = await db
       .select()
-      .from(journalLines)
-      .where(eq(journalLines.journalId, journalEntryId));
+      .from(journalEntryLines)
+      .where(eq(journalEntryLines.journalEntryId, journalEntryId));
 
     // Update each account balance
     for (const line of lines) {
