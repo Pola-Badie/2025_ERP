@@ -76,50 +76,61 @@ export function registerUnifiedAccountingRoutes(app: Express) {
         salesData = salesData.slice(0, parseInt(limit as string));
       }
       
-      // Add items to each invoice for complete data synchronization
-      const invoicesWithItems = await Promise.all(
-        salesData.map(async (invoice) => {
-          const items = await db
-            .select({
-              id: saleItems.id,
-              saleId: saleItems.saleId,
-              productId: saleItems.productId,
-              productName: products.name,
-              productSku: products.sku,
-              quantity: saleItems.quantity,
-              unitPrice: saleItems.unitPrice,
-              discount: saleItems.discount,
-              total: saleItems.total,
-              unitOfMeasure: products.unitOfMeasure,
-              // Product details
-              categoryName: productCategories.name,
-              batchNo: sql<string>`NULL`
-            })
-            .from(saleItems)
-            .leftJoin(products, eq(saleItems.productId, products.id))
-            .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
-            .where(eq(saleItems.saleId, invoice.id));
+      // Optimize: Fetch all items in a single query instead of N+1 queries
+      const invoiceIds = salesData.map(invoice => invoice.id);
+      
+      let allItems = [];
+      if (invoiceIds.length > 0) {
+        allItems = await db
+          .select({
+            id: saleItems.id,
+            saleId: saleItems.saleId,
+            productId: saleItems.productId,
+            productName: products.name,
+            productSku: products.sku,
+            quantity: saleItems.quantity,
+            unitPrice: saleItems.unitPrice,
+            discount: saleItems.discount,
+            total: saleItems.total,
+            unitOfMeasure: products.unitOfMeasure,
+            // Product details
+            categoryName: productCategories.name,
+            batchNo: sql<string>`NULL`
+          })
+          .from(saleItems)
+          .leftJoin(products, eq(saleItems.productId, products.id))
+          .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+          .where(sql`${saleItems.saleId} IN (${sql.join(invoiceIds.map(id => sql`${id}`), sql`, `)})`);
+      }
+      
+      // Group items by invoice ID for efficient lookup
+      const itemsByInvoice = new Map();
+      allItems.forEach(item => {
+        if (!itemsByInvoice.has(item.saleId)) {
+          itemsByInvoice.set(item.saleId, []);
+        }
+        itemsByInvoice.get(item.saleId).push(item);
+      });
 
-          return {
-            ...invoice,
-            items,
-            customer: {
-              id: invoice.customerId,
-              name: invoice.customerName,
-              email: invoice.customerEmail,
-              phone: invoice.customerPhone,
-              address: invoice.customerAddress,
-              city: invoice.customerCity,
-              state: invoice.customerState,
-              zip_code: invoice.customerZipCode,
-              company: invoice.customerCompany,
-              position: invoice.customerPosition,
-              sector: invoice.customerSector,
-              tax_number: invoice.customerTaxNumber
-            }
-          };
-        })
-      );
+      // Build final response with items efficiently
+      const invoicesWithItems = salesData.map(invoice => ({
+        ...invoice,
+        items: itemsByInvoice.get(invoice.id) || [],
+        customer: {
+          id: invoice.customerId,
+          name: invoice.customerName,
+          email: invoice.customerEmail,
+          phone: invoice.customerPhone,
+          address: invoice.customerAddress,
+          city: invoice.customerCity,
+          state: invoice.customerState,
+          zip_code: invoice.customerZipCode,
+          company: invoice.customerCompany,
+          position: invoice.customerPosition,
+          sector: invoice.customerSector,
+          tax_number: invoice.customerTaxNumber
+        }
+      }));
       
       res.json(invoicesWithItems);
     } catch (error) {
