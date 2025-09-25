@@ -11,6 +11,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Expense } from '@shared/schema';
+
+interface ExpenseCategory {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+}
 import { formatCurrency } from '@/lib/utils';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -28,19 +35,41 @@ const ExpenseReport: React.FC<ExpenseReportProps> = ({ period }) => {
     queryKey: ['/api/expenses'],
   });
 
-  // Chart colors
-  const COLORS = [
-    '#8b5cf6', // purple
-    '#f59e0b', // amber
-    '#10b981', // green
-    '#3b82f6', // blue
-    '#0ea5e9', // sky
-    '#6b7280', // gray
-    '#ec4899', // pink
-    '#ef4444', // red
-    '#14b8a6', // teal
-    '#f97316', // orange
-  ];
+  // Fetch expense categories
+  const { data: expenseCategories } = useQuery<ExpenseCategory[]>({
+    queryKey: ['/api/expense-categories'],
+  });
+
+  // Generate consistent colors for categories
+  const generateCategoryColor = (categoryName: string): string => {
+    const colors = [
+      '#8b5cf6', // purple
+      '#f59e0b', // amber
+      '#10b981', // green
+      '#3b82f6', // blue
+      '#0ea5e9', // sky
+      '#ec4899', // pink
+      '#ef4444', // red
+      '#14b8a6', // teal
+      '#f97316', // orange
+      '#6b7280', // gray
+      '#84cc16', // lime
+      '#f43f5e', // rose
+      '#a855f7', // violet
+      '#06b6d4', // cyan
+      '#eab308', // yellow
+    ];
+    
+    // Generate consistent hash from category name
+    let hash = 0;
+    for (let i = 0; i < categoryName.length; i++) {
+      const char = categoryName.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   // Function to prepare chart data
   useEffect(() => {
@@ -72,11 +101,11 @@ const ExpenseReport: React.FC<ExpenseReportProps> = ({ period }) => {
       categories[expense.category] = (categories[expense.category] || 0) + expense.amount;
     });
 
-    // Convert to chart data
-    const data = Object.entries(categories).map(([name, value], index) => ({
+    // Convert to chart data with consistent colors
+    const data = Object.entries(categories).map(([name, value]) => ({
       name,
       value,
-      color: COLORS[index % COLORS.length],
+      color: generateCategoryColor(name),
     }));
 
     setReportData(data);
@@ -202,6 +231,24 @@ const ExpenseReport: React.FC<ExpenseReportProps> = ({ period }) => {
             >
               <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
             </svg>
+          </div>
+        ) : !expenseCategories ? (
+          <div className="h-72 w-full flex items-center justify-center bg-slate-50 rounded-lg">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className="animate-spin text-primary"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+            </svg>
+            <span className="ml-2 text-slate-500">Loading categories...</span>
           </div>
         ) : reportData.length === 0 ? (
           <div className="h-72 w-full flex flex-col items-center justify-center bg-slate-50 rounded-lg">

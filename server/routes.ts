@@ -29,7 +29,9 @@ import {
   orders,
   products,
   warehouseInventory,
-  warehouses
+  warehouses,
+  expenseCategories,
+  expenses
 } from "@shared/schema";
 import { eq, sql, or, desc, and, like, gte, lte, inArray, between } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
@@ -2129,6 +2131,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid settings data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update backup settings" });
+    }
+  });
+
+  // ============= Expense Categories Endpoints =============
+
+  // Get all expense categories
+  app.get("/api/expense-categories", async (req: Request, res: Response) => {
+    try {
+      const categories = await db.select().from(expenseCategories).orderBy(expenseCategories.name);
+      res.json(categories);
+    } catch (error) {
+      console.error("Failed to fetch expense categories:", error);
+      res.status(500).json({ message: "Failed to fetch expense categories" });
+    }
+  });
+
+  // Get expense category by ID
+  app.get("/api/expense-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const [category] = await db.select().from(expenseCategories).where(eq(expenseCategories.id, id));
+      
+      if (!category) {
+        return res.status(404).json({ message: "Expense category not found" });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      console.error("Failed to fetch expense category:", error);
+      res.status(500).json({ message: "Failed to fetch expense category" });
+    }
+  });
+
+  // Create new expense category
+  app.post("/api/expense-categories", async (req: Request, res: Response) => {
+    try {
+      const { name, description } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+      
+      const [category] = await db.insert(expenseCategories).values({
+        name,
+        description
+      }).returning();
+      
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Failed to create expense category:", error);
+      res.status(500).json({ message: "Failed to create expense category" });
+    }
+  });
+
+  // Update expense category
+  app.put("/api/expense-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { name, description } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+      
+      const [category] = await db.update(expenseCategories)
+        .set({ name, description })
+        .where(eq(expenseCategories.id, id))
+        .returning();
+      
+      if (!category) {
+        return res.status(404).json({ message: "Expense category not found" });
+      }
+      
+      res.json(category);
+    } catch (error) {
+      console.error("Failed to update expense category:", error);
+      res.status(500).json({ message: "Failed to update expense category" });
+    }
+  });
+
+  // Delete expense category
+  app.delete("/api/expense-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Check if category is used by any expenses
+      const expensesWithCategory = await db.select().from(expenses).where(eq(expenses.category, String(id))).limit(1);
+      
+      if (expensesWithCategory.length > 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete category because it's used by existing expenses" 
+        });
+      }
+      
+      const [deletedCategory] = await db.delete(expenseCategories)
+        .where(eq(expenseCategories.id, id))
+        .returning();
+      
+      if (!deletedCategory) {
+        return res.status(404).json({ message: "Expense category not found" });
+      }
+      
+      res.json({ message: "Expense category deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete expense category:", error);
+      res.status(500).json({ message: "Failed to delete expense category" });
     }
   });
 
