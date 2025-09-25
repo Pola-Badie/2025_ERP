@@ -10,12 +10,19 @@ import { useToast } from '@/hooks/use-toast';
 interface FinancialIntegrationData {
   status: 'active' | 'error';
   accountingIntegration: 'connected' | 'disconnected';
-  lastSync: string;
+  lastSync: string | null;
   summary: {
     totalRevenue: number;
     totalExpenses: number;
     netProfit: number;
   };
+  timestamp: string;
+  features: {
+    journalEntries: boolean;
+    autoAccounting: boolean;
+    reportGeneration: boolean;
+  };
+  message?: string;
 }
 
 const FinancialIntegrationStatus: React.FC = () => {
@@ -26,6 +33,8 @@ const FinancialIntegrationStatus: React.FC = () => {
   const { data: integrationStatus, isLoading, error } = useQuery<FinancialIntegrationData>({
     queryKey: ['/api/financial-integration/status'],
     refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: accountingSummary, isLoading: isAccountingLoading } = useQuery({
@@ -115,23 +124,29 @@ const FinancialIntegrationStatus: React.FC = () => {
               <span className="text-muted-foreground">Last Sync:</span>
               <p className="font-medium">
                 {integrationStatus?.lastSync ? 
-                  new Date(integrationStatus.lastSync).toLocaleString() : 
-                  'Never'
+                  new Date(integrationStatus.lastSync).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 
+                  'No recent activity'
                 }
               </p>
             </div>
             <div>
               <span className="text-muted-foreground">Auto Journal Entries:</span>
               <p className="font-medium">
-                {isConnected ? '✓ Enabled' : '✗ Disabled'}
+                {integrationStatus?.features?.autoAccounting ? '✓ Enabled' : '✗ Disabled'}
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Financial Summary */}
-      {isConnected && integrationStatus?.summary && (
+      {/* Real Financial Summary */}
+      {integrationStatus?.summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -177,12 +192,21 @@ const FinancialIntegrationStatus: React.FC = () => {
         </div>
       )}
 
-      {/* Integration Info */}
-      {isConnected && (
+      {/* Integration Status Alert */}
+      {integrationStatus?.status === 'active' && integrationStatus?.accountingIntegration === 'connected' ? (
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            Financial integration is active. All new invoices, expenses, and payments will automatically generate journal entries.
+            Financial integration is active. All new invoices, expenses, and payments automatically generate journal entries. 
+            Last updated: {integrationStatus.timestamp ? new Date(integrationStatus.timestamp).toLocaleTimeString() : 'Unknown'}
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            {integrationStatus?.message || 'Financial integration is not fully operational. Some features may be limited.'}
+            {integrationStatus?.status === 'error' && ' Please check database connection.'}
           </AlertDescription>
         </Alert>
       )}
