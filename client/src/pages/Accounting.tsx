@@ -170,19 +170,19 @@ const InvoiceHistoryTab = () => {
   });
 
   // Fetch customers data for customer names
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<any[]>({
     queryKey: ['/api/customers'],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Create a map of customer ID to customer details
-  const customerMap = customers.reduce((acc: any, customer: any) => {
+  const customerMap = (customers as any[]).reduce((acc: any, customer: any) => {
     acc[customer.id] = customer;
     return acc;
   }, {});
 
   // Enhance invoices with customer data
-  const invoices = (apiInvoices || []).map((invoice: any) => ({
+  const invoices = ((apiInvoices as any[]) || []).map((invoice: any) => ({
     ...invoice,
     customerName: customerMap[invoice.customerId]?.name || 'Unknown Customer',
     customerEmail: customerMap[invoice.customerId]?.email || '',
@@ -1715,6 +1715,45 @@ const Accounting: React.FC = () => {
   const [reportGenerated, setReportGenerated] = useState(false);
   const [currentReportData, setCurrentReportData] = useState<any>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  // Auto-generate trial balance when component mounts
+  useEffect(() => {
+    if (selectedReportType === 'trial-balance' && !currentReportData && !isGeneratingReport) {
+      const autoGenerateTrialBalance = async () => {
+        setIsGeneratingReport(true);
+        try {
+          const response = await fetch('/api/reports/trial-balance');
+          if (response.ok) {
+            const data = await response.json();
+            const reportData = {
+              title: `Trial Balance Report`,
+              headers: ["Account Code", "Account Name", "Debit Balance", "Credit Balance"],
+              rows: data.accounts.map((account: any) => [
+                account.code,
+                account.name,
+                account.debit > 0 ? `$${account.debit.toLocaleString()}.00` : "-",
+                account.credit > 0 ? `$${account.credit.toLocaleString()}.00` : "-"
+              ]),
+              totals: ["Total", "", `$${data.totalDebits.toLocaleString()}.00`, `$${data.totalCredits.toLocaleString()}.00`],
+              summary: {
+                isBalanced: data.isBalanced,
+                accountsShown: data.accounts.length,
+                filter: accountFilter || 'all'
+              },
+              _timestamp: Date.now()
+            };
+            setCurrentReportData(reportData);
+            setReportGenerated(true);
+          }
+        } catch (error) {
+          console.error('Auto-generate trial balance error:', error);
+        } finally {
+          setIsGeneratingReport(false);
+        }
+      };
+      autoGenerateTrialBalance();
+    }
+  }, [selectedReportType, currentReportData, isGeneratingReport, accountFilter]);
   const [expenseForm, setExpenseForm] = useState({
     date: '',
     description: '',
