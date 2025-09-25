@@ -1959,14 +1959,14 @@ const Accounting: React.FC = () => {
   // Initialize purchase items as empty - will be populated by useEffect when products load
   const [purchaseItems, setPurchaseItems] = useState<any[]>([]);
 
-  // Real purchase orders from procurement module with faster refresh for real-time sync
+  // Real purchase orders from procurement module with optimized refresh rate
   const { data: procurementOrders = [], isLoading: procurementOrdersLoading, refetch: refetchPurchaseOrders } = useQuery({
     queryKey: ['/api/unified/purchase-orders'],
     queryFn: () => {
       console.log('Fetching purchase orders from unified API for 100% synchronization');
       return fetch('/api/unified/purchase-orders').then(res => res.json());
     },
-    refetchInterval: 5000 // Refresh every 5 seconds for near real-time updates
+    refetchInterval: isPendingPurchasesOpen ? 10000 : 60000 // Refresh every 10s when viewing purchases, 60s otherwise
   });
 
   // Real quotations from API
