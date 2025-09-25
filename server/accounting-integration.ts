@@ -2,13 +2,13 @@ import { db } from "./db";
 import { 
   accounts, 
   journalEntries, 
-  journalLines, 
+  journalEntryLines, 
   sales, 
   expenses,
   insertJournalEntrySchema,
   insertJournalLineSchema 
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 // Account codes for automatic journal entries
 export const ACCOUNT_CODES = {
@@ -49,8 +49,7 @@ export async function generateJournalEntryNumber(): Promise<string> {
   
   try {
     const result = await db.execute(
-      `SELECT COUNT(*) as count FROM journal_entries WHERE entry_number LIKE $1`,
-      [`${prefix}%`]
+      sql`SELECT COUNT(*) as count FROM journal_entries WHERE entry_number LIKE ${prefix + '%'}`
     );
     
     const count = result.rows[0]?.count || 0;
@@ -99,37 +98,34 @@ export async function createInvoiceJournalEntry(invoiceData: any, userId: number
     const journalLinesData = [
       // Debit: Accounts Receivable
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: receivableAccountId,
         description: `Invoice ${invoiceData.invoiceNumber} - ${invoiceData.customerName}`,
         debit: invoiceData.grandTotal.toString(),
-        credit: '0',
-        position: 1
+        credit: '0'
       },
       // Credit: Sales Revenue
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: revenueAccountId,
         description: `Sales revenue - Invoice ${invoiceData.invoiceNumber}`,
         debit: '0',
-        credit: invoiceData.totalAmount.toString(),
-        position: 2
+        credit: invoiceData.totalAmount.toString()
       }
     ];
 
     // Add tax line if applicable
     if (invoiceData.tax && invoiceData.tax > 0 && taxAccountId) {
       journalLinesData.push({
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: taxAccountId,
         description: `Tax on Invoice ${invoiceData.invoiceNumber}`,
         debit: '0',
-        credit: invoiceData.tax.toString(),
-        position: 3
+        credit: invoiceData.tax.toString()
       });
     }
 
-    await db.insert(journalLines).values(journalLinesData);
+    await db.insert(journalEntryLines).values(journalLinesData);
 
     return insertedEntry;
   } catch (error) {
@@ -188,7 +184,7 @@ export async function createPaymentJournalEntry(paymentData: any, userId: number
       }
     ];
 
-    await db.insert(journalLines).values(journalLinesData);
+    await db.insert(journalEntryLines).values(journalLinesData);
 
     return insertedEntry;
   } catch (error) {
@@ -247,7 +243,7 @@ export async function createExpenseJournalEntry(expenseData: any, userId: number
       }
     ];
 
-    await db.insert(journalLines).values(journalLinesData);
+    await db.insert(journalEntryLines).values(journalLinesData);
 
     return insertedEntry;
   } catch (error) {
