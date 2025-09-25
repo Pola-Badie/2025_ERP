@@ -521,176 +521,41 @@ export function registerAccountingRoutes(app: Express) {
   // Chart of Accounts API
   app.get("/api/accounts", async (_req: Request, res: Response) => {
     try {
-      // Sample chart of accounts for pharmaceutical company
-      const sampleAccounts = [
-        {
-          id: 1,
-          code: "1000",
-          name: "Cash and Cash Equivalents",
-          type: "Asset",
-          balance: "125000.00",
-          description: "Primary operating cash account",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 2,
-          code: "1100",
-          name: "Accounts Receivable",
-          type: "Asset",
-          balance: "89500.00",
-          description: "Customer outstanding balances",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 3,
-          code: "1200",
-          name: "Raw Materials Inventory",
-          type: "Asset",
-          balance: "156000.00",
-          description: "Active pharmaceutical ingredients and raw materials",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 4,
-          code: "1300",
-          name: "Finished Goods Inventory",
-          type: "Asset",
-          balance: "234000.00",
-          description: "Completed pharmaceutical products ready for sale",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 5,
-          code: "1500",
-          name: "Manufacturing Equipment",
-          type: "Asset",
-          balance: "450000.00",
-          description: "Pharmaceutical manufacturing machinery and equipment",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 6,
-          code: "2000",
-          name: "Accounts Payable",
-          type: "Liability",
-          balance: "67300.00",
-          description: "Outstanding supplier payments",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 7,
-          code: "2100",
-          name: "Accrued Expenses",
-          type: "Liability",
-          balance: "23450.00",
-          description: "Unpaid operational expenses",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 8,
-          code: "3000",
-          name: "Owner's Equity",
-          type: "Equity",
-          balance: "500000.00",
-          description: "Initial capital investment",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 9,
-          code: "3100",
-          name: "Retained Earnings",
-          type: "Equity",
-          balance: "89750.00",
-          description: "Accumulated business profits",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 10,
-          code: "4000",
-          name: "Pharmaceutical Sales Revenue",
-          type: "Revenue",
-          balance: "456000.00",
-          description: "Revenue from pharmaceutical product sales",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 11,
-          code: "5000",
-          name: "Cost of Goods Sold",
-          type: "Expense",
-          balance: "234500.00",
-          description: "Direct costs of pharmaceutical production",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 12,
-          code: "5100",
-          name: "Utilities Expense",
-          type: "Expense",
-          balance: "15600.00",
-          description: "Electricity, water, and facility utilities",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 13,
-          code: "5200",
-          name: "Marketing and Advertising",
-          type: "Expense",
-          balance: "28400.00",
-          description: "Promotional and marketing activities",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 14,
-          code: "5300",
-          name: "Laboratory Testing Expense",
-          type: "Expense",
-          balance: "12750.00",
-          description: "Quality control and compliance testing",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: 15,
-          code: "5400",
-          name: "Administrative Expenses",
-          type: "Expense",
-          balance: "34200.00",
-          description: "General administrative and office expenses",
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
+      // Fetch real accounts from database with calculated balances from journal entries
+      const allAccounts = await db
+        .select({
+          id: accounts.id,
+          code: accounts.code,
+          name: accounts.name,
+          type: accounts.type,
+          subtype: accounts.subtype,
+          description: accounts.description,
+          isActive: accounts.isActive,
+          balance: sql<number>`COALESCE(SUM(${journalEntryLines.debit} - ${journalEntryLines.credit}), 0)`,
+          createdAt: accounts.createdAt,
+          updatedAt: accounts.updatedAt
+        })
+        .from(accounts)
+        .leftJoin(journalEntryLines, eq(accounts.id, journalEntryLines.accountId))
+        .where(eq(accounts.isActive, true))
+        .groupBy(accounts.id, accounts.code, accounts.name, accounts.type, accounts.subtype, accounts.description, accounts.isActive, accounts.createdAt, accounts.updatedAt)
+        .orderBy(accounts.code);
 
-      res.json(sampleAccounts);
+      // Format the response to match the expected structure
+      const formattedAccounts = allAccounts.map(acc => ({
+        id: acc.id,
+        code: acc.code,
+        name: acc.name,
+        type: acc.type,
+        subtype: acc.subtype,
+        balance: Number(acc.balance).toFixed(2),
+        description: acc.description || '',
+        isActive: acc.isActive,
+        createdAt: acc.createdAt,
+        updatedAt: acc.updatedAt
+      }));
+
+      res.json(formattedAccounts);
     } catch (error) {
       console.error("Error fetching accounts:", error);
       res.status(500).json({ error: "Failed to fetch accounts" });
