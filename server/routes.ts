@@ -2134,6 +2134,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Financial Integration Status Endpoint =============
+
+  // Get financial integration status with real data
+  app.get("/api/financial-integration/status", async (req: Request, res: Response) => {
+    try {
+      // Check database connection health
+      let dbStatus = 'active';
+      let integrationStatus = 'connected';
+      let lastSync = null;
+      let summary = {
+        totalRevenue: 0,
+        totalExpenses: 0,
+        netProfit: 0
+      };
+
+      try {
+        // Test database connection
+        await db.execute('SELECT 1');
+        
+        // Check if required accounting tables exist and have data
+        const accountsCount = await db.execute('SELECT COUNT(*) as count FROM accounts');
+        const journalEntriesCount = await db.execute('SELECT COUNT(*) as count FROM journal_entries');
+        
+        if (Number(accountsCount.rows[0]?.count || 0) === 0) {
+          integrationStatus = 'disconnected';
+        }
+
+        // Get last sync timestamp from most recent journal entry
+        const lastJournalEntry = await db.execute(`
+          SELECT created_at 
+          FROM journal_entries 
+          ORDER BY created_at DESC 
+          LIMIT 1
+        `);
+        
+        if (lastJournalEntry.rows.length > 0) {
+          lastSync = lastJournalEntry.rows[0].created_at;
+        }
+
+        // Get real financial summary
+        const revenueResult = await db.execute(`
+          SELECT COALESCE(SUM(CAST(total AS NUMERIC)), 0) as total_revenue
+          FROM sales 
+          WHERE status != 'cancelled'
+        `);
+
+        const expensesResult = await db.execute(`
+          SELECT COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_expenses
+          FROM expenses
+        `);
+
+        summary.totalRevenue = Number(revenueResult.rows[0]?.total_revenue || 0);
+        summary.totalExpenses = Number(expensesResult.rows[0]?.total_expenses || 0);
+        summary.netProfit = summary.totalRevenue - summary.totalExpenses;
+
+      } catch (dbError) {
+        console.error('Database connection check failed:', dbError);
+        dbStatus = 'error';
+        integrationStatus = 'disconnected';
+      }
+
+      const response = {
+        status: dbStatus,
+        accountingIntegration: integrationStatus,
+        lastSync: lastSync,
+        summary: summary,
+        timestamp: new Date().toISOString(),
+        features: {
+          journalEntries: integrationStatus === 'connected',
+          autoAccounting: integrationStatus === 'connected',
+          reportGeneration: true
+        }
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error("Failed to fetch financial integration status:", error);
+      res.status(500).json({ 
+        status: 'error',
+        accountingIntegration: 'disconnected',
+        lastSync: null,
+        summary: { totalRevenue: 0, totalExpenses: 0, netProfit: 0 },
+        message: "Failed to fetch integration status" 
+      });
+    }
+  });
+
   // ============= Expense Categories Endpoints =============
 
   // Get all expense categories
