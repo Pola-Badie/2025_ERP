@@ -5,6 +5,7 @@ import { FinancialStorage } from "./financial-storage";
 import { IStorage } from "./interfaces";
 import { promises as fs } from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import { and, asc, count, desc, eq, gte, lte, sql, sum, like } from "drizzle-orm";
 import { db } from "../db";
 import {
@@ -450,6 +451,39 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(backups).orderBy(desc(backups.createdAt));
   }
 
+  async getLatestBackup(): Promise<Backup | undefined> {
+    const [latest] = await db.select().from(backups)
+      .where(eq(backups.status, 'completed'))
+      .orderBy(desc(backups.timestamp))
+      .limit(1);
+    return latest;
+  }
+
+  private async cleanupOldBackups(): Promise<void> {
+    try {
+      // Keep only the last 10 successful backups
+      const oldBackups = await db.select().from(backups)
+        .orderBy(desc(backups.timestamp))
+        .offset(10);
+      
+      for (const backup of oldBackups) {
+        try {
+          // Delete backup files from filesystem (using filename as path)
+          const backupPath = path.join(this.backupDir, backup.filename);
+          await fs.unlink(backupPath).catch(() => {});
+          
+          // Delete backup record from database
+          await db.delete(backups).where(eq(backups.id, backup.id));
+          console.log(`🔥 BACKUP CLEANUP: Removed old backup ${backup.filename}`);
+        } catch (error) {
+          console.error(`🔥 BACKUP CLEANUP ERROR: Failed to delete backup ${backup.filename}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('🔥 BACKUP CLEANUP ERROR: Failed to cleanup old backups:', error);
+    }
+  }
+
   async getBackupSettings(): Promise<BackupSettings | undefined> {
     const [settings] = await db.select().from(backupSettings).limit(1);
     return settings;
@@ -463,20 +497,232 @@ export class DatabaseStorage implements IStorage {
   }
 
   async performBackup(type: string): Promise<Backup> {
-    const backupData = {
-      filename: `backup_${Date.now()}.sql`,
-      type,
-      status: 'completed' as const,
-      filePath: path.join(this.backupDir, `backup_${Date.now()}.sql`)
-    };
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const dbBackupFilename = `backup_${timestamp}.sql`;
+    const uploadsBackupFilename = `uploads_${timestamp}.tar.gz`;
+    const dbBackupPath = path.join(this.backupDir, dbBackupFilename);
+    const uploadsBackupPath = path.join(this.backupDir, uploadsBackupFilename);
     
-    const [backup] = await db.insert(backups).values(backupData).returning();
-    return backup;
+    try {
+      console.log('🔥 BACKUP: Starting real backup process...');
+      
+      // Create backup directory if it doesn't exist
+      await fs.mkdir(this.backupDir, { recursive: true });
+      
+      // 1. Backup database using pg_dump
+      console.log('🔥 BACKUP: Creating database backup...');
+      
+      const dbResult = await new Promise<boolean>((resolve) => {
+        const pgDump = spawn('pg_dump', [
+          '--verbose',
+          '--clean',
+          '--no-owner',
+          '--no-privileges',
+          '--format=plain',
+          `--file=${dbBackupPath}`,
+          process.env.DATABASE_URL!
+        ], {
+          env: {
+            ...process.env,
+            PGPASSWORD: process.env.PGPASSWORD
+          }
+        });
+        
+        pgDump.on('close', (code) => {
+          console.log(`🔥 BACKUP: pg_dump process exited with code ${code}`);
+          resolve(code === 0);
+        });
+        
+        pgDump.on('error', (error) => {
+          console.error('🔥 BACKUP ERROR: pg_dump failed:', error);
+          resolve(false);
+        });
+      });
+      
+      if (!dbResult) {
+        throw new Error('Database backup failed');
+      }
+      
+      // 2. Backup uploads directory if it exists
+      console.log('🔥 BACKUP: Creating uploads backup...');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      let uploadsResult = true;
+      
+      try {
+        await fs.access(uploadsDir);
+        uploadsResult = await new Promise<boolean>((resolve) => {
+          const tar = spawn('tar', [
+            '-czf',
+            uploadsBackupPath,
+            '-C',
+            process.cwd(),
+            'uploads'
+          ]);
+          
+          tar.on('close', (code) => {
+            console.log(`🔥 BACKUP: tar process exited with code ${code}`);
+            resolve(code === 0);
+          });
+          
+          tar.on('error', (error) => {
+            console.error('🔥 BACKUP ERROR: tar failed:', error);
+            resolve(false);
+          });
+        });
+      } catch (error) {
+        console.log('🔥 BACKUP: No uploads directory found, skipping...');
+        // Create empty file to maintain consistency
+        await fs.writeFile(uploadsBackupPath, '');
+      }
+      
+      // 3. Calculate backup sizes
+      let dbSize = 0;
+      let uploadsSize = 0;
+      
+      try {
+        const dbStats = await fs.stat(dbBackupPath);
+        dbSize = dbStats.size;
+        
+        const uploadsStats = await fs.stat(uploadsBackupPath);
+        uploadsSize = uploadsStats.size;
+      } catch (error) {
+        console.error('🔥 BACKUP WARNING: Could not get file sizes:', error);
+      }
+      
+      // 4. Clean up old backups (keep last 10)
+      await this.cleanupOldBackups();
+      
+      // 5. Create backup record
+      const backupData = {
+        filename: dbBackupFilename,
+        type,
+        status: (dbResult && uploadsResult) ? 'completed' as const : 'failed' as const,
+        size: dbSize,
+        timestamp: new Date()
+      };
+      
+      const [backup] = await db.insert(backups).values(backupData).returning();
+      
+      console.log(`🔥 BACKUP: ${backup.status === 'completed' ? 'SUCCESS' : 'FAILED'}`);
+      console.log(`🔥 BACKUP: Database: ${(dbSize / 1024 / 1024).toFixed(2)} MB`);
+      console.log(`🔥 BACKUP: Uploads: ${(uploadsSize / 1024 / 1024).toFixed(2)} MB`);
+      
+      return backup;
+      
+    } catch (error) {
+      console.error('🔥 BACKUP ERROR: Backup failed:', error);
+      
+      // Create failed backup record
+      const backupData = {
+        filename: dbBackupFilename,
+        type,
+        status: 'failed' as const,
+        size: 0,
+        timestamp: new Date()
+      };
+      
+      const [backup] = await db.insert(backups).values(backupData).returning();
+      return backup;
+    }
   }
 
   async restoreFromBackup(backupId: number): Promise<boolean> {
-    // Implementation would depend on specific backup strategy
-    return true;
+    try {
+      console.log('🔥 RESTORE: Starting database restore process...');
+      
+      // Get backup details
+      const [backup] = await db.select().from(backups).where(eq(backups.id, backupId));
+      if (!backup) {
+        console.error('🔥 RESTORE ERROR: Backup not found');
+        return false;
+      }
+      
+      if (backup.status !== 'completed') {
+        console.error('🔥 RESTORE ERROR: Cannot restore from incomplete backup');
+        return false;
+      }
+      
+      // Check if backup file exists
+      const backupPath = path.join(this.backupDir, backup.filename);
+      try {
+        await fs.access(backupPath);
+      } catch (error) {
+        console.error('🔥 RESTORE ERROR: Backup file not found:', backupPath);
+        return false;
+      }
+      
+      console.log('🔥 RESTORE: Restoring database from:', backupPath);
+      
+      // Restore database using psql
+      const restoreResult = await new Promise<boolean>((resolve) => {
+        const psql = spawn('psql', [
+          '--quiet',
+          '--file=' + backupPath,
+          process.env.DATABASE_URL!
+        ], {
+          env: {
+            ...process.env,
+            PGPASSWORD: process.env.PGPASSWORD
+          }
+        });
+        
+        psql.on('close', (code) => {
+          console.log(`🔥 RESTORE: psql process exited with code ${code}`);
+          resolve(code === 0);
+        });
+        
+        psql.on('error', (error) => {
+          console.error('🔥 RESTORE ERROR: psql failed:', error);
+          resolve(false);
+        });
+      });
+      
+      if (!restoreResult) {
+        console.error('🔥 RESTORE ERROR: Database restore failed');
+        return false;
+      }
+      
+      // Try to restore uploads if available (based on filename pattern)
+      const uploadsBackupFilename = backup.filename.replace('backup_', 'uploads_').replace('.sql', '.tar.gz');
+      const uploadsBackupPath = path.join(this.backupDir, uploadsBackupFilename);
+      
+      try {
+        await fs.access(uploadsBackupPath);
+        console.log('🔥 RESTORE: Restoring uploads from:', uploadsBackupPath);
+        
+        const uploadsRestoreResult = await new Promise<boolean>((resolve) => {
+          const tar = spawn('tar', [
+            '-xzf',
+            uploadsBackupPath,
+            '-C',
+            process.cwd()
+          ]);
+          
+          tar.on('close', (code) => {
+            console.log(`🔥 RESTORE: tar process exited with code ${code}`);
+            resolve(code === 0);
+          });
+          
+          tar.on('error', (error) => {
+            console.error('🔥 RESTORE WARNING: uploads restore failed:', error);
+            resolve(true); // Don't fail the entire restore for uploads
+          });
+        });
+        
+        if (uploadsRestoreResult) {
+          console.log('🔥 RESTORE: Uploads restored successfully');
+        }
+      } catch (error) {
+        console.log('🔥 RESTORE: No uploads backup found, skipping...');
+      }
+      
+      console.log('🔥 RESTORE: Database restore completed successfully');
+      return true;
+      
+    } catch (error) {
+      console.error('🔥 RESTORE ERROR: Restore failed:', error);
+      return false;
+    }
   }
 
   async getSystemPreferences(): Promise<SystemPreference[]> {
