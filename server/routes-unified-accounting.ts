@@ -239,59 +239,65 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       
-      // 1. Get Revenue from Invoices (This Month)
-      const monthlyRevenue = await db
-        .select({ total: sum(sales.grandTotal) })
-        .from(sales)
-        .where(
-          and(
-            gte(sales.date, firstDayOfMonth),
-            lte(sales.date, lastDayOfMonth)
-          )
-        );
+      // Run all queries in parallel for better performance
+      const [
+        monthlyRevenue,
+        monthlyExpenses,
+        journalCount,
+        accountsCount,
+        pendingPurchasesCount,
+        outstandingInvoices
+      ] = await Promise.all([
+        // 1. Get Revenue from Invoices (This Month)
+        db.select({ total: sql<string>`COALESCE(SUM(CAST(grand_total AS DECIMAL)), 0)` })
+          .from(sales)
+          .where(
+            and(
+              gte(sales.date, firstDayOfMonth),
+              lte(sales.date, lastDayOfMonth)
+            )
+          ),
+        
+        // 2. Get Expenses (This Month)  
+        db.select({ total: sql<string>`COALESCE(SUM(CAST(amount AS DECIMAL)), 0)` })
+          .from(expenses)
+          .where(
+            and(
+              gte(expenses.date, firstDayOfMonth),
+              lte(expenses.date, lastDayOfMonth)
+            )
+          ),
+        
+        // 3. Get Total Journal Entries Count
+        db.select({ count: sql<number>`COUNT(*)` }).from(journalEntries),
+        
+        // 4. Get Total Accounts Count
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(accounts)
+          .where(eq(accounts.isActive, true)),
+        
+        // 5. Get Pending Purchases Count
+        db.select({ count: sql<number>`COUNT(*)` })
+          .from(purchaseOrders)
+          .where(eq(purchaseOrders.status, 'sent')),
+        
+        // 6. Get Outstanding Invoices
+        db.select({ total: sql<string>`COALESCE(SUM(CAST(grand_total AS DECIMAL)), 0)` })
+          .from(sales)
+          .where(eq(sales.paymentStatus, 'pending'))
+      ]);
       
-      // 2. Get Expenses (This Month)
-      const monthlyExpenses = await db
-        .select({ total: sum(expenses.amount) })
-        .from(expenses)
-        .where(
-          and(
-            gte(expenses.date, firstDayOfMonth),
-            lte(expenses.date, lastDayOfMonth)
-          )
-        );
-      
-      // 3. Get Total Journal Entries Count
-      const [journalCount] = await db
-        .select({ count: count() })
-        .from(journalEntries);
-      
-      // 4. Get Total Accounts Count
-      const [accountsCount] = await db
-        .select({ count: count() })
-        .from(accounts)
-        .where(eq(accounts.isActive, true));
-      
-      // 5. Get Pending Purchases Count
-      const [pendingPurchasesCount] = await db
-        .select({ count: count() })
-        .from(purchaseOrders)
-        .where(eq(purchaseOrders.status, 'sent'));
-      
-      // 6. Get Outstanding Invoices
-      const [outstandingInvoices] = await db
-        .select({ total: sum(sales.grandTotal) })
-        .from(sales)
-        .where(eq(sales.paymentStatus, 'pending'));
+      const revenueThisMonth = parseFloat(monthlyRevenue[0]?.total || '0');
+      const expensesThisMonth = parseFloat(monthlyExpenses[0]?.total || '0');
       
       const dashboardData = {
-        revenueThisMonth: parseFloat(monthlyRevenue[0]?.total || '0'),
-        expensesThisMonth: parseFloat(monthlyExpenses[0]?.total || '0'),
-        journalEntries: journalCount.count || 0,
-        totalAccounts: accountsCount.count || 0,
-        pendingPurchases: pendingPurchasesCount.count || 0,
-        outstandingInvoices: parseFloat(outstandingInvoices.total || '0'),
-        netProfit: parseFloat(monthlyRevenue[0]?.total || '0') - parseFloat(monthlyExpenses[0]?.total || '0')
+        revenueThisMonth,
+        expensesThisMonth,
+        journalEntries: journalCount[0]?.count || 0,
+        totalAccounts: accountsCount[0]?.count || 0,
+        pendingPurchases: pendingPurchasesCount[0]?.count || 0,
+        outstandingInvoices: parseFloat(outstandingInvoices[0]?.total || '0'),
+        netProfit: revenueThisMonth - expensesThisMonth
       };
       
       res.json(dashboardData);

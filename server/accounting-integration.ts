@@ -271,47 +271,61 @@ async function getExpenseAccountId(category: string): Promise<number | null> {
   return await getAccountIdByCode(accountCode);
 }
 
-// Generate financial summary for dashboard
+// Generate financial summary for dashboard with optimized SQL queries
 export async function generateFinancialSummary() {
   try {
     // Import the required tables
     const { sales, expenses } = await import("@shared/schema");
     
-    // Calculate total revenue from sales table
-    const salesData = await db.select().from(sales);
-    const totalRevenue = salesData.reduce((sum, sale) => {
-      const amount = parseFloat(sale.grandTotal || '0');
-      return sum + (isNaN(amount) ? 0 : amount);
-    }, 0);
+    // Use Promise.all to run all queries in parallel for better performance
+    const [
+      revenueResult,
+      expensesResult, 
+      outstandingResult,
+      accountsResult,
+      salesCount,
+      expensesCount
+    ] = await Promise.all([
+      // Total revenue using SQL aggregation
+      db.select({ total: sql<string>`COALESCE(SUM(CAST(grand_total AS DECIMAL)), 0)` }).from(sales),
+      
+      // Total expenses using SQL aggregation  
+      db.select({ total: sql<string>`COALESCE(SUM(CAST(amount AS DECIMAL)), 0)` }).from(expenses),
+      
+      // Outstanding A/R using SQL aggregation
+      db.select({ total: sql<string>`COALESCE(SUM(CAST(grand_total AS DECIMAL)), 0)` })
+        .from(sales)
+        .where(eq(sales.paymentStatus, 'pending')),
+      
+      // Account balances grouped by type using SQL aggregation
+      db.select({ 
+        type: accounts.type,
+        total: sql<string>`COALESCE(SUM(CAST(balance AS DECIMAL)), 0)`
+      })
+        .from(accounts)
+        .where(eq(accounts.isActive, true))
+        .groupBy(accounts.type),
+      
+      // Sales count
+      db.select({ count: sql<number>`COUNT(*)` }).from(sales),
+      
+      // Expenses count  
+      db.select({ count: sql<number>`COUNT(*)` }).from(expenses)
+    ]);
 
-    // Calculate total expenses from expenses table
-    const expensesData = await db.select().from(expenses);
-    const totalExpenses = expensesData.reduce((sum, expense) => {
-      const amount = parseFloat(expense.amount || '0');
-      return sum + (isNaN(amount) ? 0 : amount);
-    }, 0);
-
-    // Calculate outstanding A/R from pending invoices
-    const outstandingAR = salesData.reduce((sum, sale) => {
-      if (sale.paymentStatus === 'pending') {
-        const amount = parseFloat(sale.grandTotal || '0');
-        return sum + (isNaN(amount) ? 0 : amount);
-      }
-      return sum;
-    }, 0);
-
-    // Calculate net profit
+    const totalRevenue = parseFloat(revenueResult[0]?.total || '0');
+    const totalExpenses = parseFloat(expensesResult[0]?.total || '0');
+    const outstandingAR = parseFloat(outstandingResult[0]?.total || '0');
     const netProfit = totalRevenue - totalExpenses;
 
-    // Get account balances for assets, liabilities, equity
-    const allAccounts = await db.select().from(accounts);
+    // Process account balances from aggregated results
     let totalAssets = 0;
-    let totalLiabilities = 0;
+    let totalLiabilities = 0; 
     let totalEquity = 0;
 
-    for (const account of allAccounts) {
-      const balance = parseFloat(account.balance || '0');
-      switch (account.type) {
+    for (const accountGroup of accountsResult) {
+      const balance = parseFloat(accountGroup.total || '0');
+      switch (accountGroup.type) {
         case 'Asset':
           totalAssets += balance;
           break;
@@ -329,8 +343,8 @@ export async function generateFinancialSummary() {
       totalExpenses,
       netProfit,
       outstandingAR,
-      salesCount: salesData.length,
-      expensesCount: expensesData.length
+      salesCount: salesCount[0]?.count || 0,
+      expensesCount: expensesCount[0]?.count || 0
     });
 
     return {
