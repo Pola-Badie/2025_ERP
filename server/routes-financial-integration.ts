@@ -78,8 +78,26 @@ export function registerFinancialIntegrationRoutes(app: Express) {
         .values(validatedData)
         .returning();
       
-      // TEMPORARY: Disable accounting integration until basic expense creation works
-      // Will re-enable once UI synchronization is verified
+      // Create corresponding journal entry for accounting integration
+      try {
+        const userId = req.user?.id || req.body.userId || 1;
+        const expenseData = {
+          id: expense.id,
+          amount: parseFloat(expense.amount),
+          category: expense.category,
+          description: expense.description,
+          vendor: expense.vendor,
+          date: expense.date
+        };
+        
+        const journalEntry = await createExpenseJournalEntry(expenseData, userId);
+        await updateAccountBalances(journalEntry.id);
+        
+        console.log(`✅ Expense journal entry created: ${journalEntry.entryNumber} for expense ${expense.id}`);
+      } catch (journalError) {
+        console.error("Error creating journal entry for expense:", journalError);
+        // Continue even if journal entry fails - the expense is still created
+      }
       
       res.status(201).json(expense);
     } catch (error) {
