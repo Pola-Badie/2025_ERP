@@ -1401,6 +1401,47 @@ export async function registerRoutes(app: Express): Promise<void> {
           const tax = parseFloat(sale.tax || '0'); // Include the main tax field too
           return sum + taxAmount + vatAmount + tax;
         }, 0);
+
+      // Calculate month-over-month growth percentages
+      const twoMonthsAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+      const lastMonthStart = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      
+      // Customer growth calculation
+      const customersLastMonth = allCustomers.filter(c => {
+        const createdDate = new Date(c.createdAt);
+        return createdDate >= twoMonthsAgo && createdDate < lastMonthStart;
+      }).length;
+      const customerGrowthPercent = customersLastMonth > 0 
+        ? ((newCustomers - customersLastMonth) / customersLastMonth) * 100 
+        : newCustomers > 0 ? 100 : 0;
+
+      // Tax collection growth calculation - compare this month vs last month
+      const thisMonthTax = allSales
+        .filter(sale => new Date(sale.date) >= monthStart)
+        .reduce((sum, sale) => {
+          const taxAmount = parseFloat(sale.taxAmount || '0');
+          const vatAmount = parseFloat(sale.vatAmount || '0');
+          const tax = parseFloat(sale.tax || '0');
+          return sum + taxAmount + vatAmount + tax;
+        }, 0);
+
+      const lastMonthStart_tax = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+      const lastMonthTax = allSales
+        .filter(sale => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= lastMonthStart_tax && saleDate <= lastMonthEnd;
+        })
+        .reduce((sum, sale) => {
+          const taxAmount = parseFloat(sale.taxAmount || '0');
+          const vatAmount = parseFloat(sale.vatAmount || '0');
+          const tax = parseFloat(sale.tax || '0');
+          return sum + taxAmount + vatAmount + tax;
+        }, 0);
+
+      const taxGrowthPercent = lastMonthTax > 0 
+        ? ((thisMonthTax - lastMonthTax) / lastMonthTax) * 100 
+        : thisMonthTax > 0 ? 100 : 0;
       
       // Get REAL expenses data
       const allExpenses = await db.select().from(expenses);
@@ -1449,9 +1490,11 @@ export async function registerRoutes(app: Express): Promise<void> {
       const dashboardData = {
         totalCustomers,
         newCustomers,
+        customerGrowthPercent: Math.round(customerGrowthPercent * 100) / 100, // REAL month-over-month customer growth
         todaySales: Math.round(todaySales * 100) / 100,
         monthSales: Math.round(monthSales * 100) / 100,
         totalTaxAllInvoices: Math.round(totalTaxAllInvoices * 100) / 100, // REAL total tax from ALL invoices
+        taxGrowthPercent: Math.round(taxGrowthPercent * 100) / 100, // REAL month-over-month tax growth
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalExpenses: Math.round(totalExpenses * 100) / 100,
         netProfit: Math.round(netProfit * 100) / 100,

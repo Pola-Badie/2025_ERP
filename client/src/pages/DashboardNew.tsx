@@ -371,7 +371,9 @@ const DashboardNew = () => {
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +15% {t('fromLastMonth')}
+              {dashboardData?.customerGrowthPercent !== undefined 
+                ? `${dashboardData.customerGrowthPercent > 0 ? '+' : ''}${dashboardData.customerGrowthPercent.toFixed(1)}% ${t('fromLastMonth')}`
+                : t('calculatingTrends')}
             </div>
           </CardFooter>
         </Card>
@@ -418,7 +420,9 @@ const DashboardNew = () => {
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
               <TrendingUp className="mr-1 h-3 w-3" />
-              +8% {t('fromLastMonth')}
+              {dashboardData?.taxGrowthPercent !== undefined
+                ? `${dashboardData.taxGrowthPercent > 0 ? '+' : ''}${dashboardData.taxGrowthPercent.toFixed(1)}% ${t('fromLastMonth')}`
+                : t('calculatingTrends')}
             </div>
           </CardFooter>
         </Card>
