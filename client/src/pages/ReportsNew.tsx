@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Download, FileDown, Printer, BarChart3, TrendingUp, DollarSign, Package, Users, Factory, Eye } from 'lucide-react';
 // import { DatePickerWithRange } from '@/components/ui/date-picker-with-range';
 import { DateRange } from 'react-day-picker';
@@ -14,42 +15,84 @@ import html2canvas from 'html2canvas';
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState('sales');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(2024, 0, 1),
     to: new Date()
   });
   const [previewOpen, setPreviewOpen] = useState(false);
+  
+  // Generate month options for dropdown
+  const generateMonthOptions = () => {
+    const options = [];
+    const currentDate = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      options.push({ value, label });
+    }
+    return options;
+  };
+  
+  const monthOptions = generateMonthOptions();
 
-  // API data queries
-  const { data: salesData } = useQuery({
-    queryKey: ['/api/reports/sales'],
+  // API data queries with month filtering
+  const { data: salesAnalysisData } = useQuery({
+    queryKey: selectedMonth ? ['/api/reports/sales-analysis', { month: selectedMonth }] : ['/api/reports/sales-analysis'],
     enabled: true
   });
 
-  const { data: financialData } = useQuery({
-    queryKey: ['/api/reports/financial'],
+  const { data: inventoryAnalysisData } = useQuery({
+    queryKey: selectedMonth ? ['/api/reports/inventory-analysis', { month: selectedMonth }] : ['/api/reports/inventory-analysis'],
     enabled: true
   });
 
-  const { data: inventoryData } = useQuery({
-    queryKey: ['/api/reports/inventory'],
+  const { data: productionAnalysisData } = useQuery({
+    queryKey: selectedMonth ? ['/api/reports/production-analysis', { month: selectedMonth }] : ['/api/reports/production-analysis'],
     enabled: true
   });
 
-  const { data: customersData } = useQuery({
-    queryKey: ['/api/reports/customers'],
+  const { data: topCustomersData } = useQuery({
+    queryKey: selectedMonth ? ['/api/reports/top-customers', { month: selectedMonth }] : ['/api/reports/top-customers'],
     enabled: true
   });
 
-  const { data: productionData } = useQuery({
-    queryKey: ['/api/reports/production'],
+  const { data: financeBreakdownData } = useQuery({
+    queryKey: selectedMonth ? ['/api/reports/finance-breakdown', { month: selectedMonth }] : ['/api/reports/finance-breakdown'],
     enabled: true
   });
-
-  const { data: refiningData } = useQuery({
-    queryKey: ['/api/reports/refining'],
-    enabled: true
+  
+  // Legacy financial reports endpoints
+  const { data: trialBalanceData } = useQuery({
+    queryKey: ['/api/financial-reports/trial-balance'],
+    enabled: activeTab === 'financial'
   });
+  
+  const { data: profitLossData } = useQuery({
+    queryKey: ['/api/financial-reports/profit-loss'],
+    enabled: activeTab === 'financial'
+  });
+  
+  const { data: balanceSheetData } = useQuery({
+    queryKey: ['/api/financial-reports/balance-sheet'],
+    enabled: activeTab === 'financial'
+  });
+  
+  const { data: cashFlowData } = useQuery({
+    queryKey: ['/api/financial-reports/cash-flow'],
+    enabled: activeTab === 'financial'
+  });
+  
+  // Refining mock data (for now)
+  const refiningData = {
+    summary: {
+      totalBatches: 45,
+      avgYield: 87.5,
+      avgPurity: 99.8,
+      efficiency: 94.2
+    }
+  };
 
   // Enhanced export functionality with proper typing
   const getReportData = (reportType: string): any => {

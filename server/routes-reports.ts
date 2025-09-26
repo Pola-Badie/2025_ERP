@@ -325,18 +325,21 @@ router.get('/aging-analysis', async (req, res) => {
 router.get('/sales-analysis', async (req, res) => {
   try {
     const { month } = req.query;
-    let dateFilter = {};
+    let startDateStr: string;
+    let endDateStr: string;
     
     if (month) {
       const [year, monthNum] = (month as string).split('-');
       const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
-      dateFilter = sql`invoice_date >= ${startDate.toISOString().split('T')[0]} AND invoice_date <= ${endDate.toISOString().split('T')[0]}`;
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     } else {
       // Default to last 6 months
       const endDate = new Date();
       const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 5, 1);
-      dateFilter = sql`invoice_date >= ${startDate.toISOString().split('T')[0]}`;
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     }
 
     // Get sales data from sales_invoices and sales_invoice_lines
@@ -348,7 +351,7 @@ router.get('/sales-analysis', async (req, res) => {
         COUNT(DISTINCT si.customer_id) as unique_customers,
         AVG(si.total_amount) as avg_order_value
       FROM sales_invoices si
-      WHERE ${dateFilter}
+      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
       GROUP BY DATE_TRUNC('month', si.invoice_date)
       ORDER BY month DESC
       LIMIT 6
@@ -362,7 +365,7 @@ router.get('/sales-analysis', async (req, res) => {
         SUM(sil.line_total) as total
       FROM sales_invoice_lines sil
       JOIN sales_invoices si ON sil.invoice_id = si.id
-      WHERE ${dateFilter}
+      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
       GROUP BY sil.grade
     `);
 
@@ -375,7 +378,7 @@ router.get('/sales-analysis', async (req, res) => {
         SUM(sil.line_total) as total_revenue
       FROM sales_invoice_lines sil
       JOIN sales_invoices si ON sil.invoice_id = si.id
-      WHERE ${dateFilter}
+      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
       GROUP BY sil.product_name, sil.grade
       ORDER BY total_revenue DESC
       LIMIT 10
@@ -521,15 +524,20 @@ router.get('/inventory-analysis', async (req, res) => {
 router.get('/production-analysis', async (req, res) => {
   try {
     const { month } = req.query;
-    let dateFilter = {};
+    let startDateStr: string;
+    let endDateStr: string;
     
     if (month) {
       const [year, monthNum] = (month as string).split('-');
       const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
-      dateFilter = sql`start_date >= ${startDate.toISOString().split('T')[0]} AND start_date <= ${endDate.toISOString().split('T')[0]}`;
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     } else {
-      dateFilter = sql`start_date >= CURRENT_DATE - INTERVAL '6 months'`;
+      const endDate = new Date();
+      const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 5, 1);
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     }
 
     // Get production metrics
@@ -543,7 +551,7 @@ router.get('/production-analysis', async (req, res) => {
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_orders,
         COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_orders
       FROM production_orders
-      WHERE ${dateFilter}
+      WHERE start_date >= ${startDateStr} AND start_date <= ${endDateStr}
     `);
 
     // Get production by grade
@@ -555,7 +563,7 @@ router.get('/production-analysis', async (req, res) => {
         AVG(efficiency_percentage) as avg_efficiency,
         AVG(quality_score) as avg_quality
       FROM production_orders
-      WHERE ${dateFilter} AND status = 'completed'
+      WHERE start_date >= ${startDateStr} AND start_date <= ${endDateStr} AND status = 'completed'
       GROUP BY grade
     `);
 
@@ -568,7 +576,7 @@ router.get('/production-analysis', async (req, res) => {
         AVG(pc.amount) as avg_amount
       FROM production_costs pc
       JOIN production_orders po ON pc.production_order_id = po.id
-      WHERE ${dateFilter}
+      WHERE po.start_date >= ${startDateStr} AND po.start_date <= ${endDateStr}
       GROUP BY pc.cost_type
     `);
 
@@ -581,13 +589,13 @@ router.get('/production-analysis', async (req, res) => {
         AVG(efficiency_percentage) as efficiency,
         AVG(quality_score) as quality
       FROM production_orders
-      WHERE ${dateFilter} AND status = 'completed'
+      WHERE start_date >= ${startDateStr} AND start_date <= ${endDateStr} AND status = 'completed'
       GROUP BY DATE_TRUNC('month', start_date)
       ORDER BY month DESC
       LIMIT 6
     `);
 
-    const metrics = productionMetrics.rows[0] || {};
+    const metrics: any = productionMetrics.rows[0] || {};
     const totalCosts = costAnalysis.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_amount || 0), 0);
 
     res.json({
@@ -596,8 +604,8 @@ router.get('/production-analysis', async (req, res) => {
         totalProduced: parseInt(metrics.total_produced || 0),
         avgEfficiency: parseFloat(metrics.avg_efficiency || 0),
         avgQuality: parseFloat(metrics.avg_quality || 0),
-        completionRate: metrics.total_orders > 0 ? 
-          (parseInt(metrics.completed_orders || 0) / parseInt(metrics.total_orders)) * 100 : 0,
+        completionRate: parseInt(metrics.total_orders || 0) > 0 ? 
+          (parseInt(metrics.completed_orders || 0) / parseInt(metrics.total_orders || 1)) * 100 : 0,
         totalCosts: totalCosts
       },
       gradeBreakdown: gradeBreakdown.rows.map((row: any) => ({
@@ -633,15 +641,20 @@ router.get('/production-analysis', async (req, res) => {
 router.get('/top-customers', async (req, res) => {
   try {
     const { month } = req.query;
-    let dateFilter = {};
+    let startDateStr: string;
+    let endDateStr: string;
     
     if (month) {
       const [year, monthNum] = (month as string).split('-');
       const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
-      dateFilter = sql`si.invoice_date >= ${startDate.toISOString().split('T')[0]} AND si.invoice_date <= ${endDate.toISOString().split('T')[0]}`;
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     } else {
-      dateFilter = sql`si.invoice_date >= CURRENT_DATE - INTERVAL '6 months'`;
+      const endDate = new Date();
+      const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 5, 1);
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     }
 
     // Get top customers by revenue
@@ -657,7 +670,7 @@ router.get('/top-customers', async (req, res) => {
         MAX(si.invoice_date) as last_order_date
       FROM sales_invoices si
       JOIN customers c ON si.customer_id = c.id
-      WHERE ${dateFilter}
+      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
       GROUP BY c.id, c.name, c.company, c.email
       ORDER BY total_revenue DESC
       LIMIT 20
@@ -670,7 +683,7 @@ router.get('/top-customers', async (req, res) => {
           customer_id,
           SUM(total_amount) as total_spent
         FROM sales_invoices
-        WHERE ${dateFilter}
+        WHERE invoice_date >= ${startDateStr} AND invoice_date <= ${endDateStr}
         GROUP BY customer_id
       )
       SELECT 
@@ -740,15 +753,20 @@ router.get('/top-customers', async (req, res) => {
 router.get('/finance-breakdown', async (req, res) => {
   try {
     const { month } = req.query;
-    let dateFilter = {};
+    let startDateStr: string;
+    let endDateStr: string;
     
     if (month) {
       const [year, monthNum] = (month as string).split('-');
       const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
       const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
-      dateFilter = sql`date >= ${startDate.toISOString().split('T')[0]} AND date <= ${endDate.toISOString().split('T')[0]}`;
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     } else {
-      dateFilter = sql`date >= CURRENT_DATE - INTERVAL '6 months'`;
+      const endDate = new Date();
+      const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 5, 1);
+      startDateStr = startDate.toISOString().split('T')[0];
+      endDateStr = endDate.toISOString().split('T')[0];
     }
 
     // Get revenue breakdown
@@ -759,7 +777,7 @@ router.get('/finance-breakdown', async (req, res) => {
         SUM(sil.line_total) as total_revenue
       FROM sales_invoice_lines sil
       JOIN sales_invoices si ON sil.invoice_id = si.id
-      WHERE si.invoice_${dateFilter}
+      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
       GROUP BY sil.grade
     `);
 
@@ -770,7 +788,7 @@ router.get('/finance-breakdown', async (req, res) => {
         COUNT(*) as expense_count,
         SUM(amount) as total_amount
       FROM expenses
-      WHERE ${dateFilter}
+      WHERE date >= ${startDateStr} AND date <= ${endDateStr}
       GROUP BY category
     `);
 
@@ -782,7 +800,7 @@ router.get('/finance-breakdown', async (req, res) => {
           SUM(total_amount) as revenue,
           0 as expenses
         FROM sales_invoices
-        WHERE invoice_${dateFilter}
+        WHERE invoice_date >= ${startDateStr} AND invoice_date <= ${endDateStr}
         GROUP BY DATE_TRUNC('month', invoice_date)
         UNION ALL
         SELECT 
@@ -790,7 +808,7 @@ router.get('/finance-breakdown', async (req, res) => {
           0 as revenue,
           SUM(amount) as expenses
         FROM expenses
-        WHERE ${dateFilter}
+        WHERE date >= ${startDateStr} AND date <= ${endDateStr}
         GROUP BY DATE_TRUNC('month', date)
       )
       SELECT 
