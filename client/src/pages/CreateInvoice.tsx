@@ -1888,7 +1888,7 @@ const CreateInvoice = () => {
                                           <div className="text-sm font-medium">
                                             {new Intl.NumberFormat('en-US', {
                                               style: 'currency',
-                                              currency: financialPrefs.currency || 'USD'
+                                              currency: financialPrefs.baseCurrency || 'USD'
                                             }).format(product.sellingPrice)}
                                           </div>
                                           <Check
@@ -1966,7 +1966,7 @@ const CreateInvoice = () => {
                         <span className="font-medium">
                           {new Intl.NumberFormat('en-US', {
                             style: 'currency',
-                            currency: financialPrefs.currency || 'USD'
+                            currency: financialPrefs.baseCurrency || 'USD'
                           }).format(form.watch(`items.${index}.total`) || 0)}
                         </span>
                       </TableCell>
@@ -2137,7 +2137,7 @@ const CreateInvoice = () => {
                     <span>{t('subtotal')}</span>
                     <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
-                      currency: financialPrefs.currency || 'USD'
+                      currency: financialPrefs.baseCurrency || 'USD'
                     }).format(form.watch('subtotal') || 0)}</span>
                   </div>
                   
@@ -2185,7 +2185,7 @@ const CreateInvoice = () => {
                         `(${form.watch('discountValue')}%)` : t('amount')}</span>
                       <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-green-600`}>-{new Intl.NumberFormat('en-US', {
                         style: 'currency',
-                        currency: financialPrefs.currency || 'USD'
+                        currency: financialPrefs.baseCurrency || 'USD'
                       }).format(form.watch('discountAmount') || 0)}</span>
                     </div>
                   )}
@@ -2196,7 +2196,7 @@ const CreateInvoice = () => {
                       <span>{t('subtotalAfterDiscount')}</span>
                       <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                         style: 'currency',
-                        currency: financialPrefs.currency || 'USD'
+                        currency: financialPrefs.baseCurrency || 'USD'
                       }).format((form.watch('subtotal') || 0) - (form.watch('discountAmount') || 0))}</span>
                     </div>
                   )}
@@ -2220,7 +2220,7 @@ const CreateInvoice = () => {
                     <span>{t('taxAmount')}</span>
                     <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
-                      currency: financialPrefs.currency || 'USD'
+                      currency: financialPrefs.baseCurrency || 'USD'
                     }).format(form.watch('taxAmount') || 0)}</span>
                   </div>
 
@@ -2245,7 +2245,7 @@ const CreateInvoice = () => {
                     <span>{t('vatAmount')}</span>
                     <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-blue-600`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
-                      currency: financialPrefs.currency || 'USD'
+                      currency: financialPrefs.baseCurrency || 'USD'
                     }).format(form.watch('vatAmount') || 0)}</span>
                   </div>
                   
@@ -2255,7 +2255,7 @@ const CreateInvoice = () => {
                     <span className="font-semibold">{t('total')}</span>
                     <span className={`${isRTL ? 'text-left' : 'text-right'} font-bold text-lg`}>{new Intl.NumberFormat('en-US', {
                       style: 'currency',
-                      currency: financialPrefs.currency || 'USD'
+                      currency: financialPrefs.baseCurrency || 'USD'
                     }).format(form.watch('grandTotal') || 0)}</span>
                   </div>
                   
@@ -2265,7 +2265,7 @@ const CreateInvoice = () => {
                         <span>{t('amountPaid')}</span>
                         <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-green-600`}>{new Intl.NumberFormat('en-US', {
                           style: 'currency',
-                          currency: financialPrefs.currency || 'USD'
+                          currency: financialPrefs.baseCurrency || 'USD'
                         }).format(form.watch('amountPaid') || 0)}</span>
                       </div>
                       
@@ -2273,7 +2273,7 @@ const CreateInvoice = () => {
                         <span>{t('balanceDue')}</span>
                         <span className={`${isRTL ? 'text-left' : 'text-right'} font-medium text-red-600`}>{new Intl.NumberFormat('en-US', {
                           style: 'currency',
-                          currency: financialPrefs.currency || 'USD'
+                          currency: financialPrefs.baseCurrency || 'USD'
                         }).format((form.watch('grandTotal') || 0) - (form.watch('amountPaid') || 0))}</span>
                       </div>
                     </>
@@ -2424,7 +2424,7 @@ const CreateInvoice = () => {
                             <p className="text-sm font-medium text-green-600">
                               {t('total')}: {new Intl.NumberFormat('en-US', {
                                 style: 'currency',
-                                currency: financialPrefs.currency || 'USD'
+                                currency: financialPrefs.baseCurrency || 'USD'
                               }).format(draft.grandTotal || 0)}
                             </p>
                           </div>
@@ -2517,7 +2517,7 @@ const CreateInvoice = () => {
                               <p className="text-sm font-medium text-blue-600">
                                 {t('total')}: {new Intl.NumberFormat('en-US', {
                                   style: 'currency',
-                                  currency: financialPrefs.currency || 'USD'
+                                  currency: financialPrefs.baseCurrency || 'USD'
                                 }).format(quotation.total || quotation.amount || 0)}
                               </p>
                             </div>
@@ -2609,7 +2609,7 @@ const CreateInvoice = () => {
                             <p className="text-sm font-medium text-green-600">
                               {t('revenue')}: {new Intl.NumberFormat('en-US', {
                                 style: 'currency',
-                                currency: financialPrefs.currency || 'USD'
+                                currency: financialPrefs.baseCurrency || 'USD'
                               }).format(order.revenue || order.totalCost || 0)}
                             </p>
                           </div>

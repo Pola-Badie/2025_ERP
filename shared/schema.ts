@@ -119,6 +119,7 @@ export const saleItems = pgTable("sale_items", {
   unitPrice: numeric("unit_price").notNull(),
   discount: numeric("discount").default("0"),
   total: numeric("total").notNull(),
+  unitOfMeasure: text("unit_of_measure").default("Pcs"),
 });
 
 // Suppliers management
@@ -555,6 +556,7 @@ export const insertSaleItemSchema = createInsertSchema(saleItems).pick({
   unitPrice: true,
   discount: true,
   total: true,
+  unitOfMeasure: true,
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliers).pick({
