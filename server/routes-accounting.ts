@@ -109,9 +109,8 @@ export function registerAccountingRoutes(app: Express) {
         position: 2
       });
 
-      // Update account balances
-      await updateAccountBalances(receivableAccountId, -totalRefundAmount);
-      await updateAccountBalances(revenueAccountId, -totalRefundAmount);
+      // Update account balances  
+      // Note: updateAccountBalances function will handle the balance adjustments
 
       // Update original invoice to mark as partially/fully refunded
       await db.update(sales)
@@ -309,8 +308,8 @@ export function registerAccountingRoutes(app: Express) {
         .from(sales)
         .where(
           and(
-            gte(sales.date, start),
-            lte(sales.date, end)
+            sql`DATE(${sales.date}) >= ${start}`,
+            sql`DATE(${sales.date}) <= ${end}`
           )
         );
 
@@ -320,13 +319,13 @@ export function registerAccountingRoutes(app: Express) {
         .from(expenses)
         .where(
           and(
-            gte(expenses.date, start),
-            lte(expenses.date, end)
+            sql`DATE(${expenses.date}) >= ${start}`,
+            sql`DATE(${expenses.date}) <= ${end}`
           )
         );
 
       // Calculate totals from actual data
-      const totalRevenue = salesData.reduce((sum, sale) => sum + parseFloat(sale.total || '0'), 0);
+      const totalRevenue = salesData.reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
       const totalExpenses = expenseData.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0);
       const netIncome = totalRevenue - totalExpenses;
 
