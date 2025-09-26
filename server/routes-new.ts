@@ -67,6 +67,7 @@ const cronJobs: Record<string, cron.ScheduledTask | null> = {
 
 import { registerAccountingRoutes } from "./routes-accounting";
 import { registerCustomerPaymentRoutes } from "./routes-customer-payments";
+import { registerChartDataRoutes } from "./routes-chart-data";
 import userRoutes from "./routes-user";
 import { logger } from "./middleware/errorHandler";
 
@@ -863,6 +864,9 @@ export async function registerRoutes(app: Express): Promise<void> {
 
   // Register customer payment routes
   registerCustomerPaymentRoutes(app);
+
+  // Register chart data routes for real dashboard data
+  registerChartDataRoutes(app);
 
   // ============= User Management Endpoints =============
 

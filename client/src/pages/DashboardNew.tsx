@@ -73,21 +73,7 @@ interface Product {
   status: string;
 }
 
-// Sample data for the sales overview chart
-const salesData = [
-  { name: 'Jan', sales: 65 },
-  { name: 'Feb', sales: 59 },
-  { name: 'Mar', sales: 80 },
-  { name: 'Apr', sales: 81 },
-  { name: 'May', sales: 56 },
-  { name: 'Jun', sales: 55 },
-  { name: 'Jul', sales: 40 },
-  { name: 'Aug', sales: 50 },
-  { name: 'Sep', sales: 65 },
-  { name: 'Oct', sales: 75 },
-  { name: 'Nov', sales: 96 },
-  { name: 'Dec', sales: 110 },
-];
+// Real data will be fetched from API instead of hardcoded values
 
 const DashboardNew = () => {
   const { t, isRTL } = useLanguage();
@@ -107,6 +93,10 @@ const DashboardNew = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
+    // Refresh REAL chart data
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard/monthly-sales'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard/sales-distribution'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard/category-performance'] });
   };
 
   // Auto-refresh setup - refresh every 30 seconds
@@ -120,6 +110,10 @@ const DashboardNew = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
+      // Auto-refresh REAL chart data
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/monthly-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/sales-distribution'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/category-performance'] });
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
@@ -173,20 +167,29 @@ const DashboardNew = () => {
     queryFn: () => fetch(`/api/products/${selectedProductId}/details`).then(res => res.json()),
   });
 
-  const salesDistributionData = [
-    { name: 'Antibiotics', value: 23.5, color: '#1D3E78' },
-    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-    { name: 'Vitamins', value: 36.3, color: '#0077B6' },
-    { name: 'Supplements', value: 16.7, color: '#48CAE4' },
-  ];
+  // Fetch REAL monthly sales data from database
+  const { data: salesData = [], isLoading: isSalesDataLoading } = useQuery<{name: string, sales: number}[]>({
+    queryKey: ['/api/dashboard/monthly-sales'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
 
-  const categoryPerformanceData = [
-    { name: 'Pain Relief', value: 23.5, color: '#3BCEAC' },
-    { name: 'Antibiotics', value: 23.5, color: '#0077B6' },
-    { name: 'Vitamins', value: 23.5, color: '#48CAE4' },
-    { name: 'Heart Medicine', value: 23.5, color: '#90E0EF' },
-    { name: 'Other', value: 6.0, color: '#CAF0F8' },
-  ];
+  // Fetch REAL sales distribution data from database
+  const { data: salesDistributionData = [], isLoading: isSalesDistributionLoading } = useQuery<{name: string, value: number, color: string}[]>({
+    queryKey: ['/api/dashboard/sales-distribution'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
+
+  // Fetch REAL category performance data from database
+  const { data: categoryPerformanceData = [], isLoading: isCategoryPerformanceLoading } = useQuery<{name: string, value: number, color: string}[]>({
+    queryKey: ['/api/dashboard/category-performance'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
 
   return (
     <div className="space-y-6 px-6 pt-2 pb-6">
@@ -427,7 +430,7 @@ const DashboardNew = () => {
             <div className="h-[260px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsLineChart
-                  data={salesData}
+                  data={salesData || []}
                   margin={{ top: 15, right: 25, left: 15, bottom: 20 }}
                 >
                   <defs>
@@ -888,7 +891,7 @@ const DashboardNew = () => {
             <div className="lg:col-span-2 h-full">
               <ResponsiveContainer width="100%" height="90%">
                 <RechartsLineChart
-                  data={salesData}
+                  data={salesData || []}
                   margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
