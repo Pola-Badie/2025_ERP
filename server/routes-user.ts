@@ -132,11 +132,17 @@ router.post('/auth/login', async (req, res) => {
     let isValidPassword = false;
     
     console.log('Checking password for user:', user.username);
-    console.log('Password format:', user.password.includes('.') ? 'hashed' : 'plain');
+    const isHashed = user.password?.includes('.');
+    console.log('Password format:', isHashed ? 'hashed' : 'plain');
     
-    // For now, use simple plain text comparison since existing users have plain passwords
-    isValidPassword = password === user.password;
-    
+    // Handle both plain and hashed passwords
+    if (isHashed) {
+      // Use scrypt comparison for hashed passwords
+      isValidPassword = await comparePasswords(password, user.password);
+    } else {
+      // Plain text comparison for legacy passwords
+      isValidPassword = password === user.password;
+    }
     console.log('Password valid:', isValidPassword);
     
     if (!isValidPassword) {
