@@ -245,7 +245,8 @@ async function setupRoutes() {
     routes.registerOrderRoutes(app);
     console.log('✅ registerOrderRoutes completed');
     
-    // routes.registerReportsRoutes(app); // DISABLED - Using routes-financial-reports.ts instead
+    routes.registerReportsRoutes(app);
+    console.log('✅ registerReportsRoutes completed');
     
     routes.registerAccountingRoutes(app);
     console.log('✅ registerAccountingRoutes completed');
