@@ -437,7 +437,7 @@ router.get('/inventory-analysis', async (req, res) => {
         p.selling_price,
         p.quantity * p.cost_price as total_value,
         CASE 
-          WHEN p.quantity <= 10 THEN 'Low Stock'
+          WHEN p.quantity <= p.reorder_level THEN 'Low Stock'
           WHEN p.quantity = 0 THEN 'Out of Stock'
           ELSE 'In Stock'
         END as status
