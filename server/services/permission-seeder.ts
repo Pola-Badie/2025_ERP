@@ -43,10 +43,8 @@ export class PermissionSeeder {
         'dashboard', 'accounting', 'expenses', 'invoices', 'customers', 'reports'
       ], ['create', 'read', 'update', 'export']),
 
-      // STAFF - Basic read access
-      ...this.createRolePermissions('staff', [
-        'dashboard', 'inventory', 'customers'
-      ], ['read'])
+      // STAFF - No default permissions (use explicit user permissions only)
+      // ...this.createRolePermissions('staff', [], [])
     ];
 
     // Insert role permissions (with conflict handling)
