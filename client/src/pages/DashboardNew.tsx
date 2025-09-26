@@ -47,7 +47,7 @@ interface DashboardSummary {
   newCustomers: number;
   todaySales: number;
   monthSales: number;
-  monthlyTaxCollected: number; // REAL tax data from database
+  totalTaxAllInvoices: number; // REAL total tax from ALL invoices
   lowStockProducts: Product[];
   expiringProducts: Product[];
 }
@@ -405,15 +405,15 @@ const DashboardNew = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              {t('collectedTax')} ({t('thisMonth')})
+              {t('collectedTax')} ({t('allInvoices')})
             </CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : `EGP ${(dashboardData?.monthlyTaxCollected || 0).toLocaleString()}`}
+              {isLoading ? "..." : `EGP ${(dashboardData?.totalTaxAllInvoices || 0).toLocaleString()}`}
             </div>
-            <p className="text-xs text-muted-foreground">{t('vatCollectedFromSales')}</p>
+            <p className="text-xs text-muted-foreground">{t('taxCollectedFromAllInvoices')}</p>
           </CardContent>
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
