@@ -8,6 +8,9 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 import WebSocket from 'ws';
+import { db } from './db';
+import { inventory, orders, customers, invoices } from '@shared/schema';
+import { eq, desc, sql } from 'drizzle-orm';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -241,28 +244,81 @@ export function setupWebSocket(server: any) {
         const data = JSON.parse(message.toString());
         
         if (data.type === 'subscribe') {
-          // Send initial dashboard data
-          ws.send(JSON.stringify({
-            type: 'dashboard_update',
-            data: {
-              totalProducts: 156,
-              lowStockCount: 12,
-              expiringCount: 8,
-              totalOrders: 45,
-              totalRevenue: 234567,
-              systemHealth: 'healthy',
-              lastUpdated: new Date().toISOString(),
-              recentActivities: [
-                {
-                  id: '1',
-                  type: 'order',
-                  message: 'New order received from Advanced Pharmaceuticals',
-                  timestamp: new Date().toISOString(),
-                  severity: 'low'
+          // Fetch REAL dashboard data from database
+          const fetchRealDashboardData = async () => {
+            try {
+              // Get total products count
+              const productCount = await db.select({ count: sql`count(*)::int` })
+                .from(inventory);
+              
+              // Get low stock count (quantity < 20)
+              const lowStock = await db.select({ count: sql`count(*)::int` })
+                .from(inventory)
+                .where(sql`quantity < 20`);
+              
+              // Get expiring products count (within 30 days)
+              const expiringDate = new Date();
+              expiringDate.setDate(expiringDate.getDate() + 30);
+              const expiring = await db.select({ count: sql`count(*)::int` })
+                .from(inventory)
+                .where(sql`expiry_date <= ${expiringDate.toISOString()}::date AND expiry_date >= CURRENT_DATE`);
+              
+              // Get total orders count
+              const orderCount = await db.select({ count: sql`count(*)::int` })
+                .from(orders);
+              
+              // Get total revenue from invoices
+              const revenue = await db.select({ 
+                total: sql`COALESCE(SUM(total_amount), 0)::numeric` 
+              }).from(invoices);
+              
+              // Get recent activities (last 5 orders)
+              const recentOrders = await db.select({
+                id: orders.id,
+                customerName: customers.name,
+                createdAt: orders.createdAt
+              })
+              .from(orders)
+              .leftJoin(customers, eq(orders.customerId, customers.id))
+              .orderBy(desc(orders.createdAt))
+              .limit(5);
+              
+              const activities = recentOrders.map((order, index) => ({
+                id: String(order.id),
+                type: 'order',
+                message: `New order from ${order.customerName || 'Customer'}`,
+                timestamp: order.createdAt?.toISOString() || new Date().toISOString(),
+                severity: 'low' as const
+              }));
+              
+              // Send real data
+              ws.send(JSON.stringify({
+                type: 'dashboard_update',
+                data: {
+                  totalProducts: productCount[0]?.count || 0,
+                  lowStockCount: lowStock[0]?.count || 0,
+                  expiringCount: expiring[0]?.count || 0,
+                  totalOrders: orderCount[0]?.count || 0,
+                  totalRevenue: parseFloat(revenue[0]?.total || '0'),
+                  systemHealth: 'healthy',
+                  lastUpdated: new Date().toISOString(),
+                  recentActivities: activities
                 }
-              ]
+              }));
+              
+              console.log('WebSocket: Sent real dashboard data to client');
+            } catch (error) {
+              console.error('WebSocket: Error fetching dashboard data:', error);
+              // Send error state
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Failed to fetch dashboard data'
+              }));
             }
-          }));
+          };
+          
+          // Send real data
+          fetchRealDashboardData();
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
