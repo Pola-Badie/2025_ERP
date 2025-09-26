@@ -15,7 +15,6 @@ import { PermissionGuard } from "./components/PermissionGuard";
 import DashboardNew from "@/pages/DashboardNew";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
-import Reports from "@/pages/ReportsNew";
 import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
@@ -59,8 +58,6 @@ function AppContent() {
                 <Route path="/" component={DashboardNew} />
                 <Route path="/inventory" component={Inventory} />
                 <Route path="/expenses" component={Expenses} />
-                <Route path="/sales" component={Reports} />
-                <Route path="/reports" component={Reports} />
                 <Route path="/accounting" component={Accounting} />
                 <Route path="/create-invoice" component={CreateInvoice} />
                 <Route path="/create-quotation" component={CreateQuotation} />
