@@ -559,4 +559,36 @@ router.post('/users/bulk-create', async (req, res) => {
   }
 });
 
+// Reset user password (admin only)
+router.post('/users/:id/reset-password', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { newPassword } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+    
+    // Update user password
+    const updatedUser = await storage.updateUser(userId, { password: hashedPassword });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log(`Password reset for user ${userId}`);
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
 export default router;

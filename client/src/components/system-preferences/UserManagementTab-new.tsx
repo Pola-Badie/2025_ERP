@@ -160,27 +160,33 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
     { key: 'systemPreferences', name: 'System Preferences', nameKey: 'systemPreferences', description: 'System configuration and settings', descriptionKey: 'systemPreferencesDesc' }
   ];
 
-  // Toggle password visibility for a specific user
-  const togglePasswordVisibility = (userId: number) => {
-    setPasswordVisibility(prev => ({
-      ...prev,
-      [userId]: !prev[userId]
-    }));
-  };
+  // Password reset dialog state
+  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false);
+  const [selectedUserForPasswordReset, setSelectedUserForPasswordReset] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState('');
 
-  // Get password for user (mock function - in real app would fetch from secure endpoint)
-  const getPasswordForUser = (username: string) => {
-    const passwordMap: Record<string, string> = {
-      'maged.morgan': 'maged2024!',
-      'michael.morgan': 'michael123',
-      'maged.youssef': 'maged456',
-      'youssef.abdelmaseeh': 'youssef789',
-      'hany.fakhry': 'hany321',
-      'mohamed.mahmoud': 'mohamed654',
-      'anna.simon': 'anna987'
-    };
-    return passwordMap[username] || 'password123';
-  };
+  // Password reset mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: number; newPassword: string }) => {
+      return apiRequest('POST', `/api/users/${userId}/reset-password`, { newPassword });
+    },
+    onSuccess: () => {
+      setIsPasswordResetDialogOpen(false);
+      setSelectedUserForPasswordReset(null);
+      setNewPassword('');
+      toast({
+        title: 'Success',
+        description: 'Password reset successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to reset password',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch users
   const { data: users = [], isLoading, isError, refetch: refetchUsers } = useQuery({
@@ -498,20 +504,20 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
                   <TableCell>{user.email || '-'}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono">
-                        {passwordVisibility[user.id] ? getPasswordForUser(user.username) : "••••••••"}
+                      <span className="text-sm text-muted-foreground">
+                        ••••••••
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => togglePasswordVisibility(user.id)}
+                        onClick={() => {
+                          setSelectedUserForPasswordReset(user);
+                          setIsPasswordResetDialogOpen(true);
+                        }}
                         className="h-6 w-6 p-0"
+                        title="Reset Password"
                       >
-                        {passwordVisibility[user.id] ? (
-                          <EyeOff className="h-3 w-3" />
-                        ) : (
-                          <Eye className="h-3 w-3" />
-                        )}
+                        <ShieldCheck className="h-3 w-3" />
                       </Button>
                     </div>
                   </TableCell>
@@ -982,6 +988,65 @@ const UserManagementTab: React.FC<UserManagementTabProps> = ({ preferences, refe
               Save Configuration
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Reset the password for {selectedUserForPasswordReset?.name} ({selectedUserForPasswordReset?.username})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="new-password" className="block text-sm font-medium mb-2">
+                New Password
+              </label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 6 characters)"
+                data-testid="input-new-password"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Password must be at least 6 characters long
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsPasswordResetDialogOpen(false);
+                setSelectedUserForPasswordReset(null);
+                setNewPassword('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={() => {
+                if (selectedUserForPasswordReset && newPassword.length >= 6) {
+                  resetPasswordMutation.mutate({
+                    userId: selectedUserForPasswordReset.id,
+                    newPassword
+                  });
+                }
+              }}
+              disabled={resetPasswordMutation.isPending || newPassword.length < 6}
+              data-testid="button-reset-password"
+            >
+              {resetPasswordMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reset Password
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
