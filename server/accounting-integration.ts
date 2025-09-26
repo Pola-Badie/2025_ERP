@@ -167,21 +167,19 @@ export async function createPaymentJournalEntry(paymentData: any, userId: number
     const journalLinesData = [
       // Debit: Cash
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: cashAccountId,
         description: `Payment received - ${paymentData.reference}`,
         debit: paymentData.amount.toString(),
-        credit: '0',
-        position: 1
+        credit: '0'
       },
       // Credit: Accounts Receivable
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: receivableAccountId,
         description: `Payment against A/R - ${paymentData.customerName}`,
         debit: '0',
-        credit: paymentData.amount.toString(),
-        position: 2
+        credit: paymentData.amount.toString()
       }
     ];
 
@@ -226,21 +224,19 @@ export async function createExpenseJournalEntry(expenseData: any, userId: number
     const journalLinesData = [
       // Debit: Expense Account
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: expenseAccountId,
         description: expenseData.description,
         debit: expenseData.amount.toString(),
-        credit: '0',
-        position: 1
+        credit: '0'
       },
       // Credit: Cash
       {
-        journalId: insertedEntry.id,
+        journalEntryId: insertedEntry.id,
         accountId: cashAccountId,
         description: `Payment for ${expenseData.description}`,
         debit: '0',
-        credit: expenseData.amount.toString(),
-        position: 2
+        credit: expenseData.amount.toString()
       }
     ];
 
