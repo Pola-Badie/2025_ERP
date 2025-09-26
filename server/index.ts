@@ -60,7 +60,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = parseInt(process.env.PORT || "5000", 10);
+const PORT = parseInt(process.env.PORT || "5001", 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // 🛡️ Port Conflict Prevention System
