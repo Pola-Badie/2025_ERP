@@ -9,8 +9,8 @@ import fs from 'fs';
 import path from 'path';
 import WebSocket from 'ws';
 import { db } from './db';
-import { inventory, orders, customers, invoices } from '@shared/schema';
 import { eq, desc, sql } from 'drizzle-orm';
+import { products as inventory, orders, customers, invoices } from '@shared/schema';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
