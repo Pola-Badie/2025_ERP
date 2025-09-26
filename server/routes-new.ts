@@ -3046,9 +3046,18 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Count payments received this month
       const today = new Date();
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-      const paymentCount = allSales
-        .filter(sale => sale.paymentStatus === 'completed' && new Date(sale.date) >= monthStart)
-        .length;
+      const completedPaymentsThisMonth = allSales
+        .filter(sale => sale.paymentStatus === 'completed' && new Date(sale.date) >= monthStart);
+      
+      console.log(`🔥 REAL PAYMENTS THIS MONTH (${completedPaymentsThisMonth.length}):`, completedPaymentsThisMonth.map(sale => ({
+        invoiceNumber: sale.invoiceNumber,
+        customer: sale.customerName,
+        amount: sale.grandTotal,
+        paymentStatus: sale.paymentStatus,
+        date: sale.date
+      })));
+      
+      const paymentCount = completedPaymentsThisMonth.length;
       
       // Get pending orders (simplified for now)
       const pendingOrders = 0; // This would need purchase order data if available
