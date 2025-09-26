@@ -32,6 +32,7 @@ import OrderManagement from "@/pages/OrderManagement";
 import OrdersHistory from "@/pages/OrdersHistory";
 import Notifications from "@/pages/Notifications";
 import Payroll from "@/pages/Payroll";
+import Reports from "@/pages/Reports";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -59,6 +60,7 @@ function AppContent() {
                 <Route path="/inventory" component={Inventory} />
                 <Route path="/expenses" component={Expenses} />
                 <Route path="/accounting" component={Accounting} />
+                <Route path="/reports" component={Reports} />
                 <Route path="/create-invoice" component={CreateInvoice} />
                 <Route path="/create-quotation" component={CreateQuotation} />
                 <Route path="/invoice-history" component={InvoiceHistory} />
