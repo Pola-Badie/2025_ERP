@@ -898,7 +898,11 @@ router.get('/dashboard-analytics', async (req, res) => {
           WHEN p.grade = 'P' THEN 'Pharmaceutical'
           WHEN p.grade = 'F' THEN 'Food Grade' 
           WHEN p.grade = 'T' THEN 'Technical'
-          ELSE 'Other'
+          WHEN p.grade = 'P,F' THEN 'Pharmaceutical & Food'
+          WHEN p.grade = 'P,T' THEN 'Pharmaceutical & Technical'
+          WHEN p.grade = 'F,T' THEN 'Food & Technical'
+          WHEN p.grade = 'P,F,T' THEN 'Multi-Grade (P,F,T)'
+          ELSE 'Other Grade'
         END as grade_name
       FROM sales s
       JOIN sale_items si ON s.id = si.sale_id
@@ -908,7 +912,7 @@ router.get('/dashboard-analytics', async (req, res) => {
       ORDER BY total_revenue DESC
     `);
     
-    // 3. Production Analytics - Most Produced Items
+    // 3. Production Analytics - Most Produced Items (only products with actual sales)
     const productionData = await db.execute(sql`
       SELECT 
         p.id,
@@ -918,14 +922,15 @@ router.get('/dashboard-analytics', async (req, res) => {
         SUM(si.quantity) as total_sold,
         COUNT(DISTINCT s.id) as order_frequency,
         SUM(CAST(si.total AS NUMERIC)) as total_revenue,
-        pc.name as category_name
+        COALESCE(pc.name, 'Uncategorized') as category_name
       FROM products p
-      LEFT JOIN sale_items si ON p.id = si.product_id
-      LEFT JOIN sales s ON si.sale_id = s.id
+      JOIN sale_items si ON p.id = si.product_id
+      JOIN sales s ON si.sale_id = s.id
       LEFT JOIN product_categories pc ON p.category_id = pc.id
-      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months' OR s.date IS NULL
+      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months'
       GROUP BY p.id, p.name, p.drug_name, p.grade, pc.name
-      ORDER BY total_sold DESC NULLS LAST
+      HAVING SUM(si.quantity) > 0
+      ORDER BY total_sold DESC
       LIMIT 10
     `);
     
@@ -962,19 +967,19 @@ router.get('/dashboard-analytics', async (req, res) => {
       GROUP BY qs.total_quotations, qs.converted_quotations, qs.total_quotation_value, qs.converted_value
     `);
     
-    // 5. Comprehensive Inventory Summary  
+    // 5. Comprehensive Inventory Summary with real-time calculations
     const inventoryAnalytics = await db.execute(sql`
       SELECT 
         COUNT(*) as total_products,
-        COUNT(CASE WHEN quantity <= low_stock_threshold THEN 1 END) as low_stock_count,
+        COUNT(CASE WHEN quantity <= COALESCE(low_stock_threshold, 10) AND quantity > 0 THEN 1 END) as low_stock_count,
         COUNT(CASE WHEN quantity = 0 THEN 1 END) as out_of_stock_count,
         COUNT(CASE WHEN expiry_date <= CURRENT_DATE + INTERVAL '30 days' AND expiry_date > CURRENT_DATE THEN 1 END) as expiring_soon_count,
         COUNT(CASE WHEN expiry_date <= CURRENT_DATE THEN 1 END) as expired_count,
-        SUM(CAST(cost_price AS NUMERIC) * quantity) as total_inventory_cost,
-        SUM(CAST(selling_price AS NUMERIC) * quantity) as total_inventory_value,
-        SUM(quantity) as total_stock_units,
+        COALESCE(SUM(CAST(cost_price AS NUMERIC) * quantity), 0) as total_inventory_cost,
+        COALESCE(SUM(CAST(selling_price AS NUMERIC) * quantity), 0) as total_inventory_value,
+        COALESCE(SUM(quantity), 0) as total_stock_units,
         COUNT(CASE WHEN status = 'active' THEN 1 END) as active_products,
-        COUNT(DISTINCT location) as warehouse_locations
+        COUNT(DISTINCT COALESCE(location, 'Unknown Location')) as warehouse_locations
       FROM products
     `);
     
@@ -1020,10 +1025,10 @@ router.get('/dashboard-analytics', async (req, res) => {
           uniqueCustomers: parseInt(row.unique_customers || 0)
         })),
         summary: {
-          totalRevenue: parseFloat(financialSummary.rows[0]?.total_revenue || 0),
-          totalSales: parseInt(financialSummary.rows[0]?.total_sales || 0),
-          avgSaleValue: parseFloat(financialSummary.rows[0]?.avg_sale_value || 0),
-          outstandingAR: parseFloat(financialSummary.rows[0]?.outstanding_ar || 0)
+          totalRevenue: parseFloat(financialSummary.rows[0]?.total_revenue || '0'),
+          totalSales: parseInt(financialSummary.rows[0]?.total_sales || '0'),
+          avgSaleValue: parseFloat(financialSummary.rows[0]?.avg_sale_value || '0'),
+          outstandingAR: parseFloat(financialSummary.rows[0]?.outstanding_ar || '0')
         }
       },
       customerGrades: customerGrades.rows.map((row: any) => ({
@@ -1045,24 +1050,24 @@ router.get('/dashboard-analytics', async (req, res) => {
         totalRevenue: parseFloat(row.total_revenue || 0)
       })),
       quotationConversions: {
-        totalQuotations: parseInt(quotationConversions.rows[0]?.total_quotations || 0),
-        convertedQuotations: parseInt(quotationConversions.rows[0]?.converted_quotations || 0),
-        overallConversionRate: parseFloat(quotationConversions.rows[0]?.overall_conversion_rate || 0),
-        totalQuotationValue: parseFloat(quotationConversions.rows[0]?.total_quotation_value || 0),
-        convertedValue: parseFloat(quotationConversions.rows[0]?.converted_value || 0),
+        totalQuotations: parseInt(quotationConversions.rows[0]?.total_quotations || '0'),
+        convertedQuotations: parseInt(quotationConversions.rows[0]?.converted_quotations || '0'),
+        overallConversionRate: parseFloat(quotationConversions.rows[0]?.overall_conversion_rate || '0'),
+        totalQuotationValue: parseFloat(quotationConversions.rows[0]?.total_quotation_value || '0'),
+        convertedValue: parseFloat(quotationConversions.rows[0]?.converted_value || '0'),
         monthlyData: quotationConversions.rows[0]?.monthly_data || []
       },
       inventoryAnalytics: {
-        totalProducts: parseInt(inventoryAnalytics.rows[0]?.total_products || 0),
-        lowStockCount: parseInt(inventoryAnalytics.rows[0]?.low_stock_count || 0),
-        outOfStockCount: parseInt(inventoryAnalytics.rows[0]?.out_of_stock_count || 0),
-        expiringSoonCount: parseInt(inventoryAnalytics.rows[0]?.expiring_soon_count || 0),
-        expiredCount: parseInt(inventoryAnalytics.rows[0]?.expired_count || 0),
-        totalInventoryCost: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_cost || 0),
-        totalInventoryValue: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_value || 0),
-        totalStockUnits: parseInt(inventoryAnalytics.rows[0]?.total_stock_units || 0),
-        activeProducts: parseInt(inventoryAnalytics.rows[0]?.active_products || 0),
-        warehouseLocations: parseInt(inventoryAnalytics.rows[0]?.warehouse_locations || 0)
+        totalProducts: parseInt(inventoryAnalytics.rows[0]?.total_products || '0'),
+        lowStockCount: parseInt(inventoryAnalytics.rows[0]?.low_stock_count || '0'),
+        outOfStockCount: parseInt(inventoryAnalytics.rows[0]?.out_of_stock_count || '0'),
+        expiringSoonCount: parseInt(inventoryAnalytics.rows[0]?.expiring_soon_count || '0'),
+        expiredCount: parseInt(inventoryAnalytics.rows[0]?.expired_count || '0'),
+        totalInventoryCost: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_cost || '0'),
+        totalInventoryValue: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_value || '0'),
+        totalStockUnits: parseInt(inventoryAnalytics.rows[0]?.total_stock_units || '0'),
+        activeProducts: parseInt(inventoryAnalytics.rows[0]?.active_products || '0'),
+        warehouseLocations: parseInt(inventoryAnalytics.rows[0]?.warehouse_locations || '0')
       },
       topCustomers: topCustomers.rows.map((row: any) => ({
         id: row.id,
