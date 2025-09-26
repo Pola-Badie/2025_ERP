@@ -907,22 +907,58 @@ const CreateInvoice = () => {
       if (index > 0) remove(index);
     });
 
-    // Create invoice item from order data
+    // Create invoice items from order materials data
     // Remove the default empty item first
     remove(0);
     
-    // Add the target product as an invoice item
-    append({
-      productId: order.id,
-      productName: order.targetProduct || '',
-      category: 'Pharmaceutical',
-      batchNo: order.batchNumber || '',
-      gs1Code: '',
-      type: order.type || 'manufacturing',
-      quantity: 1,
-      unitPrice: order.revenue || order.totalCost || 0,
-      total: order.revenue || order.totalCost || 0,
-    });
+    // Add materials from the order as invoice items
+    if (order.materials && order.materials.length > 0) {
+      // Use the first material as the primary invoice item
+      const firstMaterial = order.materials[0];
+      append({
+        productId: firstMaterial.id || 0,
+        productName: firstMaterial.name || '',
+        category: 'Pharmaceutical',
+        batchNo: order.batchNumber || '',
+        gs1Code: '',
+        type: order.type || 'manufacturing',
+        quantity: firstMaterial.quantity || 1,
+        unitPrice: firstMaterial.unitPrice || order.revenue || order.totalCost || 0,
+        total: (firstMaterial.quantity || 1) * (firstMaterial.unitPrice || order.revenue || order.totalCost || 0),
+        unitOfMeasure: firstMaterial.unitOfMeasure || 'Pcs',
+      });
+      
+      // Add additional materials as separate line items
+      for (let i = 1; i < order.materials.length; i++) {
+        const material = order.materials[i];
+        append({
+          productId: material.id || 0,
+          productName: material.name || '',
+          category: 'Pharmaceutical',
+          batchNo: order.batchNumber || '',
+          gs1Code: '',
+          type: order.type || 'manufacturing',
+          quantity: material.quantity || 1,
+          unitPrice: material.unitPrice || 0,
+          total: (material.quantity || 1) * (material.unitPrice || 0),
+          unitOfMeasure: material.unitOfMeasure || 'Pcs',
+        });
+      }
+    } else {
+      // Fallback for orders without materials data
+      append({
+        productId: 0, // Set to 0 since we don't have a valid product ID
+        productName: order.targetProduct || `Order ${order.orderNumber}`,
+        category: 'Pharmaceutical',
+        batchNo: order.batchNumber || '',
+        gs1Code: '',
+        type: order.type || 'manufacturing',
+        quantity: 1,
+        unitPrice: order.revenue || order.totalCost || 0,
+        total: order.revenue || order.totalCost || 0,
+        unitOfMeasure: 'Pcs',
+      });
+    }
 
     setShowOrderSelector(false);
     
