@@ -3,6 +3,7 @@ import { db, pool } from "./db";
 import {
   accounts,
   journalEntries,
+  journalEntryLines,
   journalLines,
   financialReports,
   accountingPeriods,
