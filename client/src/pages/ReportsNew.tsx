@@ -1302,7 +1302,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Total Sales</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${(salesData as any)?.summary?.totalSales?.toLocaleString() || '3,816'}</div>
+                <div className="text-2xl font-bold">${(salesAnalysisData as any)?.summary?.totalSales?.toLocaleString() || '3,816'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 12% vs previous period</p>
               </CardContent>
             </Card>
@@ -1312,7 +1312,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Transactions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{(salesData as any)?.summary?.transactionCount || '6'}</div>
+                <div className="text-2xl font-bold">{(salesAnalysisData as any)?.summary?.totalTransactions || '6'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 8% vs previous period</p>
               </CardContent>
             </Card>
@@ -1322,7 +1322,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Average Order</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${(salesData as any)?.summary?.averageOrderValue?.toFixed(2) || '636.00'}</div>
+                <div className="text-2xl font-bold">${(salesAnalysisData as any)?.summary?.avgOrderValue?.toFixed(2) || '636.00'}</div>
                 <p className="text-xs text-red-600 mt-1">↘ 2% vs previous period</p>
               </CardContent>
             </Card>
@@ -1332,7 +1332,7 @@ const Reports = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">Top Category</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{(salesData as any)?.summary?.topCategory || 'Pain Relievers'}</div>
+                <div className="text-2xl font-bold">{(salesAnalysisData as any)?.summary?.topCategory === 'P' ? 'Pharmaceutical' : (salesAnalysisData as any)?.summary?.topCategory === 'F' ? 'Food Grade' : (salesAnalysisData as any)?.summary?.topCategory === 'T' ? 'Technical' : 'Pain Relievers'}</div>
                 <p className="text-xs text-green-600 mt-1">↗ 15% growth</p>
               </CardContent>
             </Card>
