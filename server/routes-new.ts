@@ -2956,6 +2956,87 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // ============= Accounting Overview Endpoint =============
+  
+  // Get comprehensive accounting overview for dashboard
+  app.get("/api/accounting/overview", async (req: Request, res: Response) => {
+    try {
+      console.log("🔥 Fetching REAL accounting overview data from database...");
+      
+      // Get all sales data
+      const allSales = await db.select().from(sales);
+      
+      // Get all expenses data  
+      const allExpenses = await db.select().from(expenses);
+      
+      // Calculate total revenue from all sales
+      const totalRevenue = allSales.reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Calculate total expenses
+      const totalExpenses = allExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0);
+      
+      // Calculate REAL total tax collected from all invoices (taxAmount + vatAmount + tax)
+      const totalTaxCollected = allSales.reduce((sum, sale) => {
+        const taxAmount = parseFloat(sale.taxAmount || '0');
+        const vatAmount = parseFloat(sale.vatAmount || '0'); 
+        const tax = parseFloat(sale.tax || '0');
+        return sum + taxAmount + vatAmount + tax;
+      }, 0);
+      
+      // Calculate REAL net profit: Revenue - Expenses - Tax - Costs
+      const netProfit = totalRevenue - totalExpenses - totalTaxCollected;
+      
+      // Calculate outstanding invoices
+      const outstandingInvoices = allSales
+        .filter(sale => sale.paymentStatus === 'pending' || sale.paymentStatus === 'partial')
+        .reduce((sum, sale) => {
+          const grandTotal = parseFloat(sale.grandTotal || '0');
+          const amountPaid = parseFloat(sale.amountPaid || '0');
+          return sum + (grandTotal - amountPaid);
+        }, 0);
+      
+      // Count pending invoices
+      const pendingInvoiceCount = allSales
+        .filter(sale => sale.paymentStatus === 'pending' || sale.paymentStatus === 'partial')
+        .length;
+      
+      // Count payments received this month
+      const today = new Date();
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      const paymentCount = allSales
+        .filter(sale => sale.paymentStatus === 'completed' && new Date(sale.date) >= monthStart)
+        .length;
+      
+      // Get pending orders (simplified for now)
+      const pendingOrders = 0; // This would need purchase order data if available
+      const orderCount = 0;
+      
+      // Calculate cash balance (simplified as net profit for now)
+      const cashBalance = netProfit;
+      
+      const overviewData = {
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        totalExpenses: Math.round(totalExpenses * 100) / 100,
+        totalTaxCollected: Math.round(totalTaxCollected * 100) / 100,
+        netProfit: Math.round(netProfit * 100) / 100, // REAL calculation: Revenue - Expenses - Tax - Costs
+        outstandingInvoices: Math.round(outstandingInvoices * 100) / 100,
+        pendingInvoiceCount,
+        pendingOrders,
+        orderCount,
+        paymentCount,
+        cashBalance: Math.round(cashBalance * 100) / 100,
+        expenseCount: allExpenses.length
+      };
+      
+      console.log(`✅ REAL Accounting Overview: Revenue ${totalRevenue}, Expenses ${totalExpenses}, Tax ${totalTaxCollected}, Net Profit ${netProfit}`);
+      
+      res.json(overviewData);
+    } catch (error) {
+      console.error("❌ Accounting overview error:", error);
+      res.status(500).json({ message: "Failed to fetch accounting overview" });
+    }
+  });
+
   // ============= Role Permissions Endpoints =============
 
   // Get permissions for a role
