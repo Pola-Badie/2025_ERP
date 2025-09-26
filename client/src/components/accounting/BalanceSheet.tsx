@@ -360,9 +360,9 @@ const BalanceSheet: React.FC = () => {
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-EG', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EGP',
+      currency: 'USD',
       minimumFractionDigits: 2
     }).format(amount);
   };
@@ -460,7 +460,7 @@ const BalanceSheet: React.FC = () => {
       ) : (
         <Card className="w-full" id="balance-sheet-report">
           <CardHeader className="bg-navy-700 text-white text-center py-3">
-            <CardTitle className="text-lg mb-1">{process.env.REACT_APP_COMPANY_NAME || 'Premier ERP'}</CardTitle>
+            <CardTitle className="text-lg mb-1">Premier</CardTitle>
             <CardDescription className="text-white text-sm font-medium mb-1">
               Balance Sheet
             </CardDescription>

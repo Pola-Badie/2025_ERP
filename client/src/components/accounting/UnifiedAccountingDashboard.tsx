@@ -19,8 +19,7 @@ import {
   useAccountingExpenses,
   usePendingPurchases,
   useOutstandingInvoices,
-  useSyncStatus,
-  useRevenueSummary
+  useSyncStatus
 } from "@/hooks/use-accounting-integration";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
@@ -31,28 +30,6 @@ export function UnifiedAccountingDashboard() {
   const { data: pendingPurchases, isLoading: purchasesLoading } = usePendingPurchases();
   const { data: outstandingInvoices, isLoading: invoicesLoading } = useOutstandingInvoices();
   const { data: syncStatus } = useSyncStatus();
-  
-  // 🚀 REAL DATA CALCULATIONS - No more hardcoded fallbacks!
-  const currentDate = new Date();
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString().split('T')[0];
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).toISOString().split('T')[0];
-  
-  const { data: revenueData } = useRevenueSummary(firstDayOfMonth, lastDayOfMonth);
-  
-  // Calculate real values from actual data
-  const revenueThisMonth = revenueData?.totalRevenue || dashboard?.revenueThisMonth || 0;
-  const expensesThisMonth = dashboard?.expensesThisMonth || 
-    (expenses ? expenses.reduce((sum: number, expense: any) => {
-      const expenseDate = new Date(expense.date);
-      const isThisMonth = expenseDate >= new Date(firstDayOfMonth) && expenseDate <= new Date(lastDayOfMonth);
-      return isThisMonth ? sum + (expense.amount || 0) : sum;
-    }, 0) : 0);
-  
-  const netProfit = revenueThisMonth - expensesThisMonth;
-  const outstandingAmount = outstandingInvoices ? 
-    outstandingInvoices.reduce((sum: number, invoice: any) => sum + (invoice.totalAmount || 0), 0) : 
-    (dashboard?.outstandingInvoices || 0);
-  const invoiceCount = revenueData?.invoiceCount || dashboard?.invoiceCount || 0;
 
   const handleRefresh = async () => {
     await refetchDashboard();
@@ -126,10 +103,10 @@ export function UnifiedAccountingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(revenueThisMonth)}
+              {formatCurrency(dashboard?.revenueThisMonth || 0)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              From {invoiceCount} invoices
+              From {dashboard?.invoiceCount || 0} invoices
             </p>
           </CardContent>
         </Card>
@@ -142,7 +119,7 @@ export function UnifiedAccountingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(expensesThisMonth)}
+              {formatCurrency(dashboard?.expensesThisMonth || 0)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Across all categories
@@ -157,11 +134,11 @@ export function UnifiedAccountingDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(netProfit)}
+            <div className={`text-2xl font-bold ${(dashboard?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(dashboard?.netProfit || 0)}
             </div>
             <div className="flex items-center gap-1 mt-1">
-              {netProfit >= 0 ? (
+              {(dashboard?.netProfit || 0) >= 0 ? (
                 <TrendingUp className="h-3 w-3 text-green-600" />
               ) : (
                 <TrendingDown className="h-3 w-3 text-red-600" />
@@ -179,7 +156,7 @@ export function UnifiedAccountingDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {formatCurrency(outstandingAmount)}
+              {formatCurrency(dashboard?.outstandingInvoices || 0)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Pending collection
