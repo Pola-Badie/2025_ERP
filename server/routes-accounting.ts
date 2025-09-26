@@ -11,6 +11,8 @@ import {
   paymentAllocations,
   sales,
   customers,
+  expenses,
+  purchaseOrders,
   insertAccountSchema,
   insertJournalEntrySchema,
   insertJournalLineSchema,
@@ -71,35 +73,45 @@ export function registerAccountingRoutes(app: Express) {
         date: refundDate,
         reference: `REF-${invoiceNumber}`,
         totalAmount: totalRefundAmount.toString(),
-        userId: req.user?.id || 1,
+        userId: 1,
         isReversing: true,
         originalReference: invoiceNumber
       };
 
-      const [journalEntry] = await db.insert(journalEntries).values(refundJournalEntry).returning();
+      const [journalEntry] = await db.insert(journalEntries).values({
+        entryNumber: refundJournalEntry.entryNumber,
+        date: refundJournalEntry.date,
+        reference: refundJournalEntry.reference,
+        memo: refundJournalEntry.description,
+        totalDebit: refundJournalEntry.totalAmount,
+        totalCredit: refundJournalEntry.totalAmount,
+        userId: 1
+      }).returning();
 
       // Create journal entry lines (reverse of original sale)
       // Credit Accounts Receivable (reducing what customer owes)
       await db.insert(journalLines).values({
-        journalEntryId: journalEntry.id,
+        journalId: journalEntry.id,
         accountId: receivableAccountId,
         debit: '0',
         credit: totalRefundAmount.toString(),
-        description: `Refund - reduce receivable from ${customerName}`
+        description: `Refund - reduce receivable from ${customerName}`,
+        position: 1
       });
 
       // Debit Sales Revenue (reducing revenue)
       await db.insert(journalLines).values({
-        journalEntryId: journalEntry.id,
+        journalId: journalEntry.id,
         accountId: revenueAccountId,
         debit: totalRefundAmount.toString(),
         credit: '0',
-        description: `Refund - reduce sales revenue for ${invoiceNumber}`
+        description: `Refund - reduce sales revenue for ${invoiceNumber}`,
+        position: 2
       });
 
       // Update account balances
-      await updateAccountBalances(receivableAccountId, -totalRefundAmount, 'credit');
-      await updateAccountBalances(revenueAccountId, -totalRefundAmount, 'debit');
+      await updateAccountBalances(receivableAccountId, -totalRefundAmount);
+      await updateAccountBalances(revenueAccountId, -totalRefundAmount);
 
       // Update original invoice to mark as partially/fully refunded
       await db.update(sales)
