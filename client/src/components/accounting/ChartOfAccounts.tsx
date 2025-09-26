@@ -104,10 +104,21 @@ const ChartOfAccounts: React.FC = () => {
     queryKey: ['/api/accounts'],
     queryFn: async () => {
       try {
+        console.log('🔍 Fetching accounts from /api/accounts...');
         const res = await apiRequest('GET', '/api/accounts');
-        return await res.json();
+        console.log('✅ Accounts API response status:', res.status);
+        
+        if (!res.ok) {
+          throw new Error(`API request failed with status ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('📊 Accounts data received:', data);
+        console.log('📈 Number of accounts:', Array.isArray(data) ? data.length : 'Not an array');
+        return data;
       } catch (error) {
-        console.error("Error fetching accounts:", error);
+        console.error("❌ Error fetching accounts:", error);
+        console.error("❌ Error details:", error.message || error);
         return [];
       }
     }

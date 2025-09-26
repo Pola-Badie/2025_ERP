@@ -4373,7 +4373,7 @@ const Accounting: React.FC = () => {
             <TabsTrigger value="customer-payments" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Payments</TabsTrigger>
             <TabsTrigger value="customer-accounts" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Customer Accounts</TabsTrigger>
             <TabsTrigger value="quotations" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Quotations</TabsTrigger>
-            <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Periods</TabsTrigger>
+            <TabsTrigger value="accounting-periods" className="flex-shrink-0 px-4 py-3 whitespace-nowrap"></TabsTrigger>
             <TabsTrigger value="profit-loss" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Profit & Loss</TabsTrigger>
             <TabsTrigger value="balance-sheet" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Balance Sheet</TabsTrigger>
             <TabsTrigger value="financial-reports" className="flex-shrink-0 px-4 py-3 whitespace-nowrap">Financial Reports</TabsTrigger>

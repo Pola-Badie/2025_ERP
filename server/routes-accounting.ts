@@ -1513,4 +1513,81 @@ export function registerAccountingRoutes(app: Express) {
       res.status(500).json({ error: "Failed to create customer payment" });
     }
   });
+
+  // Seed basic chart of accounts
+  app.post("/api/accounting/seed-accounts", async (_req: Request, res: Response) => {
+    try {
+      // Define the basic chart of accounts based on existing expense data and system requirements
+      const defaultAccounts = [
+        // Assets (1000-1999)
+        { code: '1000', name: 'Cash', type: 'Asset', subtype: 'Current Asset', description: 'Cash on hand and in bank' },
+        { code: '1100', name: 'Bank Account', type: 'Asset', subtype: 'Current Asset', description: 'Primary bank account' },
+        { code: '1200', name: 'Accounts Receivable', type: 'Asset', subtype: 'Current Asset', description: 'Money owed by customers' },
+        { code: '1300', name: 'Inventory', type: 'Asset', subtype: 'Current Asset', description: 'Product inventory' },
+        
+        // Liabilities (2000-2999)
+        { code: '2000', name: 'Accounts Payable', type: 'Liability', subtype: 'Current Liability', description: 'Money owed to suppliers' },
+        { code: '2100', name: 'Notes Payable', type: 'Liability', subtype: 'Current Liability', description: 'Short-term debt' },
+        { code: '2200', name: 'Tax Payable', type: 'Liability', subtype: 'Current Liability', description: 'Taxes owed to government' },
+        { code: '2300', name: 'VAT Payable', type: 'Liability', subtype: 'Current Liability', description: 'VAT owed to tax authority' },
+        
+        // Equity (3000-3999)
+        { code: '3000', name: 'Owner Equity', type: 'Equity', subtype: 'Owner Capital', description: 'Owner investment in business' },
+        { code: '3100', name: 'Retained Earnings', type: 'Equity', subtype: 'Retained Earnings', description: 'Accumulated profits' },
+        
+        // Revenue (4000-4999)
+        { code: '4000', name: 'Sales Revenue', type: 'Revenue', subtype: 'Operating Revenue', description: 'Primary sales income' },
+        { code: '4100', name: 'Sales Revenue', type: 'Revenue', subtype: 'Operating Revenue', description: 'Secondary sales income' },
+        
+        // Cost of Goods Sold (5000-5999)
+        { code: '5000', name: 'Cost of Goods Sold', type: 'Expense', subtype: 'Cost of Sales', description: 'Direct cost of products sold' },
+        { code: '5100', name: 'Product Costs', type: 'Expense', subtype: 'Cost of Sales', description: 'Direct product costs' },
+        
+        // Operating Expenses (6000-6999)
+        { code: '6100', name: 'Office Expenses', type: 'Expense', subtype: 'Operating Expense', description: 'General office and administrative expenses' },
+        { code: '6200', name: 'Utilities', type: 'Expense', subtype: 'Operating Expense', description: 'Electricity, water, internet' },
+        { code: '6300', name: 'Rent Expense', type: 'Expense', subtype: 'Operating Expense', description: 'Office and warehouse rent' },
+        { code: '6400', name: 'Marketing Expenses', type: 'Expense', subtype: 'Operating Expense', description: 'Advertising and promotion costs' },
+        { code: '6500', name: 'Travel Expenses', type: 'Expense', subtype: 'Operating Expense', description: 'Business travel costs' },
+      ];
+
+      // Insert accounts if they don't already exist
+      const createdAccounts = [];
+      for (const accountData of defaultAccounts) {
+        try {
+          // Check if account already exists
+          const existing = await db
+            .select({ id: accounts.id })
+            .from(accounts)
+            .where(eq(accounts.code, accountData.code))
+            .limit(1);
+
+          if (existing.length === 0) {
+            const [newAccount] = await db
+              .insert(accounts)
+              .values({
+                ...accountData,
+                isActive: true,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              })
+              .returning();
+            
+            createdAccounts.push(newAccount);
+          }
+        } catch (error) {
+          console.error(`Error creating account ${accountData.code}:`, error);
+        }
+      }
+
+      res.json({ 
+        message: `Chart of accounts seeded successfully. Created ${createdAccounts.length} new accounts.`,
+        createdAccounts: createdAccounts.length,
+        totalAvailable: defaultAccounts.length
+      });
+    } catch (error) {
+      console.error("Error seeding chart of accounts:", error);
+      res.status(500).json({ error: "Failed to seed chart of accounts" });
+    }
+  });
 }
