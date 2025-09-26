@@ -74,6 +74,7 @@ import ProductForm from '@/components/inventory/ProductForm';
 import { useCSV } from '@/contexts/CSVContext';
 import { CSVExport } from '@/components/csv/CSVExport';
 import { CSVImport } from '@/components/csv/CSVImport';
+import { FieldProtectedContent } from '@/components/FieldProtectedContent';
 
 interface Category {
   id: number;
@@ -1184,7 +1185,14 @@ const Inventory: React.FC = () => {
                               {product.shelf || '-'}
                             </td>
                             <td className={`px-4 py-3 font-medium ${isRTL ? 'text-right' : 'text-left'}`}>
-                              {formatCurrency(product.sellingPrice)}
+                              <FieldProtectedContent
+                                module="inventory"
+                                entityType="product"
+                                fieldName="sellingPrice"
+                                fallback={<span className="text-muted-foreground">•••</span>}
+                              >
+                                {formatCurrency(product.sellingPrice)}
+                              </FieldProtectedContent>
                             </td>
                             <td className={`px-4 py-3 ${isRTL ? 'text-right' : 'text-left'}`}>
                               {product.expiryDate ? (
