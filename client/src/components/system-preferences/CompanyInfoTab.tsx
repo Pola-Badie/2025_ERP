@@ -25,7 +25,7 @@ const CompanyInfoTab: React.FC<CompanyInfoTabProps> = ({ preferences, refetch })
   };
 
   const [companyInfo, setCompanyInfo] = useState({
-    companyName: getPreferenceValue('company_name') || 'Morgan ERP Solutions',
+    companyName: getPreferenceValue('company_name') || 'Premier ERP',
     companyLogo: getPreferenceValue('company_logo') || '',
     address: getPreferenceValue('company_address') || '',
     city: getPreferenceValue('company_city') || '',

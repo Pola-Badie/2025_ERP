@@ -7234,7 +7234,7 @@ const Accounting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Assets</p>
-                      <p className="text-2xl font-bold text-gray-900">$460,000</p>
+                      <p className="text-2xl font-bold text-gray-900">EGP {summaryData?.totalRevenue ? (summaryData.totalRevenue / 1000).toFixed(0) + 'K' : '0'}</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +12.5% from last month
@@ -7252,7 +7252,7 @@ const Accounting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total Liabilities</p>
-                      <p className="text-2xl font-bold text-gray-900">$60,000</p>
+                      <p className="text-2xl font-bold text-gray-900">EGP {summaryData?.totalExpenses ? (summaryData.totalExpenses / 1000).toFixed(0) + 'K' : '0'}</p>
                       <p className="text-xs text-red-600 flex items-center mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
                         -5.2% from last month
@@ -7270,7 +7270,7 @@ const Accounting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                      <p className="text-2xl font-bold text-gray-900">$15,000</p>
+                      <p className="text-2xl font-bold text-gray-900">EGP {summaryData?.revenueThisMonth ? summaryData.revenueThisMonth.toLocaleString() : '0'}</p>
                       <p className="text-xs text-green-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +18.3% from last month
@@ -7288,7 +7288,7 @@ const Accounting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Monthly Expenses</p>
-                      <p className="text-2xl font-bold text-gray-900">$7,500</p>
+                      <p className="text-2xl font-bold text-gray-900">EGP {summaryData?.expensesThisMonth ? summaryData.expensesThisMonth.toLocaleString() : '0'}</p>
                       <p className="text-xs text-orange-600 flex items-center mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         +3.1% from last month
