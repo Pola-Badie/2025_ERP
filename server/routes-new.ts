@@ -1393,6 +1393,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         .filter(sale => new Date(sale.date) >= monthStart)
         .reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
       
+      // Calculate REAL tax collected this month from actual sales
+      const monthlyTaxCollected = allSales
+        .filter(sale => new Date(sale.date) >= monthStart)
+        .reduce((sum, sale) => {
+          const taxAmount = parseFloat(sale.taxAmount || '0');
+          const vatAmount = parseFloat(sale.vatAmount || '0');
+          return sum + taxAmount + vatAmount;
+        }, 0);
+      
       // Get REAL expenses data
       const allExpenses = await db.select().from(expenses);
       const totalExpenses = allExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount || '0'), 0);
@@ -1442,6 +1451,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         newCustomers,
         todaySales: Math.round(todaySales * 100) / 100,
         monthSales: Math.round(monthSales * 100) / 100,
+        monthlyTaxCollected: Math.round(monthlyTaxCollected * 100) / 100, // REAL tax data from database
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalExpenses: Math.round(totalExpenses * 100) / 100,
         netProfit: Math.round(netProfit * 100) / 100,

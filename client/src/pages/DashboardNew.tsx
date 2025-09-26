@@ -47,6 +47,7 @@ interface DashboardSummary {
   newCustomers: number;
   todaySales: number;
   monthSales: number;
+  monthlyTaxCollected: number; // REAL tax data from database
   lowStockProducts: Product[];
   expiringProducts: Product[];
 }
@@ -119,12 +120,24 @@ const DashboardNew = () => {
     return () => clearInterval(interval);
   }, [queryClient]);
 
-  // Fetch dashboard data with automatic refetch
+  // Fetch dashboard data with automatic refetch and cache busting
   const { data: dashboardData, isLoading } = useQuery<DashboardSummary>({
-    queryKey: ['/api/dashboard/summary'],
+    queryKey: ['/api/dashboard/summary', lastRefresh.getTime()], // Add timestamp for cache busting
     refetchInterval: 30000, // Auto-refetch every 30 seconds
     refetchIntervalInBackground: true, // Continue refetching when tab is not active
     staleTime: 0, // Always consider data stale for fresh updates
+    queryFn: async () => {
+      // Force fresh request with cache busting
+      const response = await fetch(`/api/dashboard/summary?t=${Date.now()}`, {
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      return response.json();
+    }
   });
 
   // Fetch accounting summary with auto-refresh
@@ -398,9 +411,9 @@ const DashboardNew = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {isLoading ? "..." : `EGP ${((dashboardData?.monthSales || 0) * 0.14).toLocaleString()}`}
+              {isLoading ? "..." : `EGP ${(dashboardData?.monthlyTaxCollected || 0).toLocaleString()}`}
             </div>
-            <p className="text-xs text-muted-foreground">14% {t('vatCollectedFromSales')}</p>
+            <p className="text-xs text-muted-foreground">{t('vatCollectedFromSales')}</p>
           </CardContent>
           <CardFooter className="p-2">
             <div className="text-xs flex items-center text-green-500">
