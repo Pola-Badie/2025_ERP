@@ -5100,7 +5100,7 @@ const Accounting: React.FC = () => {
                             return false;
                           })
                           .map((page, index, array) => (
-                            <React.Fragment key={page}>
+                            <span key={page} className="flex items-center">
                               {index > 0 && array[index - 1] !== page - 1 && (
                                 <span className="px-2 text-gray-500">...</span>
                               )}
@@ -5112,7 +5112,7 @@ const Accounting: React.FC = () => {
                               >
                                 {page}
                               </Button>
-                            </React.Fragment>
+                            </span>
                           ))}
                       </div>
                       <Button
