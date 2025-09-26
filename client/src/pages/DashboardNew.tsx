@@ -91,6 +91,7 @@ const DashboardNew = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
     queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
     queryClient.invalidateQueries({ queryKey: ['/api/accounting/overview'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/dashboard/analytics'] }); // REAL analytics data!
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
     queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
@@ -108,6 +109,7 @@ const DashboardNew = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/summary'] });
       queryClient.invalidateQueries({ queryKey: ['/api/accounting/summary'] });
       queryClient.invalidateQueries({ queryKey: ['/api/accounting/overview'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/analytics'] }); // REAL analytics data!
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/summary'] });
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['/api/inventory/expiring'] });
@@ -151,6 +153,14 @@ const DashboardNew = () => {
   // Fetch comprehensive accounting overview for enhanced dashboard metrics with auto-refresh
   const { data: accountingOverview, isLoading: isOverviewLoading } = useQuery<any>({
     queryKey: ['/api/accounting/overview'],
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
+
+  // REAL Analytics Data - NO hardcoded values! 🎯
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useQuery<any>({
+    queryKey: ['/api/dashboard/analytics'],
     refetchInterval: 30000,
     refetchIntervalInBackground: true,
     staleTime: 0,
@@ -950,15 +960,20 @@ const DashboardNew = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-800">{t('salesAnalytics')}</h3>
               <div className="space-y-4">
+                {/* REAL Analytics Data - ZERO hardcoded values! 🎯 */}
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('peakMonth')}</p>
-                      <p className="text-xl font-bold text-blue-700">{accountingSummary?.monthlyPeak || t('december')}</p>
+                      <p className="text-xl font-bold text-blue-700">
+                        {isAnalyticsLoading ? '...' : (analyticsData?.peak?.monthName || t('noData'))}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('sales')}</p>
-                      <p className="text-lg font-semibold">EGP {Math.round((accountingSummary?.peakMonthSales || 110000) / 1000)}K</p>
+                      <p className="text-lg font-semibold">
+                        {isAnalyticsLoading ? '...' : `EGP ${Math.round((analyticsData?.peak?.revenue || 0) / 1000)}K`}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -967,11 +982,19 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('growthRate')}</p>
-                      <p className="text-xl font-bold text-green-700">+{accountingOverview?.growthRate || '18.5'}%</p>
+                      <p className={`text-xl font-bold ${analyticsData?.growthMoMPct >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                        {isAnalyticsLoading ? '...' : (
+                          analyticsData?.growthMoMPct !== null && analyticsData?.growthMoMPct !== undefined
+                            ? `${analyticsData.growthMoMPct >= 0 ? '+' : ''}${analyticsData.growthMoMPct.toFixed(1)}%`
+                            : t('noData')
+                        )}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">{t('yoy')}</p>
-                      <p className="text-lg font-semibold">{accountingOverview?.trendDirection === 'up' ? t('trendingUp') : t('stable')}</p>
+                      <p className="text-sm text-gray-600">{t('mom')}</p>
+                      <p className="text-lg font-semibold">
+                        {isAnalyticsLoading ? '...' : (analyticsData?.trendDirection || t('stable'))}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -980,11 +1003,19 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('average')}</p>
-                      <p className="text-xl font-bold text-orange-700">EGP {Math.round((accountingOverview?.monthlyAverage || 85000) / 1000)}K</p>
+                      <p className="text-xl font-bold text-orange-700">
+                        {isAnalyticsLoading ? '...' : `EGP ${Math.round((analyticsData?.monthlyAverage12M || 0) / 1000)}K`}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('monthly')}</p>
-                      <p className="text-lg font-semibold">{accountingOverview?.targetStatus || t('targetMet')}</p>
+                      <p className="text-lg font-semibold">
+                        {isAnalyticsLoading ? '...' : (
+                          analyticsData?.targetAttainmentPct 
+                            ? `${analyticsData.targetAttainmentPct.toFixed(0)}% ${t('target')}`
+                            : t('noTarget')
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -993,11 +1024,19 @@ const DashboardNew = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600">{t('totalRevenue')}</p>
-                      <p className="text-xl font-bold text-purple-700">EGP {Math.round((accountingOverview?.totalRevenue || 1020000) / 1000)}K</p>
+                      <p className="text-xl font-bold text-purple-700">
+                        {isAnalyticsLoading ? '...' : `EGP ${Math.round((analyticsData?.ytdRevenue || 0) / 1000)}K`}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{t('thisYear')}</p>
-                      <p className="text-lg font-semibold">{Math.round(((accountingOverview?.totalRevenue || 1020000) / 850000) * 100)}% {t('target')}</p>
+                      <p className="text-lg font-semibold">
+                        {isAnalyticsLoading ? '...' : (
+                          analyticsData?.avgOrderValue 
+                            ? `EGP ${analyticsData.avgOrderValue.toFixed(0)} ${t('avgOrder')}`
+                            : t('noOrders')
+                        )}
+                      </p>
                     </div>
                   </div>
                 </div>
