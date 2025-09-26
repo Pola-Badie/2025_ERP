@@ -6,6 +6,7 @@ import html2canvas from 'html2canvas';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
+import type { ReportData, ReportFilters, ReportType, ExportOptions } from '@shared/financial-reports-types';
 import { 
   Card, 
   CardContent, 
@@ -1708,13 +1709,19 @@ const Accounting: React.FC = () => {
   const pendingPurchasesPerPage = 10;
   
   // Financial Reports state
-  const [selectedReportType, setSelectedReportType] = useState("trial-balance");
+  const [selectedReportType, setSelectedReportType] = useState<ReportType>("trial-balance");
   const [reportStartDate, setReportStartDate] = useState("2025-06-01");
   const [reportEndDate, setReportEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [accountFilter, setAccountFilter] = useState("all");
+  const [accountFilter, setAccountFilter] = useState<ReportFilters['accountFilter']>("all");
   const [reportGenerated, setReportGenerated] = useState(false);
-  const [currentReportData, setCurrentReportData] = useState<any>(null);
+  const [currentReportData, setCurrentReportData] = useState<ReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  
+  // Report options state
+  const [includeZeroBalance, setIncludeZeroBalance] = useState(true);
+  const [showTransactionDetails, setShowTransactionDetails] = useState(true);
+  const [groupByAccountType, setGroupByAccountType] = useState(false);
 
   // Auto-generate trial balance when component mounts
   useEffect(() => {
@@ -3319,58 +3326,60 @@ const Accounting: React.FC = () => {
     setIsElectronicReceiptDialogOpen(false);
   };
 
-  // Financial Reports Generation Function - Using Real API Endpoints
+  // Financial Reports Generation Function - Using Enhanced API Service
   const generateFinancialReport = async () => {
     setIsGeneratingReport(true);
+    setReportError(null);
+    
     try {
       let reportData: any = null;
-      let apiEndpoint = '';
-      let params = new URLSearchParams();
+      
+      // Import the API service
+      const { financialReportsService } = await import('@/services/financialReportsService');
+      
+      // Build filter object
+      const filters = {
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+        accountFilter: accountFilter as any,
+        includeZeroBalance: includeZeroBalance,
+        showTransactionDetails: showTransactionDetails,
+        groupByAccountType: groupByAccountType
+      };
 
-      // Add common parameters
-      if (reportStartDate) params.append('startDate', reportStartDate);
-      if (reportEndDate) params.append('endDate', reportEndDate);
-      if (accountFilter && accountFilter !== 'all') params.append('accountFilter', accountFilter);
-
-      // Determine the API endpoint based on report type
+      // Fetch data based on report type using the enhanced service
+      let data: any;
       switch (selectedReportType) {
         case 'trial-balance':
-          apiEndpoint = `/api/reports/trial-balance?${params}`;
+          data = await financialReportsService.getTrialBalance(filters);
           break;
         case 'profit-loss':
-          apiEndpoint = `/api/reports/profit-loss?${params}`;
+          data = await financialReportsService.getProfitLoss(filters);
           break;
         case 'balance-sheet':
-          apiEndpoint = `/api/reports/balance-sheet?date=${reportEndDate}`;
+          data = await financialReportsService.getBalanceSheet(reportEndDate);
           break;
         case 'cash-flow':
-          apiEndpoint = `/api/reports/cash-flow?${params}`;
+          data = await financialReportsService.getCashFlow(filters);
           break;
         case 'chart-of-accounts':
-          apiEndpoint = '/api/reports/chart-of-accounts';
+          data = await financialReportsService.getChartOfAccounts();
           break;
         case 'journal-entries':
-          apiEndpoint = `/api/reports/journal-entries?${params}`;
+          data = await financialReportsService.getJournalEntries(filters);
           break;
         case 'general-ledger':
-          apiEndpoint = '/api/reports/general-ledger';
+          data = await financialReportsService.getGeneralLedger(undefined, filters);
           break;
         case 'account-summary':
-          apiEndpoint = '/api/reports/account-summary';
+          data = await financialReportsService.getAccountSummary();
           break;
         case 'aging-analysis':
-          apiEndpoint = '/api/reports/aging-analysis';
+          data = await financialReportsService.getAgingAnalysis('receivables');
           break;
         default:
           throw new Error('Invalid report type');
       }
-
-      // Fetch the report data from the API using GET request
-      const response = await fetch(apiEndpoint);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
       
       // Process the response based on report type
       switch (selectedReportType) {
@@ -3566,11 +3575,14 @@ const Accounting: React.FC = () => {
         description: `${reportData.title} has been generated successfully`,
         variant: "default"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Report generation error:', error);
+      const errorMessage = error.message || 'There was an error generating the report. Please try again.';
+      setReportError(errorMessage);
+      
       toast({
         title: "Report Generation Failed",
-        description: "There was an error generating the report. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -3578,231 +3590,97 @@ const Accounting: React.FC = () => {
     }
   };
 
-  // Enhanced PDF Export Function
+  // Enhanced PDF Export Function - Using Backend API
   const exportReportToPDF = async () => {
     try {
-      const reportData = getReportData();
-      
-      // Dynamic import of jsPDF
-      const { jsPDF } = await import('jspdf');
-      const autoTable = (await import('jspdf-autotable')).default;
-      
-      const doc = new jsPDF();
-      
-      // Set up PDF styling colors
-      const primaryColor: [number, number, number] = [34, 197, 94]; // Green
-      const secondaryColor: [number, number, number] = [75, 85, 99]; // Gray
-      const headerBg: [number, number, number] = [248, 250, 252]; // Light gray
-      
-      // Header section
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(0, 0, 210, 25, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('PREMIER ERP', 20, 16);
-      
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Pharmaceutical Enterprise Resource Planning', 20, 21);
-      
-      // Report title and info
-      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text(reportData.title, 20, 40);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Report Period: ${reportStartDate} to ${reportEndDate}`, 20, 48);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 54);
-      doc.text(`Account Filter: ${accountFilter === 'all' ? 'All Accounts' : accountFilter.charAt(0).toUpperCase() + accountFilter.slice(1)}`, 20, 60);
-      
-      // Prepare table data
-      const tableData = reportData.rows.map(row => row.map(cell => String(cell)));
-      
-      // Add totals row if exists
-      if (reportData.totals) {
-        tableData.push(reportData.totals.map(total => String(total)));
+      if (!currentReportData) {
+        toast({
+          title: "No Report Data",
+          description: "Please generate a report first before exporting.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      // Generate table based on report type
-      const tableConfig: any = {
-        head: [reportData.headers],
-        body: tableData,
-        startY: 70,
-        theme: 'grid' as const,
-        headStyles: {
-          fillColor: primaryColor,
-          textColor: [255, 255, 255] as [number, number, number],
-          fontStyle: 'bold' as const,
-          fontSize: 10,
-          halign: 'left' as const
-        },
-        bodyStyles: {
-          fontSize: 9,
-          textColor: [31, 41, 55] as [number, number, number],
-          halign: 'left' as const
-        },
-        columnStyles: {},
-        margin: { left: 20, right: 20 },
-        didParseCell: function(data: any) {
-          // Right-align numeric columns (typically amounts)
-          if (data.column.index > 1 && data.section === 'body') {
-            data.cell.styles.halign = 'right';
-            data.cell.styles.fontStyle = 'bold';
-          }
-          if (data.column.index > 1 && data.section === 'head') {
-            data.cell.styles.halign = 'right';
-          }
-          
-          // Special styling for totals row
-          if (reportData.totals && data.row.index === tableData.length - 1 && data.section === 'body') {
-            data.cell.styles.fillColor = headerBg;
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.textColor = [31, 41, 55];
-          }
-        }
+      // Import the API service
+      const { financialReportsService } = await import('@/services/financialReportsService');
+      
+      // Build export options
+      const exportOptions: ExportOptions = {
+        format: 'pdf',
+        reportType: selectedReportType,
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+        accountFilter: accountFilter
       };
       
-      // Adjust column styles based on report type
-      if (selectedReportType === 'trial-balance') {
-        tableConfig.columnStyles = {
-          0: { cellWidth: 25, halign: 'left' },
-          1: { cellWidth: 80, halign: 'left' },
-          2: { cellWidth: 35, halign: 'right' },
-          3: { cellWidth: 35, halign: 'right' }
-        };
-      } else if (selectedReportType === 'general-ledger') {
-        tableConfig.columnStyles = {
-          0: { cellWidth: 20, halign: 'left' },
-          1: { cellWidth: 60, halign: 'left' },
-          2: { cellWidth: 25, halign: 'right' },
-          3: { cellWidth: 25, halign: 'right' },
-          4: { cellWidth: 30, halign: 'right' }
-        };
-      } else if (selectedReportType === 'cash-flow') {
-        tableConfig.columnStyles = {
-          0: { cellWidth: 80, halign: 'left' },
-          1: { cellWidth: 30, halign: 'right' },
-          2: { cellWidth: 30, halign: 'right' },
-          3: { cellWidth: 35, halign: 'right' }
-        };
+      if (selectedReportType === 'balance-sheet') {
+        exportOptions.asOfDate = reportEndDate;
       }
       
-      // Generate the table
-      autoTable(doc, tableConfig);
-      
-      // Footer
-      const pageCount = (doc as any).internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
-        doc.text('Premier ERP - Confidential Financial Report', 20, 285);
-        doc.text(`Report: ${reportData.title}`, 20, 290);
-      }
-      
-      // Report summary (for applicable reports)
-      if (selectedReportType === 'trial-balance' || selectedReportType === 'pnl-statement') {
-        const finalY = (doc as any).lastAutoTable?.finalY || 200;
-        
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-        doc.text('Report Summary:', 20, finalY + 20);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.text('• This report was generated from live accounting data', 20, finalY + 28);
-        doc.text('• All amounts are displayed in USD unless otherwise specified', 20, finalY + 34);
-        doc.text('• Report complies with pharmaceutical industry accounting standards', 20, finalY + 40);
-        doc.text('• Data integrity verified at time of generation', 20, finalY + 46);
-      }
-      
-      // Save the PDF
-      const fileName = `${reportData.title.replace(/\s+/g, '_')}_${reportStartDate}_to_${reportEndDate}.pdf`;
-      doc.save(fileName);
+      // Call the backend export API
+      await financialReportsService.exportToPDF(exportOptions);
       
       toast({
         title: "PDF Export Successful",
-        description: `${reportData.title} has been exported to PDF successfully.`,
+        description: `${currentReportData.title} has been exported to PDF successfully.`,
         variant: "default"
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('PDF Export Error:', error);
+      const errorMessage = error.message || 'There was an error exporting the report to PDF. Please try again.';
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting the report to PDF. Please try again.",
+        title: "PDF Export Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
   };
 
-  // Excel Export Function
+  // Excel Export Function - Using Backend API
   const exportReportToExcel = async () => {
     try {
-      const reportData = getReportData();
-      
-      // Create workbook data
-      const workbookData = [
-        ['PREMIER ERP - Financial Report'],
-        ['Pharmaceutical Enterprise Resource Planning'],
-        [''],
-        [`Report: ${reportData.title}`],
-        [`Period: ${reportStartDate} to ${reportEndDate}`],
-        [`Generated: ${new Date().toLocaleString()}`],
-        [`Filter: ${accountFilter === 'all' ? 'All Accounts' : accountFilter.charAt(0).toUpperCase() + accountFilter.slice(1)}`],
-        [''],
-        reportData.headers,
-        ...reportData.rows,
-      ];
-      
-      // Add totals row if exists
-      if (reportData.totals) {
-        workbookData.push(reportData.totals);
+      if (!currentReportData) {
+        toast({
+          title: "No Report Data",
+          description: "Please generate a report first before exporting.",
+          variant: "destructive"
+        });
+        return;
       }
       
-      // Add summary section
-      workbookData.push(
-        [''],
-        ['Report Summary:'],
-        ['• Generated from live accounting data'],
-        ['• All amounts in USD unless specified'],
-        ['• Pharmaceutical industry compliant'],
-        ['• Data integrity verified']
-      );
+      // Import the API service
+      const { financialReportsService } = await import('@/services/financialReportsService');
       
-      // Convert to CSV format for download
-      const csvContent = workbookData
-        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-        .join('\n');
+      // Build export options
+      const exportOptions: ExportOptions = {
+        format: 'excel',
+        reportType: selectedReportType,
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+        accountFilter: accountFilter
+      };
       
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `${reportData.title.replace(/\s+/g, '_')}_${reportStartDate}_to_${reportEndDate}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (selectedReportType === 'balance-sheet') {
+        exportOptions.asOfDate = reportEndDate;
+      }
+      
+      // Call the backend export API
+      await financialReportsService.exportToExcel(exportOptions);
       
       toast({
         title: "Excel Export Successful",
-        description: `${reportData.title} has been exported to Excel format successfully.`,
+        description: `${currentReportData.title} has been exported to Excel format successfully.`,
         variant: "default"
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Excel Export Error:', error);
+      const errorMessage = error.message || 'There was an error exporting the report to Excel. Please try again.';
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting the report to Excel. Please try again.",
+        title: "Excel Export Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -7381,15 +7259,33 @@ const Accounting: React.FC = () => {
                       <Label>Report Options</Label>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
-                          <input type="checkbox" id="include-zero-balance" className="rounded" defaultChecked />
+                          <input 
+                            type="checkbox" 
+                            id="include-zero-balance" 
+                            className="rounded" 
+                            checked={includeZeroBalance}
+                            onChange={(e) => setIncludeZeroBalance(e.target.checked)}
+                          />
                           <Label htmlFor="include-zero-balance" className="text-sm">Include zero balance accounts</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <input type="checkbox" id="show-transactions" className="rounded" defaultChecked />
+                          <input 
+                            type="checkbox" 
+                            id="show-transactions" 
+                            className="rounded" 
+                            checked={showTransactionDetails}
+                            onChange={(e) => setShowTransactionDetails(e.target.checked)}
+                          />
                           <Label htmlFor="show-transactions" className="text-sm">Show transaction details</Label>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <input type="checkbox" id="group-by-type" className="rounded" />
+                          <input 
+                            type="checkbox" 
+                            id="group-by-type" 
+                            className="rounded" 
+                            checked={groupByAccountType}
+                            onChange={(e) => setGroupByAccountType(e.target.checked)}
+                          />
                           <Label htmlFor="group-by-type" className="text-sm">Group by account type</Label>
                         </div>
                       </div>
