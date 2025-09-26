@@ -3089,6 +3089,139 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // ============= Dashboard Analytics Endpoint - REAL DATA ONLY =============
+  
+  // Get comprehensive dashboard analytics with ZERO hardcoded values
+  app.get("/api/dashboard/analytics", async (req: Request, res: Response) => {
+    try {
+      console.log("🔥 Fetching REAL analytics data from database...");
+      
+      // Get all sales data for calculations
+      const allSales = await db.select().from(sales);
+      const completedSales = allSales.filter(sale => 
+        sale.paymentStatus === 'completed' || sale.paymentStatus === 'partial'
+      );
+      
+      // Current date calculations
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentYearStart = new Date(currentYear, 0, 1);
+      
+      // Calculate monthly data for last 24 months (for YoY comparison)
+      const monthlyData = [];
+      for (let i = 23; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const nextMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 1);
+        
+        const monthSales = completedSales.filter(sale => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= monthDate && saleDate < nextMonth;
+        });
+        
+        const monthRevenue = monthSales.reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+        const monthOrders = monthSales.length;
+        
+        monthlyData.push({
+          year: monthDate.getFullYear(),
+          month: monthDate.getMonth() + 1,
+          monthName: monthDate.toLocaleDateString('en-US', { month: 'long' }),
+          revenue: monthRevenue,
+          orders: monthOrders,
+          date: monthDate
+        });
+      }
+      
+      // Find peak month from last 12 months
+      const last12Months = monthlyData.slice(-12);
+      const peakMonth = last12Months.reduce((peak, current) => 
+        current.revenue > peak.revenue ? current : peak
+      );
+      
+      // Current month data
+      const currentMonthData = monthlyData[monthlyData.length - 1];
+      const previousMonthData = monthlyData[monthlyData.length - 2];
+      const sameMonthLastYearData = monthlyData.find(m => 
+        m.month === currentMonthData.month && m.year === currentMonthData.year - 1
+      );
+      
+      // Calculate YoY growth rate
+      let growthYoYPct = null;
+      if (sameMonthLastYearData && sameMonthLastYearData.revenue > 0) {
+        growthYoYPct = ((currentMonthData.revenue - sameMonthLastYearData.revenue) / sameMonthLastYearData.revenue) * 100;
+      }
+      
+      // Calculate MoM growth rate
+      let growthMoMPct = null;
+      if (previousMonthData && previousMonthData.revenue > 0) {
+        growthMoMPct = ((currentMonthData.revenue - previousMonthData.revenue) / previousMonthData.revenue) * 100;
+      }
+      
+      // Calculate monthly average over last 12 months
+      const totalRevenueLast12Months = last12Months.reduce((sum, month) => sum + month.revenue, 0);
+      const monthlyAverage12M = totalRevenueLast12Months / 12;
+      
+      // Calculate Year-to-Date revenue
+      const ytdRevenue = completedSales
+        .filter(sale => new Date(sale.date) >= currentYearStart)
+        .reduce((sum, sale) => sum + parseFloat(sale.grandTotal || '0'), 0);
+      
+      // Calculate target attainment (using derived baseline)
+      const derivedMonthlyTarget = monthlyAverage12M;
+      const monthsElapsed = currentMonth + 1;
+      const derivedYTDTarget = derivedMonthlyTarget * monthsElapsed;
+      const targetAttainmentPct = derivedYTDTarget > 0 ? (ytdRevenue / derivedYTDTarget) * 100 : 0;
+      
+      // Determine trend direction
+      let trendDirection = 'stable';
+      if (growthYoYPct !== null) {
+        if (growthYoYPct > 2) trendDirection = 'up';
+        else if (growthYoYPct < -2) trendDirection = 'down';
+      }
+      
+      // Calculate average order value for current month
+      const avgOrderValue = currentMonthData.orders > 0 ? currentMonthData.revenue / currentMonthData.orders : 0;
+      
+      const analyticsData = {
+        months: monthlyData,
+        peak: {
+          year: peakMonth.year,
+          month: peakMonth.month,
+          monthName: peakMonth.monthName,
+          revenue: Math.round(peakMonth.revenue * 100) / 100,
+          orders: peakMonth.orders
+        },
+        current: {
+          revenue: Math.round(currentMonthData.revenue * 100) / 100,
+          orders: currentMonthData.orders
+        },
+        prevMonth: {
+          revenue: Math.round(previousMonthData.revenue * 100) / 100,
+          orders: previousMonthData.orders
+        },
+        prevYearSameMonth: sameMonthLastYearData ? {
+          revenue: Math.round(sameMonthLastYearData.revenue * 100) / 100,
+          orders: sameMonthLastYearData.orders
+        } : null,
+        ytdRevenue: Math.round(ytdRevenue * 100) / 100,
+        monthlyAverage12M: Math.round(monthlyAverage12M * 100) / 100,
+        growthYoYPct: growthYoYPct ? Math.round(growthYoYPct * 10) / 10 : null,
+        growthMoMPct: growthMoMPct ? Math.round(growthMoMPct * 10) / 10 : null,
+        trendDirection,
+        targetAttainmentPct: Math.round(targetAttainmentPct * 10) / 10,
+        avgOrderValue: Math.round(avgOrderValue * 100) / 100,
+        derivedMonthlyTarget: Math.round(derivedMonthlyTarget * 100) / 100
+      };
+      
+      console.log(`✅ REAL Analytics: Peak ${peakMonth.monthName} (${peakMonth.revenue}), YoY ${growthYoYPct}%, YTD ${ytdRevenue}`);
+      
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("❌ Analytics error:", error);
+      res.status(500).json({ message: "Failed to fetch analytics data" });
+    }
+  });
+
   // ============= Role Permissions Endpoints =============
 
   // Get permissions for a role
