@@ -1695,28 +1695,56 @@ const Inventory: React.FC = () => {
                   <div className="space-y-2">
                     <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('costPrice')}</label>
                     <div className={`text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
-                      {formatCurrency(selectedProductHistory.costPrice)}
+                      <FieldProtectedContent
+                        module="inventory"
+                        entityType="product"
+                        fieldName="costPrice"
+                        fallback={<span className="text-muted-foreground">•••</span>}
+                      >
+                        {formatCurrency(selectedProductHistory.costPrice)}
+                      </FieldProtectedContent>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('sellingPrice')}</label>
                     <div className={`text-lg font-bold text-purple-900 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
-                      {formatCurrency(selectedProductHistory.sellingPrice)}
+                      <FieldProtectedContent
+                        module="inventory"
+                        entityType="product"
+                        fieldName="sellingPrice"
+                        fallback={<span className="text-muted-foreground">•••</span>}
+                      >
+                        {formatCurrency(selectedProductHistory.sellingPrice)}
+                      </FieldProtectedContent>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('profitMargin')}</label>
                     <div className={`text-sm text-purple-800 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
-                      {((selectedProductHistory.sellingPrice - selectedProductHistory.costPrice) / selectedProductHistory.costPrice * 100).toFixed(1)}%
+                      <FieldProtectedContent
+                        module="inventory"
+                        entityType="product"
+                        fieldName="costPrice"
+                        fallback={<span className="text-muted-foreground">•••</span>}
+                      >
+                        {((selectedProductHistory.sellingPrice - selectedProductHistory.costPrice) / selectedProductHistory.costPrice * 100).toFixed(1)}%
+                      </FieldProtectedContent>
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <label className={`text-sm font-medium text-purple-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('profitPerUnit')}</label>
                     <div className={`text-sm font-bold text-purple-800 bg-white p-3 rounded border border-purple-200 ${isRTL ? 'text-right' : 'text-left'}`}>
-                      {formatCurrency(selectedProductHistory.sellingPrice - selectedProductHistory.costPrice)}
+                      <FieldProtectedContent
+                        module="inventory"
+                        entityType="product"
+                        fieldName="costPrice"
+                        fallback={<span className="text-muted-foreground">•••</span>}
+                      >
+                        {formatCurrency(selectedProductHistory.sellingPrice - selectedProductHistory.costPrice)}
+                      </FieldProtectedContent>
                     </div>
                   </div>
                 </div>
