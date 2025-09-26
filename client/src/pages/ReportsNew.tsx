@@ -97,11 +97,11 @@ const Reports = () => {
   // Enhanced export functionality with proper typing
   const getReportData = (reportType: string): any => {
     switch (reportType.toLowerCase()) {
-      case 'sales': return salesData;
-      case 'financial': return financialData;
-      case 'inventory': return inventoryData;
-      case 'customers': return customersData;
-      case 'production': return productionData;
+      case 'sales': return salesAnalysisData;
+      case 'financial': return financeBreakdownData;
+      case 'inventory': return inventoryAnalysisData;
+      case 'customers': return topCustomersData;
+      case 'production': return productionAnalysisData;
       case 'refining': return refiningData;
       default: return null;
     }
