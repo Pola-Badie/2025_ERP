@@ -2460,8 +2460,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Login Logs Endpoints =============
 
-  // Get login logs
-  app.get("/api/login-logs", isAdmin, async (req: Request, res: Response) => {
+  // Get login logs - accessible to all authenticated users
+  app.get("/api/login-logs", async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? Number(req.query.limit) : undefined;
       const logs = await storage.getLoginLogs(limit);

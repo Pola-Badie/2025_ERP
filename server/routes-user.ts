@@ -113,6 +113,18 @@ router.post('/auth/login', async (req, res) => {
     console.log('User found:', user ? 'Yes' : 'No');
     
     if (!user) {
+      // Log failed login attempt
+      try {
+        await storage.createLoginLog({
+          userId: 0, // Unknown user
+          timestamp: new Date(),
+          ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent') || 'unknown',
+          success: false
+        });
+      } catch (logError) {
+        console.error('Failed to create failed login log:', logError);
+      }
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -134,6 +146,21 @@ router.post('/auth/login', async (req, res) => {
     // Check if user is active
     if (user.status !== 'active') {
       return res.status(401).json({ error: 'Account is not active' });
+    }
+
+    // Create login log entry
+    try {
+      await storage.createLoginLog({
+        userId: user.id,
+        timestamp: new Date(),
+        ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+        userAgent: req.get('User-Agent') || 'unknown',
+        success: true
+      });
+      console.log('Login log created for user:', user.username);
+    } catch (logError) {
+      console.error('Failed to create login log:', logError);
+      // Don't fail the login if logging fails
     }
 
     // Remove sensitive information
