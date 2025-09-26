@@ -2,13 +2,19 @@ import { Router } from 'express';
 import { db } from './db';
 import { 
   sales, 
+  saleItems,
   purchaseOrders, 
   expenses,
   journalEntries,
   customers,
   accounts,
   products,
-  inventoryTransactions
+  inventoryTransactions,
+  quotations,
+  quotationItems,
+  warehouseInventory,
+  productCategories,
+  warehouses
 } from '../shared/schema';
 import { eq, sql, and, gte, lte, desc } from 'drizzle-orm';
 
@@ -857,6 +863,224 @@ router.get('/finance-breakdown', async (req, res) => {
   } catch (error) {
     console.error('Finance breakdown report error:', error);
     res.status(500).json({ error: 'Failed to generate finance breakdown report' });
+  }
+});
+
+// Comprehensive Reports Dashboard Data
+router.get('/dashboard-analytics', async (req, res) => {
+  try {
+    console.log('🔥 Fetching comprehensive reports dashboard data from real database');
+    
+    // 1. Sales Analytics with real data
+    const salesData = await db.execute(sql`
+      SELECT 
+        TO_CHAR(s.date, 'YYYY-MM') as month,
+        COUNT(s.id) as total_sales,
+        SUM(CAST(s.grand_total AS NUMERIC)) as total_revenue,
+        AVG(CAST(s.grand_total AS NUMERIC)) as avg_order_value,
+        COUNT(DISTINCT s.customer_id) as unique_customers
+      FROM sales s
+      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY TO_CHAR(s.date, 'YYYY-MM')
+      ORDER BY month DESC
+      LIMIT 12
+    `);
+    
+    // 2. Customer Performance by Grade (P, F, T)
+    const customerGrades = await db.execute(sql`
+      SELECT 
+        p.grade,
+        COUNT(DISTINCT s.customer_id) as customer_count,
+        COUNT(s.id) as total_orders,
+        SUM(CAST(s.grand_total AS NUMERIC)) as total_revenue,
+        AVG(CAST(s.grand_total AS NUMERIC)) as avg_order_value,
+        CASE 
+          WHEN p.grade = 'P' THEN 'Pharmaceutical'
+          WHEN p.grade = 'F' THEN 'Food Grade' 
+          WHEN p.grade = 'T' THEN 'Technical'
+          ELSE 'Other'
+        END as grade_name
+      FROM sales s
+      JOIN sale_items si ON s.id = si.sale_id
+      JOIN products p ON si.product_id = p.id
+      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY p.grade
+      ORDER BY total_revenue DESC
+    `);
+    
+    // 3. Production Analytics - Most Produced Items
+    const productionData = await db.execute(sql`
+      SELECT 
+        p.id,
+        p.name,
+        p.drug_name,
+        p.grade,
+        SUM(si.quantity) as total_sold,
+        COUNT(DISTINCT s.id) as order_frequency,
+        SUM(CAST(si.total AS NUMERIC)) as total_revenue,
+        pc.name as category_name
+      FROM products p
+      LEFT JOIN sale_items si ON p.id = si.product_id
+      LEFT JOIN sales s ON si.sale_id = s.id
+      LEFT JOIN product_categories pc ON p.category_id = pc.id
+      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months' OR s.date IS NULL
+      GROUP BY p.id, p.name, p.drug_name, p.grade, pc.name
+      ORDER BY total_sold DESC NULLS LAST
+      LIMIT 10
+    `);
+    
+    // 4. Quotation to Invoice Conversion Analytics
+    const quotationConversions = await db.execute(sql`
+      WITH quotation_stats AS (
+        SELECT 
+          COUNT(*) as total_quotations,
+          COUNT(CASE WHEN status = 'converted' THEN 1 END) as converted_quotations,
+          SUM(CAST(grand_total AS NUMERIC)) as total_quotation_value,
+          SUM(CASE WHEN status = 'converted' THEN CAST(grand_total AS NUMERIC) ELSE 0 END) as converted_value
+        FROM quotations
+        WHERE created_at >= CURRENT_DATE - INTERVAL '12 months'
+      ),
+      monthly_conversions AS (
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM') as month,
+          COUNT(*) as quotes_created,
+          COUNT(CASE WHEN status = 'converted' THEN 1 END) as quotes_converted,
+          ROUND(
+            (COUNT(CASE WHEN status = 'converted' THEN 1 END)::NUMERIC / 
+             NULLIF(COUNT(*), 0) * 100), 2
+          ) as conversion_rate
+        FROM quotations
+        WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+        ORDER BY month DESC
+      )
+      SELECT 
+        qs.*,
+        ROUND((qs.converted_quotations::NUMERIC / NULLIF(qs.total_quotations, 0) * 100), 2) as overall_conversion_rate,
+        json_agg(mc.*) as monthly_data
+      FROM quotation_stats qs, monthly_conversions mc
+      GROUP BY qs.total_quotations, qs.converted_quotations, qs.total_quotation_value, qs.converted_value
+    `);
+    
+    // 5. Comprehensive Inventory Summary  
+    const inventoryAnalytics = await db.execute(sql`
+      SELECT 
+        COUNT(*) as total_products,
+        COUNT(CASE WHEN quantity <= low_stock_threshold THEN 1 END) as low_stock_count,
+        COUNT(CASE WHEN quantity = 0 THEN 1 END) as out_of_stock_count,
+        COUNT(CASE WHEN expiry_date <= CURRENT_DATE + INTERVAL '30 days' AND expiry_date > CURRENT_DATE THEN 1 END) as expiring_soon_count,
+        COUNT(CASE WHEN expiry_date <= CURRENT_DATE THEN 1 END) as expired_count,
+        SUM(CAST(cost_price AS NUMERIC) * quantity) as total_inventory_cost,
+        SUM(CAST(selling_price AS NUMERIC) * quantity) as total_inventory_value,
+        SUM(quantity) as total_stock_units,
+        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_products,
+        COUNT(DISTINCT location) as warehouse_locations
+      FROM products
+    `);
+    
+    // 6. Top Customers by Revenue
+    const topCustomers = await db.execute(sql`
+      SELECT 
+        c.id,
+        c.name,
+        c.company,
+        COUNT(s.id) as total_orders,
+        SUM(CAST(s.grand_total AS NUMERIC)) as total_revenue,
+        AVG(CAST(s.grand_total AS NUMERIC)) as avg_order_value,
+        MAX(s.date) as last_order_date
+      FROM customers c
+      JOIN sales s ON c.id = s.customer_id
+      WHERE s.date >= CURRENT_DATE - INTERVAL '12 months'
+      GROUP BY c.id, c.name, c.company
+      ORDER BY total_revenue DESC
+      LIMIT 10
+    `);
+    
+    // 7. Financial Summary
+    const financialSummary = await db.execute(sql`
+      SELECT 
+        SUM(CAST(grand_total AS NUMERIC)) as total_revenue,
+        COUNT(*) as total_sales,
+        AVG(CAST(grand_total AS NUMERIC)) as avg_sale_value,
+        SUM(CAST(amount_paid AS NUMERIC)) as total_paid,
+        SUM(CAST(grand_total AS NUMERIC) - CAST(amount_paid AS NUMERIC)) as outstanding_ar
+      FROM sales
+      WHERE date >= CURRENT_DATE - INTERVAL '12 months'
+    `);
+    
+    console.log('📊 Comprehensive reports data fetched successfully from database');
+    
+    res.json({
+      salesAnalytics: {
+        monthlySales: salesData.rows.map((row: any) => ({
+          month: row.month,
+          totalSales: parseInt(row.total_sales || 0),
+          totalRevenue: parseFloat(row.total_revenue || 0),
+          avgOrderValue: parseFloat(row.avg_order_value || 0),
+          uniqueCustomers: parseInt(row.unique_customers || 0)
+        })),
+        summary: {
+          totalRevenue: parseFloat(financialSummary.rows[0]?.total_revenue || 0),
+          totalSales: parseInt(financialSummary.rows[0]?.total_sales || 0),
+          avgSaleValue: parseFloat(financialSummary.rows[0]?.avg_sale_value || 0),
+          outstandingAR: parseFloat(financialSummary.rows[0]?.outstanding_ar || 0)
+        }
+      },
+      customerGrades: customerGrades.rows.map((row: any) => ({
+        grade: row.grade,
+        gradeName: row.grade_name,
+        customerCount: parseInt(row.customer_count || 0),
+        totalOrders: parseInt(row.total_orders || 0),
+        totalRevenue: parseFloat(row.total_revenue || 0),
+        avgOrderValue: parseFloat(row.avg_order_value || 0)
+      })),
+      productionData: productionData.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        drugName: row.drug_name,
+        grade: row.grade,
+        categoryName: row.category_name,
+        totalSold: parseInt(row.total_sold || 0),
+        orderFrequency: parseInt(row.order_frequency || 0),
+        totalRevenue: parseFloat(row.total_revenue || 0)
+      })),
+      quotationConversions: {
+        totalQuotations: parseInt(quotationConversions.rows[0]?.total_quotations || 0),
+        convertedQuotations: parseInt(quotationConversions.rows[0]?.converted_quotations || 0),
+        overallConversionRate: parseFloat(quotationConversions.rows[0]?.overall_conversion_rate || 0),
+        totalQuotationValue: parseFloat(quotationConversions.rows[0]?.total_quotation_value || 0),
+        convertedValue: parseFloat(quotationConversions.rows[0]?.converted_value || 0),
+        monthlyData: quotationConversions.rows[0]?.monthly_data || []
+      },
+      inventoryAnalytics: {
+        totalProducts: parseInt(inventoryAnalytics.rows[0]?.total_products || 0),
+        lowStockCount: parseInt(inventoryAnalytics.rows[0]?.low_stock_count || 0),
+        outOfStockCount: parseInt(inventoryAnalytics.rows[0]?.out_of_stock_count || 0),
+        expiringSoonCount: parseInt(inventoryAnalytics.rows[0]?.expiring_soon_count || 0),
+        expiredCount: parseInt(inventoryAnalytics.rows[0]?.expired_count || 0),
+        totalInventoryCost: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_cost || 0),
+        totalInventoryValue: parseFloat(inventoryAnalytics.rows[0]?.total_inventory_value || 0),
+        totalStockUnits: parseInt(inventoryAnalytics.rows[0]?.total_stock_units || 0),
+        activeProducts: parseInt(inventoryAnalytics.rows[0]?.active_products || 0),
+        warehouseLocations: parseInt(inventoryAnalytics.rows[0]?.warehouse_locations || 0)
+      },
+      topCustomers: topCustomers.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        company: row.company || '',
+        totalOrders: parseInt(row.total_orders || 0),
+        totalRevenue: parseFloat(row.total_revenue || 0),
+        avgOrderValue: parseFloat(row.avg_order_value || 0),
+        lastOrderDate: row.last_order_date
+      }))
+    });
+    
+  } catch (error) {
+    console.error('Comprehensive reports dashboard error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate comprehensive reports dashboard',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
