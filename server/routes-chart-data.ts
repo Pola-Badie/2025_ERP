@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from './db';
+import { sql } from 'drizzle-orm';
 
 export function registerChartDataRoutes(app: any) {
   // ============= REAL CHART DATA ENDPOINTS =============
@@ -18,17 +19,17 @@ export function registerChartDataRoutes(app: any) {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       months.forEach(month => monthlyData[month] = 0);
       
-      // Get real sales data from database
-      const salesResult = await db.execute(`
+      // Get real sales data from database using Drizzle sql template
+      const salesResult = await db.execute(sql`
         SELECT 
           EXTRACT(MONTH FROM date) as month,
           COALESCE(SUM(CAST(grand_total AS NUMERIC)), 0) as total_sales
         FROM sales 
-        WHERE EXTRACT(YEAR FROM date) = $1
+        WHERE EXTRACT(YEAR FROM date)::int = ${currentYear}
           AND payment_status != 'cancelled'
         GROUP BY EXTRACT(MONTH FROM date)
         ORDER BY month
-      `, [currentYear]);
+      `);
 
       // Map database results to month names
       if (salesResult.rows && salesResult.rows.length > 0) {
@@ -60,14 +61,14 @@ export function registerChartDataRoutes(app: any) {
     try {
       console.log('📊 SALES DISTRIBUTION: Fetching real category distribution from database');
       
-      // Get sales by product category from database
-      const distributionResult = await db.execute(`
+      // Get sales by product category from database using correct table name
+      const distributionResult = await db.execute(sql`
         SELECT 
           COALESCE(c.name, 'Other') as category_name,
           COALESCE(SUM(CAST(si.total AS NUMERIC)), 0) as category_total
         FROM sale_items si
         JOIN products p ON si.product_id = p.id
-        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN product_categories c ON p.category_id = c.id
         JOIN sales s ON si.sale_id = s.id
         WHERE s.payment_status != 'cancelled'
         GROUP BY c.name
@@ -106,8 +107,8 @@ export function registerChartDataRoutes(app: any) {
     try {
       console.log('📊 CATEGORY PERFORMANCE: Fetching real category performance from database');
       
-      // Get category performance based on profit margins and sales volume
-      const performanceResult = await db.execute(`
+      // Get category performance based on profit margins and sales volume using correct table name
+      const performanceResult = await db.execute(sql`
         SELECT 
           COALESCE(c.name, 'Other') as category_name,
           COUNT(DISTINCT p.id) as product_count,
@@ -116,7 +117,7 @@ export function registerChartDataRoutes(app: any) {
           COALESCE(AVG(CAST(p.selling_price AS NUMERIC) - CAST(p.cost_price AS NUMERIC)), 0) as avg_profit_margin
         FROM sale_items si
         JOIN products p ON si.product_id = p.id
-        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN product_categories c ON p.category_id = c.id
         JOIN sales s ON si.sale_id = s.id
         WHERE s.payment_status != 'cancelled'
           AND CAST(p.selling_price AS NUMERIC) > 0
