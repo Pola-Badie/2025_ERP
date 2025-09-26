@@ -42,7 +42,7 @@ export default function RealTimeDashboard() {
   const [isConnected, setIsConnected] = useState(false);
   const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true);
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
+  const refreshInterval = parseInt(process.env.REACT_APP_DASHBOARD_REFRESH_INTERVAL || '30000'); // 30 seconds - configurable
   const [lastActivity, setLastActivity] = useState<string>('');
   const { toast } = useToast();
 

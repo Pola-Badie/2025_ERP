@@ -10,7 +10,7 @@ DB_NAME=${PGDATABASE:-"premier_erp"}
 DB_USER=${PGUSER:-"postgres"}
 export PGPASSWORD=${PGPASSWORD}
 
-RETENTION_DAYS=7
+RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
 
 # Colors for output
 GREEN='\033[0;32m'
