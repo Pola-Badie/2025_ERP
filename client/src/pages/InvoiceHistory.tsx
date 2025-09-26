@@ -115,7 +115,7 @@ const InvoiceHistory = () => {
     staleTime: 0, // Always fetch fresh data
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    refetchInterval: 5000 // Refresh every 5 seconds for near real-time updates (same as procurement)
+    refetchInterval: 60000 // Refresh every 60 seconds to reduce server load
   });
 
   // Debug logging
