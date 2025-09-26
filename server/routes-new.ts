@@ -494,8 +494,11 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Register user and permissions routes
   app.use("/api", userRoutes);
 
-  // User Permission Management API routes
-  // Get user permissions
+  // User Permission Management API routes with caching
+  // Import permission cache
+  const { permissionCache } = await import("./permission-cache.js");
+
+  // Get user permissions (with caching)
   app.get("/api/users/:userId/permissions", async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -503,10 +506,19 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: "Invalid user ID" });
       }
 
-      const permissions = await db
-        .select()
-        .from(userPermissions)
-        .where(eq(userPermissions.userId, userId));
+      // Try cache first
+      let permissions = permissionCache.getUserPermissions(userId);
+      
+      if (!permissions) {
+        // Cache miss - fetch from database
+        permissions = await db
+          .select()
+          .from(userPermissions)
+          .where(eq(userPermissions.userId, userId));
+        
+        // Store in cache for next time
+        permissionCache.setUserPermissions(userId, permissions);
+      }
 
       return res.status(200).json(permissions);
     } catch (error) {
@@ -546,6 +558,8 @@ export async function registerRoutes(app: Express): Promise<void> {
             eq(userPermissions.userId, userId),
             eq(userPermissions.moduleName, moduleName)
           ));
+        // Invalidate cache after update
+        permissionCache.invalidateUser(userId);
       } else {
         // Create new permission
         await db.insert(userPermissions).values({
@@ -555,6 +569,8 @@ export async function registerRoutes(app: Express): Promise<void> {
           createdAt: new Date(),
           updatedAt: new Date()
         });
+        // Invalidate cache after insert
+        permissionCache.invalidateUser(userId);
       }
 
       return res.status(200).json({ message: "Permission updated successfully" });
