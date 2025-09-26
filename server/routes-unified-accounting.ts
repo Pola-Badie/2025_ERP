@@ -79,7 +79,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       // Optimize: Fetch all items in a single query instead of N+1 queries
       const invoiceIds = salesData.map(invoice => invoice.id);
       
-      let allItems = [];
+      let allItems: any[] = [];
       if (invoiceIds.length > 0) {
         allItems = await db
           .select({
@@ -269,13 +269,13 @@ export function registerUnifiedAccountingRoutes(app: Express) {
             )
           ),
         
-        // 2. Get Expenses (This Month)  
+        // 2. Get Expenses (This Month) - Fix date string comparison
         db.select({ total: sql<string>`COALESCE(SUM(CAST(amount AS DECIMAL)), 0)` })
           .from(expenses)
           .where(
             and(
-              gte(expenses.date, firstDayOfMonth),
-              lte(expenses.date, lastDayOfMonth)
+              sql`CAST(${expenses.date} AS DATE) >= ${firstDayOfMonth.toISOString().split('T')[0]}`,
+              sql`CAST(${expenses.date} AS DATE) <= ${lastDayOfMonth.toISOString().split('T')[0]}`
             )
           ),
         
