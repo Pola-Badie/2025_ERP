@@ -256,7 +256,7 @@ const DashboardNew = () => {
             <div className="text-2xl font-bold">
               {isOverviewLoading ? "..." : `EGP ${accountingOverview?.netProfit?.toLocaleString() || "0"}`}
             </div>
-            <p className="text-xs text-white opacity-80">{t('revenueMinusExpenses')}</p>
+            <p className="text-xs text-white opacity-80">Revenue minus expenses, tax, and costs</p>
           </CardContent>
         </Card>
 
