@@ -249,83 +249,9 @@ export function registerFinancialReportsRoutes(app: any) {
     }
   });
 
-  // Cash Flow Statement
-  app.get('/api/reports/cash-flow', async (req: Request, res: Response) => {
-    try {
-      const { startDate, endDate } = req.query;
-      
-      // Get cash accounts (typically 1000-1099)
-      const cashAccounts = await db
-        .select({
-          id: accounts.id,
-          code: accounts.code,
-          name: accounts.name,
-          startBalance: sql<number>`0`, // Would need historical data
-          endBalance: sql<number>`COALESCE(SUM(${journalEntryLines.debit} - ${journalEntryLines.credit}), 0)`
-        })
-        .from(accounts)
-        .leftJoin(journalEntryLines, eq(accounts.id, journalEntryLines.accountId))
-        .where(and(
-          gte(accounts.code, '1000'),
-          lte(accounts.code, '1099')
-        ))
-        .groupBy(accounts.id, accounts.code, accounts.name);
-
-      // Get cash movements by category (simplified)
-      const operatingActivities = await db
-        .select({
-          description: journalEntries.description,
-          amount: sql<number>`SUM(${journalEntryLines.debit} - ${journalEntryLines.credit})`
-        })
-        .from(journalEntryLines)
-        .innerJoin(journalEntries, eq(journalEntryLines.journalEntryId, journalEntries.id))
-        .innerJoin(accounts, eq(journalEntryLines.accountId, accounts.id))
-        .where(and(
-          gte(accounts.code, '1000'),
-          lte(accounts.code, '1099')
-        ))
-        .groupBy(journalEntries.description);
-
-      const totalCashInflows = operatingActivities
-        .filter(activity => Number(activity.amount) > 0)
-        .reduce((sum, activity) => sum + Number(activity.amount), 0);
-      
-      const totalCashOutflows = Math.abs(operatingActivities
-        .filter(activity => Number(activity.amount) < 0)
-        .reduce((sum, activity) => sum + Number(activity.amount), 0));
-
-      const netCashFlow = totalCashInflows - totalCashOutflows;
-
-      res.json({
-        cashAccounts: cashAccounts.map(acc => ({
-          code: acc.code,
-          name: acc.name,
-          balance: Number(acc.endBalance)
-        })),
-        operatingActivities: {
-          inflows: totalCashInflows,
-          outflows: totalCashOutflows,
-          net: netCashFlow
-        },
-        investingActivities: {
-          inflows: 0,
-          outflows: 0,
-          net: 0
-        },
-        financingActivities: {
-          inflows: 0,
-          outflows: 0,
-          net: 0
-        },
-        totalCashFlow: netCashFlow,
-        beginningCash: 0,
-        endingCash: cashAccounts.reduce((sum, acc) => sum + Number(acc.endBalance), 0)
-      });
-    } catch (error) {
-      console.error('Error generating cash flow statement:', error);
-      res.status(500).json({ message: 'Failed to generate cash flow statement' });
-    }
-  });
+  // Cash Flow Statement - REMOVED (using routes-reports.ts implementation instead)
+  // The duplicate cash flow handler was causing Drizzle ORM errors due to old schema references
+  // Only /api/reports/cash-flow from routes-reports.ts should be active
 
   // Chart of Accounts
   app.get('/api/reports/chart-of-accounts', async (req: Request, res: Response) => {

@@ -458,8 +458,8 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 
-  // Get cash flow statement
-  app.get("/api/accounting/cash-flow", async (req: Request, res: Response) => {
+  // Cash Flow Statement - DISABLED (duplicate handler removed - using routes-reports.ts)  
+  app.get("/api/accounting/cash-flow-disabled", async (req: Request, res: Response) => {
     try {
       const { startDate, endDate } = req.query;
       
@@ -525,8 +525,8 @@ export function registerAccountingRoutes(app: Express) {
 
       res.json(cashFlow);
     } catch (error) {
-      console.error("Error generating cash flow:", error);
-      res.status(500).json({ error: "Failed to generate cash flow statement" });
+      console.error("Error generating DISABLED cash flow:", error);
+      res.status(500).json({ error: "DISABLED - Cash flow handler removed" });
     }
   });
 

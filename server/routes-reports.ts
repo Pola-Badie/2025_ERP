@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { db } from './db';
 import { 
-  invoices, 
+  sales, 
   purchaseOrders, 
   expenses,
   journalEntries,
   customers,
-  accountingAccounts
+  accounts
 } from '../shared/schema';
 import { eq, sql, and, gte, lte } from 'drizzle-orm';
 
@@ -33,10 +33,10 @@ router.get('/profit-loss', async (req, res) => {
     const { startDate, endDate } = req.query;
     const { start, end } = getDateRange(startDate as string, endDate as string);
     
-    const invoiceData = await db.select().from(invoices)
+    const invoiceData = await db.select().from(sales)
       .where(and(
-        gte(invoices.invoiceDate, start.toISOString().split('T')[0]),
-        lte(invoices.invoiceDate, end.toISOString().split('T')[0])
+        sql`DATE(${sales.date}) >= ${start.toISOString().split('T')[0]}`,
+        sql`DATE(${sales.date}) <= ${end.toISOString().split('T')[0]}`
       ));
     
     const expenseData = await db.select().from(expenses)
@@ -45,8 +45,8 @@ router.get('/profit-loss', async (req, res) => {
         lte(expenses.date, end.toISOString().split('T')[0])
       ));
 
-    const totalRevenue = invoiceData.reduce((sum, inv) => sum + inv.totalAmount, 0);
-    const totalExpenses = expenseData.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalRevenue = invoiceData.reduce((sum, inv) => sum + parseFloat(inv.grandTotal || '0'), 0);
+    const totalExpenses = expenseData.reduce((sum, exp) => sum + parseFloat(exp.amount || '0'), 0);
     const netIncome = totalRevenue - totalExpenses;
     const profitMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0;
 
@@ -78,22 +78,22 @@ router.get('/balance-sheet', async (req, res) => {
     const { date } = req.query;
     const reportDate = date ? new Date(date as string) : new Date();
     
-    const invoiceData = await db.select().from(invoices)
-      .where(lte(invoices.invoiceDate, reportDate.toISOString().split('T')[0]));
+    const invoiceData = await db.select().from(sales)
+      .where(sql`DATE(${sales.date}) <= ${reportDate.toISOString().split('T')[0]}`);
     
     const expenseData = await db.select().from(expenses)
       .where(lte(expenses.date, reportDate.toISOString().split('T')[0]));
     
     const purchaseData = await db.select().from(purchaseOrders)
-      .where(lte(purchaseOrders.orderDate, reportDate.toISOString().split('T')[0]));
+      .where(sql`DATE(${purchaseOrders.orderDate}) <= ${reportDate.toISOString().split('T')[0]}`);
 
-    const totalCash = invoiceData.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0) - 
-                     expenseData.reduce((sum, exp) => sum + exp.amount, 0);
-    const totalReceivables = invoiceData.reduce((sum, inv) => sum + inv.totalAmount - (inv.paidAmount || 0), 0);
-    const totalInventory = purchaseData.reduce((sum, pur) => sum + pur.totalAmount, 0) * 0.7; // Assume 70% remains
+    const totalCash = invoiceData.reduce((sum, inv) => sum + parseFloat(inv.amountPaid || '0'), 0) - 
+                     expenseData.reduce((sum, exp) => sum + parseFloat(exp.amount || '0'), 0);
+    const totalReceivables = invoiceData.reduce((sum, inv) => sum + parseFloat(inv.grandTotal || '0') - parseFloat(inv.amountPaid || '0'), 0);
+    const totalInventory = purchaseData.reduce((sum, pur) => sum + parseFloat(pur.totalAmount || '0'), 0) * 0.7; // Assume 70% remains
     const totalAssets = totalCash + totalReceivables + totalInventory;
 
-    const totalPayables = purchaseData.reduce((sum, pur) => sum + pur.totalAmount, 0) * 0.3; // Assume 30% unpaid
+    const totalPayables = purchaseData.reduce((sum, pur) => sum + parseFloat(pur.totalAmount || '0'), 0) * 0.3; // Assume 30% unpaid
     const totalLiabilities = totalPayables;
 
     const totalEquity = totalAssets - totalLiabilities;
@@ -134,10 +134,10 @@ router.get('/cash-flow', async (req, res) => {
     const { startDate, endDate } = req.query;
     const { start, end } = getDateRange(startDate as string, endDate as string);
     
-    const invoiceData = await db.select().from(invoices)
+    const invoiceData = await db.select().from(sales)
       .where(and(
-        gte(invoices.invoiceDate, start.toISOString().split('T')[0]),
-        lte(invoices.invoiceDate, end.toISOString().split('T')[0])
+        sql`DATE(${sales.date}) >= ${start.toISOString().split('T')[0]}`,
+        sql`DATE(${sales.date}) <= ${end.toISOString().split('T')[0]}`
       ));
     
     const expenseData = await db.select().from(expenses)
@@ -146,8 +146,8 @@ router.get('/cash-flow', async (req, res) => {
         lte(expenses.date, end.toISOString().split('T')[0])
       ));
 
-    const operatingInflows = invoiceData.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0);
-    const operatingOutflows = expenseData.reduce((sum, exp) => sum + exp.amount, 0);
+    const operatingInflows = invoiceData.reduce((sum, inv) => sum + parseFloat(inv.amountPaid || '0'), 0);
+    const operatingOutflows = expenseData.reduce((sum, exp) => sum + parseFloat(exp.amount || '0'), 0);
     const netOperating = operatingInflows - operatingOutflows;
 
     res.json({
@@ -272,7 +272,7 @@ router.get('/account-summary', async (req, res) => {
 // Aging Analysis Report
 router.get('/aging-analysis', async (req, res) => {
   try {
-    const invoiceData = await db.select().from(invoices);
+    const invoiceData = await db.select().from(sales);
     const today = new Date();
     
     const aging = {
@@ -283,9 +283,9 @@ router.get('/aging-analysis', async (req, res) => {
     };
 
     invoiceData.forEach(invoice => {
-      const outstanding = invoice.totalAmount - (invoice.paidAmount || 0);
+      const outstanding = parseFloat(invoice.grandTotal || '0') - parseFloat(invoice.amountPaid || '0');
       if (outstanding > 0) {
-        const invoiceDate = new Date(invoice.invoiceDate);
+        const invoiceDate = new Date(invoice.date);
         const daysDiff = Math.floor((today.getTime() - invoiceDate.getTime()) / (1000 * 3600 * 24));
         
         if (daysDiff <= 30) {
