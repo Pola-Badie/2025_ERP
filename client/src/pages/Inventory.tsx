@@ -1662,7 +1662,14 @@ const Inventory: React.FC = () => {
                   <div className="space-y-2">
                     <label className={`text-sm font-medium text-green-700 ${isRTL ? 'text-right' : 'text-left'}`}>{t('stockValue')}</label>
                     <div className={`text-sm text-green-800 bg-white p-3 rounded border border-green-200 font-bold ${isRTL ? 'text-right' : 'text-left'}`}>
-                      {formatCurrency(selectedProductHistory.quantity * selectedProductHistory.costPrice)}
+                      <FieldProtectedContent
+                        module="inventory"
+                        entityType="product"
+                        fieldName="costPrice"
+                        fallback={<span className="text-muted-foreground">•••</span>}
+                      >
+                        {formatCurrency(selectedProductHistory.quantity * selectedProductHistory.costPrice)}
+                      </FieldProtectedContent>
                     </div>
                   </div>
                 </div>
