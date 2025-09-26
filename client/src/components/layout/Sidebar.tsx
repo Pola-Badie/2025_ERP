@@ -21,7 +21,8 @@ const Sidebar: React.FC<SidebarProps> = ({ className, isMobile, onClose }) => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const allNavItems = [
-    { path: '/', key: 'dashboard', icon: 'home' },
+    // DASHBOARD REMOVED FOR WORKERS! 
+    // { path: '/', key: 'dashboard', icon: 'home' },
     { path: '/customers', key: 'customers', icon: 'user-plus' },
     { path: '/create-quotation', key: 'createQuotation', icon: 'quote' },
     { path: '/quotation-history', key: 'quotationHistory', icon: 'clipboard-list' },
