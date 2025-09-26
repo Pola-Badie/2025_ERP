@@ -380,4 +380,150 @@ router.delete('/users/:id/permissions/:module', async (req, res) => {
   }
 });
 
+// Bulk create users endpoint (for initial setup)
+router.post('/users/bulk-create', async (req, res) => {
+  try {
+    console.log('🚀 Starting bulk user creation via API...');
+    
+    // Define the users to create with their module permissions
+    const usersToCreate = [
+      {
+        name: "Michael Morgan",
+        username: "michael.morgan",
+        email: "michael.morgan@morganerp.com",
+        password: "Password123!",
+        role: "admin",
+        modules: ["dashboard", "inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations", "accounting", "reports", "backup", "customers", "users"] // ALL modules
+      },
+      {
+        name: "Mark Morgan", 
+        username: "mark.morgan",
+        email: "mark.morgan@morganerp.com",
+        password: "Password123!",
+        role: "admin",
+        modules: ["dashboard", "inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations", "accounting", "reports", "backup", "customers", "users"] // ALL modules
+      },
+      {
+        name: "Maged Yousef",
+        username: "maged.yousef",
+        email: "maged.yousef@morganerp.com", 
+        password: "Password123!",
+        role: "manager",
+        modules: ["inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations"]
+      },
+      {
+        name: "Hany Fakhry",
+        username: "hany.fakhry",
+        email: "hany.fakhry@morganerp.com",
+        password: "Password123!",
+        role: "manager",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Yousef Abd El Malak",
+        username: "yousef.abdelmalak", 
+        email: "yousef.abdelmalak@morganerp.com",
+        password: "Password123!",
+        role: "manager",
+        modules: ["dashboard", "reports", "inventory", "orders", "procurement", "suppliers", "accounting", "expenses", "invoices", "quotations", "backup"]
+      },
+      {
+        name: "Anna Simon",
+        username: "anna.simon",
+        email: "anna.simon@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Bassem",
+        username: "bassem",
+        email: "bassem@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Mohamed Mahmoud",
+        username: "mohamed.mahmoud",
+        email: "mohamed.mahmoud@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory"] // inventory only
+      }
+    ];
+
+    const createdUsers = [];
+    
+    for (const userData of usersToCreate) {
+      console.log(`📝 Creating user: ${userData.name} (${userData.username})`);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        console.log(`⚠️  User ${userData.username} already exists, skipping...`);
+        createdUsers.push({
+          ...existingUser,
+          status: 'already_exists',
+          modules: userData.modules
+        });
+        continue;
+      }
+      
+      // Create the user
+      const newUser = await storage.createUser({
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password, // Will be hashed by the storage layer
+        role: userData.role,
+        status: 'active'
+      });
+      
+      console.log(`✅ Created user: ${newUser.name} (ID: ${newUser.id})`);
+      
+      // Create permissions for each module
+      const grantedModules = [];
+      for (const moduleName of userData.modules) {
+        try {
+          await storage.createUserPermission({
+            userId: newUser.id,
+            moduleName: moduleName,
+            accessGranted: true
+          });
+          grantedModules.push(moduleName);
+          console.log(`  ✅ Granted access to module: ${moduleName}`);
+        } catch (permError) {
+          console.log(`  ⚠️  Permission for ${moduleName} may already exist`);
+        }
+      }
+      
+      createdUsers.push({
+        ...newUser,
+        status: 'created',
+        modules: grantedModules
+      });
+      
+      console.log(`🎉 Completed setup for ${userData.name}`);
+    }
+    
+    console.log('🎊 Bulk user creation completed successfully!');
+    
+    res.json({
+      message: 'Bulk user creation completed successfully',
+      users: createdUsers.map(user => {
+        const { password, ...sanitizedUser } = user;
+        return sanitizedUser;
+      })
+    });
+    
+  } catch (error) {
+    console.error('❌ Error during bulk user creation:', error);
+    res.status(500).json({ 
+      error: 'Failed to create users', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

@@ -72,6 +72,10 @@ import userRoutes from "./routes-user";
 import { logger } from "./middleware/errorHandler";
 
 export async function registerRoutes(app: Express): Promise<void> {
+  // Register user management routes early
+  app.use('/api', userRoutes);
+  console.log('✅ User routes registered');
+  
   // CRITICAL: Register bulk import route FIRST to bypass Vite middleware issues
   app.post('/api/bulk/import-json', async (req: Request, res: Response) => {
     console.log('🔥 BULK IMPORT (DIRECT ROUTE) REQUEST RECEIVED!');
