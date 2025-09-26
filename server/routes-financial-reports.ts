@@ -9,8 +9,8 @@ export function registerFinancialReportsRoutes(app: any) {
     try {
       const { startDate, endDate, accountFilter } = req.query;
       
-      // Get all accounts with their balances
-      const accountsData = await db
+      // Build the base query with proper date filtering
+      let query = db
         .select({
           id: accounts.id,
           code: accounts.code,
@@ -21,7 +21,19 @@ export function registerFinancialReportsRoutes(app: any) {
         })
         .from(accounts)
         .leftJoin(journalEntryLines, eq(accounts.id, journalEntryLines.accountId))
-        .groupBy(accounts.id, accounts.code, accounts.name, accounts.type);
+        .leftJoin(journalEntries, eq(journalEntryLines.journalEntryId, journalEntries.id));
+
+      // Apply date filtering if provided
+      if (startDate && endDate) {
+        query = query.where(
+          and(
+            gte(journalEntries.date, startDate as string),
+            lte(journalEntries.date, endDate as string)
+          )
+        );
+      }
+
+      const accountsData = await query.groupBy(accounts.id, accounts.code, accounts.name, accounts.type);
 
       // Filter by account type if specified
       let filteredAccounts = accountsData;
