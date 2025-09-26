@@ -62,6 +62,11 @@ const Reports = () => {
     queryKey: selectedMonth ? ['/api/reports/finance-breakdown', { month: selectedMonth }] : ['/api/reports/finance-breakdown'],
     enabled: true
   });
+
+  // Backward compatibility aliases to fix undefined variable errors
+  const salesData = salesAnalysisData;
+  const inventoryData = inventoryAnalysisData;
+  const financialData = financeBreakdownData;
   
   // Legacy financial reports endpoints
   const { data: trialBalanceData } = useQuery({
