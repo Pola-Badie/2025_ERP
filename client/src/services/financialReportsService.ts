@@ -1,5 +1,4 @@
 // Financial Reports API Service
-import { apiRequest } from '@/lib/queryClient';
 import type {
   TrialBalanceResponse,
   ProfitLossResponse,
@@ -18,15 +17,34 @@ import type {
 // Base service configuration
 const BASE_URL = '/api/reports';
 
-// Error handling helper
-const handleApiError = (error: any): ApiError => {
-  if (error.response) {
-    return {
-      message: error.response.data?.message || 'API request failed',
-      status: error.response.status,
-      code: error.response.data?.code
-    };
+// Error handling helper for fetch API
+const handleApiError = async (response: Response): Promise<ApiError> => {
+  let message = 'API request failed';
+  let code: string | undefined;
+  
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const errorData = await response.json();
+      message = errorData.message || errorData.error || message;
+      code = errorData.code;
+    } else {
+      const textData = await response.text();
+      message = textData || `HTTP ${response.status} ${response.statusText}`;
+    }
+  } catch {
+    message = `HTTP ${response.status} ${response.statusText}`;
   }
+  
+  return {
+    message,
+    status: response.status,
+    code
+  };
+};
+
+// Network error handling helper
+const handleNetworkError = (error: Error): ApiError => {
   return {
     message: error.message || 'Network error occurred',
     status: 0
@@ -65,12 +83,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/trial-balance?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -83,12 +104,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/profit-loss?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -101,12 +125,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/balance-sheet?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -119,12 +146,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/cash-flow?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -136,12 +166,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/chart-of-accounts`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -154,12 +187,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/journal-entries?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -180,12 +216,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/general-ledger?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -197,12 +236,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/account-summary`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -215,12 +257,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/aging-analysis?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -241,7 +286,7 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/${options.reportType}/export/pdf?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       // Download the PDF file
@@ -255,7 +300,10 @@ export const financialReportsService = {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -276,7 +324,7 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/${options.reportType}/export/excel?${params}`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       // Download the Excel file
@@ -290,7 +338,10 @@ export const financialReportsService = {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   },
 
@@ -302,12 +353,15 @@ export const financialReportsService = {
       const response = await fetch(`${BASE_URL}/metadata`);
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw await handleApiError(response);
       }
       
       return await response.json();
     } catch (error) {
-      throw handleApiError(error);
+      if (error instanceof TypeError || error.name === 'NetworkError') {
+        throw handleNetworkError(error as Error);
+      }
+      throw error;
     }
   }
 };

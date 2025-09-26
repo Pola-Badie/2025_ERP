@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import type { ReportData, ReportFilters, ReportType, ExportOptions } from '@shared/financial-reports-types';
+import { formatCurrency, formatPercentage } from '@/utils/formatters';
 import { 
   Card, 
   CardContent, 
@@ -1738,10 +1739,10 @@ const Accounting: React.FC = () => {
               rows: data.accounts.map((account: any) => [
                 account.code,
                 account.name,
-                account.debit > 0 ? `$${account.debit.toLocaleString()}.00` : "-",
-                account.credit > 0 ? `$${account.credit.toLocaleString()}.00` : "-"
+                account.debit > 0 ? formatCurrency(account.debit) : "-",
+                account.credit > 0 ? formatCurrency(account.credit) : "-"
               ]),
-              totals: ["Total", "", `$${data.totalDebits.toLocaleString()}.00`, `$${data.totalCredits.toLocaleString()}.00`],
+              totals: ["Total", "", formatCurrency(data.totalDebits), formatCurrency(data.totalCredits)],
               summary: {
                 isBalanced: data.isBalanced,
                 accountsShown: data.accounts.length,
@@ -3390,10 +3391,10 @@ const Accounting: React.FC = () => {
             rows: data.accounts.map((account: any) => [
               account.code,
               account.name,
-              account.debit > 0 ? `$${account.debit.toLocaleString()}.00` : "-",
-              account.credit > 0 ? `$${account.credit.toLocaleString()}.00` : "-"
+              account.debit > 0 ? formatCurrency(account.debit) : "-",
+              account.credit > 0 ? formatCurrency(account.credit) : "-"
             ]),
-            totals: ["Total", "", `$${data.totalDebits.toLocaleString()}.00`, `$${data.totalCredits.toLocaleString()}.00`],
+            totals: ["Total", "", formatCurrency(data.totalDebits), formatCurrency(data.totalCredits)],
             summary: {
               isBalanced: data.isBalanced,
               accountsShown: data.accounts.length,
@@ -3409,15 +3410,15 @@ const Accounting: React.FC = () => {
             headers: ["Account", "Amount"],
             rows: [
               ["REVENUE", ""],
-              ...data.revenue.accounts.map((acc: any) => [acc.name, `$${acc.amount.toLocaleString()}.00`]),
-              ["Total Revenue", `$${data.revenue.total.toLocaleString()}.00`],
+              ...data.revenue.accounts.map((acc: any) => [acc.name, formatCurrency(acc.amount)]),
+              ["Total Revenue", formatCurrency(data.revenue.total)],
               ["", ""],
               ["EXPENSES", ""],
-              ...data.expenses.accounts.map((acc: any) => [acc.name, `$${acc.amount.toLocaleString()}.00`]),
-              ["Total Expenses", `$${data.expenses.total.toLocaleString()}.00`],
+              ...data.expenses.accounts.map((acc: any) => [acc.name, formatCurrency(acc.amount)]),
+              ["Total Expenses", formatCurrency(data.expenses.total)],
               ["", ""],
-              ["NET INCOME", `$${data.netIncome.toLocaleString()}.00`],
-              ["Profit Margin", `${data.profitMargin.toFixed(2)}%`]
+              ["NET INCOME", formatCurrency(data.netIncome)],
+              ["Profit Margin", formatPercentage(data.profitMargin / 100)]
             ],
             summary: {
               totalRevenue: data.revenue.total,
@@ -3435,18 +3436,18 @@ const Accounting: React.FC = () => {
             headers: ["Account", "Amount"],
             rows: [
               ["ASSETS", ""],
-              ...data.assets.accounts.map((acc: any) => [acc.name, `$${acc.amount.toLocaleString()}.00`]),
-              ["Total Assets", `$${data.assets.total.toLocaleString()}.00`],
+              ...data.assets.accounts.map((acc: any) => [acc.name, formatCurrency(acc.amount)]),
+              ["Total Assets", formatCurrency(data.assets.total)],
               ["", ""],
               ["LIABILITIES", ""],
-              ...data.liabilities.accounts.map((acc: any) => [acc.name, `$${acc.amount.toLocaleString()}.00`]),
-              ["Total Liabilities", `$${data.liabilities.total.toLocaleString()}.00`],
+              ...data.liabilities.accounts.map((acc: any) => [acc.name, formatCurrency(acc.amount)]),
+              ["Total Liabilities", formatCurrency(data.liabilities.total)],
               ["", ""],
               ["EQUITY", ""],
-              ...data.equity.accounts.map((acc: any) => [acc.name, `$${acc.amount.toLocaleString()}.00`]),
-              ["Total Equity", `$${data.equity.total.toLocaleString()}.00`],
+              ...data.equity.accounts.map((acc: any) => [acc.name, formatCurrency(acc.amount)]),
+              ["Total Equity", formatCurrency(data.equity.total)],
               ["", ""],
-              ["TOTAL LIABILITIES + EQUITY", `$${(data.liabilities.total + data.equity.total).toLocaleString()}.00`]
+              ["TOTAL LIABILITIES + EQUITY", formatCurrency(data.liabilities.total + data.equity.total)]
             ],
             summary: {
               totalAssets: data.assets.total,

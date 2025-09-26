@@ -3,7 +3,7 @@
 export interface AccountBalance {
   code: string;
   name: string;
-  type: string;
+  type: 'all' | 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   debit: number;
   credit: number;
   balance: number;
@@ -138,7 +138,7 @@ export interface GeneralLedgerResponse {
 }
 
 export interface AccountTypeSummary {
-  type: string;
+  type: 'all' | 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   count: number;
   totalDebit: number;
   totalCredit: number;
@@ -186,11 +186,11 @@ export interface ReportData {
 // Export formats
 export interface ExportOptions {
   format: 'pdf' | 'excel';
-  reportType: string;
+  reportType: ReportType;
   startDate?: string;
   endDate?: string;
   asOfDate?: string;
-  accountFilter?: string;
+  accountFilter?: 'all' | 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
 }
 
 // API error response
@@ -202,9 +202,9 @@ export interface ApiError {
 
 // Filter options
 export interface ReportFilters {
-  startDate: string;
-  endDate: string;
-  accountFilter: 'all' | 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
+  startDate?: string;
+  endDate?: string;
+  accountFilter?: 'all' | 'asset' | 'liability' | 'equity' | 'revenue' | 'expense';
   includeZeroBalance?: boolean;
   showTransactionDetails?: boolean;
   groupByAccountType?: boolean;
