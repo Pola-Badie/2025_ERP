@@ -1718,10 +1718,10 @@ const Accounting: React.FC = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   
-  // Report options state
-  const [includeZeroBalance, setIncludeZeroBalance] = useState(true);
-  const [showTransactionDetails, setShowTransactionDetails] = useState(true);
-  const [groupByAccountType, setGroupByAccountType] = useState(false);
+  // Report options state - properly initialized to prevent controlled/uncontrolled warnings
+  const [includeZeroBalance, setIncludeZeroBalance] = useState<boolean>(true);
+  const [showTransactionDetails, setShowTransactionDetails] = useState<boolean>(true);
+  const [groupByAccountType, setGroupByAccountType] = useState<boolean>(false);
 
   // Auto-generate trial balance when component mounts
   useEffect(() => {
@@ -7290,6 +7290,16 @@ const Accounting: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    
+                    {reportError && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                        <div className="flex items-center text-red-700">
+                          <FileWarning className="h-4 w-4 mr-2" />
+                          <span className="font-medium">Error:</span>
+                        </div>
+                        <p className="text-red-600 text-sm mt-1">{reportError}</p>
+                      </div>
+                    )}
                     
                     <div className="flex flex-col gap-2 pt-4">
                       <Button 
