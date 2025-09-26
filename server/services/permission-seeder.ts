@@ -22,9 +22,9 @@ export class PermissionSeeder {
         'users', 'user_management', 'reports', 'system_preferences', 'backups'
       ], ['create', 'read', 'update', 'delete', 'export', 'approve']),
 
-      // MANAGER - Business operations access (no user management)
+      // MANAGER - Business operations access (NO DASHBOARD ACCESS FOR WORKERS!)
       ...this.createRolePermissions('manager', [
-        'dashboard', 'inventory', 'orders', 'procurement', 'accounting',
+        'inventory', 'orders', 'procurement', 'accounting',
         'expenses', 'invoices', 'quotations', 'customers', 'suppliers', 'reports'
       ], ['create', 'read', 'update', 'delete', 'export', 'approve']),
 
