@@ -6,9 +6,11 @@ import {
   expenses,
   journalEntries,
   customers,
-  accounts
+  accounts,
+  products,
+  inventoryTransactions
 } from '../shared/schema';
-import { eq, sql, and, gte, lte } from 'drizzle-orm';
+import { eq, sql, and, gte, lte, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -316,6 +318,527 @@ router.get('/aging-analysis', async (req, res) => {
   } catch (error) {
     console.error('Aging analysis report error:', error);
     res.status(500).json({ error: 'Failed to generate aging analysis report' });
+  }
+});
+
+// Sales Analysis Report - NEW
+router.get('/sales-analysis', async (req, res) => {
+  try {
+    const { month } = req.query;
+    let dateFilter = {};
+    
+    if (month) {
+      const [year, monthNum] = (month as string).split('-');
+      const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
+      dateFilter = sql`invoice_date >= ${startDate.toISOString().split('T')[0]} AND invoice_date <= ${endDate.toISOString().split('T')[0]}`;
+    } else {
+      // Default to last 6 months
+      const endDate = new Date();
+      const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - 5, 1);
+      dateFilter = sql`invoice_date >= ${startDate.toISOString().split('T')[0]}`;
+    }
+
+    // Get sales data from sales_invoices and sales_invoice_lines
+    const salesData = await db.execute(sql`
+      SELECT 
+        DATE_TRUNC('month', si.invoice_date) as month,
+        SUM(si.total_amount) as revenue,
+        COUNT(DISTINCT si.id) as transactions,
+        COUNT(DISTINCT si.customer_id) as unique_customers,
+        AVG(si.total_amount) as avg_order_value
+      FROM sales_invoices si
+      WHERE ${dateFilter}
+      GROUP BY DATE_TRUNC('month', si.invoice_date)
+      ORDER BY month DESC
+      LIMIT 6
+    `);
+
+    // Get category breakdown
+    const categoryData = await db.execute(sql`
+      SELECT 
+        sil.grade,
+        COUNT(*) as count,
+        SUM(sil.line_total) as total
+      FROM sales_invoice_lines sil
+      JOIN sales_invoices si ON sil.invoice_id = si.id
+      WHERE ${dateFilter}
+      GROUP BY sil.grade
+    `);
+
+    // Get top selling products
+    const topProducts = await db.execute(sql`
+      SELECT 
+        sil.product_name,
+        sil.grade,
+        SUM(sil.quantity) as total_quantity,
+        SUM(sil.line_total) as total_revenue
+      FROM sales_invoice_lines sil
+      JOIN sales_invoices si ON sil.invoice_id = si.id
+      WHERE ${dateFilter}
+      GROUP BY sil.product_name, sil.grade
+      ORDER BY total_revenue DESC
+      LIMIT 10
+    `);
+
+    res.json({
+      summary: {
+        totalSales: salesData.rows.reduce((acc: any, row: any) => acc + parseFloat(row.revenue || 0), 0),
+        totalTransactions: salesData.rows.reduce((acc: any, row: any) => acc + parseInt(row.transactions || 0), 0),
+        avgOrderValue: salesData.rows.length > 0 ? 
+          salesData.rows.reduce((acc: any, row: any) => acc + parseFloat(row.avg_order_value || 0), 0) / salesData.rows.length : 0,
+        topCategory: categoryData.rows.length > 0 ? 
+          categoryData.rows.reduce((prev: any, current: any) => 
+            (parseFloat(prev.total) > parseFloat(current.total)) ? prev : current).grade : 'N/A'
+      },
+      monthlyData: salesData.rows.map((row: any) => ({
+        month: new Date(row.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        revenue: parseFloat(row.revenue || 0),
+        transactions: parseInt(row.transactions || 0),
+        avgOrderValue: parseFloat(row.avg_order_value || 0)
+      })),
+      categoryBreakdown: categoryData.rows.map((row: any) => ({
+        grade: row.grade === 'P' ? 'Pharmaceutical' : 
+               row.grade === 'F' ? 'Food Grade' : 
+               row.grade === 'T' ? 'Technical' : 'Other',
+        count: parseInt(row.count || 0),
+        revenue: parseFloat(row.total || 0)
+      })),
+      topProducts: topProducts.rows.map((row: any) => ({
+        name: row.product_name,
+        grade: row.grade,
+        quantity: parseInt(row.total_quantity || 0),
+        revenue: parseFloat(row.total_revenue || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Sales analysis report error:', error);
+    res.status(500).json({ error: 'Failed to generate sales analysis report' });
+  }
+});
+
+// Inventory Analysis Report - NEW
+router.get('/inventory-analysis', async (req, res) => {
+  try {
+    const { month } = req.query;
+    
+    // Get current inventory levels
+    const inventoryLevels = await db.execute(sql`
+      SELECT 
+        p.id,
+        p.name,
+        p.drug_name,
+        p.sku,
+        p.quantity,
+        p.cost_price,
+        p.selling_price,
+        p.quantity * p.cost_price as total_value,
+        CASE 
+          WHEN p.quantity <= p.reorder_level THEN 'Low Stock'
+          WHEN p.quantity = 0 THEN 'Out of Stock'
+          ELSE 'In Stock'
+        END as status
+      FROM products p
+      ORDER BY p.quantity * p.cost_price DESC
+    `);
+
+    // Get turnover data
+    const turnoverData = await db.execute(sql`
+      SELECT 
+        sil.product_id,
+        p.name,
+        SUM(sil.quantity) as units_sold,
+        p.quantity as current_stock,
+        CASE 
+          WHEN p.quantity > 0 THEN CAST(SUM(sil.quantity) AS FLOAT) / p.quantity
+          ELSE 0
+        END as turnover_ratio
+      FROM sales_invoice_lines sil
+      JOIN products p ON sil.product_id = p.id
+      JOIN sales_invoices si ON sil.invoice_id = si.id
+      WHERE si.invoice_date >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY sil.product_id, p.name, p.quantity
+      ORDER BY turnover_ratio DESC
+    `);
+
+    // Get stock movement trends
+    const stockMovement = await db.execute(sql`
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COUNT(CASE WHEN type = 'in' THEN 1 END) as inbound,
+        COUNT(CASE WHEN type = 'out' THEN 1 END) as outbound,
+        SUM(CASE WHEN type = 'in' THEN quantity ELSE 0 END) as inbound_qty,
+        SUM(CASE WHEN type = 'out' THEN quantity ELSE 0 END) as outbound_qty
+      FROM inventory_transactions
+      WHERE created_at >= CURRENT_DATE - INTERVAL '6 months'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month DESC
+    `);
+
+    const totalValue = inventoryLevels.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_value || 0), 0);
+    const lowStockCount = inventoryLevels.rows.filter((row: any) => row.status === 'Low Stock').length;
+    const outOfStockCount = inventoryLevels.rows.filter((row: any) => row.status === 'Out of Stock').length;
+
+    res.json({
+      summary: {
+        totalProducts: inventoryLevels.rows.length,
+        totalValue: totalValue,
+        lowStockItems: lowStockCount,
+        outOfStockItems: outOfStockCount,
+        avgTurnoverRatio: turnoverData.rows.length > 0 ?
+          turnoverData.rows.reduce((acc: any, row: any) => acc + parseFloat(row.turnover_ratio || 0), 0) / turnoverData.rows.length : 0
+      },
+      stockLevels: inventoryLevels.rows.slice(0, 20).map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        sku: row.sku,
+        quantity: row.quantity,
+        value: parseFloat(row.total_value || 0),
+        status: row.status
+      })),
+      topMovers: turnoverData.rows.slice(0, 10).map((row: any) => ({
+        productId: row.product_id,
+        name: row.name,
+        unitsSold: parseInt(row.units_sold || 0),
+        currentStock: row.current_stock,
+        turnoverRatio: parseFloat(row.turnover_ratio || 0)
+      })),
+      stockTrends: stockMovement.rows.map((row: any) => ({
+        month: new Date(row.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        inbound: parseInt(row.inbound || 0),
+        outbound: parseInt(row.outbound || 0),
+        inboundQty: parseInt(row.inbound_qty || 0),
+        outboundQty: parseInt(row.outbound_qty || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Inventory analysis report error:', error);
+    res.status(500).json({ error: 'Failed to generate inventory analysis report' });
+  }
+});
+
+// Production Analysis Report - NEW
+router.get('/production-analysis', async (req, res) => {
+  try {
+    const { month } = req.query;
+    let dateFilter = {};
+    
+    if (month) {
+      const [year, monthNum] = (month as string).split('-');
+      const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
+      dateFilter = sql`start_date >= ${startDate.toISOString().split('T')[0]} AND start_date <= ${endDate.toISOString().split('T')[0]}`;
+    } else {
+      dateFilter = sql`start_date >= CURRENT_DATE - INTERVAL '6 months'`;
+    }
+
+    // Get production metrics
+    const productionMetrics = await db.execute(sql`
+      SELECT 
+        COUNT(*) as total_orders,
+        SUM(quantity_ordered) as total_ordered,
+        SUM(quantity_produced) as total_produced,
+        AVG(efficiency_percentage) as avg_efficiency,
+        AVG(quality_score) as avg_quality,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_orders,
+        COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_orders
+      FROM production_orders
+      WHERE ${dateFilter}
+    `);
+
+    // Get production by grade
+    const gradeBreakdown = await db.execute(sql`
+      SELECT 
+        grade,
+        COUNT(*) as order_count,
+        SUM(quantity_produced) as total_produced,
+        AVG(efficiency_percentage) as avg_efficiency,
+        AVG(quality_score) as avg_quality
+      FROM production_orders
+      WHERE ${dateFilter} AND status = 'completed'
+      GROUP BY grade
+    `);
+
+    // Get cost analysis
+    const costAnalysis = await db.execute(sql`
+      SELECT 
+        pc.cost_type,
+        COUNT(*) as count,
+        SUM(pc.amount) as total_amount,
+        AVG(pc.amount) as avg_amount
+      FROM production_costs pc
+      JOIN production_orders po ON pc.production_order_id = po.id
+      WHERE ${dateFilter}
+      GROUP BY pc.cost_type
+    `);
+
+    // Get monthly production trends
+    const monthlyTrends = await db.execute(sql`
+      SELECT 
+        DATE_TRUNC('month', start_date) as month,
+        COUNT(*) as orders,
+        SUM(quantity_produced) as produced,
+        AVG(efficiency_percentage) as efficiency,
+        AVG(quality_score) as quality
+      FROM production_orders
+      WHERE ${dateFilter} AND status = 'completed'
+      GROUP BY DATE_TRUNC('month', start_date)
+      ORDER BY month DESC
+      LIMIT 6
+    `);
+
+    const metrics = productionMetrics.rows[0] || {};
+    const totalCosts = costAnalysis.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_amount || 0), 0);
+
+    res.json({
+      summary: {
+        totalOrders: parseInt(metrics.total_orders || 0),
+        totalProduced: parseInt(metrics.total_produced || 0),
+        avgEfficiency: parseFloat(metrics.avg_efficiency || 0),
+        avgQuality: parseFloat(metrics.avg_quality || 0),
+        completionRate: metrics.total_orders > 0 ? 
+          (parseInt(metrics.completed_orders || 0) / parseInt(metrics.total_orders)) * 100 : 0,
+        totalCosts: totalCosts
+      },
+      gradeBreakdown: gradeBreakdown.rows.map((row: any) => ({
+        grade: row.grade === 'P' ? 'Pharmaceutical' : 
+               row.grade === 'F' ? 'Food Grade' : 
+               row.grade === 'T' ? 'Technical' : 'Other',
+        orderCount: parseInt(row.order_count || 0),
+        totalProduced: parseInt(row.total_produced || 0),
+        avgEfficiency: parseFloat(row.avg_efficiency || 0),
+        avgQuality: parseFloat(row.avg_quality || 0)
+      })),
+      costBreakdown: costAnalysis.rows.map((row: any) => ({
+        type: row.cost_type,
+        count: parseInt(row.count || 0),
+        totalAmount: parseFloat(row.total_amount || 0),
+        avgAmount: parseFloat(row.avg_amount || 0)
+      })),
+      monthlyTrends: monthlyTrends.rows.map((row: any) => ({
+        month: new Date(row.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        orders: parseInt(row.orders || 0),
+        produced: parseInt(row.produced || 0),
+        efficiency: parseFloat(row.efficiency || 0),
+        quality: parseFloat(row.quality || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Production analysis report error:', error);
+    res.status(500).json({ error: 'Failed to generate production analysis report' });
+  }
+});
+
+// Top Customers Report - NEW
+router.get('/top-customers', async (req, res) => {
+  try {
+    const { month } = req.query;
+    let dateFilter = {};
+    
+    if (month) {
+      const [year, monthNum] = (month as string).split('-');
+      const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
+      dateFilter = sql`si.invoice_date >= ${startDate.toISOString().split('T')[0]} AND si.invoice_date <= ${endDate.toISOString().split('T')[0]}`;
+    } else {
+      dateFilter = sql`si.invoice_date >= CURRENT_DATE - INTERVAL '6 months'`;
+    }
+
+    // Get top customers by revenue
+    const topCustomers = await db.execute(sql`
+      SELECT 
+        c.id,
+        c.name,
+        c.company,
+        c.email,
+        COUNT(DISTINCT si.id) as order_count,
+        SUM(si.total_amount) as total_revenue,
+        AVG(si.total_amount) as avg_order_value,
+        MAX(si.invoice_date) as last_order_date
+      FROM sales_invoices si
+      JOIN customers c ON si.customer_id = c.id
+      WHERE ${dateFilter}
+      GROUP BY c.id, c.name, c.company, c.email
+      ORDER BY total_revenue DESC
+      LIMIT 20
+    `);
+
+    // Get customer segmentation
+    const segmentation = await db.execute(sql`
+      WITH customer_totals AS (
+        SELECT 
+          customer_id,
+          SUM(total_amount) as total_spent
+        FROM sales_invoices
+        WHERE ${dateFilter}
+        GROUP BY customer_id
+      )
+      SELECT 
+        CASE 
+          WHEN total_spent >= 10000 THEN 'Premium'
+          WHEN total_spent >= 5000 THEN 'Gold'
+          WHEN total_spent >= 1000 THEN 'Silver'
+          ELSE 'Bronze'
+        END as segment,
+        COUNT(*) as customer_count,
+        SUM(total_spent) as segment_revenue
+      FROM customer_totals
+      GROUP BY segment
+    `);
+
+    // Get customer growth
+    const customerGrowth = await db.execute(sql`
+      SELECT 
+        DATE_TRUNC('month', si.invoice_date) as month,
+        COUNT(DISTINCT si.customer_id) as active_customers,
+        SUM(si.total_amount) as monthly_revenue
+      FROM sales_invoices si
+      WHERE si.invoice_date >= CURRENT_DATE - INTERVAL '6 months'
+      GROUP BY DATE_TRUNC('month', si.invoice_date)
+      ORDER BY month DESC
+    `);
+
+    const totalRevenue = topCustomers.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_revenue || 0), 0);
+
+    res.json({
+      summary: {
+        totalCustomers: topCustomers.rows.length,
+        totalRevenue: totalRevenue,
+        avgCustomerValue: topCustomers.rows.length > 0 ? totalRevenue / topCustomers.rows.length : 0,
+        topSegment: segmentation.rows.length > 0 ? 
+          segmentation.rows.reduce((prev: any, current: any) => 
+            (parseFloat(prev.segment_revenue) > parseFloat(current.segment_revenue)) ? prev : current).segment : 'N/A'
+      },
+      topCustomers: topCustomers.rows.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        company: row.company,
+        email: row.email,
+        orderCount: parseInt(row.order_count || 0),
+        totalRevenue: parseFloat(row.total_revenue || 0),
+        avgOrderValue: parseFloat(row.avg_order_value || 0),
+        lastOrderDate: row.last_order_date
+      })),
+      segmentation: segmentation.rows.map((row: any) => ({
+        segment: row.segment,
+        customerCount: parseInt(row.customer_count || 0),
+        revenue: parseFloat(row.segment_revenue || 0)
+      })),
+      customerGrowth: customerGrowth.rows.map((row: any) => ({
+        month: new Date(row.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        activeCustomers: parseInt(row.active_customers || 0),
+        monthlyRevenue: parseFloat(row.monthly_revenue || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Top customers report error:', error);
+    res.status(500).json({ error: 'Failed to generate top customers report' });
+  }
+});
+
+// Finance Breakdown Report - NEW
+router.get('/finance-breakdown', async (req, res) => {
+  try {
+    const { month } = req.query;
+    let dateFilter = {};
+    
+    if (month) {
+      const [year, monthNum] = (month as string).split('-');
+      const startDate = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(monthNum), 0);
+      dateFilter = sql`date >= ${startDate.toISOString().split('T')[0]} AND date <= ${endDate.toISOString().split('T')[0]}`;
+    } else {
+      dateFilter = sql`date >= CURRENT_DATE - INTERVAL '6 months'`;
+    }
+
+    // Get revenue breakdown
+    const revenueBreakdown = await db.execute(sql`
+      SELECT 
+        sil.grade,
+        COUNT(DISTINCT si.id) as invoice_count,
+        SUM(sil.line_total) as total_revenue
+      FROM sales_invoice_lines sil
+      JOIN sales_invoices si ON sil.invoice_id = si.id
+      WHERE si.invoice_${dateFilter}
+      GROUP BY sil.grade
+    `);
+
+    // Get expense breakdown
+    const expenseBreakdown = await db.execute(sql`
+      SELECT 
+        category,
+        COUNT(*) as expense_count,
+        SUM(amount) as total_amount
+      FROM expenses
+      WHERE ${dateFilter}
+      GROUP BY category
+    `);
+
+    // Get cash flow data
+    const cashFlow = await db.execute(sql`
+      WITH monthly_data AS (
+        SELECT 
+          DATE_TRUNC('month', invoice_date) as month,
+          SUM(total_amount) as revenue,
+          0 as expenses
+        FROM sales_invoices
+        WHERE invoice_${dateFilter}
+        GROUP BY DATE_TRUNC('month', invoice_date)
+        UNION ALL
+        SELECT 
+          DATE_TRUNC('month', date) as month,
+          0 as revenue,
+          SUM(amount) as expenses
+        FROM expenses
+        WHERE ${dateFilter}
+        GROUP BY DATE_TRUNC('month', date)
+      )
+      SELECT 
+        month,
+        SUM(revenue) as total_revenue,
+        SUM(expenses) as total_expenses,
+        SUM(revenue) - SUM(expenses) as net_cash_flow
+      FROM monthly_data
+      GROUP BY month
+      ORDER BY month DESC
+    `);
+
+    // Get profitability metrics
+    const totalRevenue = revenueBreakdown.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_revenue || 0), 0);
+    const totalExpenses = expenseBreakdown.rows.reduce((acc: any, row: any) => acc + parseFloat(row.total_amount || 0), 0);
+    const netProfit = totalRevenue - totalExpenses;
+    const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+    res.json({
+      summary: {
+        totalRevenue: totalRevenue,
+        totalExpenses: totalExpenses,
+        netProfit: netProfit,
+        profitMargin: profitMargin,
+        cashPosition: netProfit // Simplified - in real world would calculate actual cash position
+      },
+      revenueBreakdown: revenueBreakdown.rows.map((row: any) => ({
+        category: row.grade === 'P' ? 'Pharmaceutical' : 
+                  row.grade === 'F' ? 'Food Grade' : 
+                  row.grade === 'T' ? 'Technical' : 'Other',
+        invoiceCount: parseInt(row.invoice_count || 0),
+        revenue: parseFloat(row.total_revenue || 0)
+      })),
+      expenseBreakdown: expenseBreakdown.rows.map((row: any) => ({
+        category: row.category || 'Uncategorized',
+        count: parseInt(row.expense_count || 0),
+        amount: parseFloat(row.total_amount || 0)
+      })),
+      cashFlow: cashFlow.rows.map((row: any) => ({
+        month: new Date(row.month).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        revenue: parseFloat(row.total_revenue || 0),
+        expenses: parseFloat(row.total_expenses || 0),
+        netCashFlow: parseFloat(row.net_cash_flow || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Finance breakdown report error:', error);
+    res.status(500).json({ error: 'Failed to generate finance breakdown report' });
   }
 });
 
