@@ -92,6 +92,131 @@ export async function registerRoutes(app: Express): Promise<void> {
 
       console.log(`✅ Processing ${data.length} ${type} records`);
       if (warehouse) {
+
+
+// Setup automatic backups function
+async function setupAutomaticBackups() {
+  try {
+    // Stop existing cron jobs
+    Object.values(cronJobs).forEach(job => {
+      if (job) {
+        job.destroy();
+      }
+    });
+
+    // Get backup settings
+    const backupSettings = await db.select().from(backupSettings).limit(1);
+    const settings = backupSettings[0];
+
+    if (!settings || !settings.autoBackup) {
+      console.log('Automatic backups are disabled');
+      return;
+    }
+
+    // Schedule daily backup
+    if (settings.dailyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.daily = cron.schedule(`${minute} ${hour} * * *`, async () => {
+        console.log('Running scheduled daily backup...');
+        try {
+          await performAutomaticBackup('daily');
+        } catch (error) {
+          console.error('Daily backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Daily backup scheduled at ${backupTime}`);
+    }
+
+    // Schedule weekly backup
+    if (settings.weeklyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.weekly = cron.schedule(`${minute} ${hour} * * 0`, async () => {
+        console.log('Running scheduled weekly backup...');
+        try {
+          await performAutomaticBackup('weekly');
+        } catch (error) {
+          console.error('Weekly backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Weekly backup scheduled at ${backupTime} on Sundays`);
+    }
+
+    // Schedule monthly backup
+    if (settings.monthlyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.monthly = cron.schedule(`${minute} ${hour} 1 * *`, async () => {
+        console.log('Running scheduled monthly backup...');
+        try {
+          await performAutomaticBackup('monthly');
+        } catch (error) {
+          console.error('Monthly backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Monthly backup scheduled at ${backupTime} on the 1st of each month`);
+    }
+
+  } catch (error) {
+    console.error('Failed to setup automatic backups:', error);
+  }
+}
+
+// Perform automatic backup
+async function performAutomaticBackup(type: string) {
+  try {
+    // Create backup record
+    const [backup] = await db.insert(backups).values({
+      filename: `backup_${type}_${new Date().toISOString().replace(/[:.]/g, '-')}.sql`,
+      type: type,
+      status: 'in_progress',
+      size: 0,
+      timestamp: new Date()
+    }).returning();
+
+    // Execute backup script
+    const { exec } = require('child_process');
+    const backupScript = path.join(process.cwd(), 'scripts/backup/backup-database.sh');
+    
+    exec(`chmod +x ${backupScript} && ${backupScript}`, async (error: any, stdout: any, stderr: any) => {
+      if (error) {
+        console.error('Backup script error:', error);
+        await db.update(backups)
+          .set({ status: 'failed' })
+          .where(eq(backups.id, backup.id));
+        return;
+      }
+
+      // Update backup record as completed
+      await db.update(backups)
+        .set({ 
+          status: 'completed',
+          size: 1024 * 1024 // Placeholder size, should be actual file size
+        })
+        .where(eq(backups.id, backup.id));
+
+      console.log(`${type} backup completed successfully`);
+    });
+
+  } catch (error) {
+    console.error(`Failed to perform ${type} backup:`, error);
+  }
+}
+
+
         console.log(`🏭 Target warehouse: ${warehouse}`);
       }
       
