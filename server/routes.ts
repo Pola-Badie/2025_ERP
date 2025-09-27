@@ -26,7 +26,6 @@ import {
   insertOrderItemSchema,
   insertOrderFeeSchema,
   insertExpenseSchema,
-  insertExpenseCategorySchema,
   insertWarehouseSchema,
   insertWarehouseInventorySchema,
   updateWarehouseInventorySchema,

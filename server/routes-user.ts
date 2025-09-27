@@ -364,7 +364,7 @@ router.post('/users/:id/permissions', async (req, res) => {
       permission = await storage.updateUserPermission(
         id, 
         permissionData.moduleName, 
-        permissionData.accessGranted
+        permissionData.accessGranted ?? false
       );
     } else {
       // Create new permission

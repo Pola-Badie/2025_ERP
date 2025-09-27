@@ -507,7 +507,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       
       await db.insert(journalEntries).values({
         entryNumber,
-        date: new Date(),
+        date: new Date().toISOString().split('T')[0],
         description: `Purchase Order ${updatedPurchase.poNumber} - ${supplier?.name || 'Supplier'}`,
         reference: updatedPurchase.poNumber,
         type: 'purchase',
