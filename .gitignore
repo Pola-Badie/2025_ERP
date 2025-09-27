@@ -9,3 +9,7 @@ vite.config.ts.*
 *_backup.ts
 routes_backup.ts
 *.bak
+*.broken
+*.backup
+*_backup.*
+*-backup.*

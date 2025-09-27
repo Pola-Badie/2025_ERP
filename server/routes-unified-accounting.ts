@@ -274,8 +274,8 @@ export function registerUnifiedAccountingRoutes(app: Express) {
           .from(expenses)
           .where(
             and(
-              gte(expenses.date, firstDayOfMonth),
-              lte(expenses.date, lastDayOfMonth)
+              gte(expenses.date, firstDayOfMonth.toISOString().split('T')[0]),
+              lte(expenses.date, lastDayOfMonth.toISOString().split('T')[0])
             )
           ),
         
@@ -508,11 +508,10 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       await db.insert(journalEntries).values({
         entryNumber,
         date: new Date().toISOString().split('T')[0],
-        description: `Purchase Order ${updatedPurchase.poNumber} - ${supplier?.name || 'Supplier'}`,
+        memo: `Purchase Order ${updatedPurchase.poNumber} - ${supplier?.name || 'Supplier'}`,
         reference: updatedPurchase.poNumber,
-        type: 'purchase',
         status: 'posted',
-        createdBy: req.body.userId || 1,
+        userId: req.body.userId || 1,
         totalDebit: updatedPurchase.totalAmount.toString(),
         totalCredit: updatedPurchase.totalAmount.toString(),
         sourceType: 'purchase_order',
