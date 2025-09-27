@@ -8,8 +8,10 @@ vite.config.ts.*
 # Backup files
 *_backup.ts
 routes_backup.ts
+server/routes_backup.ts
 *.bak
 *.broken
 *.backup
 *_backup.*
 *-backup.*
+*backup*
