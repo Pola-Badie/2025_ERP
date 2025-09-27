@@ -12,7 +12,7 @@ import {
   customers, suppliers, sales, saleItems, purchaseOrders, purchaseOrderItems,
   backups, backupSettings, inventoryTransactions, salesReports, systemPreferences,
   quotations, quotationItems, orders, orderItems, orderFees, warehouses, warehouseLocations,
-  stockMovements, inventoryAdjustments, products, productCategories,
+  stockMovements, inventoryAdjustments, products, productCategories, expenses, expenseCategories,
   type Customer, type InsertCustomer, type Supplier, type InsertSupplier,
   type Sale, type InsertSale, type SaleItem, type InsertSaleItem,
   type PurchaseOrder, type InsertPurchaseOrder, type PurchaseOrderItem,
@@ -104,6 +104,64 @@ export class DatabaseStorage implements IStorage {
   createRegulatorySubmission = (submission: any) => this.pharmaceuticalStorage.createRegulatorySubmission(submission);
   updateRegulatorySubmission = (id: number, data: any) => this.pharmaceuticalStorage.updateRegulatorySubmission(id, data);
   deleteRegulatorySubmission = (id: number) => this.pharmaceuticalStorage.deleteRegulatorySubmission(id);
+
+  // Expense Category Management
+  async getExpenseCategories() {
+    return await db.select().from(expenseCategories);
+  }
+
+  async createExpenseCategory(category: any) {
+    const [newCategory] = await db.insert(expenseCategories).values(category).returning();
+    return newCategory;
+  }
+
+  async updateExpenseCategory(id: number, category: any) {
+    const [updated] = await db.update(expenseCategories)
+      .set({ ...category })
+      .where(eq(expenseCategories.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteExpenseCategory(id: number) {
+    const result = await db.delete(expenseCategories).where(eq(expenseCategories.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Expense Management
+  async getExpenses(filters?: any) {
+    let query = db.select().from(expenses);
+    if (filters?.categoryId) {
+      query = query.where(eq(expenses.categoryId, filters.categoryId));
+    }
+    if (filters?.status) {
+      query = query.where(eq(expenses.status, filters.status));
+    }
+    return await query.orderBy(desc(expenses.createdAt));
+  }
+
+  async getExpense(id: number) {
+    const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return expense;
+  }
+
+  async createExpense(expense: any) {
+    const [newExpense] = await db.insert(expenses).values(expense).returning();
+    return newExpense;
+  }
+
+  async updateExpense(id: number, expense: any) {
+    const [updated] = await db.update(expenses)
+      .set({ ...expense, updatedAt: new Date() })
+      .where(eq(expenses.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteExpense(id: number) {
+    const result = await db.delete(expenses).where(eq(expenses.id, id)).returning();
+    return result.length > 0;
+  }
 
   // Delegate Financial methods
   getAccounts = (type?: string) => this.financialStorage.getAccounts(type);

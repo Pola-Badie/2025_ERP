@@ -7,7 +7,7 @@ import path from 'path';
 import { spawn } from 'child_process';
 import { and, desc, eq, gte, lte, like } from "drizzle-orm";
 import { db } from "../db";
-import { customers, suppliers, sales, saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings, inventoryTransactions, salesReports, systemPreferences, quotations, quotationItems, orders, orderItems, orderFees, warehouses, warehouseLocations, stockMovements, inventoryAdjustments } from "@shared/schema";
+import { customers, suppliers, sales, saleItems, purchaseOrders, purchaseOrderItems, backups, backupSettings, inventoryTransactions, salesReports, systemPreferences, quotations, quotationItems, orders, orderItems, orderFees, warehouses, warehouseLocations, stockMovements, inventoryAdjustments, expenses, expenseCategories } from "@shared/schema";
 export class DatabaseStorage {
     constructor() {
         this.userStorage = new UserStorage();
@@ -101,6 +101,55 @@ export class DatabaseStorage {
         fs.mkdir(this.backupDir, { recursive: true }).catch(err => {
             console.error('Failed to create backup directory:', err);
         });
+    }
+    // Expense Category Management
+    async getExpenseCategories() {
+        return await db.select().from(expenseCategories);
+    }
+    async createExpenseCategory(category) {
+        const [newCategory] = await db.insert(expenseCategories).values(category).returning();
+        return newCategory;
+    }
+    async updateExpenseCategory(id, category) {
+        const [updated] = await db.update(expenseCategories)
+            .set({ ...category })
+            .where(eq(expenseCategories.id, id))
+            .returning();
+        return updated;
+    }
+    async deleteExpenseCategory(id) {
+        const result = await db.delete(expenseCategories).where(eq(expenseCategories.id, id)).returning();
+        return result.length > 0;
+    }
+    // Expense Management
+    async getExpenses(filters) {
+        let query = db.select().from(expenses);
+        if (filters?.categoryId) {
+            query = query.where(eq(expenses.categoryId, filters.categoryId));
+        }
+        if (filters?.status) {
+            query = query.where(eq(expenses.status, filters.status));
+        }
+        return await query.orderBy(desc(expenses.createdAt));
+    }
+    async getExpense(id) {
+        const [expense] = await db.select().from(expenses).where(eq(expenses.id, id));
+        return expense;
+    }
+    async createExpense(expense) {
+        const [newExpense] = await db.insert(expenses).values(expense).returning();
+        return newExpense;
+    }
+    async updateExpense(id, expense) {
+        const [updated] = await db.update(expenses)
+            .set({ ...expense, updatedAt: new Date() })
+            .where(eq(expenses.id, id))
+            .returning();
+        return updated;
+    }
+    async deleteExpense(id) {
+        const result = await db.delete(expenses).where(eq(expenses.id, id)).returning();
+        return result.length > 0;
     }
     // Customer Management - Direct implementation
     async getCustomers() {

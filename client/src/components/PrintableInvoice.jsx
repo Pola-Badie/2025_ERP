@@ -1,7 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
-import logoPath from '@assets/P_1749320448134.png';
 export const PrintableInvoice = ({ invoiceNumber, paperInvoiceNumber, approvalNumber, date, customer, items, subtotal, discountAmount = 0, taxRate, taxAmount, grandTotal, paymentTerms, notes, amountPaid = 0, paymentStatus, }) => {
     const { t, isRTL } = useLanguage();
     const balance = grandTotal - amountPaid;

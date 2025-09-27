@@ -108,7 +108,12 @@ export const sales = pgTable("sales", {
   etaSubmissionDate: timestamp("eta_submission_date"), // When submitted to ETA
   etaResponse: jsonb("eta_response"), // Full ETA API response
   etaErrorMessage: text("eta_error_message"), // Error details if failed
+  referenceNumber: text("reference_number"),
+  status: text("status").default("active").notNull(),
+  quotationDate: timestamp("quotation_date"),
+  transactionDate: timestamp("transaction_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const saleItems = pgTable("sale_items", {
@@ -1974,6 +1979,14 @@ export const updateExpenseStatusSchema = z.object({
   status: z.string(),
   updatedAt: z.date().optional(),
 });
+
+export const insertExpenseCategorySchema = createInsertSchema(expenseCategories).pick({
+  name: true,
+  description: true,
+});
+
+export type InsertExpenseCategory = z.infer<typeof insertExpenseCategorySchema>;
+export type ExpenseCategory = typeof expenseCategories.$inferSelect;
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
