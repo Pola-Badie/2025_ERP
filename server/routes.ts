@@ -1,3 +1,4 @@
+
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -24,6 +25,11 @@ import {
   insertOrderSchema,
   insertOrderItemSchema,
   insertOrderFeeSchema,
+  insertExpenseSchema,
+  insertExpenseCategorySchema,
+  insertWarehouseSchema,
+  insertWarehouseInventorySchema,
+  updateWarehouseInventorySchema,
   users,
   sales,
   orders,
@@ -32,8 +38,8 @@ import {
   warehouses,
   expenseCategories,
   expenses,
-  backupSettings, // Assuming this schema is imported
-  backups // Assuming this schema is imported
+  backupSettings,
+  backups
 } from "@shared/schema";
 import { eq, sql, or, desc, and, like, gte, lte, inArray, between } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
@@ -49,6 +55,87 @@ const cronJobs: {
   weekly?: cron.ScheduledTask;
   monthly?: cron.ScheduledTask;
 } = {};
+
+// Setup automatic backups function
+async function setupAutomaticBackups() {
+  try {
+    // Stop existing cron jobs
+    Object.values(cronJobs).forEach(job => {
+      if (job) {
+        job.destroy();
+      }
+    });
+
+    // Get backup settings
+    const backupSettingsList = await db.select().from(backupSettings).limit(1);
+    const settings = backupSettingsList[0];
+
+    if (!settings || !settings.dailyBackup) {
+      console.log('Automatic backups are disabled');
+      return;
+    }
+
+    // Schedule daily backup
+    if (settings.dailyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.daily = cron.schedule(`${minute} ${hour} * * *`, async () => {
+        console.log('Running scheduled daily backup...');
+        try {
+          await storage.performBackup('daily');
+        } catch (error) {
+          console.error('Daily backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Daily backup scheduled at ${backupTime}`);
+    }
+
+    // Schedule weekly backup
+    if (settings.weeklyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.weekly = cron.schedule(`${minute} ${hour} * * 0`, async () => {
+        console.log('Running scheduled weekly backup...');
+        try {
+          await storage.performBackup('weekly');
+        } catch (error) {
+          console.error('Weekly backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Weekly backup scheduled at ${backupTime} on Sundays`);
+    }
+
+    // Schedule monthly backup
+    if (settings.monthlyBackup) {
+      const backupTime = settings.backupTime || '02:00';
+      const [hour, minute] = backupTime.split(':');
+      
+      cronJobs.monthly = cron.schedule(`${minute} ${hour} 1 * *`, async () => {
+        console.log('Running scheduled monthly backup...');
+        try {
+          await storage.performBackup('monthly');
+        } catch (error) {
+          console.error('Monthly backup failed:', error);
+        }
+      }, {
+        timezone: 'Africa/Cairo'
+      });
+      
+      console.log(`Monthly backup scheduled at ${backupTime} on the 1st of each month`);
+    }
+
+  } catch (error) {
+    console.error('Failed to setup automatic backups:', error);
+  }
+}
 
 // Set up multer for receipt uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -873,7 +960,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
   // ============= Sales Endpoints =============
   // Get all sales
   app.get("/api/sales", async (req: Request, res: Response) => {
@@ -1328,7 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Warehouse Endpoints =============
   // Get all warehouses
-  app.get('/api/warehouses', async (req, res) => {
+  app.get('/api/warehouses', async (req: Request, res: Response) => {
     try {
       const warehouses = await storage.getWarehouses();
       res.json(warehouses);
@@ -1339,7 +1425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new warehouse
-  app.post('/api/warehouses', async (req, res) => {
+  app.post('/api/warehouses', async (req: Request, res: Response) => {
     try {
       const validatedData = insertWarehouseSchema.parse(req.body);
       const warehouse = await storage.createWarehouse(validatedData);
@@ -1354,7 +1440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update a warehouse
-  app.patch('/api/warehouses/:id', async (req, res) => {
+  app.patch('/api/warehouses/:id', async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const validatedData = insertWarehouseSchema.parse(req.body); // Reusing insert schema for update
@@ -1373,7 +1459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete a warehouse
-  app.delete('/api/warehouses/:id', async (req, res) => {
+  app.delete('/api/warehouses/:id', async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteWarehouse(id);
@@ -1389,7 +1475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ============= Warehouse Inventory Endpoints =============
   // Get warehouse inventory
-  app.get('/api/warehouse-inventory', async (req, res) => {
+  app.get('/api/warehouse-inventory', async (req: Request, res: Response) => {
     try {
       const inventory = await storage.getWarehouseInventory();
       res.json(inventory);
@@ -1400,7 +1486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Add item to warehouse inventory
-  app.post('/api/warehouse-inventory', async (req, res) => {
+  app.post('/api/warehouse-inventory', async (req: Request, res: Response) => {
     try {
       const validatedData = insertWarehouseInventorySchema.parse(req.body);
       const inventoryItem = await storage.addWarehouseInventory(validatedData);
@@ -1415,7 +1501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update warehouse inventory item
-  app.patch('/api/warehouse-inventory/:id', async (req, res) => {
+  app.patch('/api/warehouse-inventory/:id', async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const validatedData = updateWarehouseInventorySchema.parse(req.body);
@@ -1434,7 +1520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Remove item from warehouse inventory
-  app.delete('/api/warehouse-inventory/:id', async (req, res) => {
+  app.delete('/api/warehouse-inventory/:id', async (req: Request, res: Response) => {
     try {
       const id = Number(req.params.id);
       const success = await storage.deleteWarehouseInventory(id);
@@ -1722,128 +1808,5 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
   return httpServer;
-}
-
-// Setup automatic backups function
-async function setupAutomaticBackups() {
-  try {
-    // Stop existing cron jobs
-    Object.values(cronJobs).forEach(job => {
-      if (job) {
-        job.destroy();
-      }
-    });
-
-    // Get backup settings from database
-    const backupSettingsResult = await db.select().from(backupSettings).limit(1);
-    const settings = backupSettingsResult[0];
-
-    if (!settings || !settings.autoBackup) {
-      console.log('Automatic backups are disabled');
-      return;
-    }
-
-    // Schedule daily backup
-    if (settings.dailyBackup) {
-      const backupTime = settings.backupTime || '02:00';
-      const [hour, minute] = backupTime.split(':');
-
-      cronJobs.daily = cron.schedule(`${minute} ${hour} * * *`, async () => {
-        console.log('Running scheduled daily backup...');
-        try {
-          await performAutomaticBackup('daily');
-        } catch (error) {
-          console.error('Daily backup failed:', error);
-        }
-      }, {
-        timezone: 'Africa/Cairo'
-      });
-
-      console.log(`Daily backup scheduled at ${backupTime}`);
-    }
-
-    // Schedule weekly backup
-    if (settings.weeklyBackup) {
-      const backupTime = settings.backupTime || '02:00';
-      const [hour, minute] = backupTime.split(':');
-
-      cronJobs.weekly = cron.schedule(`${minute} ${hour} * * 0`, async () => {
-        console.log('Running scheduled weekly backup...');
-        try {
-          await performAutomaticBackup('weekly');
-        } catch (error) {
-          console.error('Weekly backup failed:', error);
-        }
-      }, {
-        timezone: 'Africa/Cairo'
-      });
-
-      console.log(`Weekly backup scheduled at ${backupTime} on Sundays`);
-    }
-
-    // Schedule monthly backup
-    if (settings.monthlyBackup) {
-      const backupTime = settings.backupTime || '02:00';
-      const [hour, minute] = backupTime.split(':');
-
-      cronJobs.monthly = cron.schedule(`${minute} ${hour} 1 * *`, async () => {
-        console.log('Running scheduled monthly backup...');
-        try {
-          await performAutomaticBackup('monthly');
-        } catch (error) {
-          console.error('Monthly backup failed:', error);
-        }
-      }, {
-        timezone: 'Africa/Cairo'
-      });
-
-      console.log(`Monthly backup scheduled at ${backupTime} on the 1st of each month`);
-    }
-
-  } catch (error) {
-    console.error('Failed to setup automatic backups:', error);
-  }
-}
-
-// Perform automatic backup
-async function performAutomaticBackup(type: string) {
-  try {
-    // Create backup record in database
-    const [backup] = await db.insert(backups).values({
-      filename: `backup_${type}_${new Date().toISOString().replace(/[:.]/g, '-')}.sql`,
-      type: type,
-      status: 'in_progress',
-      size: 0,
-      timestamp: new Date()
-    }).returning();
-
-    // Execute backup script
-    const { exec } = require('child_process');
-    const backupScript = path.join(process.cwd(), 'scripts/backup/backup-database.sh');
-
-    exec(`chmod +x ${backupScript} && ${backupScript}`, async (error: any, stdout: any, stderr: any) => {
-      if (error) {
-        console.error('Backup script error:', error);
-        await db.update(backups)
-          .set({ status: 'failed' })
-          .where(eq(backups.id, backup.id));
-        return;
-      }
-
-      // Update backup record as completed
-      await db.update(backups)
-        .set({ 
-          status: 'completed',
-          size: 1024 * 1024 // Placeholder size, should be actual file size
-        })
-        .where(eq(backups.id, backup.id));
-
-      console.log(`${type} backup completed successfully`);
-    });
-
-  } catch (error) {
-    console.error(`Failed to perform ${type} backup:`, error);
-  }
 }
