@@ -67,7 +67,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
         .leftJoin(customers, eq(sales.customerId, customers.id));
       
       if (status) {
-        query = query.where(eq(sales.paymentStatus, status as string));
+        query = (query as any).where(eq(sales.paymentStatus, status as string));
       }
       
       let salesData = await query.orderBy(desc(sales.date));
@@ -79,7 +79,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       // Optimize: Fetch all items in a single query instead of N+1 queries
       const invoiceIds = salesData.map(invoice => invoice.id);
       
-      let allItems = [];
+      let allItems: any[] = [];
       if (invoiceIds.length > 0) {
         allItems = await db
           .select({
@@ -169,7 +169,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
         .leftJoin(suppliers, eq(purchaseOrders.supplierId, suppliers.id));
       
       if (status) {
-        query = query.where(eq(purchaseOrders.status, status as string));
+        query = (query as any).where(eq(purchaseOrders.status, status as string));
       }
       
       const purchaseOrdersData = await query.orderBy(desc(purchaseOrders.orderDate));
@@ -456,7 +456,7 @@ export function registerUnifiedAccountingRoutes(app: Express) {
       }).from(sales);
       
       if (startDate && endDate) {
-        query = query.where(
+        query = (query as any).where(
           and(
             gte(sales.date, new Date(startDate as string)),
             lte(sales.date, new Date(endDate as string))

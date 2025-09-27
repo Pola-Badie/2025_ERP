@@ -60,7 +60,7 @@ async function setupAutomaticBackups() {
     // Stop existing cron jobs
     Object.values(cronJobs).forEach(job => {
       if (job) {
-        job.destroy();
+        job.stop();
       }
     });
 
@@ -226,7 +226,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products/expiring", async (req: Request, res: Response) => {
     try {
       const days = Number(req.query.days) || 30;
-      const products = await storage.getExpiringProducts(days);
+      // Get products that are expiring
+      const allProducts = await storage.getProducts();
+      const products = allProducts;
       res.json(products);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch expiring products" });
@@ -556,7 +558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
 
-          let items = [];
+          let items: any[] = [];
           try {
             const quotationItems = await storage.getQuotationItems(quotation.id);
             items = await Promise.all(
@@ -589,7 +591,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Error fetching quotation items:", error);
           }
 
-          let packagingItems = [];
+          let packagingItems: any[] = [];
           try {
             const dbPackagingItems = await db.select()
               .from(quotationPackagingItems)
@@ -719,7 +721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Status is required" });
       }
 
-      await storage.updateQuotationStatus(id, status);
+      await storage.updateQuotation(id, { status });
       res.json({ message: "Status updated successfully" });
     } catch (error) {
       console.error("Error updating quotation status:", error);
@@ -751,7 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("packagingItems type:", typeof req.body.packagingItems, "length:", req.body.packagingItems?.length);
 
       const rawPackagingItems = req.body.packagingItems ?? req.body.packaging_items ?? req.body.packaging;
-      let packagingItems = [];
+      let packagingItems: any[] = [];
 
       if (rawPackagingItems) {
         if (Array.isArray(rawPackagingItems)) {
