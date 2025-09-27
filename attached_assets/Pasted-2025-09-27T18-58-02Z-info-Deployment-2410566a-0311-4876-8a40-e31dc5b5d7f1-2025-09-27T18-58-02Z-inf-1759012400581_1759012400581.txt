@@ -1,0 +1,424 @@
+2025-09-27T18:58:02Z info: Deployment: 2410566a-0311-4876-8a40-e31dc5b5d7f1
+2025-09-27T18:58:02Z info: Build: b87512b6-fb23-4d71-91e1-bfba308790a0
+2025-09-27T18:58:02Z info: Connecting to builder
+2025-09-27T18:58:04Z info: Builder connected
+2025-09-27T18:58:05Z info: Installing packages
+2025-09-27T18:58:06Z info: Starting Build
+
+> rest-express@1.0.0 build
+> npm run build:server && npm run build:client
+
+
+
+> rest-express@1.0.0 build:server
+> tsc -p tsconfig.json
+
+
+server/routes_backup.ts(306,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(307,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(308,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(309,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(310,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(311,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(312,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(313,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(314,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(315,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(316,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(317,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(318,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(319,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(320,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(321,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(335,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(338,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(339,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(340,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(341,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(342,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(343,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(344,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(345,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(346,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(347,29): error TS1005: ';' expected.
+server/routes_backup.ts(348,30): error TS1005: ';' expected.
+server/routes_backup.ts(349,14): error TS1005: ';' expected.
+server/routes_backup.ts(350,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(351,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(352,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(353,16): error TS1005: ';' expected.
+server/routes_backup.ts(367,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(370,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(371,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(372,23): error TS1005: ';' expected.
+server/routes_backup.ts(373,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(374,15): error TS1005: ';' expected.
+server/routes_backup.ts(375,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(376,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(377,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(378,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(379,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(380,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(381,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(382,16): error TS1005: ';' expected.
+server/routes_backup.ts(383,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(384,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(385,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(399,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(402,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(403,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(404,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(405,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(406,15): error TS1005: ';' expected.
+server/routes_backup.ts(407,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(408,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(409,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(410,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(411,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(412,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(413,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(414,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(415,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(416,16): error TS1005: ';' expected.
+server/routes_backup.ts(417,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(431,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(434,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(435,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(436,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(437,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(438,15): error TS1005: ';' expected.
+server/routes_backup.ts(439,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(440,17): error TS1005: ';' expected.
+server/routes_backup.ts(441,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(442,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(443,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(444,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(445,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(446,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(447,17): error TS1005: ';' expected.
+server/routes_backup.ts(448,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(449,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(465,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(468,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(469,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(470,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(471,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(472,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(473,21): error TS1005: ';' expected.
+server/routes_backup.ts(474,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(475,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(476,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(477,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(478,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(479,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(480,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(481,17): error TS1005: ';' expected.
+server/routes_backup.ts(482,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(483,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(499,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(502,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(503,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(504,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(505,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(506,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(507,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(508,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(509,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(510,29): error TS1005: ';' expected.
+server/routes_backup.ts(511,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(512,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(513,14): error TS1005: ';' expected.
+
+server/routes_backup.ts(514,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(515,17): error TS1005: ';' expected.
+server/routes_backup.ts(516,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(517,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(533,10): error TS1128: Declaration or statement expected.
+
+server/routes_backup.ts(536,26): error TS1005: ';' expected.
+
+server/routes_backup.ts(537,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(538,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(539,21): error TS1005: ';' expected.
+server/routes_backup.ts(540,15): error TS1005: ';' expected.
+
+server/routes_backup.ts(541,21): error TS1005: ';' expected.
+
+server/routes_backup.ts(542,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(543,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(544,29): error TS1005: ';' expected.
+server/routes_backup.ts(545,29): error TS1005: ';' expected.
+
+server/routes_backup.ts(546,30): error TS1005: ';' expected.
+
+server/routes_backup.ts(547,14): error TS1005: ';' expected.
+server/routes_backup.ts(548,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(549,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(550,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(551,16): error TS1005: ';' expected.
+
+server/routes_backup.ts(567,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(570,26): error TS1005: ';' expected.
+server/routes_backup.ts(571,15): error TS1005: ';' expected.
+server/routes_backup.ts(572,23): error TS1005: ';' expected.
+server/routes_backup.ts(573,21): error TS1005: ';' expected.
+server/routes_backup.ts(574,15): error TS1005: ';' expected.
+server/routes_backup.ts(575,21): error TS1005: ';' expected.
+server/routes_backup.ts(576,17): error TS1005: ';' expected.
+server/routes_backup.ts(577,19): error TS1005: ';' expected.
+server/routes_backup.ts(578,29): error TS1005: ';' expected.
+server/routes_backup.ts(579,29): error TS1005: ';' expected.
+server/routes_backup.ts(580,30): error TS1005: ';' expected.
+server/routes_backup.ts(581,14): error TS1005: ';' expected.
+server/routes_backup.ts(582,16): error TS1005: ';' expected.
+server/routes_backup.ts(583,17): error TS1005: ';' expected.
+server/routes_backup.ts(584,16): error TS1005: ';' expected.
+server/routes_backup.ts(585,16): error TS1005: ';' expected.
+server/routes_backup.ts(601,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(604,26): error TS1005: ';' expected.
+server/routes_backup.ts(605,15): error TS1005: ';' expected.
+server/routes_backup.ts(606,23): error TS1005: ';' expected.
+server/routes_backup.ts(607,21): error TS1005: ';' expected.
+server/routes_backup.ts(608,15): error TS1005: ';' expected.
+server/routes_backup.ts(609,21): error TS1005: ';' expected.
+server/routes_backup.ts(610,17): error TS1005: ';' expected.
+server/routes_backup.ts(611,19): error TS1005: ';' expected.
+server/routes_backup.ts(612,29): error TS1005: ';' expected.
+server/routes_backup.ts(613,29): error TS1005: ';' expected.
+server/routes_backup.ts(614,30): error TS1005: ';' expected.
+server/routes_backup.ts(615,14): error TS1005: ';' expected.
+server/routes_backup.ts(616,16): error TS1005: ';' expected.
+server/routes_backup.ts(617,17): error TS1005: ';' expected.
+server/routes_backup.ts(618,16): error TS1005: ';' expected.
+server/routes_backup.ts(619,16): error TS1005: ';' expected.
+server/routes_backup.ts(635,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(638,26): error TS1005: ';' expected.
+server/routes_backup.ts(639,15): error TS1005: ';' expected.
+server/routes_backup.ts(640,23): error TS1005: ';' expected.
+server/routes_backup.ts(641,21): error TS1005: ';' expected.
+server/routes_backup.ts(642,15): error TS1005: ';' expected.
+server/routes_backup.ts(643,21): error TS1005: ';' expected.
+server/routes_backup.ts(644,17): error TS1005: ';' expected.
+server/routes_backup.ts(645,19): error TS1005: ';' expected.
+server/routes_backup.ts(646,29): error TS1005: ';' expected.
+server/routes_backup.ts(647,29): error TS1005: ';' expected.
+server/routes_backup.ts(648,30): error TS1005: ';' expected.
+server/routes_backup.ts(649,14): error TS1005: ';' expected.
+server/routes_backup.ts(650,16): error TS1005: ';' expected.
+server/routes_backup.ts(651,17): error TS1005: ';' expected.
+server/routes_backup.ts(652,16): error TS1005: ';' expected.
+server/routes_backup.ts(653,16): error TS1005: ';' expected.
+server/routes_backup.ts(669,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(672,26): error TS1005: ';' expected.
+server/routes_backup.ts(673,15): error TS1005: ';' expected.
+server/routes_backup.ts(674,23): error TS1005: ';' expected.
+server/routes_backup.ts(675,21): error TS1005: ';' expected.
+server/routes_backup.ts(676,15): error TS1005: ';' expected.
+server/routes_backup.ts(677,21): error TS1005: ';' expected.
+server/routes_backup.ts(678,17): error TS1005: ';' expected.
+server/routes_backup.ts(679,19): error TS1005: ';' expected.
+server/routes_backup.ts(680,29): error TS1005: ';' expected.
+server/routes_backup.ts(681,29): error TS1005: ';' expected.
+server/routes_backup.ts(682,30): error TS1005: ';' expected.
+server/routes_backup.ts(683,14): error TS1005: ';' expected.
+server/routes_backup.ts(684,16): error TS1005: ';' expected.
+server/routes_backup.ts(685,17): error TS1005: 
+server/routes_backup.ts(2848,29): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(2848,38): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(2848,45): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3156,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3157,9): error TS1435: Unknown keyword or identifier. Did you mean 'from'?
+server/routes_backup.ts(3158,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3158,15): error TS1434: Unexpected keyword or identifier.
+
+server/routes_backup.ts(3158,28): error TS1434: Unexpected keyword or identifier.
+
+server/routes_backup.ts(3159,12): error TS1434: Unexpected keyword or identifier.
+
+server/routes_backup.ts(3159,29): error TS1005: ';' expected.
+server/routes_backup.ts(3160,12): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3160,15): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3160,28): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3161,12): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3161,29): error TS1005: ';' expected.
+server/routes_backup.ts(3162,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3162,15): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3162,18): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3163,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3168,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3169,9): error TS1435: Unknown keyword or identifier. Did you mean 'from'?
+server/routes_backup.ts(3170,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3170,15): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3170,28): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3171,12): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3171,29): error TS1005: ';' expected.
+server/routes_backup.ts(3172,12): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3172,15): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3172,28): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3173,12): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3173,29): error TS1005: ';' expected.
+server/routes_backup.ts(3174,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3174,15): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3174,18): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3175,9): error TS1434: Unexpected keyword or identifier.
+server/routes_backup.ts(3176,7): error TS1443: Module declaration names may only use ' or " quoted strings.
+server/routes_backup.ts(3243,30): error TS1005: ';' expected.
+server/routes_backup.ts(3246,24): error TS1005: ';' expected.
+server/routes_backup.ts(3246,29): error TS1005: ';' expected.
+server/routes_backup.ts(3249,24): error TS1005: ';' expected.
+server/routes_backup.ts(3249,29): error TS1005: ';' expected.
+server/routes_backup.ts(3430,10): error TS1443: Module declaration names may only use ' or " quoted strings.
+server/routes_backup.ts(3433,15): error TS1005: ';' expected.
+server/routes_backup.ts(3434,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(3435,22): error TS1005: ';' expected.
+server/routes_backup.ts(3436,14): error TS1005: ';' expected.
+server/routes_backup.ts(3437,20): error TS1005: ';' expected.
+server/routes_backup.ts(3438,23): error TS1005: ';' expected.
+
+server/routes_backup.ts(3439,22): error TS1005: ';' expected.
+
+server/routes_backup.ts(3440,17): error TS1005: ';' expected.
+
+server/routes_backup.ts(3441,19): error TS1005: ';' expected.
+
+server/routes_backup.ts(3442,24): error TS1005: ';' expected.
+server/routes_backup.ts(3443,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(3446,15): error TS1005: ';' expected.
+server/routes_backup.ts(3447,19): error TS1005: ';' expected.
+server/routes_backup.ts(3448,22): error TS1005: ';' expected.
+server/routes_backup.ts(3449,14): error TS1005: ';' expected.
+server/routes_backup.ts(3450,20): error TS1005: ';' expected.
+server/routes_backup.ts(3451,23): error TS1005: ';' expected.
+server/routes_backup.ts(3452,22): error TS1005: ';' expected.
+server/routes_backup.ts(3453,17): error TS1005: ';' expected.
+server/routes_backup.ts(3454,19): error TS1005: ';' expected.
+server/routes_backup.ts(3455,24): error TS1005: ';' expected.
+server/routes_backup.ts(3456,10): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(3459,15): error TS1005: ';' expected.
+server/routes_backup.ts(3460,19): error TS1005: ';' expected.
+server/routes_backup.ts(3461,22): error TS1005: ';' expected.
+server/routes_backup.ts(3462,14): error TS1005: ';' expected.
+server/routes_backup.ts(3463,20): error TS1005: ';' expected.
+server/routes_backup.ts(3464,23): error TS1005: ';' expected.
+server/routes_backup.ts(3465,22): error TS1005: ';' expected.
+server/routes_backup.ts(3466,17): error TS1005: ';' expected.
+server/routes_backup.ts(3467,19): error TS1005: ';' expected.
+server/routes_backup.ts(3468,24): error TS1005: ';' expected.
+server/routes_backup.ts(3470,7): error TS1128: Declaration or statement expected.
+server/routes_backup.ts(3568,1): error TS1128: Declaration or statement expected.
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+npm notice To update run: npm install -g npm@11.6.1
+npm notice
+
