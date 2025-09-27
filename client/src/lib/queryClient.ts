@@ -99,7 +99,7 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: true, // Enable refetch on window focus
       refetchOnMount: true, // Always refetch when component mounts
       staleTime: 0, // Always fetch fresh data
-      cacheTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection time
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors
         if (error?.message?.startsWith('4')) return false;
