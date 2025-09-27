@@ -96,7 +96,7 @@ const ExpenseTrends = () => {
             if (!groupedData[label][expense.category]) {
                 groupedData[label][expense.category] = 0;
             }
-            groupedData[label][expense.category] += expense.amount;
+            groupedData[label][expense.category] += parseFloat(expense.amount) || 0;
         });
         // Convert to chart data format
         return labels.map(label => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 const RecentExpenses = () => {
     const { data: expenses, isLoading } = useQuery({
@@ -70,12 +70,12 @@ const RecentExpenses = () => {
                     <td className="px-2 py-3">{formatDate(expense.date)}</td>
                     <td className="px-2 py-3">{expense.description}</td>
                     <td className="px-2 py-3">
-                      <Badge variant={getCategoryColor(expense.category)}>
+                      <Badge variant={"default"}>
                         {expense.category}
                       </Badge>
                     </td>
                     <td className="px-2 py-3 font-medium">
-                      {formatCurrency(expense.amount)}
+                      ${parseFloat(expense.amount || '0').toLocaleString()}
                     </td>
                     <td className="px-2 py-3">
                       {getStatusBadge(expense.status)}

@@ -103,7 +103,7 @@ const ExpenseTrends: React.FC = () => {
         groupedData[label][expense.category] = 0;
       }
       
-      groupedData[label][expense.category] += expense.amount;
+      groupedData[label][expense.category] += parseFloat(expense.amount as string) || 0;
     });
     
     // Convert to chart data format
