@@ -33,7 +33,7 @@ export function registerFinancialIntegrationRoutes(app: Express) {
       const [customer] = await db
         .select()
         .from(customers)
-        .where(eq(customers.id, sale.customerId))
+        .where(eq(customers.id, sale.customerId!))
         .limit(1);
       
       // Automatically create journal entry for the invoice
@@ -45,11 +45,11 @@ export function registerFinancialIntegrationRoutes(app: Express) {
             invoiceNumber: sale.invoiceNumber || `INV-${sale.id}`,
             totalAmount: parseFloat(sale.subtotal || '0'),
             tax: parseFloat(sale.tax || '0'),
-            grandTotal: parseFloat(sale.total || '0')
+            grandTotal: parseFloat(sale.grandTotal || '0')
           };
           
           // Get user ID from request or session, default to 1 if not available
-          const userId = req.user?.id || req.body.userId || 1;
+          const userId = req.body.userId || 1;
           const journalEntry = await createInvoiceJournalEntry(invoiceData, userId);
           await updateAccountBalances(journalEntry.id);
           
@@ -80,13 +80,12 @@ export function registerFinancialIntegrationRoutes(app: Express) {
       
       // Create corresponding journal entry for accounting integration
       try {
-        const userId = req.user?.id || req.body.userId || 1;
+        const userId = req.body.userId || 1;
         const expenseData = {
           id: expense.id,
           amount: parseFloat(expense.amount),
-          category: expense.category,
+          category: expense.category || 'General',
           description: expense.description,
-          vendor: expense.vendor,
           date: expense.date
         };
         
@@ -123,8 +122,8 @@ export function registerFinancialIntegrationRoutes(app: Express) {
         return res.status(404).json({ error: "Sale not found" });
       }
       
-      // If the sale status changed to 'paid', we might want to create additional journal entries
-      if (updates.status === 'paid' && updatedSale.status !== 'paid') {
+      // If the sale payment status changed to 'completed', we might want to create additional journal entries
+      if (updates.paymentStatus === 'completed' && updatedSale.paymentStatus !== 'completed') {
         // This could trigger a payment journal entry
         console.log(`Sale ${id} marked as paid - consider creating payment journal entry`);
       }
@@ -165,21 +164,22 @@ export function registerFinancialIntegrationRoutes(app: Express) {
     try {
       const { type, startDate, endDate } = req.query;
       
-      // Get recent sales
-      let salesQuery = db
+      // Get recent sales with optional date filter
+      const salesResults = await db
         .select({
           id: sales.id,
-          type: sales.type,
-          amount: sales.total,
+          type: sql<string>`'sale'`,
+          amount: sales.totalAmount,
           date: sales.date,
           reference: sales.invoiceNumber,
-          description: sales.customerName,
-          category: sales.type
+          description: sql<string>`'sale'`,
+          category: sql<string>`'revenue'`
         })
-        .from(sales);
+        .from(sales)
+        .where(startDate ? sql`DATE(${sales.date}) >= ${startDate}` : sql`1=1`);
       
-      // Get recent expenses
-      let expensesQuery = db
+      // Get recent expenses with optional date filter
+      const expensesResults = await db
         .select({
           id: expensesTable.id,
           type: expensesTable.category,
@@ -189,16 +189,8 @@ export function registerFinancialIntegrationRoutes(app: Express) {
           description: expensesTable.description,
           category: expensesTable.category
         })
-        .from(expensesTable);
-      
-      // Apply date filters if provided
-      if (startDate) {
-        salesQuery = salesQuery.where(eq(sales.date, startDate as string));
-        expensesQuery = expensesQuery.where(eq(expensesTable.date, startDate as string));
-      }
-      
-      const salesResults = await salesQuery;
-      const expensesResults = await expensesQuery;
+        .from(expensesTable)
+        .where(startDate ? sql`${expensesTable.date} >= ${startDate}` : sql`1=1`);
       
       // Combine and format results
       const transactions = [
