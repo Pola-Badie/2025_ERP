@@ -63,24 +63,6 @@ const app = express();
 let PORT = parseInt(process.env.PORT || "5000", 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Debug middleware
-app.use((req, res, next) => {
-  console.log('Request headers:', req.headers);
-  console.log('Request URL:', req.url);
-  console.log('Request method:', req.method);
-  next();
-});
-
-// Replit host bypass middleware - allow all replit domains
-app.use((req, res, next) => {
-  const host = req.get('host') || '';
-  if (host.includes('replit.dev') || host.includes('repl.co') || host.includes('replit.app')) {
-    // For Replit domains, mark as safe and continue
-    req.headers['x-replit-safe'] = 'true';
-  }
-  next();
-});
-
 // 🛡️ Port Conflict Prevention System
 async function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -204,35 +186,13 @@ if (NODE_ENV === 'production') {
   app.use('/api', apiRateLimit);
 }
 
-// Input sanitization
-app.use(sanitizeInput);
-
-// Memory monitoring - disabled to reduce overhead
-// app.use(memoryMonitor);
-
-// Request timeout (30 seconds)
-app.use(requestTimeout(30000));
-
-// Request logging
-app.use((req, res, next) => {
-  const start = Date.now();
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
-
-    logger.log(logLevel, {
-      method: req.method,
-      url: req.url,
-      statusCode: res.statusCode,
-      duration: `${duration}ms`,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
-    });
+// Minimal logging for development
+if (NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
   });
-
-  next();
-});
+}
 
 // Static file serving
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
