@@ -11,6 +11,14 @@ interface User {
   avatar?: string;
   createdAt: string;
   updatedAt: string;
+  // Additional profile fields - optional for backward compatibility
+  phone?: string;
+  position?: string;
+  department?: string;
+  location?: string;
+  bio?: string;
+  joinDate?: string;
+  employeeId?: string;
 }
 
 interface AuthContextType {

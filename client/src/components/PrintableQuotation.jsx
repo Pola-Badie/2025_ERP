@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 // import logoPath from '@assets/P_1749320448134.png';
+const logoPath = '';
 // Default terms and conditions for pharmaceutical quotations
 const DEFAULT_TERMS = `1. Validity: This quotation is valid for 30 days from the date of issue.
 

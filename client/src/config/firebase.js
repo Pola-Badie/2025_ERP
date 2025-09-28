@@ -1,15 +1,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithRedirect, signInWithPopup, getRedirectResult } from "firebase/auth";
 // Check if Firebase credentials are available
-const hasFirebaseConfig = import.meta.env.VITE_FIREBASE_API_KEY &&
-    import.meta.env.VITE_FIREBASE_PROJECT_ID &&
-    import.meta.env.VITE_FIREBASE_APP_ID;
+const hasFirebaseConfig = import.meta.env?.VITE_FIREBASE_API_KEY &&
+    import.meta.env?.VITE_FIREBASE_PROJECT_ID &&
+    import.meta.env?.VITE_FIREBASE_APP_ID;
 const firebaseConfig = hasFirebaseConfig ? {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-    authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
-    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    apiKey: import.meta.env?.VITE_FIREBASE_API_KEY,
+    authDomain: `${import.meta.env?.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+    projectId: import.meta.env?.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: `${import.meta.env?.VITE_FIREBASE_PROJECT_ID}.firebasestorage.app`,
+    appId: import.meta.env?.VITE_FIREBASE_APP_ID,
 } : null;
 // Initialize Firebase only if config is available
 const app = firebaseConfig ? initializeApp(firebaseConfig) : null;

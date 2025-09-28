@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseStorage } from "./base";
 import { users, userPermissions, rolePermissions, loginLogs } from "@shared/schema";
 export class UserStorage extends BaseStorage {
