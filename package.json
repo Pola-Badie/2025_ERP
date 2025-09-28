@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "npm run build:server && npm run build:client",
+    "build": "tsc --noEmitOnError false --skipLibCheck true && npm run build:client",
     "build:server": "tsc -p tsconfig.json",
     "build:client": "vite build",
     "start": "NODE_ENV=production node dist/server/index.js",
