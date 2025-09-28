@@ -1,6 +1,6 @@
-import { and, eq, or, asc } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../db";
-import { users, userPermissions, rolePermissions, fieldPermissions } from "@shared/schema";
+import { users, userPermissions, rolePermissions } from "@shared/schema";
 import type { User, UserPermission, RolePermission } from "@shared/schema";
 import { AccessLogger } from "./access-logger-service";
 
@@ -341,77 +341,6 @@ export class PermissionService {
    */
   getAvailableActions(): string[] {
     return ['create', 'read', 'update', 'delete', 'export', 'approve'];
-  }
-
-  /**
-   * Check field-level permission for user
-   */
-  async checkFieldPermission(
-    userId: number, 
-    module: string, 
-    entityType: string, 
-    fieldName: string,
-    permission: 'view' | 'edit'
-  ): Promise<boolean> {
-    try {
-      // Get user details
-      const [user] = await db.select().from(users).where(eq(users.id, userId));
-      
-      if (!user || user.status !== 'active') {
-        return false;
-      }
-
-      // Admin users have all field permissions
-      if (user.role === 'admin') {
-        return true;
-      }
-
-      // Check field permissions from database
-      const fieldPerms = await db
-        .select()
-        .from(fieldPermissions)
-        .where(
-          and(
-            eq(fieldPermissions.module, module),
-            eq(fieldPermissions.entityType, entityType),
-            eq(fieldPermissions.fieldName, fieldName),
-            or(
-              // User-specific permission
-              and(
-                eq(fieldPermissions.scope, 'user'),
-                eq(fieldPermissions.targetId, userId)
-              ),
-              // Role-based permission
-              and(
-                eq(fieldPermissions.scope, 'role'),
-                eq(fieldPermissions.targetRole, user.role)
-              ),
-              // Global permission
-              eq(fieldPermissions.scope, 'global')
-            )
-          )
-        )
-        .orderBy(asc(fieldPermissions.priority)); // Lower priority number = higher priority
-
-      // Process permissions by priority
-      for (const perm of fieldPerms) {
-        const permissionValue = permission === 'view' ? perm.canView : perm.canEdit;
-        
-        if (perm.effect === 'deny' && !permissionValue) {
-          return false; // Explicit deny
-        }
-        
-        if (perm.effect === 'allow' && permissionValue) {
-          return true; // Explicit allow
-        }
-      }
-
-      // Default: allow view if no explicit permission found, deny edit
-      return permission === 'view';
-    } catch (error) {
-      console.error('Error checking field permission:', error);
-      return false; // Fail securely
-    }
   }
 }
 

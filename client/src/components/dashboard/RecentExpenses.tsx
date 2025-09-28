@@ -91,12 +91,12 @@ const RecentExpenses: React.FC = () => {
                     <td className="px-2 py-3">{formatDate(expense.date)}</td>
                     <td className="px-2 py-3">{expense.description}</td>
                     <td className="px-2 py-3">
-                      <Badge variant={"default"}>
+                      <Badge variant={getCategoryColor(expense.category)}>
                         {expense.category}
                       </Badge>
                     </td>
                     <td className="px-2 py-3 font-medium">
-                      ${parseFloat(expense.amount as string || '0').toLocaleString()}
+                      {formatCurrency(expense.amount)}
                     </td>
                     <td className="px-2 py-3">
                       {getStatusBadge(expense.status)}

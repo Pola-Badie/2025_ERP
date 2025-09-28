@@ -1,7 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
-// import logoPath from '@assets/P_1749320448134.png';
+import logoPath from '@assets/P_1749320448134.png';
 
 interface InvoiceItem {
   productName: string;

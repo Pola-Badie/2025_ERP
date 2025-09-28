@@ -2077,7 +2077,7 @@ const Accounting: React.FC = () => {
   // Fetch approved purchases (status = 'received') and populate the main purchases table
   useEffect(() => {
     if (procurementOrders && procurementOrders.length > 0) {
-      const approvedOrders = procurementOrders.filter((order: any) => order.status === 'received');
+      const approvedOrders = procurementOrders.filter(order => order.status === 'received');
       setApprovedPurchases(approvedOrders);
       console.log('Approved purchases updated:', approvedOrders.length, 'received orders');
     }
@@ -2092,7 +2092,7 @@ const Accounting: React.FC = () => {
 
   // Handle purchase approval with real API data
   const handleApprovePurchase = async (poNumber: string) => {
-    const purchaseToApprove = procurementOrders.find((p: any) => p.poNumber === poNumber);
+    const purchaseToApprove = procurementOrders.find(p => p.poNumber === poNumber);
     if (purchaseToApprove) {
       try {
         console.log('Approving purchase:', purchaseToApprove.id, poNumber);
@@ -3531,14 +3531,14 @@ const Accounting: React.FC = () => {
           reportData = {
             title: "Account Summary Report",
             headers: ["Account Type", "Count", "Total Debit", "Total Credit"],
-            rows: data.summary.map((item: any) => [
+            rows: response.summary.map((item: any) => [
               item.type,
               item.count.toString(),
               `$${item.totalDebit.toLocaleString()}.00`,
               `$${item.totalCredit.toLocaleString()}.00`
             ]),
             summary: {
-              totalTypes: data.summary.length
+              totalTypes: response.summary.length
             },
             _timestamp: Date.now()
           };
@@ -3549,16 +3549,16 @@ const Accounting: React.FC = () => {
             title: "Accounts Receivable Aging Analysis",
             headers: ["Period", "Count", "Amount"],
             rows: [
-              ["Current (0-30 days)", data.current.count.toString(), `$${data.current.amount.toLocaleString()}.00`],
-              ["31-60 days", data.thirtyDays.count.toString(), `$${data.thirtyDays.amount.toLocaleString()}.00`],
-              ["61-90 days", data.sixtyDays.count.toString(), `$${data.sixtyDays.amount.toLocaleString()}.00`],
-              ["Over 90 days", data.ninetyDays.count.toString(), `$${data.ninetyDays.amount.toLocaleString()}.00`],
+              ["Current (0-30 days)", response.current.count.toString(), `$${response.current.amount.toLocaleString()}.00`],
+              ["31-60 days", response.thirtyDays.count.toString(), `$${response.thirtyDays.amount.toLocaleString()}.00`],
+              ["61-90 days", response.sixtyDays.count.toString(), `$${response.sixtyDays.amount.toLocaleString()}.00`],
+              ["Over 90 days", response.ninetyDays.count.toString(), `$${response.ninetyDays.amount.toLocaleString()}.00`],
               ["", "", ""],
-              ["Total Outstanding", data.total.count.toString(), `$${data.total.amount.toLocaleString()}.00`]
+              ["Total Outstanding", response.total.count.toString(), `$${response.total.amount.toLocaleString()}.00`]
             ],
             summary: {
-              totalOutstanding: data.total.amount,
-              totalInvoices: data.total.count
+              totalOutstanding: response.total.amount,
+              totalInvoices: response.total.count
             },
             _timestamp: Date.now()
           };

@@ -183,13 +183,10 @@ const AccountingPeriods: React.FC = () => {
   const currentPeriod = getCurrentPeriod();
   
   // Check if there are warnings to display
-  // @ts-ignore - Deploy first, fix types later
   const hasNoOpenPeriods = periods.length > 0 && !periods.some((p: AccountingPeriod) => p.status === 'open');
-  // @ts-ignore - Deploy first, fix types later
   const hasOverlappingPeriods = periods.some((period1: AccountingPeriod, i: number) => {
     const start1 = new Date(period1.startDate);
     const end1 = new Date(period1.endDate);
-    // @ts-ignore - Deploy first, fix types later
     return periods.some((period2: AccountingPeriod, j: number) => {
       if (i === j) return false;
       const start2 = new Date(period2.startDate);
