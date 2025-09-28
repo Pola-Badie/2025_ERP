@@ -27,6 +27,7 @@ import {
   insertExpenseSchema,
   insertWarehouseSchema,
   insertWarehouseInventorySchema,
+  updateWarehouseInventorySchema,
   insertExpenseCategorySchema,
   users,
   sales,
