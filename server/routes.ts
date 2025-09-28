@@ -2826,32 +2826,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch latest batch" });
     }
   });
-              {
-                id: 16,
-                name: 'Calcium Carbonate',
-                quantity: 120,
-                unitPrice: '0.50',
-                unitOfMeasure: 'kg'
-              }
-            ]),
-            subtotal: '270.00',
-            taxPercentage: 14,
-            taxAmount: '37.80',
-            totalMaterialCost: '270.00',
-            totalAdditionalFees: '37.80',
-            totalCost: '307.80',
-            status: 'in_progress',
-            createdAt: '2025-04-25T09:15:00Z'
-          }
-        ];
-
-        res.json(mockOrders);
-      }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      res.status(500).json({ message: "Failed to fetch orders" });
-    }
-  });
 
   // Get the latest batch number
   app.get("/api/orders/latest-batch", async (req: Request, res: Response) => {

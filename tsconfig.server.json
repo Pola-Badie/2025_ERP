@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "outDir": "dist/server",
+    "rootDir": ".",
+    "noEmit": false,
+    "strict": false,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "lib": ["esnext"],
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": false,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
+  },
+  "include": ["server/**/*", "shared/**/*"],
+  "exclude": ["client/**/*", "**/*.test.ts", "node_modules", "build", "dist", "server/routes.ts"]
+}
