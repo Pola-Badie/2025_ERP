@@ -22,9 +22,9 @@ export class PermissionSeeder {
         'users', 'user_management', 'reports', 'system_preferences', 'backups'
       ], ['create', 'read', 'update', 'delete', 'export', 'approve']),
 
-      // MANAGER - Business operations access (NO DASHBOARD ACCESS FOR WORKERS!)
+      // MANAGER - Business operations access (no user management)
       ...this.createRolePermissions('manager', [
-        'inventory', 'orders', 'procurement', 'accounting',
+        'dashboard', 'inventory', 'orders', 'procurement', 'accounting',
         'expenses', 'invoices', 'quotations', 'customers', 'suppliers', 'reports'
       ], ['create', 'read', 'update', 'delete', 'export', 'approve']),
 
@@ -43,8 +43,10 @@ export class PermissionSeeder {
         'dashboard', 'accounting', 'expenses', 'invoices', 'customers', 'reports'
       ], ['create', 'read', 'update', 'export']),
 
-      // STAFF - No default permissions (use explicit user permissions only)
-      // ...this.createRolePermissions('staff', [], [])
+      // STAFF - Basic read access
+      ...this.createRolePermissions('staff', [
+        'dashboard', 'inventory', 'customers'
+      ], ['read'])
     ];
 
     // Insert role permissions (with conflict handling)

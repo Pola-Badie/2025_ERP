@@ -28,7 +28,6 @@ const BackupRecovery: React.FC = () => {
 
   const handleRestoreFromLatest = () => {
     if (latestBackup) {
-      // @ts-ignore - Deploy first, fix types later
       restoreFromBackup(latestBackup.id);
     }
   };

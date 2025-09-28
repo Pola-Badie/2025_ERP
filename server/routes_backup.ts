@@ -19,19 +19,13 @@ import {
   insertLoginLogSchema,
   insertQuotationSchema,
   insertQuotationItemSchema,
-  insertQuotationPackagingItemSchema,
-  quotationPackagingItems,
   insertOrderSchema,
   insertOrderItemSchema,
   insertOrderFeeSchema,
   users,
   sales,
   orders,
-  products,
-  warehouseInventory,
-  warehouses,
-  expenseCategories,
-  expenses
+  products
 } from "@shared/schema";
 import { eq, sql, or, desc, and, like, gte, lte, inArray, between } from "drizzle-orm";
 import { registerAccountingRoutes } from "./routes-accounting";
@@ -175,23 +169,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Fetching quotations from database...");
       
-      // Get quotations from database  
-      const { query, status, date } = req.query;
-      const quotations = await storage.getQuotations(
-        (query as string) || '', 
-        (status as string) || '', 
-        (date as string) || ''
-      );
+      // Get quotations from database
+      const quotations = await storage.getQuotations();
       console.log(`Found ${quotations.length} quotations in database`);
-      // Debug: log first quotation to see what fields we get
-      if (quotations.length > 0) {
-        console.log('First quotation from storage:', {
-          id: quotations[0].id,
-          quotationNumber: quotations[0].quotationNumber,
-          customerId: quotations[0].customerId,
-          termsAndConditions: quotations[0].termsAndConditions ? 'HAS_TERMS' : 'NO_TERMS'
-        });
-      }
 
       // Transform database quotations to frontend format
       const transformedQuotations = await Promise.all(
@@ -242,28 +222,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error("Error fetching quotation items:", error);
           }
 
-          // Get packaging items
-          let packagingItems = [];
-          try {
-            // Query packaging items from the database using Drizzle ORM
-            const dbPackagingItems = await db.select()
-              .from(quotationPackagingItems)
-              .where(eq(quotationPackagingItems.quotationId, quotation.id))
-              .orderBy(quotationPackagingItems.id);
-
-            packagingItems = dbPackagingItems.map(item => ({
-              id: item.id.toString(),
-              type: item.type || 'container',
-              description: item.description || '',
-              quantity: parseInt(item.quantity?.toString() || '1'),
-              unitPrice: parseFloat(item.unitPrice?.toString() || '0'),
-              total: parseFloat(item.total?.toString() || '0'),
-              notes: item.notes || ''
-            }));
-          } catch (error) {
-            console.error("Error fetching packaging items:", error);
-          }
-
           return {
             id: quotation.id,
             quotationNumber: quotation.quotationNumber,
@@ -281,9 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             total: parseFloat(quotation.grandTotal?.toString() || '0'),
             amount: parseFloat(quotation.grandTotal?.toString() || '0'),
             status: quotation.status || 'pending',
-            termsAndConditions: "HARDCODED TERMS TEST - This should appear in API response",
-            items: items,
-            packagingItems: packagingItems
+            termsAndConditions: quotation.termsAndConditions || DEFAULT_TERMS_CONDITIONS,
+            items: items
           };
         })
       );
@@ -337,14 +294,702 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      console.log(`🗃️ QUOTATIONS: Returning ${filteredQuotations.length} from DB (no static fallback)`);
-      
-      // Debug: Check if termsAndConditions exists in the first quotation
-      if (filteredQuotations.length > 0) {
-        console.log('🔍 FIRST QUOTATION HAS TERMS:', !!filteredQuotations[0].termsAndConditions);
-        console.log('🔍 TERMS LENGTH:', filteredQuotations[0].termsAndConditions?.length || 'UNDEFINED');
+      console.log(`Returning ${filteredQuotations.length} quotations after filtering`);
+      res.json(filteredQuotations);
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+        {
+          id: 2,
+          quotationNumber: "QUO-002502",
+          type: "manufacturing",
+          customerName: "Cairo Medical Supplies Ltd.",
+          customerId: 2,
+          date: "2025-05-05",
+          validUntil: "2025-06-05",
+          status: "pending",
+          subtotal: 2850.00,
+          transportationFees: 245.00,
+          transportationType: "ground-express",
+          transportationNotes: "Express delivery with temperature control",
+          tax: 433.30,
+          total: 3528.30,
+          amount: 3245.00,
+          notes: "Custom manufacturing order for hospital surgical supplies.",
+          items: [
+            {
+              id: "2",
+              type: "manufacturing",
+              productName: "Surgical Mask Manufacturing",
+              description: "Medical grade surgical masks, Type IIR certification",
+              quantity: 10000,
+              uom: "pieces",
+              unitPrice: 0.285,
+              total: 2850.00,
+              specifications: "EN 14683 certified, fluid resistant",
+              qualityGrade: "Medical"
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "QUO-002503",
+          type: "finished",
+          customerName: "Alexandria Pharma Co.",
+          customerId: 3,
+          date: "2025-05-08",
+          validUntil: "2025-06-08",
+          status: "rejected",
+          subtotal: 767.55,
+          transportationFees: 55.00,
+          transportationType: "standard-shipping",
+          transportationNotes: "Standard pharmaceutical shipping",
+          tax: 115.16,
+          total: 937.71,
+          amount: 875.50,
+          notes: "Antibiotic supply for community health center.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Amoxicillin Capsules 250mg",
+              description: "Broad spectrum antibiotic, bottle of 100 capsules",
+              quantity: 150,
+              uom: "bottles",
+              unitPrice: 5.117,
+              total: 767.55,
+              specifications: "USP grade, 36-month shelf life",
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "QUO-002504",
+          type: "refining",
+          customerName: "Modern Laboratories Inc.",
+          customerId: 4,
+          date: "2025-04-20",
+          validUntil: "2025-05-20",
+          status: "expired",
+          subtotal: 3965.00,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 555.10,
+          total: 4520.75,
+          amount: 4520.75,
+          notes: "API purification service for research laboratory.",
+          items: [
+            {
+              id: "4",
+              type: "refining",
+              productName: "Aspirin API Purification",
+              description: "High purity aspirin API for pharmaceutical use",
+              quantity: 100,
+              uom: "kg",
+              unitPrice: 39.65,
+              total: 3965.00,
+              specifications: "99.5% purity, crystalline powder",
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "QUO-002505",
+          type: "finished",
+          customerName: "Giza Chemical Solutions",
+          customerId: 5,
+          date: "2025-05-12",
+          validUntil: "2025-06-12",
+          status: "accepted",
+          subtotal: 1637.50,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 227.25,
+          total: 1864.75,
+          amount: 1865.25,
+          notes: "Vitamin supplement order for pharmaceutical retail.",
+          items: [
+            {
+              id: "5",
+              type: "finished",
+              productName: "Vitamin C Tablets 1000mg",
+              description: "High potency vitamin C supplement, bottle of 60 tablets",
+              quantity: 250,
+              uom: "bottles",
+              unitPrice: 6.55,
+              total: 1637.50,
+              specifications: "USP grade, enteric coated",
+              qualityGrade: "Nutraceutical"
+            }
+          ]
+        },
+        {
+          id: 1,
+          quotationNumber: "MFG-2025-001",
+          type: "manufacturing",
+          customerName: "Global Pharma Solutions",
+          customerId: 1,
+          date: "2025-05-20",
+          validUntil: "2025-06-20",
+          status: "pending",
+          subtotal: 45000,
+          transportationFees: 2500,
+          transportationType: "air-freight",
+          transportationNotes: "Temperature-controlled air freight required for API stability",
+          tax: 6650,
+          total: 54150,
+          amount: 54150,
+          notes: "Custom synthesis of Ibuprofen API with 99.5% purity specification. GMP compliance required.",
+          items: [
+            {
+              id: "1",
+              type: "manufacturing",
+              productName: "Ibuprofen API (Custom Synthesis)",
+              description: "High-purity Ibuprofen API manufactured to pharmaceutical standards",
+              quantity: 500,
+              uom: "kg",
+              unitPrice: 90,
+              total: 45000,
+              specifications: "99.5% purity, USP grade, white crystalline powder",
+              rawMaterials: ["Isobutylbenzene", "Acetic anhydride", "Aluminum chloride"],
+              processingTime: 14,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 2,
+          quotationNumber: "REF-2025-002",
+          type: "refining",
+          customerName: "BioTech Industries",
+          customerId: 2,
+          date: "2025-05-18",
+          validUntil: "2025-06-18",
+          status: "accepted",
+          subtotal: 28000,
+          transportationFees: 1800,
+          transportationType: "ground-express",
+          transportationNotes: "Ground express with hazmat certification for chemical transport",
+          tax: 4172,
+          total: 33972,
+          amount: 33972,
+          notes: "Purification of Aspirin API to pharmaceutical grade with COA documentation.",
+          items: [
+            {
+              id: "2",
+              type: "refining",
+              productName: "Aspirin API Purification",
+              description: "Refining crude aspirin to pharmaceutical grade purity",
+              quantity: 400,
+              uom: "kg",
+              unitPrice: 70,
+              total: 28000,
+              specifications: "99.7% purity, crystalline form, particle size 50-200μm",
+              rawMaterials: ["Crude Aspirin", "Recrystallization solvents"],
+              processingTime: 7,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "FIN-2025-003",
+          type: "finished",
+          customerName: "MedExport Corporation",
+          customerId: 3,
+          date: "2025-05-17",
+          validUntil: "2025-06-17",
+          status: "sent",
+          subtotal: 15000,
+          transportationFees: 1200,
+          transportationType: "sea-freight",
+          transportationNotes: "Sea freight container shipping with temperature monitoring",
+          tax: 2268,
+          total: 18468,
+          amount: 18468,
+          notes: "Paracetamol tablets 500mg for export to African markets. WHO-GMP certified.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Paracetamol Tablets 500mg",
+              description: "WHO-GMP certified paracetamol tablets for pain relief",
+              quantity: 100000,
+              uom: "tablets",
+              unitPrice: 0.15,
+              total: 15000,
+              specifications: "500mg tablets, blister pack, 2-year shelf life",
+              rawMaterials: ["Paracetamol API", "Microcrystalline cellulose", "Magnesium stearate"],
+              processingTime: 5,
+              qualityGrade: "WHO-GMP"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "MFG-2025-004",
+          type: "manufacturing",
+          customerName: "PharmaVisions Ltd",
+          customerId: 4,
+          date: "2025-05-15",
+          validUntil: "2025-06-15",
+          status: "draft",
+          subtotal: 72000,
+          transportationFees: 3500,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited air freight with cold chain management required",
+          tax: 10570,
+          total: 86070,
+          amount: 86070,
+          notes: "Novel compound synthesis for clinical trial Phase II. Strict GMP requirements.",
+          items: [
+            {
+              id: "4",
+              type: "manufacturing",
+              productName: "Novel Compound PV-2025 (Research Grade)",
+              description: "Custom synthesis of proprietary pharmaceutical compound",
+              quantity: 200,
+              uom: "kg",
+              unitPrice: 360,
+              total: 72000,
+              specifications: "≥98% purity, analytical grade, sterile packaging",
+              rawMaterials: ["Proprietary precursors", "Specialized catalysts"],
+              processingTime: 21,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "REF-2025-005",
+          type: "refining",
+          customerName: "CleanChem Solutions",
+          customerId: 5,
+          date: "2025-05-14",
+          validUntil: "2025-06-14",
+          status: "rejected",
+          subtotal: 18500,
+          transportationFees: 950,
+          transportationType: "ground-standard",
+          transportationNotes: "Standard ground shipping with chemical handling protocols",
+          tax: 2723,
+          total: 22173,
+          amount: 22173,
+          notes: "Ciprofloxacin purification service with impurity removal to EP standards.",
+          items: [
+            {
+              id: "5",
+              type: "refining",
+              productName: "Ciprofloxacin HCl Purification",
+              description: "Purification of ciprofloxacin to European Pharmacopoeia standards",
+              quantity: 250,
+              uom: "kg",
+              unitPrice: 74,
+              total: 18500,
+              specifications: "≥99.5% purity, EP grade, low water content",
+              rawMaterials: ["Crude Ciprofloxacin", "Purification reagents"],
+              processingTime: 10,
+              qualityGrade: "EP"
+            }
+          ]
+        },
+        {
+          id: 6,
+          quotationNumber: "FIN-2025-006",
+          type: "finished",
+          customerName: "HealthCare Distributors",
+          customerId: 6,
+          date: "2025-05-12",
+          validUntil: "2025-06-12",
+          status: "accepted",
+          subtotal: 24000,
+          transportationFees: 1600,
+          transportationType: "ground-express",
+          transportationNotes: "Express delivery with temperature-controlled transport",
+          tax: 3584,
+          total: 29184,
+          amount: 29184,
+          notes: "Amoxicillin capsules for domestic distribution. GMP compliance verified.",
+          items: [
+            {
+              id: "6",
+              type: "finished",
+              productName: "Amoxicillin Capsules 250mg",
+              description: "Broad-spectrum antibiotic capsules for bacterial infections",
+              quantity: 80000,
+              uom: "capsules",
+              unitPrice: 0.30,
+              total: 24000,
+              specifications: "250mg capsules, HDPE bottles, 3-year shelf life",
+              rawMaterials: ["Amoxicillin trihydrate", "Capsule shells", "Excipients"],
+              processingTime: 7,
+              qualityGrade: "GMP"
+            }
+          ]
+        },
+        {
+          id: 7,
+          quotationNumber: "MFG-2025-007",
+          type: "manufacturing",
+          customerName: "Advanced Therapeutics",
+          customerId: 7,
+          date: "2025-05-10",
+          validUntil: "2025-06-10",
+          status: "expired",
+          subtotal: 95000,
+          transportationFees: 4200,
+          transportationType: "air-freight",
+          transportationNotes: "Priority air freight with specialized handling for oncology compounds",
+          tax: 13888,
+          total: 113088,
+          amount: 113088,
+          notes: "Oncology compound synthesis for clinical research. Highest purity requirements.",
+          items: [
+            {
+              id: "7",
+              type: "manufacturing",
+              productName: "Oncology Compound AT-2025",
+              description: "Specialized synthesis for cancer research applications",
+              quantity: 150,
+              uom: "kg",
+              unitPrice: 633.33,
+              total: 95000,
+              specifications: "≥99.8% purity, analytical grade, sterile conditions",
+              rawMaterials: ["Advanced precursors", "Platinum catalysts"],
+              processingTime: 28,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 8,
+          quotationNumber: "FIN-2025-008",
+          type: "finished",
+          customerName: "Global Health Initiative",
+          customerId: 8,
+          date: "2025-05-08",
+          validUntil: "2025-06-08",
+          status: "pending",
+          subtotal: 35000,
+          transportationFees: 2800,
+          transportationType: "sea-freight",
+          transportationNotes: "Bulk sea freight for humanitarian distribution programs",
+          tax: 5292,
+          total: 43092,
+          amount: 43092,
+          notes: "Oral rehydration salts for humanitarian aid programs. WHO prequalified.",
+          items: [
+            {
+              id: "8",
+              type: "finished",
+              productName: "Oral Rehydration Salts (ORS)",
+              description: "WHO-approved oral rehydration therapy sachets",
+              quantity: 1000000,
+              uom: "sachets",
+              unitPrice: 0.035,
+              total: 35000,
+              specifications: "20.5g sachets, WHO formula, 3-year shelf life",
+              rawMaterials: ["Sodium chloride", "Potassium chloride", "Glucose"],
+              processingTime: 3,
+              qualityGrade: "WHO"
+            }
+          ]
+        },
+        {
+          id: 9,
+          quotationNumber: "MAN-2025-015",
+          type: "manufacturing",
+          customerName: "Global Pharma Solutions",
+          customerId: 9,
+          date: "2025-05-20",
+          validUntil: "2025-07-20",
+          status: "pending",
+          subtotal: 89500,
+          transportationFees: 2800,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited delivery for clinical trial materials",
+          tax: 12922,
+          total: 105222,
+          amount: 105222,
+          notes: "Custom synthesis of Metformin HCl for clinical trials. GMP facility required.",
+          items: [
+            {
+              id: "9",
+              type: "manufacturing",
+              productName: "Metformin Hydrochloride API",
+              description: "High-purity API for diabetes medication",
+              quantity: 500,
+              uom: "kg",
+              unitPrice: 179,
+              total: 89500,
+              specifications: "99.8% purity, USP grade, particle size 50-100 microns",
+              rawMaterials: ["Dimethylamine", "Cyanoguanidine", "Sodium methoxide"],
+              processingTime: 21,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 10,
+          quotationNumber: "REF-2025-008",
+          type: "refining",
+          customerName: "MedTech Industries",
+          customerId: 10,
+          date: "2025-05-18",
+          validUntil: "2025-06-18",
+          status: "accepted",
+          subtotal: 156000,
+          transportationFees: 5200,
+          transportationType: "ground-express",
+          transportationNotes: "Temperature-controlled transport with 24/7 monitoring",
+          tax: 22568,
+          total: 183768,
+          amount: 183768,
+          notes: "Purification and crystallization of Atorvastatin calcium for cholesterol medication.",
+          items: [
+            {
+              id: "10",
+              type: "refining",
+              productName: "Atorvastatin Calcium",
+              description: "Cholesterol-lowering medication API purification",
+              quantity: 800,
+              uom: "kg",
+              unitPrice: 195,
+              total: 156000,
+              specifications: "99.5% purity, trihydrate form, controlled particle size",
+              rawMaterials: ["Crude atorvastatin", "Calcium carbonate", "Ethanol"],
+              processingTime: 14,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 11,
+          quotationNumber: "FIN-2025-016",
+          type: "finished",
+          customerName: "African Health Network",
+          customerId: 11,
+          date: "2025-05-22",
+          validUntil: "2025-06-22",
+          status: "draft",
+          subtotal: 78500,
+          transportationFees: 3200,
+          transportationType: "sea-freight",
+          transportationNotes: "Bulk shipment for regional distribution centers",
+          tax: 11438,
+          total: 93138,
+          amount: 93138,
+          notes: "Antimalarial tablets for tropical disease prevention programs.",
+          items: [
+            {
+              id: "11",
+              type: "finished",
+              productName: "Artemether-Lumefantrine Tablets",
+              description: "Antimalarial combination therapy",
+              quantity: 500000,
+              uom: "tablets",
+              unitPrice: 0.157,
+              total: 78500,
+              specifications: "20mg/120mg strength, blister packed, WHO prequalified",
+              rawMaterials: ["Artemether", "Lumefantrine", "Microcrystalline cellulose"],
+              processingTime: 7,
+              qualityGrade: "WHO"
+            }
+          ]
+        },
+        {
+          id: 12,
+          quotationNumber: "MAN-2025-017",
+          type: "manufacturing",
+          customerName: "Precision Pharmaceuticals",
+          customerId: 12,
+          date: "2025-05-19",
+          validUntil: "2025-07-19",
+          status: "sent",
+          subtotal: 124800,
+          transportationFees: 4100,
+          transportationType: "air-freight",
+          transportationNotes: "High-value shipment with insurance and tracking",
+          tax: 18046,
+          total: 146946,
+          amount: 146946,
+          notes: "Synthesis of specialized oncology compound for rare cancer treatment.",
+          items: [
+            {
+              id: "12",
+              type: "manufacturing",
+              productName: "Imatinib Mesylate",
+              description: "Targeted cancer therapy API",
+              quantity: 200,
+              uom: "kg",
+              unitPrice: 624,
+              total: 124800,
+              specifications: "99.9% purity, crystalline form, moisture <0.5%",
+              rawMaterials: ["4-[(4-methylpiperazin-1-yl)methyl]-N-[4-methyl-3-[[4-(pyridin-3-yl)pyrimidin-2-yl]amino]phenyl]benzamide", "Methanesulfonic acid"],
+              processingTime: 28,
+              qualityGrade: "Ph.Eur"
+            }
+          ]
+        },
+        {
+          id: 13,
+          quotationNumber: "REF-2025-009",
+          type: "refining",
+          customerName: "CardioMed Corporation",
+          customerId: 13,
+          date: "2025-05-16",
+          validUntil: "2025-06-16",
+          status: "rejected",
+          subtotal: 67200,
+          transportationFees: 2400,
+          transportationType: "ground-standard",
+          transportationNotes: "Standard shipping with temperature monitoring",
+          tax: 9744,
+          total: 79344,
+          amount: 79344,
+          notes: "Purification of cardiovascular medication API with enhanced bioavailability.",
+          items: [
+            {
+              id: "13",
+              type: "refining",
+              productName: "Losartan Potassium",
+              description: "ACE inhibitor for hypertension treatment",
+              quantity: 600,
+              uom: "kg",
+              unitPrice: 112,
+              total: 67200,
+              specifications: "99.7% purity, anhydrous form, controlled polymorphic state",
+              rawMaterials: ["Crude losartan", "Potassium hydroxide", "Isopropanol"],
+              processingTime: 10,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 14,
+          quotationNumber: "FIN-2025-018",
+          type: "finished",
+          customerName: "Pediatric Care Solutions",
+          customerId: 14,
+          date: "2025-05-21",
+          validUntil: "2025-06-21",
+          status: "expired",
+          subtotal: 42800,
+          transportationFees: 1800,
+          transportationType: "cold-chain",
+          transportationNotes: "Refrigerated transport required for pediatric formulations",
+          tax: 6244,
+          total: 50844,
+          amount: 50844,
+          notes: "Pediatric suspension formulations with improved taste masking.",
+          items: [
+            {
+              id: "14",
+              type: "finished",
+              productName: "Amoxicillin Pediatric Suspension",
+              description: "Strawberry-flavored antibiotic for children",
+              quantity: 10000,
+              uom: "bottles",
+              unitPrice: 4.28,
+              total: 42800,
+              specifications: "125mg/5ml, sugar-free, natural flavoring, 14-day stability",
+              rawMaterials: ["Amoxicillin trihydrate", "Xanthan gum", "Strawberry flavor"],
+              processingTime: 5,
+              qualityGrade: "USP"
+            }
+          ]
+        },
+        {
+          id: 15,
+          quotationNumber: "MAN-2025-019",
+          type: "manufacturing",
+          customerName: "Neurological Research Institute",
+          customerId: 15,
+          date: "2025-05-17",
+          validUntil: "2025-07-17",
+          status: "pending",
+          subtotal: 198500,
+          transportationFees: 6800,
+          transportationType: "air-freight",
+          transportationNotes: "Expedited delivery for ongoing clinical trials",
+          tax: 28742,
+          total: 234042,
+          amount: 234042,
+          notes: "Synthesis of novel antiepileptic compound for Phase II clinical trials.",
+          items: [
+            {
+              id: "15",
+              type: "manufacturing",
+              productName: "Levetiracetam",
+              description: "Antiepileptic drug for seizure control",
+              quantity: 300,
+              uom: "kg",
+              unitPrice: 661.67,
+              total: 198500,
+              specifications: "99.8% purity, S-enantiomer, controlled crystal form",
+              rawMaterials: ["α-ethyl-2-oxo-1-pyrrolidineacetamide", "Sodium borohydride"],
+              processingTime: 35,
+              qualityGrade: "Ph.Eur"
+            }
+          ]
+        }
+      ];
+
+      // Apply query filters from frontend
+      const { query, status, type, date } = req.query;
+      let filteredQuotations = [...sampleQuotations];
+
+      // Filter by search query
+      if (query && query !== '') {
+        const searchTerm = (query as string).toLowerCase();
+        filteredQuotations = filteredQuotations.filter(quotation =>
+          quotation.quotationNumber.toLowerCase().includes(searchTerm) ||
+          quotation.customerName.toLowerCase().includes(searchTerm) ||
+          quotation.items.some(item => 
+            item.productName.toLowerCase().includes(searchTerm)
+          )
+        );
       }
-      
+
+      // Filter by status
+      if (status && status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.status === status);
+      }
+
+      // Filter by type
+      if (type && type !== 'all') {
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.type === type);
+      }
+
+      // Filter by date
+      if (date !== 'all') {
+        const now = new Date();
+        filteredQuotations = filteredQuotations.filter(q => {
+          const quotationDate = new Date(q.date);
+          switch (date) {
+            case 'today':
+              return quotationDate.toDateString() === now.toDateString();
+            case 'week':
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return quotationDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+              return quotationDate >= monthAgo;
+            case 'year':
+              const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+              return quotationDate >= yearAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
       res.json(filteredQuotations);
     } catch (error) {
       console.error("Error fetching quotations:", error);
@@ -375,21 +1020,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // Update quotation status
   app.patch("/api/quotations/:id/status", async (req: Request, res: Response) => {
     try {
-      const { status } = req.body;
       const id = Number(req.params.id);
-      
-      if (!status) {
-        return res.status(400).json({ message: "Status is required" });
+      const { status } = req.body;
+
+      if (!['draft', 'sent', 'pending', 'accepted', 'rejected', 'expired'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status value" });
       }
 
-      await storage.updateQuotationStatus(id, status);
-      res.json({ message: "Status updated successfully" });
+      const quotation = await storage.updateQuotation(id, { status });
+
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      res.json(quotation);
     } catch (error) {
       console.error("Error updating quotation status:", error);
-      res.status(500).json({ message: "Failed to update status" });
+      res.status(500).json({ message: "Failed to update quotation status" });
     }
   });
 
@@ -410,456 +1062,471 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= Products Endpoints =============
+            }
+          ]
+        },
+        {
+          id: 3,
+          quotationNumber: "FIN-2025-012",
+          type: "finished",
+          customerName: "HealthCare Distributors Ltd",
+          customerId: 3,
+          date: "2025-05-15",
+          validUntil: "2025-06-15",
+          status: "sent",
+          subtotal: 125000,
+          transportationFees: 4500,
+          transportationType: "cold-chain",
+          transportationNotes: "Refrigerated transport at 2-8°C with continuous temperature monitoring",
+          tax: 18130,
+          total: 147630,
+          amount: 147630,
+          notes: "Complete batch of finished Amoxicillin tablets, 500mg strength, blister packed.",
+          items: [
+            {
+              id: "3",
+              type: "finished",
+              productName: "Amoxicillin 500mg Tablets",
+              description: "Film-coated tablets in blister packaging",
+              quantity: 50000,
+              uom: "tablets",
+              unitPrice: 2.5,
+              total: 125000,
+              specifications: "500mg strength, USP standard, 24-month shelf life",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 4,
+          quotationNumber: "MFG-2025-003",
+          type: "manufacturing",
+          customerName: "International Pharma Corp",
+          customerId: 4,
+          date: "2025-05-22",
+          validUntil: "2025-06-22",
+          status: "draft",
+          subtotal: 75000,
+          transportationFees: 3200,
+          transportationType: "air-freight",
+          transportationNotes: "Express air freight with hazmat certification for controlled substances",
+          tax: 10948,
+          total: 89148,
+          amount: 89148,
+          notes: "Manufacturing of Metformin HCl with extended release coating technology.",
+          items: [
+            {
+              id: "4",
+              type: "manufacturing",
+              productName: "Metformin HCl API (Extended Release)",
+              description: "Extended release formulation with polymer coating",
+              quantity: 800,
+              uom: "kg",
+              unitPrice: 93.75,
+              total: 75000,
+              specifications: "98.5% min purity, extended release profile",
+              rawMaterials: ["Dimethylamine hydrochloride", "Dicyandiamide", "Sodium methoxide"],
+              processingTime: 21,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 5,
+          quotationNumber: "REF-2025-009",
+          type: "refining",
+          customerName: "BioPharm Research",
+          customerId: 5,
+          date: "2025-05-10",
+          validUntil: "2025-06-10",
+          status: "expired",
+          subtotal: 32000,
+          transportationFees: 0,
+          transportationType: "pickup",
+          transportationNotes: "",
+          tax: 4480,
+          total: 36480,
+          amount: 36480,
+          notes: "Chromatographic purification of Paracetamol impurities removal service.",
+          items: [
+            {
+              id: "5",
+              type: "refining",
+              productName: "Paracetamol Purification Service",
+              description: "HPLC purification to remove process impurities",
+              quantity: 1200,
+              uom: "kg",
+              unitPrice: 26.67,
+              total: 32000,
+              specifications: "99.2% min purity, low impurity profile",
+              processingTime: 5,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 6,
+          quotationNumber: "FIN-2025-018",
+          type: "finished",
+          customerName: "Regional Medical Supply",
+          customerId: 6,
+          date: "2025-05-19",
+          validUntil: "2025-06-19",
+          status: "rejected",
+          subtotal: 67500,
+          transportationFees: 2800,
+          transportationType: "standard-shipping",
+          transportationNotes: "Standard pharmaceutical shipping with signature confirmation",
+          tax: 9842,
+          total: 80142,
+          amount: 80142,
+          notes: "Cephalexin capsules 250mg with custom packaging and labeling requirements.",
+          items: [
+            {
+              id: "6",
+              type: "finished",
+              productName: "Cephalexin 250mg Capsules",
+              description: "Hard gelatin capsules with custom labeling",
+              quantity: 25000,
+              uom: "capsules",
+              unitPrice: 2.7,
+              total: 67500,
+              specifications: "250mg strength, hard gelatin capsules",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 7,
+          quotationNumber: "MFG-2025-005",
+          type: "manufacturing",
+          customerName: "Advanced Therapeutics Inc",
+          customerId: 7,
+          date: "2025-05-21",
+          validUntil: "2025-06-21",
+          status: "pending",
+          subtotal: 98000,
+          transportationFees: 5200,
+          transportationType: "specialized-transport",
+          transportationNotes: "Specialized pharmaceutical transport with nitrogen blanketing for oxygen-sensitive compounds",
+          tax: 14448,
+          total: 117648,
+          amount: 117648,
+          notes: "Custom synthesis of novel API compound with proprietary catalyst system. Research grade purity required.",
+          items: [
+            {
+              id: "7",
+              type: "manufacturing",
+              productName: "Novel API Compound (Research Grade)",
+              description: "Proprietary compound for clinical trials",
+              quantity: 100,
+              uom: "kg",
+              unitPrice: 980,
+              total: 98000,
+              specifications: "99.8% purity, research grade, special handling required",
+              rawMaterials: ["Proprietary starting materials", "Specialized catalysts"],
+              processingTime: 28,
+              qualityGrade: "Research"
+            }
+          ]
+        },
+        {
+          id: 8,
+          quotationNumber: "REF-2025-011",
+          type: "refining",
+          customerName: "Pharmaceutical Excellence Ltd",
+          customerId: 8,
+          date: "2025-05-17",
+          validUntil: "2025-06-17",
+          status: "accepted",
+          subtotal: 41000,
+          transportationFees: 1800,
+          transportationType: "ground-shipping",
+          transportationNotes: "Temperature-controlled ground transport with real-time tracking",
+          tax: 5992,
+          total: 48792,
+          amount: 48792,
+          notes: "Recrystallization and particle size optimization of Ciprofloxacin raw material.",
+          items: [
+            {
+              id: "8",
+              type: "refining",
+              productName: "Ciprofloxacin Optimization Service",
+              description: "Particle size control and crystalline form optimization",
+              quantity: 750,
+              uom: "kg",
+              unitPrice: 54.67,
+              total: 41000,
+              specifications: "Optimized particle size distribution, stable polymorph",
+              processingTime: 10,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        },
+        {
+          id: 9,
+          quotationNumber: "FIN-2025-023",
+          type: "finished",
+          customerName: "Metro Healthcare Network",
+          customerId: 9,
+          date: "2025-05-23",
+          validUntil: "2025-06-23",
+          status: "sent",
+          subtotal: 156000,
+          transportationFees: 6800,
+          transportationType: "cold-chain",
+          transportationNotes: "Multi-temperature cold chain delivery with separate compartments for different stability requirements",
+          tax: 22792,
+          total: 185592,
+          amount: 185592,
+          notes: "Mixed batch of finished dosage forms including tablets and oral suspensions with different storage requirements.",
+          items: [
+            {
+              id: "9a",
+              type: "finished",
+              productName: "Azithromycin 250mg Tablets",
+              description: "Film-coated tablets for respiratory infections",
+              quantity: 30000,
+              uom: "tablets",
+              unitPrice: 3.2,
+              total: 96000,
+              specifications: "250mg strength, film-coated, room temperature stable",
+              qualityGrade: "Commercial"
+            },
+            {
+              id: "9b",
+              type: "finished",
+              productName: "Amoxicillin Oral Suspension 125mg/5ml",
+              description: "Pediatric oral suspension with fruit flavor",
+              quantity: 2000,
+              uom: "bottles",
+              unitPrice: 30,
+              total: 60000,
+              specifications: "125mg/5ml concentration, 100ml bottles, refrigerated storage",
+              qualityGrade: "Commercial"
+            }
+          ]
+        },
+        {
+          id: 10,
+          quotationNumber: "MFG-2025-008",
+          type: "manufacturing",
+          customerName: "Specialty Pharma Solutions",
+          customerId: 10,
+          date: "2025-05-16",
+          validUntil: "2025-06-16",
+          status: "pending",
+          subtotal: 84500,
+          transportationFees: 3800,
+          transportationType: "air-freight",
+          transportationNotes: "Priority air freight with controlled atmosphere packaging for moisture-sensitive materials",
+          tax: 12362,
+          total: 100662,
+          amount: 100662,
+          notes: "Manufacturing of Omeprazole delayed-release pellets with enteric coating for gastric stability.",
+          items: [
+            {
+              id: "10",
+              type: "manufacturing",
+              productName: "Omeprazole DR Pellets (Enteric Coated)",
+              description: "Delayed-release pellets with gastric resistance",
+              quantity: 600,
+              uom: "kg",
+              unitPrice: 140.83,
+              total: 84500,
+              specifications: "Enteric coating, gastric resistant, delayed release profile",
+              rawMaterials: ["Omeprazole base", "Enteric coating polymers", "Core pellets"],
+              processingTime: 18,
+              qualityGrade: "Pharmaceutical"
+            }
+          ]
+        }
+      ];
+
+      // Apply filters
+      const query = req.query.query as string || '';
+      const status = req.query.status as string || 'all';
+      const type = req.query.type as string || 'all';
+      const date = req.query.date as string || 'all';
+
+      let filteredQuotations = sampleQuotations;
+
+      if (query && query.trim() !== '') {
+        filteredQuotations = filteredQuotations.filter(q => 
+          q.quotationNumber.toLowerCase().includes(query.toLowerCase()) ||
+          q.customerName.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+
+      if (status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.status === status);
+      }
+
+      if (type !== 'all') {
+        filteredQuotations = filteredQuotations.filter(q => q.type === type);
+      }
+
+      if (date !== 'all') {
+        const now = new Date();
+        filteredQuotations = filteredQuotations.filter(q => {
+          const quotationDate = new Date(q.date);
+          switch (date) {
+            case 'today':
+              return quotationDate.toDateString() === now.toDateString();
+            case 'week':
+              const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return quotationDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+              return quotationDate >= monthAgo;
+            case 'year':
+              const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+              return quotationDate >= yearAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      res.json(filteredQuotations);
+    } catch (error) {
+      console.error("Error fetching quotations:", error);
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+
+  // Get quotation by ID
+  app.get("/api/quotations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const quotation = await storage.getQuotation(id);
+
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Get quotation items
+      const items = await storage.getQuotationItems(id);
+
+      res.json({
+        ...quotation,
+        items
+      });
+    } catch (error) {
+      console.error("Error fetching quotation:", error);
+      res.status(500).json({ message: "Failed to fetch quotation" });
+    }
+  });
+
   // Create new quotation
   app.post("/api/quotations", async (req: Request, res: Response) => {
     try {
-      // Structured logging to debug payload shape
-      console.log("POST /api/quotations body keys:", Object.keys(req.body));
-      console.log("packagingItems type:", typeof req.body.packagingItems, "length:", req.body.packagingItems?.length);
-
-      // Normalize packaging items to handle different field names/formats
-      const rawPackagingItems = req.body.packagingItems ?? req.body.packaging_items ?? req.body.packaging;
-      let packagingItems = [];
+      console.log("Creating quotation with data:", JSON.stringify(req.body, null, 2));
       
-      if (rawPackagingItems) {
-        if (Array.isArray(rawPackagingItems)) {
-          packagingItems = rawPackagingItems;
-        } else if (typeof rawPackagingItems === 'string') {
-          try {
-            packagingItems = JSON.parse(rawPackagingItems);
-          } catch (parseError) {
-            console.error("Failed to parse packagingItems string:", parseError);
-            packagingItems = [];
-          }
-        } else if (typeof rawPackagingItems === 'object') {
-          packagingItems = [rawPackagingItems];
-        }
-      }
-
-      const {
-        quotationNumber,
-        type,
-        customerId,
-        customerName,
-        validUntil,
-        notes,
-        items,
-        subtotal,
-        transportationFees,
-        transportationType,
-        transportationNotes,
-        tax,
-        total,
-        status,
-        date
-      } = req.body;
-
-      console.log("Creating quotation with data:", { 
-        quotationNumber, 
-        customerId, 
-        items: items?.length || 0, 
-        packagingItems: packagingItems?.length || 0 
-      });
-
-      // Generate quotation number if not provided
-      const finalQuotationNumber = quotationNumber || `QUO-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-
-      // Prepare quotation data
+      // Map frontend data structure to backend schema
       const quotationData = {
-        quotationNumber: finalQuotationNumber,
-        customerId: customerId || null,
-        userId: 1, // TODO: Get from authenticated user session
-        issueDate: date ? new Date(date) : new Date(),
-        validUntil: validUntil ? new Date(validUntil) : null,
-        subtotal: parseFloat(subtotal?.toString() || '0'),
-        taxRate: tax && subtotal ? (Number(tax) / Number(subtotal) * 100) : 0,
-        taxAmount: parseFloat(tax?.toString() || '0'),
-        totalAmount: parseFloat(total?.toString() || '0'),
-        grandTotal: parseFloat(total?.toString() || '0'),
-        status: status || 'pending',
-        notes: notes || null,
+        quotationNumber: req.body.quotationNumber || `QT-${Date.now().toString().slice(-6)}`,
+        customerId: req.body.customerId || null,
+        userId: 1, // Hardcoded user ID for now
+        validUntil: req.body.validUntil,
+        subtotal: req.body.subtotal?.toString() || '0',
+        taxRate: req.body.vatPercentage?.toString() || '14',
+        taxAmount: req.body.tax?.toString() || '0',
+        grandTotal: req.body.total?.toString() || '0',
+        status: req.body.status || 'draft',
+        notes: req.body.notes || ''
       };
 
-      // Create quotation
-      const quotation = await storage.createQuotation(quotationData);
-      console.log("Created quotation:", quotation.id);
+      console.log("Mapped quotation data:", quotationData);
 
-      // Save quotation items if provided
-      if (items && items.length > 0) {
-        console.log("Saving", items.length, "quotation items");
-        for (const item of items) {
+      // Validate quotation data
+      const validatedQuotation = insertQuotationSchema.parse(quotationData);
+
+      // Create quotation
+      const quotation = await storage.createQuotation(validatedQuotation);
+      console.log("Created quotation:", quotation);
+
+      // Process quotation items if they exist
+      if (req.body.items && Array.isArray(req.body.items) && req.body.items.length > 0) {
+        console.log("Processing items:", req.body.items);
+        
+        for (const item of req.body.items) {
+          // For now, we'll create a basic product entry if productId doesn't exist
+          let productId = item.productId;
+          
+          if (!productId) {
+            // Create a basic product entry for quotation items that don't have productId
+            const productData = {
+              name: item.productName || 'Custom Product',
+              drugName: item.productName || 'Custom Product',
+              categoryId: 1, // Default category
+              description: item.description || '',
+              sku: `CUSTOM-${Date.now()}`,
+              costPrice: '0',
+              sellingPrice: item.unitPrice?.toString() || '0',
+              quantity: 999999, // High quantity for custom items
+              unitOfMeasure: item.uom || 'piece',
+              lowStockThreshold: 10,
+              status: 'active',
+              productType: 'finished',
+              manufacturer: 'Custom',
+              location: 'Main Warehouse'
+            };
+            
+            try {
+              const validatedProduct = insertProductSchema.parse(productData);
+              const product = await storage.createProduct(validatedProduct);
+              productId = product.id;
+              console.log("Created custom product:", product);
+            } catch (productError) {
+              console.error("Error creating custom product:", productError);
+              // Skip this item if product creation fails
+              continue;
+            }
+          }
+
           const itemData = {
             quotationId: quotation.id,
-            productId: item.productId || 1,
-            quantity: Number(item.quantity) || 1,
-            unitPrice: parseFloat(item.unitPrice?.toString() || '0'),
-            discount: parseFloat(item.discount?.toString() || '0'),
-            total: parseFloat(item.total?.toString() || '0'),
+            productId: productId,
+            quantity: parseInt(item.quantity?.toString() || '1'),
+            unitPrice: item.unitPrice?.toString() || '0',
+            total: item.total?.toString() || '0'
           };
-          await storage.createQuotationItem(itemData);
-        }
-      }
 
-      // Save packaging items if provided with validation
-      if (packagingItems && packagingItems.length > 0) {
-        console.log("Processing", packagingItems.length, "packaging items");
-        
-        for (let i = 0; i < packagingItems.length; i++) {
-          const packagingItem = packagingItems[i];
-          console.log(`Processing packaging item ${i + 1}:`, packagingItem);
-
+          console.log("Creating quotation item:", itemData);
+          
           try {
-            // Prepare raw data for validation
-            const rawPackagingItemData = {
-              quotationId: quotation.id,
-              type: packagingItem.type || 'container',
-              description: packagingItem.description || '',
-              quantity: Number(packagingItem.quantity) || 1,
-              unitPrice: parseFloat(packagingItem.unitPrice?.toString() || '0').toString(),
-              total: parseFloat(packagingItem.total?.toString() || '0').toString(),
-              notes: packagingItem.notes || null
-            };
-
-            console.log(`Raw packaging item data ${i + 1}:`, rawPackagingItemData);
-
-            // Validate using Zod schema
-            const validatedPackagingItemData = insertQuotationPackagingItemSchema.parse(rawPackagingItemData);
-            console.log(`Validated packaging item data ${i + 1}:`, validatedPackagingItemData);
-
-            // Insert using validated data
-            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData);
-            console.log(`Successfully saved packaging item ${i + 1}:`, insertResult);
-
-          } catch (validationError) {
-            console.error(`Validation error for packaging item ${i + 1}:`, validationError);
-            if (validationError instanceof z.ZodError) {
-              console.error("Zod validation details:", validationError.errors);
-            }
-            throw validationError; // Re-throw to trigger the outer catch
+            const validatedItem = insertQuotationItemSchema.parse(itemData);
+            await storage.createQuotationItem(validatedItem);
+          } catch (itemError) {
+            console.error("Error creating quotation item:", itemError);
+            // Continue with other items if one fails
           }
         }
       }
 
-      res.status(201).json({
-        success: true,
-        quotation: quotation,
-        message: `Quotation ${status === 'draft' ? 'saved as draft' : 'created'} successfully`
-      });
+      // Return the created quotation with items
+      const responseData = {
+        ...quotation,
+        items: req.body.items || [],
+        customerName: req.body.customerName
+      };
 
-    } catch (error) {
-      console.error("Create quotation error:", error);
+      console.log("Returning quotation response:", responseData);
+      res.status(201).json(responseData);
       
-      // Enhanced error logging for packaging items
+    } catch (error) {
+      console.error("Error creating quotation:", error);
       if (error instanceof z.ZodError) {
-        console.error("Zod validation failed:", error.errors);
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ 
-          success: false,
-          message: "Invalid packaging item data",
-          errors: error.errors 
+          message: "Invalid quotation data", 
+          errors: error.errors,
+          receivedData: req.body
         });
       }
-
-      res.status(500).json({ 
-        success: false,
-        message: "Failed to create quotation",
-        error: error.message 
-      });
-    }
-  });
-
-
-  // ============= Category Endpoints =============
-
-  // Get all categories
-  app.get("/api/categories", async (req: Request, res: Response) => {
-    try {
-      const categories = await storage.getCategories();
-      res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch categories" });
-    }
-  });
-
-  // Create new category
-  app.post("/api/categories", async (req: Request, res: Response) => {
-    try {
-      const validatedData = insertProductCategorySchema.parse(req.body);
-      const category = await storage.createCategory(validatedData);
-      res.status(201).json(category);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create category" });
-    }
-  });
-
-  // Delete a category
-  app.delete("/api/categories/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-
-      // Check if category exists
-      const category = await storage.getCategory(id);
-      if (!category) {
-        return res.status(404).json({ message: "Category not found" });
-      }
-
-      const success = await storage.deleteCategory(id);
-
-      if (!success) {
-        return res.status(400).json({ 
-          message: "Cannot delete this category because it's used by existing products. Please reassign those products to another category first."
-        });
-      }
-
-      res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-      console.error("Error when deleting category:", error);
-      res.status(500).json({ message: "Failed to delete category" });
-    }
-  });
-
-  // ============= Customer Endpoints =============
-
-  // Get all customers
-  app.get("/api/customers", async (req: Request, res: Response) => {
-    try {
-      const customers = await storage.getCustomers();
-      res.json(customers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch customers" });
-    }
-  });
-
-  // Get customer by ID
-  app.get("/api/customers/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      const customer = await storage.getCustomer(id);
-
-      if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
-      }
-
-      res.json(customer);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch customer" });
-    }
-  });
-
-  // Create new customer
-  app.post("/api/customers", async (req: Request, res: Response) => {
-    try {
-      console.log("Creating customer with data:", req.body);
-      
-      const validatedData = insertCustomerSchema.parse(req.body);
-      console.log("Validated customer data:", validatedData);
-      
-      const customer = await storage.createCustomer(validatedData);
-      console.log("Created customer:", customer);
-      
-      res.status(201).json(customer);
-    } catch (error) {
-      console.error("Error creating customer:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create customer" });
-    }
-  });
-
-  // ============= Supplier Endpoints =============
-
-  // Get all suppliers
-  app.get("/api/suppliers", async (req: Request, res: Response) => {
-    try {
-      const suppliers = await storage.getSuppliers();
-      res.json(suppliers);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch suppliers" });
-    }
-  });
-
-  // Get supplier by ID
-  app.get("/api/suppliers/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      const supplier = await storage.getSupplier(id);
-
-      if (!supplier) {
-        return res.status(404).json({ message: "Supplier not found" });
-      }
-
-      res.json(supplier);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch supplier" });
-    }
-  });
-
-  // Create new supplier
-  app.post("/api/suppliers", async (req: Request, res: Response) => {
-    try {
-      const validatedData = insertSupplierSchema.parse(req.body);
-      const supplier = await storage.createSupplier(validatedData);
-      res.status(201).json(supplier);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid supplier data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create supplier" });
-    }
-  });
-
-  // ============= Sales Endpoints =============
-
-  // Get all sales
-  app.get("/api/sales", async (req: Request, res: Response) => {
-    try {
-      let sales;
-      const { customerId, startDate, endDate } = req.query;
-
-      if (customerId) {
-        sales = await storage.getSalesByCustomer(Number(customerId));
-      } else if (startDate && endDate) {
-        sales = await storage.getSalesByDate(new Date(startDate as string), new Date(endDate as string));
-      } else {
-        sales = await storage.getSales();
-      }
-
-      res.json(sales);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch sales" });
-    }
-  });
-
-  // Get sales statistics
-  app.get("/api/sales/stats", async (req: Request, res: Response) => {
-    try {
-      const todaySalesTotal = await storage.getTodaySalesTotal();
-      const monthSalesTotal = await storage.getMonthSalesTotal();
-
-      res.json({
-        todaySalesTotal,
-        monthSalesTotal
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch sales statistics" });
-    }
-  });
-
-  // Create new sale
-  app.post("/api/sales", async (req: Request, res: Response) => {
-    try {
-      const { sale, items } = req.body;
-
-      // Validate sale data
-      const validatedSale = insertSaleSchema.parse({
-        ...sale,
-        customerId: sale.customerId ? Number(sale.customerId) : null,
-        userId: Number(sale.userId),
-        totalAmount: Number(sale.totalAmount),
-        discount: sale.discount ? Number(sale.discount) : 0,
-        tax: sale.tax ? Number(sale.tax) : 0
-      });
-
-      // ============= INVENTORY VALIDATION AND DEDUCTION =============
-      
-      // Validate stock availability for all items before processing
-      const stockValidation = [];
-      
-      for (const item of items) {
-        if (item.productId && item.quantity) {
-          const stockCheck = await db
-            .select({
-              warehouseId: warehouseInventory.warehouseId,
-              warehouseName: warehouses.name,
-              quantity: warehouseInventory.quantity,
-              reservedQuantity: warehouseInventory.reservedQuantity,
-              availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
-            })
-            .from(warehouseInventory)
-            .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
-            .where(eq(warehouseInventory.productId, Number(item.productId)));
-
-          const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
-          const requiredQuantity = Number(item.quantity);
-          
-          if (availableStock < requiredQuantity) {
-            return res.status(400).json({
-              success: false,
-              message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
-              error: 'INSUFFICIENT_STOCK',
-              stockDetails: {
-                productId: item.productId,
-                required: requiredQuantity,
-                available: availableStock,
-                warehouseDetails: stockCheck
-              }
-            });
-          }
-          
-          stockValidation.push({
-            productId: Number(item.productId),
-            quantity: requiredQuantity,
-            availableStock,
-            warehouseDetails: stockCheck
-          });
-        }
-      }
-      
-      console.log('✅ STOCK VALIDATION PASSED for all sale items');
-      
-      // Immediately deduct inventory for sales (sales are immediate transactions)
-      for (const validation of stockValidation) {
-        let remainingQuantity = validation.quantity;
-        
-        for (const warehouse of validation.warehouseDetails) {
-          if (remainingQuantity <= 0) break;
-          
-          const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
-          
-          if (deductFromWarehouse > 0) {
-            await db
-              .update(warehouseInventory)
-              .set({
-                quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
-                lastUpdated: new Date(),
-                updatedBy: 1 // TODO: Get from session
-              })
-              .where(and(
-                eq(warehouseInventory.productId, validation.productId),
-                eq(warehouseInventory.warehouseId, warehouse.warehouseId)
-              ));
-
-            remainingQuantity -= deductFromWarehouse;
-          }
-        }
-        
-        console.log(`✅ INVENTORY DEDUCTED: Product ${validation.productId} - ${validation.quantity} units deducted from warehouse inventory`);
-      }
-
-      // Validate each item
-      const validatedItems = [];
-      for (const item of items) {
-        const validatedItem = insertSaleItemSchema.parse({
-          ...item,
-          productId: Number(item.productId),
-          quantity: Number(item.quantity),
-          unitPrice: Number(item.unitPrice),
-          discount: item.discount ? Number(item.discount) : 0,
-          total: Number(item.total)
-        });
-        validatedItems.push(validatedItem);
-      }
-
-      const createdSale = await storage.createSale(validatedSale, validatedItems);
-      res.status(201).json(createdSale);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid sale data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create sale" });
+      res.status(500).json({ message: "Failed to create quotation" });
     }
   });
 
@@ -950,8 +1617,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = Number(req.params.id);
 
-      console.log('🔥 PRODUCT UPDATE - Raw request body:', JSON.stringify(req.body, null, 2));
-
       // Validate and transform request body
       const validatedData = updateProductSchema.parse({
         ...req.body,
@@ -963,8 +1628,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       });
 
-      console.log('🔥 PRODUCT UPDATE - Validated data:', JSON.stringify(validatedData, null, 2));
-
       // Add image path if uploaded
       if (req.file) {
         validatedData.imagePath = req.file.path;
@@ -972,15 +1635,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const product = await storage.updateProduct(id, validatedData);
 
-      console.log('🔥 PRODUCT UPDATE - Updated product result:', JSON.stringify(product, null, 2));
-
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
 
       res.json(product);
     } catch (error) {
-      console.error('🔥 PRODUCT UPDATE - Error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid product data", errors: error.errors });
       }
@@ -1177,103 +1837,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get sale by ID (for invoice details)
-  app.get("/api/sales/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      
-      // Use direct SQL to get sale and avoid Drizzle issues
-      const { pool } = await import("./db");
-      
-      // Get sale data
-      const saleResult = await pool.query(`SELECT * FROM sales WHERE id = $1`, [id]);
-      if (saleResult.rows.length === 0) {
-        return res.status(404).json({ message: "Sale not found" });
-      }
-      const sale = saleResult.rows[0];
-
-      // Get sale items with product data using direct SQL
-      const itemsResult = await pool.query(`
-        SELECT si.id, si.sale_id, si.product_id, si.quantity, si.unit_price, 
-               si.discount, si.total, si.unit_of_measure,
-               p.name as product_name, p.sku as product_sku, 
-               p.unit_of_measure as product_unit, pc.name as category_name
-        FROM sale_items si 
-        LEFT JOIN products p ON si.product_id = p.id 
-        LEFT JOIN product_categories pc ON p.category_id = pc.id 
-        WHERE si.sale_id = $1
-      `, [id]);
-      
-      console.log('Raw SQL result:', itemsResult.rows);
-      const saleItems = itemsResult.rows.map(item => {
-        console.log('Processing item:', item);
-        const mappedItem = {
-          id: item.id,
-          saleId: item.sale_id,
-          productId: item.product_id,
-          quantity: item.quantity,
-          unitPrice: item.unit_price,
-          discount: item.discount,
-          total: item.total,
-          productName: item.product_name || 'Unknown Product',
-          productSku: item.product_sku || '',
-          unitOfMeasure: item.product_unit || item.unit_of_measure || 'PCS',
-          category: item.category_name
-        };
-        console.log('Mapped item:', mappedItem);
-        return mappedItem;
-      });
-      
-      // Get customer info using direct SQL
-      let customer = null;
-      if (sale.customer_id) {
-        const customerResult = await pool.query(`SELECT * FROM customers WHERE id = $1`, [sale.customer_id]);
-        if (customerResult.rows.length > 0) {
-          customer = customerResult.rows[0];
-        }
-      }
-
-      // Format response with items and customer
-      const response = {
-        id: sale.id,
-        invoiceNumber: sale.invoice_number,
-        customerId: sale.customer_id,
-        userId: sale.user_id,
-        date: sale.date,
-        totalAmount: sale.total_amount,
-        subtotal: sale.subtotal,
-        discount: sale.discount,
-        discountAmount: sale.discount_amount,
-        tax: sale.tax,
-        taxRate: sale.tax_rate,
-        taxAmount: sale.tax_amount,
-        vatRate: sale.vat_rate,
-        vatAmount: sale.vat_amount,
-        grandTotal: sale.grand_total,
-        paymentMethod: sale.payment_method,
-        paymentStatus: sale.payment_status,
-        amountPaid: sale.amount_paid,
-        paymentTerms: sale.payment_terms,
-        notes: sale.notes,
-        etaStatus: sale.eta_status,
-        etaReference: sale.eta_reference,
-        etaUuid: sale.eta_uuid,
-        etaSubmissionDate: sale.eta_submission_date,
-        etaResponse: sale.eta_response,
-        etaErrorMessage: sale.eta_error_message,
-        createdAt: sale.created_at,
-        customer,
-        items: saleItems
-      };
-
-      res.json(response);
-    } catch (error) {
-      console.error("Error fetching sale details:", error);
-      res.status(500).json({ message: "Failed to fetch sale details" });
-    }
-  });
-
-
   // Get sales statistics
   app.get("/api/sales/stats", async (req: Request, res: Response) => {
     try {
@@ -1303,82 +1866,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discount: sale.discount ? Number(sale.discount) : 0,
         tax: sale.tax ? Number(sale.tax) : 0
       });
-
-      // ============= INVENTORY VALIDATION AND DEDUCTION =============
-      
-      // Validate stock availability for all items before processing
-      const stockValidation = [];
-      
-      for (const item of items) {
-        if (item.productId && item.quantity) {
-          const stockCheck = await db
-            .select({
-              warehouseId: warehouseInventory.warehouseId,
-              warehouseName: warehouses.name,
-              quantity: warehouseInventory.quantity,
-              reservedQuantity: warehouseInventory.reservedQuantity,
-              availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
-            })
-            .from(warehouseInventory)
-            .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
-            .where(eq(warehouseInventory.productId, Number(item.productId)));
-
-          const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
-          const requiredQuantity = Number(item.quantity);
-          
-          if (availableStock < requiredQuantity) {
-            return res.status(400).json({
-              success: false,
-              message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
-              error: 'INSUFFICIENT_STOCK',
-              stockDetails: {
-                productId: item.productId,
-                required: requiredQuantity,
-                available: availableStock,
-                warehouseDetails: stockCheck
-              }
-            });
-          }
-          
-          stockValidation.push({
-            productId: Number(item.productId),
-            quantity: requiredQuantity,
-            availableStock,
-            warehouseDetails: stockCheck
-          });
-        }
-      }
-      
-      console.log('✅ STOCK VALIDATION PASSED for all sale items');
-      
-      // Immediately deduct inventory for sales (sales are immediate transactions)
-      for (const validation of stockValidation) {
-        let remainingQuantity = validation.quantity;
-        
-        for (const warehouse of validation.warehouseDetails) {
-          if (remainingQuantity <= 0) break;
-          
-          const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
-          
-          if (deductFromWarehouse > 0) {
-            await db
-              .update(warehouseInventory)
-              .set({
-                quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
-                lastUpdated: new Date(),
-                updatedBy: 1 // TODO: Get from session
-              })
-              .where(and(
-                eq(warehouseInventory.productId, validation.productId),
-                eq(warehouseInventory.warehouseId, warehouse.warehouseId)
-              ));
-
-            remainingQuantity -= deductFromWarehouse;
-          }
-        }
-        
-        console.log(`✅ INVENTORY DEDUCTED: Product ${validation.productId} - ${validation.quantity} units deducted from warehouse inventory`);
-      }
 
       // Validate each item
       const validatedItems = [];
@@ -1685,7 +2172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         return {
           id: sale.id,
-          invoiceNumber: sale.invoiceNumber,
+          invoiceNumber:```text
+ sale.invoiceNumber,
           customerName,
           date: sale.date,
           dueDate: dueDate.toISOString(),
@@ -2131,199 +2619,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid settings data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update backup settings" });
-    }
-  });
-
-  // ============= Financial Integration Status Endpoint =============
-
-  // Get financial integration status with real data
-  app.get("/api/financial-integration/status", async (req: Request, res: Response) => {
-    try {
-      // Check database connection health
-      let dbStatus = 'active';
-      let integrationStatus = 'connected';
-      let lastSync = null;
-      let summary = {
-        totalRevenue: 0,
-        totalExpenses: 0,
-        netProfit: 0
-      };
-
-      try {
-        // Test database connection
-        await db.execute('SELECT 1');
-        
-        // Check if required accounting tables exist and have data
-        const accountsCount = await db.execute('SELECT COUNT(*) as count FROM accounts');
-        const journalEntriesCount = await db.execute('SELECT COUNT(*) as count FROM journal_entries');
-        
-        if (Number(accountsCount.rows[0]?.count || 0) === 0) {
-          integrationStatus = 'disconnected';
-        }
-
-        // Get last sync timestamp from most recent journal entry
-        const lastJournalEntry = await db.execute(`
-          SELECT created_at 
-          FROM journal_entries 
-          ORDER BY created_at DESC 
-          LIMIT 1
-        `);
-        
-        if (lastJournalEntry.rows.length > 0) {
-          lastSync = lastJournalEntry.rows[0].created_at;
-        }
-
-        // Get real financial summary
-        const revenueResult = await db.execute(`
-          SELECT COALESCE(SUM(CAST(total AS NUMERIC)), 0) as total_revenue
-          FROM sales 
-          WHERE status != 'cancelled'
-        `);
-
-        const expensesResult = await db.execute(`
-          SELECT COALESCE(SUM(CAST(amount AS NUMERIC)), 0) as total_expenses
-          FROM expenses
-        `);
-
-        summary.totalRevenue = Number(revenueResult.rows[0]?.total_revenue || 0);
-        summary.totalExpenses = Number(expensesResult.rows[0]?.total_expenses || 0);
-        summary.netProfit = summary.totalRevenue - summary.totalExpenses;
-
-      } catch (dbError) {
-        console.error('Database connection check failed:', dbError);
-        dbStatus = 'error';
-        integrationStatus = 'disconnected';
-      }
-
-      const response = {
-        status: dbStatus,
-        accountingIntegration: integrationStatus,
-        lastSync: lastSync,
-        summary: summary,
-        timestamp: new Date().toISOString(),
-        features: {
-          journalEntries: integrationStatus === 'connected',
-          autoAccounting: integrationStatus === 'connected',
-          reportGeneration: true
-        }
-      };
-
-      res.json(response);
-    } catch (error) {
-      console.error("Failed to fetch financial integration status:", error);
-      res.status(500).json({ 
-        status: 'error',
-        accountingIntegration: 'disconnected',
-        lastSync: null,
-        summary: { totalRevenue: 0, totalExpenses: 0, netProfit: 0 },
-        message: "Failed to fetch integration status" 
-      });
-    }
-  });
-
-  // ============= Expense Categories Endpoints =============
-
-  // Get all expense categories
-  app.get("/api/expense-categories", async (req: Request, res: Response) => {
-    try {
-      const categories = await db.select().from(expenseCategories).orderBy(expenseCategories.name);
-      res.json(categories);
-    } catch (error) {
-      console.error("Failed to fetch expense categories:", error);
-      res.status(500).json({ message: "Failed to fetch expense categories" });
-    }
-  });
-
-  // Get expense category by ID
-  app.get("/api/expense-categories/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      const [category] = await db.select().from(expenseCategories).where(eq(expenseCategories.id, id));
-      
-      if (!category) {
-        return res.status(404).json({ message: "Expense category not found" });
-      }
-      
-      res.json(category);
-    } catch (error) {
-      console.error("Failed to fetch expense category:", error);
-      res.status(500).json({ message: "Failed to fetch expense category" });
-    }
-  });
-
-  // Create new expense category
-  app.post("/api/expense-categories", async (req: Request, res: Response) => {
-    try {
-      const { name, description } = req.body;
-      
-      if (!name) {
-        return res.status(400).json({ message: "Category name is required" });
-      }
-      
-      const [category] = await db.insert(expenseCategories).values({
-        name,
-        description
-      }).returning();
-      
-      res.status(201).json(category);
-    } catch (error) {
-      console.error("Failed to create expense category:", error);
-      res.status(500).json({ message: "Failed to create expense category" });
-    }
-  });
-
-  // Update expense category
-  app.put("/api/expense-categories/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      const { name, description } = req.body;
-      
-      if (!name) {
-        return res.status(400).json({ message: "Category name is required" });
-      }
-      
-      const [category] = await db.update(expenseCategories)
-        .set({ name, description })
-        .where(eq(expenseCategories.id, id))
-        .returning();
-      
-      if (!category) {
-        return res.status(404).json({ message: "Expense category not found" });
-      }
-      
-      res.json(category);
-    } catch (error) {
-      console.error("Failed to update expense category:", error);
-      res.status(500).json({ message: "Failed to update expense category" });
-    }
-  });
-
-  // Delete expense category
-  app.delete("/api/expense-categories/:id", async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.params.id);
-      
-      // Check if category is used by any expenses
-      const expensesWithCategory = await db.select().from(expenses).where(eq(expenses.category, String(id))).limit(1);
-      
-      if (expensesWithCategory.length > 0) {
-        return res.status(400).json({ 
-          message: "Cannot delete category because it's used by existing expenses" 
-        });
-      }
-      
-      const [deletedCategory] = await db.delete(expenseCategories)
-        .where(eq(expenseCategories.id, id))
-        .returning();
-      
-      if (!deletedCategory) {
-        return res.status(404).json({ message: "Expense category not found" });
-      }
-      
-      res.json({ message: "Expense category deleted successfully" });
-    } catch (error) {
-      console.error("Failed to delete expense category:", error);
-      res.status(500).json({ message: "Failed to delete expense category" });
     }
   });
 
@@ -2981,99 +3276,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create order
       const order = await storage.createOrder(validatedOrder);
 
-      // ============= INVENTORY VALIDATION AND DEDUCTION =============
-      
-      // Validate stock availability for all items before processing
-      const stockValidation = [];
-      const inventoryDeductions = [];
-      
+      // Process order items
       if (req.body.items && req.body.items.length > 0) {
-        // First, validate stock availability for all items
-        for (const item of req.body.items) {
-          if (item.productId && item.quantity) {
-            const stockCheck = await db
-              .select({
-                warehouseId: warehouseInventory.warehouseId,
-                warehouseName: warehouses.name,
-                quantity: warehouseInventory.quantity,
-                reservedQuantity: warehouseInventory.reservedQuantity,
-                availableQuantity: sql`${warehouseInventory.quantity} - ${warehouseInventory.reservedQuantity}`.mapWith(Number)
-              })
-              .from(warehouseInventory)
-              .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
-              .where(eq(warehouseInventory.productId, item.productId));
-
-            const availableStock = stockCheck.reduce((sum, stock) => sum + stock.availableQuantity, 0);
-            const requiredQuantity = parseFloat(item.quantity);
-            
-            if (availableStock < requiredQuantity) {
-              return res.status(400).json({
-                success: false,
-                message: `Insufficient stock for Product ID ${item.productId}. Required: ${requiredQuantity}, Available: ${availableStock}`,
-                error: 'INSUFFICIENT_STOCK',
-                stockDetails: {
-                  productId: item.productId,
-                  required: requiredQuantity,
-                  available: availableStock,
-                  warehouseDetails: stockCheck
-                }
-              });
-            }
-            
-            stockValidation.push({
-              productId: item.productId,
-              quantity: requiredQuantity,
-              availableStock,
-              warehouseDetails: stockCheck
-            });
-          }
-        }
-        
-        console.log('✅ STOCK VALIDATION PASSED for all order items');
-        
-        // Reserve inventory for all items
-        for (const validation of stockValidation) {
-          let remainingQuantity = validation.quantity;
-          const itemDeductions = [];
-          
-          for (const warehouse of validation.warehouseDetails) {
-            if (remainingQuantity <= 0) break;
-            
-            const deductFromWarehouse = Math.min(remainingQuantity, warehouse.availableQuantity);
-            
-            if (deductFromWarehouse > 0) {
-              await db
-                .update(warehouseInventory)
-                .set({
-                  reservedQuantity: sql`${warehouseInventory.reservedQuantity} + ${deductFromWarehouse}`,
-                  lastUpdated: new Date(),
-                  updatedBy: 1 // TODO: Get from session
-                })
-                .where(and(
-                  eq(warehouseInventory.productId, validation.productId),
-                  eq(warehouseInventory.warehouseId, warehouse.warehouseId)
-                ));
-
-              itemDeductions.push({
-                warehouseId: warehouse.warehouseId,
-                warehouseName: warehouse.warehouseName,
-                quantityDeducted: deductFromWarehouse
-              });
-
-              remainingQuantity -= deductFromWarehouse;
-            }
-          }
-          
-          inventoryDeductions.push({
-            productId: validation.productId,
-            quantity: validation.quantity,
-            deductions: itemDeductions
-          });
-        }
-        
-        console.log('✅ INVENTORY RESERVED successfully for all order items:', inventoryDeductions);
-        
-        // Process order items
         for (const item of req.body.items) {
           const itemData = {
             orderId: order.id,
@@ -3126,97 +3330,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status value" });
       }
 
-      // Get order details and items for inventory management
-      const order = await storage.getOrder(id);
+      const order = await storage.updateOrder(id, { status });
+
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      // Handle inventory deduction confirmation when order is completed
-      if (status === 'completed' && order.status !== 'completed') {
-        const orderItems = await storage.getOrderItems(id);
-        
-        console.log('🔥 ORDER COMPLETED - Confirming inventory deductions for order:', id);
-        
-        for (const item of orderItems) {
-          try {
-            // Get warehouses that have reserved stock for this product
-            const warehouseStock = await db
-              .select({
-                warehouseId: warehouseInventory.warehouseId,
-                warehouseName: warehouses.name,
-                quantity: warehouseInventory.quantity,
-                reservedQuantity: warehouseInventory.reservedQuantity
-              })
-              .from(warehouseInventory)
-              .innerJoin(warehouses, eq(warehouses.id, warehouseInventory.warehouseId))
-              .where(and(
-                eq(warehouseInventory.productId, item.productId),
-                sql`${warehouseInventory.reservedQuantity} > 0`
-              ));
-
-            let remainingQuantity = parseFloat(item.quantity);
-            
-            for (const warehouse of warehouseStock) {
-              if (remainingQuantity <= 0) break;
-              
-              const deductFromWarehouse = Math.min(remainingQuantity, warehouse.reservedQuantity);
-              
-              if (deductFromWarehouse > 0) {
-                // Convert reserved quantity to actual deduction
-                await db
-                  .update(warehouseInventory)
-                  .set({
-                    quantity: sql`${warehouseInventory.quantity} - ${deductFromWarehouse}`,
-                    reservedQuantity: sql`${warehouseInventory.reservedQuantity} - ${deductFromWarehouse}`,
-                    lastUpdated: new Date(),
-                    updatedBy: 1 // TODO: Get from session
-                  })
-                  .where(and(
-                    eq(warehouseInventory.productId, item.productId),
-                    eq(warehouseInventory.warehouseId, warehouse.warehouseId)
-                  ));
-
-                console.log(`✅ INVENTORY CONFIRMED: Product ${item.productId} - ${deductFromWarehouse} units deducted from ${warehouse.warehouseName}`);
-                remainingQuantity -= deductFromWarehouse;
-              }
-            }
-          } catch (inventoryError) {
-            console.error(`Error confirming inventory for product ${item.productId}:`, inventoryError);
-            // Continue with other items even if one fails
-          }
-        }
-      }
-
-      // Handle inventory release when order is cancelled
-      if (status === 'cancelled' && order.status !== 'cancelled') {
-        const orderItems = await storage.getOrderItems(id);
-        
-        console.log('🔥 ORDER CANCELLED - Releasing reserved inventory for order:', id);
-        
-        for (const item of orderItems) {
-          try {
-            // Release all reserved inventory for this product
-            await db
-              .update(warehouseInventory)
-              .set({
-                reservedQuantity: sql`GREATEST(0, ${warehouseInventory.reservedQuantity} - ${parseFloat(item.quantity)})`,
-                lastUpdated: new Date(),
-                updatedBy: 1
-              })
-              .where(eq(warehouseInventory.productId, item.productId));
-
-            console.log(`✅ INVENTORY RELEASED: Product ${item.productId} - ${item.quantity} units released from reservation`);
-          } catch (inventoryError) {
-            console.error(`Error releasing inventory for product ${item.productId}:`, inventoryError);
-          }
-        }
-      }
-
-      // Update order status
-      const updatedOrder = await storage.updateOrder(id, { status });
-
-      res.json(updatedOrder);
+      res.json(order);
     } catch (error) {
       console.error("Error updating order status:", error);
       res.status(500).json({ message: "Failed to update order status" });
@@ -3441,124 +3561,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching semi-finished products:", error);
       res.status(500).json({ message: "Failed to fetch semi-finished products", error: String(error) });
-    }
-  });
-
-  // Refunds API endpoint
-  app.post("/api/refunds", async (req: Request, res: Response) => {
-    try {
-      const {
-        invoiceId,
-        invoiceNumber,
-        customerId,
-        customerName,
-        originalAmount,
-        refundAmount,
-        reason,
-        date,
-        status
-      } = req.body;
-
-      // Validate required fields
-      if (!invoiceId || !refundAmount || !reason) {
-        return res.status(400).json({ 
-          message: "Missing required fields: invoiceId, refundAmount, reason" 
-        });
-      }
-
-      // Insert refund record
-      const refundQuery = `
-        INSERT INTO refunds (
-          invoice_id, invoice_number, customer_id, customer_name,
-          original_amount, refund_amount, reason, date, status, created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-        RETURNING *
-      `;
-
-      const refundResult = await pool.query(refundQuery, [
-        invoiceId,
-        invoiceNumber,
-        customerId,
-        customerName,
-        originalAmount,
-        refundAmount,
-        reason,
-        date,
-        status
-      ]);
-
-      // Create journal entry for refund
-      const journalEntryQuery = `
-        INSERT INTO journal_entries (
-          type, reference_number, description, total_amount, date, created_at
-        ) VALUES ($1, $2, $3, $4, $5, NOW())
-        RETURNING id
-      `;
-
-      const journalResult = await pool.query(journalEntryQuery, [
-        'refund',
-        invoiceNumber,
-        `Refund for Invoice ${invoiceNumber} - ${reason}`,
-        refundAmount,
-        date
-      ]);
-
-      const journalEntryId = journalResult.rows[0].id;
-
-      // Create journal entry lines for refund
-      const journalLineQueries = [
-        // Debit: Sales Returns and Allowances
-        `INSERT INTO journal_entry_lines (
-          journal_entry_id, account_id, account_name, debit, credit, description
-        ) VALUES ($1, 22, 'Sales Returns and Allowances', $2, 0, $3)`,
-        
-        // Credit: Cash or Accounts Receivable
-        `INSERT INTO journal_entry_lines (
-          journal_entry_id, account_id, account_name, debit, credit, description
-        ) VALUES ($1, 1, 'Cash', 0, $2, $3)`
-      ];
-
-      const lineDescription = `Refund for Invoice ${invoiceNumber}`;
-      
-      for (const query of journalLineQueries) {
-        await pool.query(query, [journalEntryId, refundAmount, lineDescription]);
-      }
-
-      res.status(201).json({
-        message: "Refund processed successfully",
-        refund: refundResult.rows[0],
-        journalEntryId
-      });
-
-    } catch (error) {
-      console.error("Error processing refund:", error);
-      res.status(500).json({ 
-        message: "Failed to process refund", 
-        error: String(error) 
-      });
-    }
-  });
-
-  // Get refunds for a specific invoice
-  app.get("/api/refunds/invoice/:invoiceId", async (req: Request, res: Response) => {
-    try {
-      const { invoiceId } = req.params;
-      
-      const query = `
-        SELECT * FROM refunds 
-        WHERE invoice_id = $1 
-        ORDER BY created_at DESC
-      `;
-      
-      const result = await pool.query(query, [invoiceId]);
-      res.json(result.rows);
-      
-    } catch (error) {
-      console.error("Error fetching refunds:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch refunds", 
-        error: String(error) 
-      });
     }
   });
 

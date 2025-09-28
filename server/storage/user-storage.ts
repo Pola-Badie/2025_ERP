@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { BaseStorage } from "./base";
 import { IUserStorage } from "./interfaces";
 import {
@@ -99,7 +98,7 @@ export class UserStorage extends BaseStorage implements IUserStorage {
   }
 
   async getLoginLogs(limit?: number): Promise<LoginLog[]> {
-    let query = this.db.select().from(loginLogs).orderBy(this.desc(loginLogs.timestamp));
+    let query = this.db.select().from(loginLogs).orderBy(this.desc(loginLogs.loginTime));
     if (limit) {
       query = query.limit(limit);
     }

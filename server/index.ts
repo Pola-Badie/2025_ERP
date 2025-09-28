@@ -60,7 +60,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-let PORT = parseInt(process.env.PORT || "5000", 10);
+const PORT = parseInt(process.env.PORT || "5000", 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // 🛡️ Port Conflict Prevention System
@@ -92,49 +92,34 @@ async function killProcessOnPort(port: number): Promise<void> {
   }
 }
 
-async function findAvailablePort(startPort: number): Promise<number> {
-  for (let port = startPort; port <= startPort + 100; port++) {
-    const inUse = await isPortInUse(port);
-    if (!inUse) {
-      return port;
-    }
-  }
-  throw new Error('No available ports found in range');
-}
-
-async function ensurePortAvailable(preferredPort: number): Promise<number> {
+async function ensurePortAvailable(port: number): Promise<void> {
   const maxRetries = 3;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const inUse = await isPortInUse(preferredPort);
+    const inUse = await isPortInUse(port);
     
     if (!inUse) {
-      logger.info(`✅ Port ${preferredPort} is available`);
-      return preferredPort;
+      logger.info(`✅ Port ${port} is available`);
+      return;
     }
     
-    logger.warn(`⚠️ Port ${preferredPort} is in use (attempt ${attempt}/${maxRetries}), attempting cleanup...`);
-    await killProcessOnPort(preferredPort);
+    logger.warn(`⚠️ Port ${port} is in use (attempt ${attempt}/${maxRetries}), attempting cleanup...`);
+    await killProcessOnPort(port);
     
     // Check again after cleanup
-    const stillInUse = await isPortInUse(preferredPort);
+    const stillInUse = await isPortInUse(port);
     if (!stillInUse) {
-      logger.info(`🔧 Successfully freed port ${preferredPort}`);
-      return preferredPort;
+      logger.info(`🔧 Successfully freed port ${port}`);
+      return;
     }
     
     if (attempt === maxRetries) {
-      logger.warn(`⚠️ Cannot free port ${preferredPort}, searching for alternative...`);
-      const alternativePort = await findAvailablePort(preferredPort + 1);
-      logger.info(`🔍 Found alternative port: ${alternativePort}`);
-      return alternativePort;
+      throw new Error(`EADDRINUSE: Port ${port} is still in use after ${maxRetries} cleanup attempts`);
     }
     
     // Wait before next attempt
     await new Promise(resolve => setTimeout(resolve, 2000));
   }
-  
-  throw new Error('Port resolution failed');
 }
 
 // Security middleware
@@ -356,7 +341,7 @@ async function startServer() {
 
     // Start server
     // 🛡️ ENSURE PORT IS AVAILABLE BEFORE STARTING
-    PORT = await ensurePortAvailable(PORT);
+    await ensurePortAvailable(PORT);
     
     const server = app.listen(PORT, "0.0.0.0", async () => {
       logger.info(`🚀 Premier ERP System running on port ${PORT}`);

@@ -10,13 +10,12 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UserPermissionsProvider } from "./contexts/UserPermissionsContext";
 import { PermissionGuard } from "./components/PermissionGuard";
-import { useUserPermissions } from "./contexts/UserPermissionsContext";
-import { Redirect } from "wouter";
 
 // Import components directly to avoid issues with wouter
 import DashboardNew from "@/pages/DashboardNew";
 import Expenses from "@/pages/Expenses";
 import Inventory from "@/pages/Inventory";
+import Reports from "@/pages/ReportsNew";
 import Suppliers from "@/pages/Suppliers";
 import BackupRestore from "@/pages/BackupRestore";
 import Settings from "@/pages/Settings";
@@ -34,62 +33,8 @@ import OrderManagement from "@/pages/OrderManagement";
 import OrdersHistory from "@/pages/OrdersHistory";
 import Notifications from "@/pages/Notifications";
 import Payroll from "@/pages/Payroll";
-import Reports from "@/pages/Reports";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
-
-// Component to redirect to first available module
-function FirstAvailableRoute() {
-  const { permissions, isLoading, hasPermission } = useUserPermissions();
-  const { user } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
-  // Admin users go to dashboard
-  if (user?.role === 'admin') {
-    return <DashboardNew />;
-  }
-
-  // For staff users, redirect to first available module
-  const moduleRoutes = [
-    { permission: 'inventory', route: '/inventory' },
-    { permission: 'accounting', route: '/accounting' },
-    { permission: 'expenses', route: '/expenses' },
-    { permission: 'reports', route: '/reports' },
-    { permission: 'suppliers', route: '/suppliers' },
-    { permission: 'customers', route: '/customers' },
-    { permission: 'procurement', route: '/procurement' },
-    { permission: 'order-management', route: '/order-management' },
-    { permission: 'orders-history', route: '/orders-history' },
-    { permission: 'users', route: '/users' },
-    { permission: 'payroll', route: '/payroll' },
-    { permission: 'settings', route: '/settings' },
-    { permission: 'notifications', route: '/notifications' }
-  ];
-
-  // Find first available module
-  for (const moduleRoute of moduleRoutes) {
-    if (hasPermission(moduleRoute.permission)) {
-      return <Redirect to={moduleRoute.route} />;
-    }
-  }
-
-  // If no permissions found, show access denied
-  return (
-    <div className="flex items-center justify-center min-h-screen p-8">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Restricted</h2>
-        <p className="text-gray-600">You don't have access to any modules. Contact your administrator.</p>
-      </div>
-    </div>
-  );
-}
 
 // Separate component to use auth hook inside AuthProvider
 function AppContent() {
@@ -111,11 +56,12 @@ function AppContent() {
           isAuthenticated ? (
             <MainLayout>
               <Switch>
-                <Route path="/" component={FirstAvailableRoute} />
+                <Route path="/" component={DashboardNew} />
                 <Route path="/inventory" component={Inventory} />
                 <Route path="/expenses" component={Expenses} />
-                <Route path="/accounting" component={Accounting} />
+                <Route path="/sales" component={Reports} />
                 <Route path="/reports" component={Reports} />
+                <Route path="/accounting" component={Accounting} />
                 <Route path="/create-invoice" component={CreateInvoice} />
                 <Route path="/create-quotation" component={CreateQuotation} />
                 <Route path="/invoice-history" component={InvoiceHistory} />

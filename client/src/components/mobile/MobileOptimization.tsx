@@ -10,7 +10,7 @@ import {
   Monitor, 
   Settings,
   Eye,
-  Touchpad,
+  Touch,
   Zap
 } from 'lucide-react';
 
@@ -167,7 +167,7 @@ export default function MobileOptimization() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Touchpad className="h-5 w-5" />
+              <Touch className="h-5 w-5" />
               Quick Actions
             </CardTitle>
           </CardHeader>
@@ -360,7 +360,7 @@ export default function MobileOptimization() {
                     <li>• Small touch targets</li>
                     <li>• Horizontal scrolling</li>
                     <li>• Flash or heavy animations</li>
-                    <li>• Tiny text ( 16px)</li>
+                    <li>• Tiny text (< 16px)</li>
                     <li>• Complex navigation</li>
                     <li>• Pop-ups and overlays</li>
                   </ul>
