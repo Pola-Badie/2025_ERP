@@ -63,6 +63,24 @@ const app = express();
 let PORT = parseInt(process.env.PORT || "5000", 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Debug middleware
+app.use((req, res, next) => {
+  console.log('Request headers:', req.headers);
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  next();
+});
+
+// Replit host bypass middleware - allow all replit domains
+app.use((req, res, next) => {
+  const host = req.get('host') || '';
+  if (host.includes('replit.dev') || host.includes('repl.co') || host.includes('replit.app')) {
+    // For Replit domains, mark as safe and continue
+    req.headers['x-replit-safe'] = 'true';
+  }
+  next();
+});
+
 // 🛡️ Port Conflict Prevention System
 async function isPortInUse(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -137,36 +155,42 @@ async function ensurePortAvailable(preferredPort: number): Promise<number> {
   throw new Error('Port resolution failed');
 }
 
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:", "wss:"],
-      fontSrc: ["'self'", "https:", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
+// Security middleware - disabled in development for Replit compatibility
+if (NODE_ENV === 'production') {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "https:", "wss:"],
+        fontSrc: ["'self'", "https:", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+    crossOriginEmbedderPolicy: false,
+  }));
+}
 
-// Trust proxy for rate limiting - enable for all environments to fix X-Forwarded-For error
-app.set('trust proxy', 1);
+// Trust proxy - CRITICAL for Replit
+app.set('trust proxy', true);
 
-// CORS configuration
+// CORS configuration for Replit
 app.use(cors({
-  origin: NODE_ENV === 'production' 
-    ? ['https://your-domain.com', 'https://www.your-domain.com']
-    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  origin: true,
+  credentials: true
 }));
+
+// Allow all hosts in development
+if (NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    // Accept any host header
+    next();
+  });
+}
 
 // Compression middleware
 app.use(compression());
@@ -175,8 +199,10 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-app.use('/api', apiRateLimit);
+// Rate limiting - disabled in development for Replit compatibility
+if (NODE_ENV === 'production') {
+  app.use('/api', apiRateLimit);
+}
 
 // Input sanitization
 app.use(sanitizeInput);
