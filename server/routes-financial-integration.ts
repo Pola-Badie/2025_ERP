@@ -43,9 +43,9 @@ export function registerFinancialIntegrationRoutes(app: Express) {
             ...sale,
             customerName: customer.name,
             invoiceNumber: sale.invoiceNumber || `INV-${sale.id}`,
-            totalAmount: parseFloat(sale.totalAmount || '0'),
+            totalAmount: parseFloat(sale.subtotal || '0'),
             tax: parseFloat(sale.tax || '0'),
-            grandTotal: parseFloat(sale.grandTotal || '0')
+            grandTotal: parseFloat(sale.total || '0')
           };
           
           // Get user ID from request or session, default to 1 if not available
