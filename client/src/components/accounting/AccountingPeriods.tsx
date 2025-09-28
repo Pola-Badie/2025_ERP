@@ -173,7 +173,7 @@ const AccountingPeriods: React.FC = () => {
   // Get current period
   const getCurrentPeriod = () => {
     const now = new Date();
-    return (periods as AccountingPeriod[]).find((period: AccountingPeriod) => {
+    return periods.find((period: AccountingPeriod) => {
       const startDate = new Date(period.startDate);
       const endDate = new Date(period.endDate);
       return startDate <= now && now <= endDate;
@@ -366,12 +366,12 @@ const AccountingPeriods: React.FC = () => {
               <TableRow>
                 <TableCell colSpan={5} className="text-center">Loading...</TableCell>
               </TableRow>
-            ) : (periods as AccountingPeriod[]).length === 0 ? (
+            ) : periods.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center">No accounting periods found. Create one to get started.</TableCell>
               </TableRow>
             ) : (
-              (periods as AccountingPeriod[]).map((period: AccountingPeriod) => (
+              periods.map((period: AccountingPeriod) => (
                 <TableRow key={period.id}>
                   <TableCell className="font-medium">{period.periodName}</TableCell>
                   <TableCell>{format(new Date(period.startDate), 'MMM dd, yyyy')}</TableCell>

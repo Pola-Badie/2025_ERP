@@ -1,3 +1,4 @@
+
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -27,7 +28,6 @@ import {
   insertExpenseSchema,
   insertWarehouseSchema,
   insertWarehouseInventorySchema,
-  insertExpenseCategorySchema,
   users,
   sales,
   orders,
@@ -44,7 +44,7 @@ import { registerAccountingRoutes } from "./routes-accounting";
 import userRoutes from "./routes-user";
 import multer from "multer";
 import path from "path";
-import { promises as fsPromises } from "fs";
+import { promises as fs } from "fs";
 import * as cron from "node-cron";
 
 // Declare cronJobs object to hold cron job instances
@@ -54,22 +54,8 @@ const cronJobs: {
   monthly?: cron.ScheduledTask;
 } = {};
 
-// Type guard for number validation
-function isValidNumber(value: unknown): value is number {
-  return typeof value === 'number' && !isNaN(value);
-}
-
-// Safe number conversion
-function safeParseNumber(value: unknown): number | null {
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    return isValidNumber(parsed) ? parsed : null;
-  }
-  return isValidNumber(value) ? value : null;
-}
-
 // Setup automatic backups function
-async function setupAutomaticBackups(): Promise<void> {
+async function setupAutomaticBackups() {
   try {
     // Stop existing cron jobs
     Object.values(cronJobs).forEach(job => {
@@ -152,7 +138,7 @@ async function setupAutomaticBackups(): Promise<void> {
 // Set up multer for receipt uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
 try {
-  await fsPromises.mkdir(uploadsDir, { recursive: true });
+  fs.mkdir(uploadsDir, { recursive: true });
 } catch (err) {
   console.error("Error creating uploads directory:", err);
 }
@@ -193,16 +179,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register user management routes
   app.use('/api', userRoutes);
 
-  // Register payment processing routes with proper error handling
+  // Register payment processing routes
   try {
-    const { registerPaymentProcessingRoutes } = await import("./routes-payment-processing");
+    const { registerPaymentProcessingRoutes } = require("./routes-payment-processing");
     registerPaymentProcessingRoutes(app);
-  } catch (err: unknown) {
-    console.log("Payment processing routes not loaded:", err instanceof Error ? err.message : String(err));
+  } catch (err) {
+    console.log("Payment processing routes not loaded:", err);
   }
 
   // Schedule automatic backups
-  await setupAutomaticBackups();
+  setupAutomaticBackups();
 
   // ============= Product Endpoints =============
 
@@ -212,19 +198,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let products;
       const { categoryId, status } = req.query;
 
-      const parsedCategoryId = categoryId ? safeParseNumber(categoryId) : null;
-
-      if (parsedCategoryId !== null) {
-        products = await storage.getProductsByCategory(parsedCategoryId);
-      } else if (status && typeof status === 'string') {
-        products = await storage.getProductsByStatus(status);
+      if (categoryId) {
+        products = await storage.getProductsByCategory(Number(categoryId));
+      } else if (status) {
+        products = await storage.getProductsByStatus(status as string);
       } else {
         products = await storage.getProducts();
       }
 
       res.json(products);
     } catch (error) {
-      console.error("Error fetching products:", error);
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });
@@ -235,7 +218,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const products = await storage.getLowStockProducts();
       res.json(products);
     } catch (error) {
-      console.error("Error fetching low stock products:", error);
       res.status(500).json({ message: "Failed to fetch low stock products" });
     }
   });
@@ -243,13 +225,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get expiring products
   app.get("/api/products/expiring", async (req: Request, res: Response) => {
     try {
-      const days = safeParseNumber(req.query.days) || 30;
+      const days = Number(req.query.days) || 30;
       // Get products that are expiring
       const allProducts = await storage.getProducts();
       const products = allProducts;
       res.json(products);
     } catch (error) {
-      console.error("Error fetching expiring products:", error);
       res.status(500).json({ message: "Failed to fetch expiring products" });
     }
   });
@@ -257,11 +238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get product by ID
   app.get("/api/products/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid product ID" });
-      }
-
+      const id = Number(req.params.id);
       const product = await storage.getProduct(id);
 
       if (!product) {
@@ -270,7 +247,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(product);
     } catch (error) {
-      console.error("Error fetching product:", error);
       res.status(500).json({ message: "Failed to fetch product" });
     }
   });
@@ -446,26 +422,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new product
   app.post("/api/products", upload.single("image"), async (req: Request, res: Response) => {
     try {
-      const categoryId = safeParseNumber(req.body.categoryId);
-      const quantity = safeParseNumber(req.body.quantity);
-      const costPrice = safeParseNumber(req.body.costPrice);
-      const sellingPrice = safeParseNumber(req.body.sellingPrice);
-      const lowStockThreshold = req.body.lowStockThreshold ? safeParseNumber(req.body.lowStockThreshold) : undefined;
-
       const productData = {
         ...req.body,
-        categoryId,
-        quantity,
-        costPrice,
-        sellingPrice,
-        lowStockThreshold,
+        categoryId: typeof req.body.categoryId === 'string' ? Number(req.body.categoryId) : req.body.categoryId,
+        quantity: typeof req.body.quantity === 'string' ? Number(req.body.quantity) : req.body.quantity,
+        costPrice: typeof req.body.costPrice === 'string' ? Number(req.body.costPrice) : req.body.costPrice,
+        sellingPrice: typeof req.body.sellingPrice === 'string' ? Number(req.body.sellingPrice) : req.body.sellingPrice,
+        lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
       };
 
       const validatedData = insertProductSchema.parse(productData);
 
       if (req.file) {
-        (validatedData as any).imagePath = req.file.path;
+        validatedData.imagePath = req.file.path;
       }
 
       const product = await storage.createProduct(validatedData);
@@ -485,35 +455,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update product
   app.patch("/api/products/:id", upload.single("image"), async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid product ID" });
-      }
+      const id = Number(req.params.id);
 
       console.log('🔥 PRODUCT UPDATE - Raw request body:', JSON.stringify(req.body, null, 2));
 
-      const categoryId = req.body.categoryId ? safeParseNumber(req.body.categoryId) : undefined;
-      const costPrice = req.body.costPrice ? safeParseNumber(req.body.costPrice) : undefined;
-      const sellingPrice = req.body.sellingPrice ? safeParseNumber(req.body.sellingPrice) : undefined;
-      const quantity = req.body.quantity ? safeParseNumber(req.body.quantity) : undefined;
-      const lowStockThreshold = req.body.lowStockThreshold ? safeParseNumber(req.body.lowStockThreshold) : undefined;
-
-      const updateData = {
+      const validatedData = updateProductSchema.parse({
         ...req.body,
-        categoryId,
-        costPrice,
-        sellingPrice,
-        quantity,
-        lowStockThreshold,
+        categoryId: typeof req.body.categoryId === 'string' ? Number(req.body.categoryId) : req.body.categoryId,
+        costPrice: typeof req.body.costPrice === 'string' ? Number(req.body.costPrice) : req.body.costPrice,
+        sellingPrice: typeof req.body.sellingPrice === 'string' ? Number(req.body.sellingPrice) : req.body.sellingPrice,
+        quantity: typeof req.body.quantity === 'string' ? Number(req.body.quantity) : req.body.quantity,
+        lowStockThreshold: req.body.lowStockThreshold ? Number(req.body.lowStockThreshold) : undefined,
         expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined
-      };
-
-      const validatedData = updateProductSchema.parse(updateData);
+      });
 
       console.log('🔥 PRODUCT UPDATE - Validated data:', JSON.stringify(validatedData, null, 2));
 
       if (req.file) {
-        (validatedData as any).imagePath = req.file.path;
+        validatedData.imagePath = req.file.path;
       }
 
       const product = await storage.updateProduct(id, validatedData);
@@ -537,11 +496,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete product
   app.delete("/api/products/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid product ID" });
-      }
-
+      const id = Number(req.params.id);
       const success = await storage.deleteProduct(id);
 
       if (!success) {
@@ -550,7 +505,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(204).send();
     } catch (error) {
-      console.error("Error deleting product:", error);
       res.status(500).json({ message: "Failed to delete product" });
     }
   });
@@ -576,11 +530,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Fetching quotations from database...");
 
       const { query, status, date } = req.query;
-      const queryStr = typeof query === 'string' ? query : '';
-      const statusStr = typeof status === 'string' ? status : '';
-      const dateStr = typeof date === 'string' ? date : '';
-
-      const quotations = await storage.getQuotations(queryStr, statusStr, dateStr);
+      const quotations = await storage.getQuotations(
+        (query as string) || '', 
+        (status as string) || '', 
+        (date as string) || ''
+      );
       console.log(`Found ${quotations.length} quotations in database`);
 
       if (quotations.length > 0) {
@@ -684,8 +638,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Apply query filters from frontend
       let filteredQuotations = [...transformedQuotations];
 
-      if (queryStr !== '') {
-        const searchTerm = queryStr.toLowerCase();
+      if (query && query !== '') {
+        const searchTerm = (query as string).toLowerCase();
         filteredQuotations = filteredQuotations.filter(quotation =>
           quotation.quotationNumber.toLowerCase().includes(searchTerm) ||
           quotation.customerName.toLowerCase().includes(searchTerm) ||
@@ -695,15 +649,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
 
-      if (statusStr !== '' && statusStr !== 'all') {
-        filteredQuotations = filteredQuotations.filter(quotation => quotation.status === statusStr);
+      if (status && status !== 'all') {
+        filteredQuotations = filteredQuotations.filter(quotation => quotation.status === status);
       }
 
-      if (dateStr !== 'all') {
+      if (date !== 'all') {
         const now = new Date();
         filteredQuotations = filteredQuotations.filter(q => {
           const quotationDate = new Date(q.date);
-          switch (dateStr) {
+          switch (date) {
             case 'today':
               return quotationDate.toDateString() === now.toDateString();
             case 'week':
@@ -738,11 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get quotation by ID
   app.get("/api/quotations/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid quotation ID" });
-      }
-
+      const id = Number(req.params.id);
       const quotation = await storage.getQuotation(id);
 
       if (!quotation) {
@@ -765,11 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/quotations/:id/status", async (req: Request, res: Response) => {
     try {
       const { status } = req.body;
-      const id = safeParseNumber(req.params.id);
-
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid quotation ID" });
-      }
+      const id = Number(req.params.id);
 
       if (!status) {
         return res.status(400).json({ message: "Status is required" });
@@ -786,11 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete quotation
   app.delete("/api/quotations/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid quotation ID" });
-      }
-
+      const id = Number(req.params.id);
       const success = await storage.deleteQuotation(id);
 
       if (!success) {
@@ -855,22 +797,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const finalQuotationNumber = quotationNumber || `QUO-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
 
-      const parsedCustomerId = customerId ? safeParseNumber(customerId) : null;
-      const parsedSubtotal = safeParseNumber(subtotal) || 0;
-      const parsedTax = safeParseNumber(tax) || 0;
-      const parsedTotal = safeParseNumber(total) || 0;
-
       const quotationData = {
         quotationNumber: finalQuotationNumber,
-        customerId: parsedCustomerId,
+        customerId: customerId || null,
         userId: 1,
         issueDate: date ? new Date(date) : new Date(),
         validUntil: validUntil ? new Date(validUntil) : null,
-        subtotal: parsedSubtotal,
-        taxRate: parsedTax && parsedSubtotal ? (parsedTax / parsedSubtotal * 100) : 0,
-        taxAmount: parsedTax,
-        totalAmount: parsedTotal,
-        grandTotal: parsedTotal,
+        subtotal: parseFloat(subtotal?.toString() || '0'),
+        taxRate: tax && subtotal ? (Number(tax) / Number(subtotal) * 100) : 0,
+        taxAmount: parseFloat(tax?.toString() || '0'),
+        totalAmount: parseFloat(total?.toString() || '0'),
+        grandTotal: parseFloat(total?.toString() || '0'),
         status: status || 'pending',
         notes: notes || null,
       };
@@ -881,18 +818,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (items && items.length > 0) {
         console.log("Saving", items.length, "quotation items");
         for (const item of items) {
-          const parsedQuantity = safeParseNumber(item.quantity) || 1;
-          const parsedUnitPrice = safeParseNumber(item.unitPrice) || 0;
-          const parsedDiscount = safeParseNumber(item.discount) || 0;
-          const parsedItemTotal = safeParseNumber(item.total) || 0;
-
           const itemData = {
             quotationId: quotation.id,
             productId: item.productId || 1,
-            quantity: parsedQuantity,
-            unitPrice: parsedUnitPrice,
-            discount: parsedDiscount,
-            total: parsedItemTotal,
+            quantity: Number(item.quantity) || 1,
+            unitPrice: parseFloat(item.unitPrice?.toString() || '0'),
+            discount: parseFloat(item.discount?.toString() || '0'),
+            total: parseFloat(item.total?.toString() || '0'),
           };
           await storage.createQuotationItem(itemData);
         }
@@ -906,17 +838,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Processing packaging item ${i + 1}:`, packagingItem);
 
           try {
-            const parsedQuantity = safeParseNumber(packagingItem.quantity) || 1;
-            const parsedUnitPrice = safeParseNumber(packagingItem.unitPrice) || 0;
-            const parsedPackagingTotal = safeParseNumber(packagingItem.total) || 0;
-
             const rawPackagingItemData = {
               quotationId: quotation.id,
               type: packagingItem.type || 'container',
               description: packagingItem.description || '',
-              quantity: parsedQuantity,
-              unitPrice: parsedUnitPrice.toString(),
-              total: parsedPackagingTotal.toString(),
+              quantity: Number(packagingItem.quantity) || 1,
+              unitPrice: parseFloat(packagingItem.unitPrice?.toString() || '0').toString(),
+              total: parseFloat(packagingItem.total?.toString() || '0').toString(),
               notes: packagingItem.notes || null
             };
 
@@ -925,7 +853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const validatedPackagingItemData = insertQuotationPackagingItemSchema.parse(rawPackagingItemData);
             console.log(`Validated packaging item data ${i + 1}:`, validatedPackagingItemData);
 
-            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData as any);
+            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData);
             console.log(`Successfully saved packaging item ${i + 1}:`, insertResult);
 
           } catch (validationError) {
@@ -960,8 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers", async (req: Request, res: Response) => {
     try {
       const { query } = req.query;
-      const queryStr = typeof query === 'string' ? query : '';
-      const customers = await storage.getCustomers();
+      const customers = await storage.getCustomers(query as string || '');
       res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -972,11 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get customer by ID
   app.get("/api/customers/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid customer ID" });
-      }
-
+      const id = Number(req.params.id);
       const customer = await storage.getCustomer(id);
       if (!customer) {
         return res.status(404).json({ message: "Customer not found" });
@@ -1006,12 +929,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update customer
   app.patch("/api/customers/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid customer ID" });
-      }
-
-      const validatedData = insertCustomerSchema.parse(req.body);
+      const id = Number(req.params.id);
+      const validatedData = insertCustomerSchema.parse(req.body); // Reusing insert schema for update as fields are similar
       const customer = await storage.updateCustomer(id, validatedData);
       if (!customer) {
         return res.status(404).json({ message: "Customer not found" });
@@ -1029,11 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete customer
   app.delete("/api/customers/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid customer ID" });
-      }
-
+      const id = Number(req.params.id);
       const success = await storage.deleteCustomer(id);
       if (!success) {
         return res.status(404).json({ message: "Customer not found" });
@@ -1050,9 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/sales", async (req: Request, res: Response) => {
     try {
       const { query, date } = req.query;
-      const queryStr = typeof query === 'string' ? query : '';
-      const dateStr = typeof date === 'string' ? date : 'all';
-      const sales = await storage.getSales();
+      const sales = await storage.getSales(query as string || '', date as string || 'all');
       res.json(sales);
     } catch (error) {
       console.error("Error fetching sales:", error);
@@ -1063,11 +976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get sale by ID
   app.get("/api/sales/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid sale ID" });
-      }
-
+      const id = Number(req.params.id);
       const sale = await storage.getSale(id);
       if (!sale) {
         return res.status(404).json({ message: "Sale not found" });
@@ -1110,13 +1019,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update sale
   app.patch("/api/sales/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid sale ID" });
-      }
-
+      const id = Number(req.params.id);
       const { items, ...saleData } = req.body;
-      const validatedSaleData = insertSaleSchema.parse(saleData);
+      const validatedSaleData = insertSaleSchema.parse(saleData); // Reusing insert schema for update
       const sale = await storage.updateSale(id, validatedSaleData);
       if (!sale) {
         return res.status(404).json({ message: "Sale not found" });
@@ -1147,11 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete sale
   app.delete("/api/sales/:id", async (req: Request, res: Response) => {
     try {
-      const id = safeParseNumber(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid sale ID" });
-      }
-
+      const id = Number(req.params.id);
       const success = await storage.deleteSale(id);
       if (!success) {
         return res.status(404).json({ message: "Sale not found" });
@@ -1163,8 +1064,749 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Continue with remaining endpoints...
-  // [Additional endpoints would follow the same pattern with proper validation]
+  // ============= Purchase Order Endpoints =============
+  // Get all purchase orders
+  app.get("/api/purchase-orders", async (req: Request, res: Response) => {
+    try {
+      const { query, status } = req.query;
+      const orders = await storage.getPurchaseOrders(query as string || '', status as string || 'all');
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching purchase orders:", error);
+      res.status(500).json({ message: "Failed to fetch purchase orders" });
+    }
+  });
+
+  // Get purchase order by ID
+  app.get("/api/purchase-orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const order = await storage.getPurchaseOrder(id);
+      if (!order) {
+        return res.status(404).json({ message: "Purchase order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Error fetching purchase order:", error);
+      res.status(500).json({ message: "Failed to fetch purchase order" });
+    }
+  });
+
+  // Create new purchase order
+  app.post("/api/purchase-orders", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertPurchaseOrderSchema.parse(req.body);
+      const order = await storage.createPurchaseOrder(validatedData);
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Error creating purchase order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid purchase order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create purchase order" });
+    }
+  });
+
+  // Update purchase order
+  app.patch("/api/purchase-orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertPurchaseOrderSchema.parse(req.body); // Reusing insert schema for update
+      const order = await storage.updatePurchaseOrder(id, validatedData);
+      if (!order) {
+        return res.status(404).json({ message: "Purchase order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating purchase order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid purchase order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update purchase order" });
+    }
+  });
+
+  // Delete purchase order
+  app.delete("/api/purchase-orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deletePurchaseOrder(id);
+      if (!success) {
+        return res.status(404).json({ message: "Purchase order not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting purchase order:", error);
+      res.status(500).json({ message: "Failed to delete purchase order" });
+    }
+  });
+
+  // ============= Supplier Endpoints =============
+  // Get all suppliers
+  app.get("/api/suppliers", async (req: Request, res: Response) => {
+    try {
+      const { query } = req.query;
+      const suppliers = await storage.getSuppliers(query as string || '');
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+      res.status(500).json({ message: "Failed to fetch suppliers" });
+    }
+  });
+
+  // Get supplier by ID
+  app.get("/api/suppliers/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const supplier = await storage.getSupplier(id);
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error fetching supplier:", error);
+      res.status(500).json({ message: "Failed to fetch supplier" });
+    }
+  });
+
+  // Create new supplier
+  app.post("/api/suppliers", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertSupplierSchema.parse(req.body);
+      const supplier = await storage.createSupplier(validatedData);
+      res.status(201).json(supplier);
+    } catch (error) {
+      console.error("Error creating supplier:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid supplier data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create supplier" });
+    }
+  });
+
+  // Update supplier
+  app.patch("/api/suppliers/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertSupplierSchema.parse(req.body); // Reusing insert schema for update
+      const supplier = await storage.updateSupplier(id, validatedData);
+      if (!supplier) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+      res.json(supplier);
+    } catch (error) {
+      console.error("Error updating supplier:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid supplier data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update supplier" });
+    }
+  });
+
+  // Delete supplier
+  app.delete("/api/suppliers/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteSupplier(id);
+      if (!success) {
+        return res.status(404).json({ message: "Supplier not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      res.status(500).json({ message: "Failed to delete supplier" });
+    }
+  });
+
+  // ============= Product Category Endpoints =============
+  // Get all product categories
+  app.get("/api/product-categories", async (req: Request, res: Response) => {
+    try {
+      const categories = await storage.getProductCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching product categories:", error);
+      res.status(500).json({ message: "Failed to fetch product categories" });
+    }
+  });
+
+  // Create new product category
+  app.post("/api/product-categories", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const category = await storage.createProductCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating product category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create product category" });
+    }
+  });
+
+  // Update product category
+  app.patch("/api/product-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertProductCategorySchema.parse(req.body); // Reusing insert schema for update
+      const category = await storage.updateProductCategory(id, validatedData);
+      if (!category) {
+        return res.status(404).json({ message: "Product category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating product category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update product category" });
+    }
+  });
+
+  // Delete product category
+  app.delete("/api/product-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteProductCategory(id);
+      if (!success) {
+        return res.status(404).json({ message: "Product category not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting product category:", error);
+      res.status(500).json({ message: "Failed to delete product category" });
+    }
+  });
+
+  // ============= System Preference Endpoints =============
+  // Get system preferences
+  app.get("/api/system-preferences", async (req: Request, res: Response) => {
+    try {
+      const preferences = await storage.getSystemPreferences();
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching system preferences:", error);
+      res.status(500).json({ message: "Failed to fetch system preferences" });
+    }
+  });
+
+  // Update system preferences
+  app.patch("/api/system-preferences/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = updateSystemPreferenceSchema.parse(req.body);
+      const preferences = await storage.updateSystemPreference(id, validatedData);
+      if (!preferences) {
+        return res.status(404).json({ message: "System preferences not found" });
+      }
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error updating system preferences:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid system preferences data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update system preferences" });
+    }
+  });
+
+  // ============= Backup Settings Endpoints =============
+  // Get backup settings
+  app.get("/api/backup-settings", async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getBackupSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching backup settings:", error);
+      res.status(500).json({ message: "Failed to fetch backup settings" });
+    }
+  });
+
+  // Update backup settings
+  app.patch("/api/backup-settings", async (req: Request, res: Response) => {
+    try {
+      const validatedData = updateBackupSettingsSchema.parse(req.body);
+      const settings = await storage.updateBackupSettings(validatedData);
+      // Re-setup cron jobs based on new settings
+      setupAutomaticBackups();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating backup settings:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid backup settings data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update backup settings" });
+    }
+  });
+
+  // ============= Log Endpoints =============
+  // Get login logs
+  app.get("/api/login-logs", async (req: Request, res: Response) => {
+    try {
+      const logs = await storage.getLoginLogs();
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching login logs:", error);
+      res.status(500).json({ message: "Failed to fetch login logs" });
+    }
+  });
+
+  // ============= Role Permission Endpoints =============
+  // Get all role permissions
+  app.get("/api/role-permissions", async (req: Request, res: Response) => {
+    try {
+      const permissions = await storage.getRolePermissions();
+      res.json(permissions);
+    } catch (error) {
+      console.error("Error fetching role permissions:", error);
+      res.status(500).json({ message: "Failed to fetch role permissions" });
+    }
+  });
+
+  // Create role permission
+  app.post("/api/role-permissions", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertRolePermissionSchema.parse(req.body);
+      const permission = await storage.createRolePermission(validatedData);
+      res.status(201).json(permission);
+    } catch (error) {
+      console.error("Error creating role permission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid role permission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create role permission" });
+    }
+  });
+
+  // Update role permission
+  app.patch("/api/role-permissions/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertRolePermissionSchema.parse(req.body); // Reusing insert schema for update
+      const permission = await storage.updateRolePermission(id, validatedData);
+      if (!permission) {
+        return res.status(404).json({ message: "Role permission not found" });
+      }
+      res.json(permission);
+    } catch (error) {
+      console.error("Error updating role permission:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid role permission data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update role permission" });
+    }
+  });
+
+  // Delete role permission
+  app.delete("/api/role-permissions/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteRolePermission(id);
+      if (!success) {
+        return res.status(404).json({ message: "Role permission not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting role permission:", error);
+      res.status(500).json({ message: "Failed to delete role permission" });
+    }
+  });
+
+  // ============= Warehouse Endpoints =============
+  // Get all warehouses
+  app.get('/api/warehouses', async (req: Request, res: Response) => {
+    try {
+      const warehouses = await storage.getWarehouses();
+      res.json(warehouses);
+    } catch (error) {
+      console.error('Error fetching warehouses:', error);
+      res.status(500).json({ message: 'Failed to fetch warehouses' });
+    }
+  });
+
+  // Create a new warehouse
+  app.post('/api/warehouses', async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertWarehouseSchema.parse(req.body);
+      const warehouse = await storage.createWarehouse(validatedData);
+      res.status(201).json(warehouse);
+    } catch (error) {
+      console.error('Error creating warehouse:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid warehouse data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create warehouse' });
+    }
+  });
+
+  // Update a warehouse
+  app.patch('/api/warehouses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertWarehouseSchema.parse(req.body); // Reusing insert schema for update
+      const warehouse = await storage.updateWarehouse(id, validatedData);
+      if (!warehouse) {
+        return res.status(404).json({ message: 'Warehouse not found' });
+      }
+      res.json(warehouse);
+    } catch (error) {
+      console.error('Error updating warehouse:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid warehouse data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to update warehouse' });
+    }
+  });
+
+  // Delete a warehouse
+  app.delete('/api/warehouses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteWarehouse(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Warehouse not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting warehouse:', error);
+      res.status(500).json({ message: 'Failed to delete warehouse' });
+    }
+  });
+
+  // ============= Warehouse Inventory Endpoints =============
+  // Get warehouse inventory
+  app.get('/api/warehouse-inventory', async (req: Request, res: Response) => {
+    try {
+      const inventory = await storage.getWarehouseInventory();
+      res.json(inventory);
+    } catch (error) {
+      console.error('Error fetching warehouse inventory:', error);
+      res.status(500).json({ message: 'Failed to fetch warehouse inventory' });
+    }
+  });
+
+  // Add item to warehouse inventory
+  app.post('/api/warehouse-inventory', async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertWarehouseInventorySchema.parse(req.body);
+      const inventoryItem = await storage.addWarehouseInventory(validatedData);
+      res.status(201).json(inventoryItem);
+    } catch (error) {
+      console.error('Error adding to warehouse inventory:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid inventory data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to add to warehouse inventory' });
+    }
+  });
+
+  // Update warehouse inventory item
+  app.patch('/api/warehouse-inventory/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = updateWarehouseInventorySchema.parse(req.body);
+      const inventoryItem = await storage.updateWarehouseInventory(id, validatedData);
+      if (!inventoryItem) {
+        return res.status(404).json({ message: 'Inventory item not found' });
+      }
+      res.json(inventoryItem);
+    } catch (error) {
+      console.error('Error updating warehouse inventory:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid inventory data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to update warehouse inventory' });
+    }
+  });
+
+  // Remove item from warehouse inventory
+  app.delete('/api/warehouse-inventory/:id', async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteWarehouseInventory(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Inventory item not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting from warehouse inventory:', error);
+      res.status(500).json({ message: 'Failed to delete from warehouse inventory' });
+    }
+  });
+
+  // ============= Expense Category Endpoints =============
+  // Get all expense categories
+  app.get("/api/expense-categories", async (req: Request, res: Response) => {
+    try {
+      const categories = await storage.getExpenseCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching expense categories:", error);
+      res.status(500).json({ message: "Failed to fetch expense categories" });
+    }
+  });
+
+  // Create new expense category
+  app.post("/api/expense-categories", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertExpenseCategorySchema.parse(req.body);
+      const category = await storage.createExpenseCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating expense category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid expense category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create expense category" });
+    }
+  });
+
+  // Update expense category
+  app.patch("/api/expense-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertExpenseCategorySchema.parse(req.body); // Reusing insert schema for update
+      const category = await storage.updateExpenseCategory(id, validatedData);
+      if (!category) {
+        return res.status(404).json({ message: "Expense category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating expense category:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid expense category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update expense category" });
+    }
+  });
+
+  // Delete expense category
+  app.delete("/api/expense-categories/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteExpenseCategory(id);
+      if (!success) {
+        return res.status(404).json({ message: "Expense category not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting expense category:", error);
+      res.status(500).json({ message: "Failed to delete expense category" });
+    }
+  });
+
+  // ============= Expense Endpoints =============
+  // Get all expenses
+  app.get("/api/expenses", async (req: Request, res: Response) => {
+    try {
+      const { query, date, categoryId } = req.query;
+      const expenses = await storage.getExpenses(
+        query as string || '',
+        date as string || 'all',
+        categoryId ? Number(categoryId) : undefined
+      );
+      res.json(expenses);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      res.status(500).json({ message: "Failed to fetch expenses" });
+    }
+  });
+
+  // Get expense by ID
+  app.get("/api/expenses/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const expense = await storage.getExpense(id);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      res.json(expense);
+    } catch (error) {
+      console.error("Error fetching expense:", error);
+      res.status(500).json({ message: "Failed to fetch expense" });
+    }
+  });
+
+  // Create new expense
+  app.post("/api/expenses", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertExpenseSchema.parse(req.body);
+      const expense = await storage.createExpense(validatedData);
+      res.status(201).json(expense);
+    } catch (error) {
+      console.error("Error creating expense:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid expense data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+
+  // Update expense
+  app.patch("/api/expenses/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const validatedData = insertExpenseSchema.parse(req.body); // Reusing insert schema for update
+      const expense = await storage.updateExpense(id, validatedData);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      res.json(expense);
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid expense data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+
+  // Delete expense
+  app.delete("/api/expenses/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteExpense(id);
+      if (!success) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      res.status(500).json({ message: "Failed to delete expense" });
+    }
+  });
+
+  // ============= Order Endpoints =============
+  // Get all orders
+  app.get("/api/orders", async (req: Request, res: Response) => {
+    try {
+      const { query, status, date } = req.query;
+      const orders = await storage.getOrders(
+        query as string || '',
+        status as string || 'all',
+        date as string || 'all'
+      );
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Get order by ID
+  app.get("/api/orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const order = await storage.getOrder(id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      // Fetch order items and fees
+      const orderItems = await storage.getOrderItems(id);
+      const orderFees = await storage.getOrderFees(id);
+      res.json({ ...order, items: orderItems, fees: orderFees });
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Create new order
+  app.post("/api/orders", async (req: Request, res: Response) => {
+    try {
+      const { items, fees, ...orderData } = req.body;
+      const validatedOrderData = insertOrderSchema.parse(orderData);
+      const order = await storage.createOrder(validatedOrderData);
+
+      if (items && items.length > 0) {
+        for (const item of items) {
+          const validatedItemData = insertOrderItemSchema.parse({
+            ...item,
+            orderId: order.id,
+          });
+          await storage.createOrderItem(validatedItemData);
+        }
+      }
+
+      if (fees && fees.length > 0) {
+        for (const fee of fees) {
+          const validatedFeeData = insertOrderFeeSchema.parse({
+            ...fee,
+            orderId: order.id,
+          });
+          await storage.createOrderFee(validatedFeeData);
+        }
+      }
+
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Error creating order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  // Update order
+  app.patch("/api/orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { items, fees, ...orderData } = req.body;
+      const validatedOrderData = insertOrderSchema.parse(orderData); // Reusing insert schema for update
+      const order = await storage.updateOrder(id, validatedOrderData);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Update order items
+      if (items) {
+        await storage.deleteOrderItems(id);
+        for (const item of items) {
+          const validatedItemData = insertOrderItemSchema.parse({
+            ...item,
+            orderId: id,
+          });
+          await storage.createOrderItem(validatedItemData);
+        }
+      }
+
+      // Update order fees
+      if (fees) {
+        await storage.deleteOrderFees(id);
+        for (const fee of fees) {
+          const validatedFeeData = insertOrderFeeSchema.parse({
+            ...fee,
+            orderId: id,
+          });
+          await storage.createOrderFee(validatedFeeData);
+        }
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Error updating order:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update order" });
+    }
+  });
+
+  // Delete order
+  app.delete("/api/orders/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteOrder(id);
+      if (!success) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      res.status(500).json({ message: "Failed to delete order" });
+    }
+  });
 
   return httpServer;
 }

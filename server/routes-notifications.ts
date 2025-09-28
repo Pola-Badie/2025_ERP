@@ -1,14 +1,14 @@
+
 import express from 'express';
 import nodemailer from 'nodemailer';
 import { db } from './db.js';
 import { users, products, customers } from '../shared/schema.js';
-import { eq, lte } from 'drizzle-orm';
 
 const router = express.Router();
 
-// Email transporter configuration - FIXED: createTransport instead of createTransporter
+// Email transporter configuration
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  return nodemailer.createTransporter({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: false,
@@ -20,7 +20,7 @@ const createTransporter = () => {
 };
 
 // Email templates
-const EMAIL_TEMPLATES: Record<string, { subject: string; html: string }> = {
+const EMAIL_TEMPLATES = {
   lowStock: {
     subject: 'Low Stock Alert - {{productName}}',
     html: `
@@ -113,7 +113,7 @@ router.get('/notifications/templates', async (req, res) => {
   try {
     const templates = Object.keys(EMAIL_TEMPLATES).map(key => ({
       id: key,
-      name: key.replace(/([A-Z])/g, ' $1').replace(/^./, (str: string) => str.toUpperCase()),
+      name: key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
       subject: EMAIL_TEMPLATES[key].subject,
       type: 'alert',
       variables: extractVariables(EMAIL_TEMPLATES[key].html)
@@ -265,32 +265,17 @@ router.get('/notifications/history', async (req, res) => {
 router.post('/notifications/check-alerts', async (req, res) => {
   try {
     const transporter = createTransporter();
-    const alerts: Array<{ type: string; product: string; subject: string; html: string }> = [];
+    const alerts = [];
 
-    // Check for low stock - FIXED: Using proper Drizzle query syntax
+    // Check for low stock
     const lowStockProducts = await db
       .select()
       .from(products)
-      .execute();
+      .where('currentStock <= minStockLevel');
 
-    // Filter low stock products - using 'quantity' which is the actual field name
-    const filteredLowStock = lowStockProducts.filter((product: any) => {
-      const currentStock = product.quantity || 0;
-      const minLevel = 10; // Default minimum stock level since it's not in schema
-      return currentStock <= minLevel;
-    });
-
-    for (const product of filteredLowStock) {
-      const productData = {
-        productName: product.name,
-        sku: product.sku || 'N/A',
-        currentStock: (product.quantity || 0).toString(),
-        minLevel: '10', // Default value since minStockLevel isn't in schema
-        warehouse: 'Main' // Default value since warehouse isn't in schema
-      };
-
-      const subject = replaceVariables(EMAIL_TEMPLATES.lowStock.subject, productData);
-      const html = replaceVariables(EMAIL_TEMPLATES.lowStock.html, productData);
+    for (const product of lowStockProducts) {
+      const subject = replaceVariables(EMAIL_TEMPLATES.lowStock.subject, product);
+      const html = replaceVariables(EMAIL_TEMPLATES.lowStock.html, product);
 
       alerts.push({
         type: 'lowStock',
@@ -301,31 +286,20 @@ router.post('/notifications/check-alerts', async (req, res) => {
     }
 
     // Check for expiring products
-    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const allProducts = await db
+    const expiringProducts = await db
       .select()
       .from(products)
-      .execute();
-
-    // Filter expiring products
-    const expiringProducts = allProducts.filter((product: any) => {
-      if (!product.expiryDate) return false;
-      const expiryDate = new Date(product.expiryDate);
-      return expiryDate <= thirtyDaysFromNow;
-    });
+      .where('expiryDate <= ?', [new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)]); // 30 days
 
     for (const product of expiringProducts) {
-      const expiryDate = new Date(product.expiryDate);
       const daysUntilExpiry = Math.ceil(
-        (expiryDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+        (new Date(product.expiryDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
       );
 
       const data = {
-        productName: product.name,
-        sku: product.sku || 'N/A',
-        currentStock: (product.quantity || 0).toString(),
+        ...product,
         daysUntilExpiry: daysUntilExpiry.toString(),
-        expiryDate: expiryDate.toLocaleDateString()
+        expiryDate: new Date(product.expiryDate).toLocaleDateString()
       };
 
       const subject = replaceVariables(EMAIL_TEMPLATES.expiry.subject, data);
@@ -351,7 +325,7 @@ function extractVariables(template: string): string[] {
   return [...new Set(matches.map(match => match.replace(/[{}]/g, '')))];
 }
 
-function replaceVariables(template: string, data: Record<string, any>): string {
+function replaceVariables(template: string, data: any): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
     return data[key] || match;
   });

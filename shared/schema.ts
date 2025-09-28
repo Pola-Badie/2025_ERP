@@ -156,7 +156,6 @@ export const purchaseOrders = pgTable("purchase_orders", {
   expectedDeliveryDate: date("expected_delivery_date"),
   status: text("status").default("pending").notNull(), // 'pending', 'received', 'cancelled'
   totalAmount: numeric("total_amount").notNull(),
-  description: text("description"),
   notes: text("notes"),
   transportationType: text("transportation_type").default("standard"),
   transportationCost: numeric("transportation_cost").default("0"),
@@ -587,7 +586,6 @@ export const insertPurchaseOrderSchema = createInsertSchema(purchaseOrders).pick
   expectedDeliveryDate: true,
   status: true,
   totalAmount: true,
-  description: true,
   notes: true,
 });
 

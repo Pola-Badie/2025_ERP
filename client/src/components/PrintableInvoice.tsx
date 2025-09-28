@@ -68,10 +68,9 @@ export const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
       <div className={`flex ${isRTL ? 'flex-row-reverse' : ''} justify-between items-start mb-8 border-b pb-6`}>
         <div className={`company-info flex ${isRTL ? 'flex-row-reverse' : ''} items-start gap-4`}>
           <img 
-            src={''} 
+            src={logoPath} 
             alt="Premier ERP Logo" 
             className="w-16 h-16 object-contain"
-            style={{ display: 'none' }}
           />
           <div className={isRTL ? 'text-right' : ''}>
             <h1 className="text-3xl font-bold text-blue-600 mb-2">Premier ERP</h1>

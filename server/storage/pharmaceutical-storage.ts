@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { BaseStorage } from "./base";
 import { IPharmaceuticalStorage } from "./interfaces";
 import {

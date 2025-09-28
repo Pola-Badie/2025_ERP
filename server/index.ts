@@ -137,42 +137,36 @@ async function ensurePortAvailable(preferredPort: number): Promise<number> {
   throw new Error('Port resolution failed');
 }
 
-// Security middleware - disabled in development for Replit compatibility
-if (NODE_ENV === 'production') {
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "https:", "wss:"],
-        fontSrc: ["'self'", "https:", "data:"],
-        objectSrc: ["'none'"],
-        mediaSrc: ["'self'"],
-        frameSrc: ["'none'"],
-      },
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:", "wss:"],
+      fontSrc: ["'self'", "https:", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
     },
-    crossOriginEmbedderPolicy: false,
-  }));
-}
-
-// Trust proxy - CRITICAL for Replit
-app.set('trust proxy', true);
-
-// CORS configuration for Replit
-app.use(cors({
-  origin: true,
-  credentials: true
+  },
+  crossOriginEmbedderPolicy: false,
 }));
 
-// Allow all hosts in development
-if (NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    // Accept any host header
-    next();
-  });
-}
+// Trust proxy for rate limiting - enable for all environments to fix X-Forwarded-For error
+app.set('trust proxy', 1);
+
+// CORS configuration
+app.use(cors({
+  origin: NODE_ENV === 'production' 
+    ? ['https://your-domain.com', 'https://www.your-domain.com']
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
 
 // Compression middleware
 app.use(compression());
@@ -181,18 +175,38 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting - disabled in development for Replit compatibility
-if (NODE_ENV === 'production') {
-  app.use('/api', apiRateLimit);
-}
+// Rate limiting
+app.use('/api', apiRateLimit);
 
-// Minimal logging for development
-if (NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
+// Input sanitization
+app.use(sanitizeInput);
+
+// Memory monitoring - disabled to reduce overhead
+// app.use(memoryMonitor);
+
+// Request timeout (30 seconds)
+app.use(requestTimeout(30000));
+
+// Request logging
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    const logLevel = res.statusCode >= 400 ? 'warn' : 'info';
+
+    logger.log(logLevel, {
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      duration: `${duration}ms`,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+    });
   });
-}
+
+  next();
+});
 
 // Static file serving
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
