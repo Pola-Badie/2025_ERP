@@ -17,7 +17,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Configure email transporter
 const createEmailTransporter = () => {
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: 587,
     secure: false,
@@ -299,7 +299,7 @@ export function setupWebSocket(server: any) {
                   lowStockCount: lowStock[0]?.count || 0,
                   expiringCount: expiring[0]?.count || 0,
                   totalOrders: orderCount[0]?.count || 0,
-                  totalRevenue: parseFloat(revenue[0]?.total || '0'),
+                  totalRevenue: Number(revenue[0]?.total) || 0,
                   systemHealth: 'healthy',
                   lastUpdated: new Date().toISOString(),
                   recentActivities: activities
