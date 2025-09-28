@@ -1602,3 +1602,5 @@ export function registerAccountingRoutes(app: Express) {
     }
   });
 }
+
+export default registerAccountingRoutes;

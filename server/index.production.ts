@@ -6,15 +6,15 @@ import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { db } from './db.js';
-import { registerRoutes } from './routes-new.js';
-import { registerAccountingRoutes } from './routes-accounting.js';
-import { registerOrderRoutes } from './routes-orders.js';
-import { registerReportsRoutes } from './routes-reports.js';
-import { registerCustomerPaymentRoutes } from './routes-customer-payments.js';
-import { registerETARoutes } from './routes-eta.js';
-import { registerChemicalRoutes } from './routes-chemical.js';
-import { registerUserRoutes } from './routes-user.js';
-import { registerRealtimeRoutes } from './routes-realtime.js';
+import routes from './routes-new.js';
+import accountingRoutes from './routes-accounting.js';
+import ordersRoutes from './routes-orders.js';
+import reportsRoutes from './routes-reports.js';
+import customerPaymentsRoutes from './routes-customer-payments.js';
+import etaRoutes from './routes-eta.js';
+import chemicalRoutes from './routes-chemical.js';
+import userRoutes from './routes-user.js';
+import realtimeRoutes from './routes-realtime.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,15 +60,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Register API routes
-registerRoutes(app);
-registerAccountingRoutes(app);
-registerOrderRoutes(app);
-registerReportsRoutes(app);
-registerCustomerPaymentRoutes(app);
-registerETARoutes(app);
-registerChemicalRoutes(app);
-registerUserRoutes(app);
-registerRealtimeRoutes(app);
+app.use('/api', routes);
+accountingRoutes(app);
+ordersRoutes(app);
+reportsRoutes(app);
+customerPaymentsRoutes(app);
+etaRoutes(app);
+chemicalRoutes(app);
+userRoutes(app);
+realtimeRoutes(app);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../client/dist')));
