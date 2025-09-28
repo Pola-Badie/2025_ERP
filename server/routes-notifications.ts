@@ -323,7 +323,7 @@ router.post('/notifications/check-alerts', async (req, res) => {
       const data = {
         productName: product.name,
         sku: product.sku || 'N/A',
-        currentStock: (product.currentStock || product.quantity || 0).toString(),
+        currentStock: (product.quantity || 0).toString(),
         daysUntilExpiry: daysUntilExpiry.toString(),
         expiryDate: expiryDate.toLocaleDateString()
       };
