@@ -1,48 +1,27 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      '@': path.resolve(__dirname, './src'),
     },
-  },
-  root: path.resolve(import.meta.dirname, "client"),
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist"),
-    emptyOutDir: true,
   },
   server: {
-    host: "0.0.0.0",
+    host: true,
     port: 5173,
     hmr: {
-      overlay: false,
-      port: 5173,
+      host: 'localhost'
     },
-    proxy: {
-      "/api": {
-        target: "http://0.0.0.0:5000",
-        changeOrigin: true,
-        secure: false,
-        timeout: 30000,
-        ws: true,
-      },
-    },
+    allowedHosts: ['.replit.dev', '.repl.co', '.replit.app', 'localhost', '127.0.0.1']
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+  },
+  optimizeDeps: {
+    exclude: ['lucide-react'],
   },
 });
