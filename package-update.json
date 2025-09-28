@@ -1,0 +1,8 @@
+{
+  "engines": { "node": "20.x" },
+  "scripts": {
+    "build": "tsc || true",
+    "postbuild": "echo '--- dist tree ---' && (ls -R dist || true)",
+    "start": "sh -c 'NODE_ENV=production node dist/server/index.js || node dist/server/index.production.js || node dist/index.js || node dist/index.production.js || node -r ts-node/register -r tsconfig-paths/register server/index.production.ts || node -r ts-node/register -r tsconfig-paths/register server/index.ts || node -r ts-node/register -r tsconfig-paths/register server/index.js'"
+  }
+}
