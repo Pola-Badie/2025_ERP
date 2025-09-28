@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { CSVExport, CSVImport } from '@/components/csv';

@@ -113,6 +113,18 @@ router.post('/auth/login', async (req, res) => {
     console.log('User found:', user ? 'Yes' : 'No');
     
     if (!user) {
+      // Log failed login attempt
+      try {
+        await storage.createLoginLog({
+          userId: 0, // Unknown user
+          timestamp: new Date(),
+          ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent') || 'unknown',
+          success: false
+        });
+      } catch (logError) {
+        console.error('Failed to create failed login log:', logError);
+      }
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -120,11 +132,17 @@ router.post('/auth/login', async (req, res) => {
     let isValidPassword = false;
     
     console.log('Checking password for user:', user.username);
-    console.log('Password format:', user.password.includes('.') ? 'hashed' : 'plain');
+    const isHashed = user.password?.includes('.');
+    console.log('Password format:', isHashed ? 'hashed' : 'plain');
     
-    // For now, use simple plain text comparison since existing users have plain passwords
-    isValidPassword = password === user.password;
-    
+    // Handle both plain and hashed passwords
+    if (isHashed) {
+      // Use scrypt comparison for hashed passwords
+      isValidPassword = await comparePasswords(password, user.password);
+    } else {
+      // Plain text comparison for legacy passwords
+      isValidPassword = password === user.password;
+    }
     console.log('Password valid:', isValidPassword);
     
     if (!isValidPassword) {
@@ -134,6 +152,21 @@ router.post('/auth/login', async (req, res) => {
     // Check if user is active
     if (user.status !== 'active') {
       return res.status(401).json({ error: 'Account is not active' });
+    }
+
+    // Create login log entry
+    try {
+      await storage.createLoginLog({
+        userId: user.id,
+        timestamp: new Date(),
+        ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+        userAgent: req.get('User-Agent') || 'unknown',
+        success: true
+      });
+      console.log('Login log created for user:', user.username);
+    } catch (logError) {
+      console.error('Failed to create login log:', logError);
+      // Don't fail the login if logging fails
     }
 
     // Remove sensitive information
@@ -331,7 +364,7 @@ router.post('/users/:id/permissions', async (req, res) => {
       permission = await storage.updateUserPermission(
         id, 
         permissionData.moduleName, 
-        permissionData.accessGranted
+        permissionData.accessGranted ?? false
       );
     } else {
       // Create new permission
@@ -377,6 +410,184 @@ router.delete('/users/:id/permissions/:module', async (req, res) => {
   } catch (error) {
     console.error('Error deleting user permission:', error);
     res.status(500).json({ error: 'Failed to delete user permission' });
+  }
+});
+
+// Bulk create users endpoint (for initial setup)
+router.post('/users/bulk-create', async (req, res) => {
+  try {
+    console.log('🚀 Starting bulk user creation via API...');
+    
+    // Define the users to create with their module permissions
+    const usersToCreate = [
+      {
+        name: "Michael Morgan",
+        username: "michael.morgan",
+        email: "michael.morgan@morganerp.com",
+        password: "Password123!",
+        role: "admin",
+        modules: ["dashboard", "inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations", "accounting", "reports", "backup", "customers", "users"] // ALL modules
+      },
+      {
+        name: "Mark Morgan", 
+        username: "mark.morgan",
+        email: "mark.morgan@morganerp.com",
+        password: "Password123!",
+        role: "admin",
+        modules: ["dashboard", "inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations", "accounting", "reports", "backup", "customers", "users"] // ALL modules
+      },
+      {
+        name: "Maged Yousef",
+        username: "maged.yousef",
+        email: "maged.yousef@morganerp.com", 
+        password: "Password123!",
+        role: "manager",
+        modules: ["inventory", "orders", "procurement", "suppliers", "expenses", "invoices", "quotations"]
+      },
+      {
+        name: "Hany Fakhry",
+        username: "hany.fakhry",
+        email: "hany.fakhry@morganerp.com",
+        password: "Password123!",
+        role: "manager",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Yousef Abd El Malak",
+        username: "yousef.abdelmalak", 
+        email: "yousef.abdelmalak@morganerp.com",
+        password: "Password123!",
+        role: "manager",
+        modules: ["dashboard", "reports", "inventory", "orders", "procurement", "suppliers", "accounting", "expenses", "invoices", "quotations", "backup"]
+      },
+      {
+        name: "Anna Simon",
+        username: "anna.simon",
+        email: "anna.simon@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Bassem",
+        username: "bassem",
+        email: "bassem@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory", "orders", "suppliers", "invoices", "quotations"]
+      },
+      {
+        name: "Mohamed Mahmoud",
+        username: "mohamed.mahmoud",
+        email: "mohamed.mahmoud@morganerp.com",
+        password: "Password123!",
+        role: "staff",
+        modules: ["inventory"] // inventory only
+      }
+    ];
+
+    const createdUsers = [];
+    
+    for (const userData of usersToCreate) {
+      console.log(`📝 Creating user: ${userData.name} (${userData.username})`);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        console.log(`⚠️  User ${userData.username} already exists, skipping...`);
+        createdUsers.push({
+          ...existingUser,
+          status: 'already_exists',
+          modules: userData.modules
+        });
+        continue;
+      }
+      
+      // Create the user
+      const newUser = await storage.createUser({
+        name: userData.name,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password, // Will be hashed by the storage layer
+        role: userData.role,
+        status: 'active'
+      });
+      
+      console.log(`✅ Created user: ${newUser.name} (ID: ${newUser.id})`);
+      
+      // Create permissions for each module
+      const grantedModules = [];
+      for (const moduleName of userData.modules) {
+        try {
+          await storage.createUserPermission({
+            userId: newUser.id,
+            moduleName: moduleName,
+            accessGranted: true
+          });
+          grantedModules.push(moduleName);
+          console.log(`  ✅ Granted access to module: ${moduleName}`);
+        } catch (permError) {
+          console.log(`  ⚠️  Permission for ${moduleName} may already exist`);
+        }
+      }
+      
+      createdUsers.push({
+        ...newUser,
+        status: 'created',
+        modules: grantedModules
+      });
+      
+      console.log(`🎉 Completed setup for ${userData.name}`);
+    }
+    
+    console.log('🎊 Bulk user creation completed successfully!');
+    
+    res.json({
+      message: 'Bulk user creation completed successfully',
+      users: createdUsers.map(user => {
+        const { password, ...sanitizedUser } = user;
+        return sanitizedUser;
+      })
+    });
+    
+  } catch (error) {
+    console.error('❌ Error during bulk user creation:', error);
+    res.status(500).json({ 
+      error: 'Failed to create users', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Reset user password (admin only)
+router.post('/users/:id/reset-password', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { newPassword } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await hashPassword(newPassword);
+    
+    // Update user password
+    const updatedUser = await storage.updateUser(userId, { password: hashedPassword });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log(`Password reset for user ${userId}`);
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 

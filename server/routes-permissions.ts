@@ -24,6 +24,12 @@ const bulkPermissionSchema = z.object({
   }))
 });
 
+const fieldPermissionSchema = z.object({
+  module: z.string().min(1),
+  entityType: z.string().min(1),
+  fieldName: z.string().min(1)
+});
+
 /**
  * REAL-TIME PERMISSION CHECK API
  * Check if user has permission for specific resource/action
@@ -84,6 +90,41 @@ router.get('/permissions/users/:userId/complete', async (req, res) => {
       success: false, 
       error: 'Failed to fetch permissions' 
     });
+  }
+});
+
+/**
+ * CHECK FIELD PERMISSION
+ * Check if user can view/edit specific field
+ */
+router.post('/permissions/users/:userId/field-check', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const { module, entityType, fieldName } = fieldPermissionSchema.parse(req.body);
+    
+    const canView = await permissionService.checkFieldPermission(userId, module, entityType, fieldName, 'view');
+    const canEdit = await permissionService.checkFieldPermission(userId, module, entityType, fieldName, 'edit');
+    
+    res.json({
+      success: true,
+      data: {
+        canView,
+        canEdit,
+        field: fieldName,
+        module,
+        entityType
+      }
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    console.error('Error checking field permission:', error);
+    res.status(500).json({ error: 'Failed to check field permission' });
   }
 });
 
