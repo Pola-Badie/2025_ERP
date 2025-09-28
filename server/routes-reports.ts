@@ -327,7 +327,7 @@ router.get('/aging-analysis', async (req, res) => {
   }
 });
 
-// Sales Analysis Report - NEW
+// Sales Analysis Report - FIXED VERSION
 router.get('/sales-analysis', async (req, res) => {
   try {
     const { month } = req.query;
@@ -348,44 +348,46 @@ router.get('/sales-analysis', async (req, res) => {
       endDateStr = endDate.toISOString().split('T')[0];
     }
 
-    // Get sales data from sales_invoices and sales_invoice_lines
+    // FIXED: Using correct table names 'sales' and 'sale_items' instead of 'sales_invoices' and 'sales_invoice_lines'
     const salesData = await db.execute(sql`
       SELECT 
-        DATE_TRUNC('month', si.invoice_date) as month,
-        SUM(si.total_amount) as revenue,
-        COUNT(DISTINCT si.id) as transactions,
-        COUNT(DISTINCT si.customer_id) as unique_customers,
-        AVG(si.total_amount) as avg_order_value
-      FROM sales_invoices si
-      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
-      GROUP BY DATE_TRUNC('month', si.invoice_date)
+        DATE_TRUNC('month', s.date) as month,
+        SUM(CAST(s.grand_total AS NUMERIC)) as revenue,
+        COUNT(DISTINCT s.id) as transactions,
+        COUNT(DISTINCT s.customer_id) as unique_customers,
+        AVG(CAST(s.grand_total AS NUMERIC)) as avg_order_value
+      FROM sales s
+      WHERE s.date >= ${startDateStr} AND s.date <= ${endDateStr}
+      GROUP BY DATE_TRUNC('month', s.date)
       ORDER BY month DESC
       LIMIT 6
     `);
 
-    // Get category breakdown
+    // Get category breakdown - FIXED table names
     const categoryData = await db.execute(sql`
       SELECT 
-        sil.grade,
+        p.grade,
         COUNT(*) as count,
-        SUM(sil.line_total) as total
-      FROM sales_invoice_lines sil
-      JOIN sales_invoices si ON sil.invoice_id = si.id
-      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
-      GROUP BY sil.grade
+        SUM(CAST(si.total AS NUMERIC)) as total
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      JOIN products p ON si.product_id = p.id
+      WHERE s.date >= ${startDateStr} AND s.date <= ${endDateStr}
+      GROUP BY p.grade
     `);
 
-    // Get top selling products
+    // Get top selling products - FIXED table names
     const topProducts = await db.execute(sql`
       SELECT 
-        sil.product_name,
-        sil.grade,
-        SUM(sil.quantity) as total_quantity,
-        SUM(sil.line_total) as total_revenue
-      FROM sales_invoice_lines sil
-      JOIN sales_invoices si ON sil.invoice_id = si.id
-      WHERE si.invoice_date >= ${startDateStr} AND si.invoice_date <= ${endDateStr}
-      GROUP BY sil.product_name, sil.grade
+        p.name as product_name,
+        p.grade,
+        SUM(si.quantity) as total_quantity,
+        SUM(CAST(si.total AS NUMERIC)) as total_revenue
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      JOIN products p ON si.product_id = p.id
+      WHERE s.date >= ${startDateStr} AND s.date <= ${endDateStr}
+      GROUP BY p.name, p.grade
       ORDER BY total_revenue DESC
       LIMIT 10
     `);
