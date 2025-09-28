@@ -465,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertProductSchema.parse(productData);
 
       if (req.file) {
-        validatedData.imagePath = req.file.path;
+        (validatedData as any).imagePath = req.file.path;
       }
 
       const product = await storage.createProduct(validatedData);
@@ -513,7 +513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('🔥 PRODUCT UPDATE - Validated data:', JSON.stringify(validatedData, null, 2));
 
       if (req.file) {
-        validatedData.imagePath = req.file.path;
+        (validatedData as any).imagePath = req.file.path;
       }
 
       const product = await storage.updateProduct(id, validatedData);
@@ -925,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const validatedPackagingItemData = insertQuotationPackagingItemSchema.parse(rawPackagingItemData);
             console.log(`Validated packaging item data ${i + 1}:`, validatedPackagingItemData);
 
-            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData);
+            const insertResult = await db.insert(quotationPackagingItems).values(validatedPackagingItemData as any);
             console.log(`Successfully saved packaging item ${i + 1}:`, insertResult);
 
           } catch (validationError) {
@@ -961,7 +961,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { query } = req.query;
       const queryStr = typeof query === 'string' ? query : '';
-      const customers = await storage.getCustomers(queryStr);
+      const customers = await storage.getCustomers();
       res.json(customers);
     } catch (error) {
       console.error("Error fetching customers:", error);
@@ -1052,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { query, date } = req.query;
       const queryStr = typeof query === 'string' ? query : '';
       const dateStr = typeof date === 'string' ? date : 'all';
-      const sales = await storage.getSales(queryStr, dateStr);
+      const sales = await storage.getSales();
       res.json(sales);
     } catch (error) {
       console.error("Error fetching sales:", error);
