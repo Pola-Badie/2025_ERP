@@ -6,15 +6,15 @@ import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { db } from './db.js';
-import routes from './routes-new.js';
-import accountingRoutes from './routes-accounting.js';
-import ordersRoutes from './routes-orders.js';
-import reportsRoutes from './routes-reports.js';
-import customerPaymentsRoutes from './routes-customer-payments.js';
-import etaRoutes from './routes-eta.js';
-import chemicalRoutes from './routes-chemical.js';
-import userRoutes from './routes-user.js';
-import realtimeRoutes from './routes-realtime.js';
+import { registerRoutes } from './routes-new.js';
+import { registerAccountingRoutes } from './routes-accounting.js';
+import { registerOrderRoutes } from './routes-orders.js';
+import { registerReportsRoutes } from './routes-reports.js';
+import { registerCustomerPaymentRoutes } from './routes-customer-payments.js';
+import { registerETARoutes } from './routes-eta.js';
+import { registerChemicalRoutes } from './routes-chemical.js';
+import { registerUserRoutes } from './routes-user.js';
+import { registerRealtimeRoutes } from './routes-realtime.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,16 +59,16 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API routes
-app.use('/api', routes);
-app.use('/api', accountingRoutes);
-app.use('/api', ordersRoutes);
-app.use('/api', reportsRoutes);
-app.use('/api', customerPaymentsRoutes);
-app.use('/api', etaRoutes);
-app.use('/api', chemicalRoutes);
-app.use('/api', userRoutes);
-app.use('/api', realtimeRoutes);
+// Register API routes
+registerRoutes(app);
+registerAccountingRoutes(app);
+registerOrderRoutes(app);
+registerReportsRoutes(app);
+registerCustomerPaymentRoutes(app);
+registerETARoutes(app);
+registerChemicalRoutes(app);
+registerUserRoutes(app);
+registerRealtimeRoutes(app);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../client/dist')));
