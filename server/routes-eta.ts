@@ -472,3 +472,5 @@ export function registerETARoutes(app: Express) {
 
   console.log('✅ ETA routes registered successfully');
 }
+
+export default registerETARoutes;

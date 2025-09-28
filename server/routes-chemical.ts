@@ -90,3 +90,5 @@ export function registerChemicalRoutes(app: Express) {
     }
   });
 }
+
+export default registerChemicalRoutes;

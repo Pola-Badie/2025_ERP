@@ -210,3 +210,5 @@ export function registerCustomerPaymentRoutes(app: Express) {
     }
   });
 }
+
+export default registerCustomerPaymentRoutes;

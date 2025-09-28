@@ -4444,3 +4444,5 @@ async function setupAutomaticBackups() {
     console.error('Failed to setup automatic backups:', error);
   }
 }
+
+export default registerRoutes;

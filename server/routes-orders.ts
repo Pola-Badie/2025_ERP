@@ -1410,3 +1410,5 @@ export function registerOrderRoutes(app: Express) {
     }
   });
 }
+
+export default registerOrderRoutes;
